@@ -8,6 +8,7 @@ public record CanonicalPokemonState(
         String speciesId,
         int level,
         Set<String> capabilities,
+        String heldItemInstanceId,
         long revision
 ) {
     public CanonicalPokemonState {
@@ -24,8 +25,22 @@ public record CanonicalPokemonState(
             throw new IllegalArgumentException("level must be >= 1");
         }
         capabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
+        heldItemInstanceId = heldItemInstanceId == null || heldItemInstanceId.isBlank()
+                ? null
+                : heldItemInstanceId;
         if (revision < 0) {
             throw new IllegalArgumentException("revision must be >= 0");
         }
+    }
+
+    public CanonicalPokemonState(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, null, revision);
     }
 }
