@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.battlecore;
 
 import io.autoptu.cobblemon.authority.BattleAuthoritySnapshot;
+import io.autoptu.cobblemon.authority.BattlePokemonSnapshot;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -18,7 +19,8 @@ public record BattleCoreBootstrapProjection(
         String reservationId,
         long rngSeed,
         Set<String> combatantIds,
-        Map<String, Set<String>> statusesByCombatant
+        Map<String, Set<String>> statusesByCombatant,
+        Map<String, BattleCombatantStatProjection> combatStatsByCombatant
 ) {
     public BattleCoreBootstrapProjection {
         if (reservationId == null || reservationId.isBlank()) {
@@ -54,14 +56,46 @@ public record BattleCoreBootstrapProjection(
             }
         }
 
+        LinkedHashMap<String, BattleCombatantStatProjection> copiedCombatStats = new LinkedHashMap<>();
+        if (combatStatsByCombatant != null) {
+            for (Map.Entry<String, BattleCombatantStatProjection> entry : combatStatsByCombatant.entrySet()) {
+                String combatantId = entry.getKey();
+                if (combatantId == null || combatantId.isBlank()) {
+                    throw new IllegalArgumentException("combatantId must not be blank");
+                }
+                if (!copiedCombatantIds.contains(combatantId)) {
+                    throw new IllegalArgumentException("combat stat state references unknown combatant: " + combatantId);
+                }
+                BattleCombatantStatProjection stats = entry.getValue();
+                if (stats == null) {
+                    throw new IllegalArgumentException("combat stats must not be null for combatant: " + combatantId);
+                }
+                if (!combatantId.equals(stats.combatantId())) {
+                    throw new IllegalArgumentException("combat stat projection id mismatch for combatant: " + combatantId);
+                }
+                copiedCombatStats.put(combatantId, stats);
+            }
+        }
+
         combatantIds = Set.copyOf(copiedCombatantIds);
         statusesByCombatant = Map.copyOf(copiedStatuses);
+        combatStatsByCombatant = Map.copyOf(copiedCombatStats);
+    }
+
+    /** Compatibility constructor retained for pre-stat bootstrap callers. */
+    public BattleCoreBootstrapProjection(
+            String reservationId,
+            long rngSeed,
+            Set<String> combatantIds,
+            Map<String, Set<String>> statusesByCombatant
+    ) {
+        this(reservationId, rngSeed, combatantIds, statusesByCombatant, Map.of());
     }
 
     /**
      * Compatibility constructor for callers that only projected status-bearing
      * combatants. New bootstrap code should use {@link #from(BattleAuthoritySnapshot)}
-     * so clean combatants are included in the authoritative roster as well.
+     * so clean combatants and canonical combat stats are included as well.
      */
     public BattleCoreBootstrapProjection(
             String reservationId,
@@ -72,7 +106,8 @@ public record BattleCoreBootstrapProjection(
                 reservationId,
                 rngSeed,
                 statusesByCombatant == null ? Set.of() : statusesByCombatant.keySet(),
-                statusesByCombatant
+                statusesByCombatant,
+                Map.of()
         );
     }
 
@@ -82,11 +117,21 @@ public record BattleCoreBootstrapProjection(
         }
 
         BattleCoreCombatantRosterProjection roster = BattleCoreCombatantRosterProjection.from(snapshot);
+        LinkedHashMap<String, BattleCombatantStatProjection> combatStats = new LinkedHashMap<>();
+        for (BattlePokemonSnapshot pokemon : snapshot.roster()) {
+            BattleCombatantStatProjection projection = BattleCombatantStatProjection.from(pokemon);
+            combatStats.put(projection.combatantId(), projection);
+        }
+        if (!combatStats.keySet().equals(roster.combatantIds())) {
+            throw new IllegalArgumentException("canonical combat stats must cover the authoritative roster exactly");
+        }
+
         return new BattleCoreBootstrapProjection(
                 snapshot.reservationId(),
                 snapshot.rngSeed(),
                 roster.combatantIds(),
-                roster.statusesByCombatant()
+                roster.statusesByCombatant(),
+                combatStats
         );
     }
 }
