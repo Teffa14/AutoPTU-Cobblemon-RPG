@@ -2,7 +2,7 @@ package io.autoptu.cobblemon.authority;
 
 import java.util.Set;
 
-public record CanonicalPokemonState(
+public record BattlePokemonSnapshot(
         String pokemonId,
         String ownerPlayerId,
         String speciesId,
@@ -11,7 +11,7 @@ public record CanonicalPokemonState(
         String heldItemInstanceId,
         long revision
 ) {
-    public CanonicalPokemonState {
+    public BattlePokemonSnapshot {
         if (pokemonId == null || pokemonId.isBlank()) {
             throw new IllegalArgumentException("pokemonId must not be blank");
         }
@@ -33,14 +33,14 @@ public record CanonicalPokemonState(
         }
     }
 
-    public CanonicalPokemonState(
-            String pokemonId,
-            String ownerPlayerId,
-            String speciesId,
-            int level,
-            Set<String> capabilities,
-            long revision
-    ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, null, revision);
+    public static BattlePokemonSnapshot from(CanonicalPokemonState state) {
+        return new BattlePokemonSnapshot(
+                state.pokemonId(),
+                state.ownerPlayerId(),
+                state.speciesId(),
+                state.level(),
+                state.capabilities(),
+                state.heldItemInstanceId(),
+                state.revision());
     }
 }
