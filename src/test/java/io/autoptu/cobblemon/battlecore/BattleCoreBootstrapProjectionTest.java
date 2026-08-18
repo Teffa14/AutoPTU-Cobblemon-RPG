@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.BattleAuthoritySnapshot;
 import io.autoptu.cobblemon.authority.BattlePokemonSnapshot;
 import io.autoptu.cobblemon.authority.BattleTrainerSnapshot;
 import io.autoptu.cobblemon.authority.CanonicalCombatStats;
+import io.autoptu.cobblemon.authority.CanonicalHealth;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashSet;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleCoreBootstrapProjectionTest {
     @Test
-    void projectsAuthoritativeRosterStatusesStatsAndSeed() {
+    void projectsAuthoritativeRosterStatusesStatsHealthAndSeed() {
         BattleAuthoritySnapshot snapshot = new BattleAuthoritySnapshot(
                 "battle-42",
                 "player-1",
@@ -30,6 +31,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of("Overland 5"),
                                 Set.of("burned"),
                                 new CanonicalCombatStats(74, 63, 92, 71, 85),
+                                new CanonicalHealth(45, 60),
                                 null,
                                 12),
                         new BattlePokemonSnapshot(
@@ -40,6 +42,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of("Swim 5"),
                                 Set.of(),
                                 new CanonicalCombatStats(58, 76, 65, 72, 50),
+                                new CanonicalHealth(51, 55),
                                 null,
                                 7)
                 ),
@@ -56,6 +59,9 @@ class BattleCoreBootstrapProjectionTest {
         assertEquals(Set.of("pokemon-burned", "pokemon-clean"), projection.combatStatsByCombatant().keySet());
         assertEquals(92, projection.combatStatsByCombatant().get("pokemon-burned").spatk());
         assertEquals(76, projection.combatStatsByCombatant().get("pokemon-clean").def());
+        assertEquals(Set.of("pokemon-burned", "pokemon-clean"), projection.healthByCombatant().keySet());
+        assertEquals(45, projection.healthByCombatant().get("pokemon-burned").currentHp());
+        assertEquals(55, projection.healthByCombatant().get("pokemon-clean").maxHp());
     }
 
     @Test
@@ -73,6 +79,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of(),
                                 Set.of(),
                                 new CanonicalCombatStats(10, 10, 10, 10, 10),
+                                new CanonicalHealth(20, 20),
                                 null,
                                 1),
                         new BattlePokemonSnapshot(
@@ -81,6 +88,9 @@ class BattleCoreBootstrapProjectionTest {
                                 "pikachu",
                                 10,
                                 Set.of(),
+                                Set.of(),
+                                null,
+                                new CanonicalHealth(18, 18),
                                 null,
                                 2)
                 ),
@@ -96,6 +106,33 @@ class BattleCoreBootstrapProjectionTest {
                 "canonical combat stats are required for combatant: pokemon-legacy",
                 error.getMessage()
         );
+    }
+
+    @Test
+    void canonicalBootstrapRejectsAnyRosterMemberWithoutFrozenHealth() {
+        BattleAuthoritySnapshot snapshot = new BattleAuthoritySnapshot(
+                "battle-missing-health",
+                "player-1",
+                new BattleTrainerSnapshot("player-1", Set.of(), Map.of(), 1),
+                List.of(new BattlePokemonSnapshot(
+                        "pokemon-legacy",
+                        "player-1",
+                        "pikachu",
+                        10,
+                        Set.of(),
+                        Set.of(),
+                        new CanonicalCombatStats(10, 10, 10, 10, 10),
+                        null,
+                        2)),
+                List.of(),
+                10L
+        );
+
+        IllegalArgumentException error = assertThrows(
+                IllegalArgumentException.class,
+                () -> BattleCoreBootstrapProjection.from(snapshot)
+        );
+        assertEquals("canonical health is required for combatant: pokemon-legacy", error.getMessage());
     }
 
     @Test
@@ -117,6 +154,7 @@ class BattleCoreBootstrapProjectionTest {
         assertEquals(Set.of("pokemon-1"), projection.combatantIds());
         assertEquals(Set.of("burned"), projection.statusesByCombatant().get("pokemon-1"));
         assertEquals(stats, projection.combatStatsByCombatant().get("pokemon-1"));
+        assertEquals(Map.of(), projection.healthByCombatant());
         assertThrows(UnsupportedOperationException.class, () -> projection.combatantIds().add("pokemon-2"));
         assertThrows(
                 UnsupportedOperationException.class,
@@ -157,6 +195,17 @@ class BattleCoreBootstrapProjectionTest {
                         )
                 )
         );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new BattleCoreBootstrapProjection(
+                        "battle-44",
+                        1L,
+                        Set.of("pokemon-1"),
+                        Map.of(),
+                        Map.of(),
+                        Map.of("client-injected", new BattleCombatantHealthProjection("client-injected", 1, 1))
+                )
+        );
     }
 
     @Test
@@ -177,6 +226,21 @@ class BattleCoreBootstrapProjectionTest {
     }
 
     @Test
+    void rejectsHealthProjectionWhoseEmbeddedIdDoesNotMatchMapKey() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new BattleCoreBootstrapProjection(
+                        "battle-47",
+                        3L,
+                        Set.of("pokemon-1"),
+                        Map.of(),
+                        Map.of(),
+                        Map.of("pokemon-1", new BattleCombatantHealthProjection("pokemon-other", 1, 1))
+                )
+        );
+    }
+
+    @Test
     void compatibilityConstructorTreatsStatusKeysAsItsLegacyRoster() {
         BattleCoreBootstrapProjection projection = new BattleCoreBootstrapProjection(
                 "battle-45",
@@ -187,5 +251,6 @@ class BattleCoreBootstrapProjectionTest {
         assertEquals(Set.of("pokemon-1"), projection.combatantIds());
         assertEquals(Map.of("pokemon-1", Set.of("paralyzed")), projection.statusesByCombatant());
         assertEquals(Map.of(), projection.combatStatsByCombatant());
+        assertEquals(Map.of(), projection.healthByCombatant());
     }
 }
