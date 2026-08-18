@@ -10,6 +10,7 @@ public record BattlePokemonSnapshot(
         Set<String> capabilities,
         Set<String> statuses,
         CanonicalCombatStats combatStats,
+        CanonicalHealth health,
         String heldItemInstanceId,
         long revision
 ) {
@@ -43,10 +44,24 @@ public record BattlePokemonSnapshot(
             int level,
             Set<String> capabilities,
             Set<String> statuses,
+            CanonicalCombatStats combatStats,
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, null, heldItemInstanceId, revision);
+    }
+
+    public BattlePokemonSnapshot(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            Set<String> statuses,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, null, heldItemInstanceId, revision);
     }
 
     public BattlePokemonSnapshot(
@@ -59,7 +74,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, null, heldItemInstanceId, revision);
     }
 
     public BattlePokemonSnapshot(
@@ -71,7 +86,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, heldItemInstanceId, revision);
     }
 
     public static BattlePokemonSnapshot from(CanonicalPokemonState state) {
@@ -83,6 +98,7 @@ public record BattlePokemonSnapshot(
                 state.capabilities(),
                 state.statuses(),
                 state.combatStats(),
+                state.health(),
                 state.heldItemInstanceId(),
                 state.revision());
     }
