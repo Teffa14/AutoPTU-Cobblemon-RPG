@@ -9,6 +9,7 @@ public record BattlePokemonSnapshot(
         int level,
         Set<String> capabilities,
         Set<String> statuses,
+        CanonicalCombatStats combatStats,
         String heldItemInstanceId,
         long revision
 ) {
@@ -41,10 +42,36 @@ public record BattlePokemonSnapshot(
             String speciesId,
             int level,
             Set<String> capabilities,
+            Set<String> statuses,
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, heldItemInstanceId, revision);
+    }
+
+    public BattlePokemonSnapshot(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            CanonicalCombatStats combatStats,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, heldItemInstanceId, revision);
+    }
+
+    public BattlePokemonSnapshot(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, heldItemInstanceId, revision);
     }
 
     public static BattlePokemonSnapshot from(CanonicalPokemonState state) {
@@ -55,6 +82,7 @@ public record BattlePokemonSnapshot(
                 state.level(),
                 state.capabilities(),
                 state.statuses(),
+                state.combatStats(),
                 state.heldItemInstanceId(),
                 state.revision());
     }
