@@ -11,6 +11,7 @@ public record CanonicalPokemonState(
         int level,
         Set<String> capabilities,
         Set<String> statuses,
+        CanonicalCombatStats combatStats,
         String heldItemInstanceId,
         long revision
 ) {
@@ -43,10 +44,36 @@ public record CanonicalPokemonState(
             String speciesId,
             int level,
             Set<String> capabilities,
+            Set<String> statuses,
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, heldItemInstanceId, revision);
+    }
+
+    public CanonicalPokemonState(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            CanonicalCombatStats combatStats,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, heldItemInstanceId, revision);
+    }
+
+    public CanonicalPokemonState(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, heldItemInstanceId, revision);
     }
 
     public CanonicalPokemonState(
@@ -57,7 +84,7 @@ public record CanonicalPokemonState(
             Set<String> capabilities,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, revision);
     }
 
     private static Set<String> normalizeStatuses(Set<String> values) {
