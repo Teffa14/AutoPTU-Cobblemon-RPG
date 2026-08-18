@@ -5,6 +5,7 @@ import io.autoptu.cobblemon.authority.BattlePokemonSnapshot;
 import io.autoptu.cobblemon.authority.BattleTrainerSnapshot;
 import io.autoptu.cobblemon.authority.CanonicalCombatStats;
 import io.autoptu.cobblemon.authority.CanonicalHealth;
+import io.autoptu.cobblemon.authority.CanonicalMoveLoadout;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -79,6 +80,7 @@ class BattleCoreBootstrapAffiliationTest {
                 Set.of(),
                 new CanonicalCombatStats(10, 10, 10, 10, 10),
                 new CanonicalHealth(currentHp, 20),
+                new CanonicalMoveLoadout(List.of("Tackle")),
                 null,
                 1L
         );

@@ -5,6 +5,7 @@ import io.autoptu.cobblemon.authority.BattlePokemonSnapshot;
 import io.autoptu.cobblemon.authority.BattleTrainerSnapshot;
 import io.autoptu.cobblemon.authority.CanonicalCombatStats;
 import io.autoptu.cobblemon.authority.CanonicalHealth;
+import io.autoptu.cobblemon.authority.CanonicalMoveLoadout;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashSet;
@@ -32,6 +33,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of("burned"),
                                 new CanonicalCombatStats(74, 63, 92, 71, 85),
                                 new CanonicalHealth(45, 60),
+                                new CanonicalMoveLoadout(List.of("Ember", "Growl")),
                                 null,
                                 12),
                         new BattlePokemonSnapshot(
@@ -43,6 +45,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of(),
                                 new CanonicalCombatStats(58, 76, 65, 72, 50),
                                 new CanonicalHealth(51, 55),
+                                new CanonicalMoveLoadout(List.of("Water Gun")),
                                 null,
                                 7)
                 ),
@@ -62,6 +65,7 @@ class BattleCoreBootstrapProjectionTest {
         assertEquals(Set.of("pokemon-burned", "pokemon-clean"), projection.healthByCombatant().keySet());
         assertEquals(45, projection.healthByCombatant().get("pokemon-burned").currentHp());
         assertEquals(55, projection.healthByCombatant().get("pokemon-clean").maxHp());
+        assertEquals(List.of("Ember", "Growl"), projection.moveLoadoutsByCombatant().get("pokemon-burned").moveIds());
     }
 
     @Test
@@ -80,6 +84,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of(),
                                 new CanonicalCombatStats(10, 10, 10, 10, 10),
                                 new CanonicalHealth(20, 20),
+                                new CanonicalMoveLoadout(List.of("Tackle")),
                                 null,
                                 1),
                         new BattlePokemonSnapshot(
@@ -91,6 +96,7 @@ class BattleCoreBootstrapProjectionTest {
                                 Set.of(),
                                 null,
                                 new CanonicalHealth(18, 18),
+                                new CanonicalMoveLoadout(List.of("Thunder Shock")),
                                 null,
                                 2)
                 ),
@@ -252,5 +258,6 @@ class BattleCoreBootstrapProjectionTest {
         assertEquals(Map.of("pokemon-1", Set.of("paralyzed")), projection.statusesByCombatant());
         assertEquals(Map.of(), projection.combatStatsByCombatant());
         assertEquals(Map.of(), projection.healthByCombatant());
+        assertEquals(Map.of(), projection.moveLoadoutsByCombatant());
     }
 }
