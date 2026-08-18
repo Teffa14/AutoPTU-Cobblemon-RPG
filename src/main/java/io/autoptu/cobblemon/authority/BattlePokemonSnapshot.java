@@ -8,6 +8,7 @@ public record BattlePokemonSnapshot(
         String speciesId,
         int level,
         Set<String> capabilities,
+        Set<String> statuses,
         String heldItemInstanceId,
         long revision
 ) {
@@ -25,12 +26,25 @@ public record BattlePokemonSnapshot(
             throw new IllegalArgumentException("level must be >= 1");
         }
         capabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
+        statuses = statuses == null ? Set.of() : Set.copyOf(statuses);
         heldItemInstanceId = heldItemInstanceId == null || heldItemInstanceId.isBlank()
                 ? null
                 : heldItemInstanceId;
         if (revision < 0) {
             throw new IllegalArgumentException("revision must be >= 0");
         }
+    }
+
+    public BattlePokemonSnapshot(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), heldItemInstanceId, revision);
     }
 
     public static BattlePokemonSnapshot from(CanonicalPokemonState state) {
@@ -40,6 +54,7 @@ public record BattlePokemonSnapshot(
                 state.speciesId(),
                 state.level(),
                 state.capabilities(),
+                state.statuses(),
                 state.heldItemInstanceId(),
                 state.revision());
     }
