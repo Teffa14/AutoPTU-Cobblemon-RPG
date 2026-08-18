@@ -1,9 +1,9 @@
 package io.autoptu.cobblemon.battlecore;
 
 import io.autoptu.cobblemon.authority.BattleAuthoritySnapshot;
-import io.autoptu.cobblemon.authority.BattlePokemonSnapshot;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,11 +17,24 @@ import java.util.Set;
 public record BattleCoreBootstrapProjection(
         String reservationId,
         long rngSeed,
+        Set<String> combatantIds,
         Map<String, Set<String>> statusesByCombatant
 ) {
     public BattleCoreBootstrapProjection {
         if (reservationId == null || reservationId.isBlank()) {
             throw new IllegalArgumentException("reservationId must not be blank");
+        }
+
+        LinkedHashSet<String> copiedCombatantIds = new LinkedHashSet<>();
+        if (combatantIds != null) {
+            for (String combatantId : combatantIds) {
+                if (combatantId == null || combatantId.isBlank()) {
+                    throw new IllegalArgumentException("combatantId must not be blank");
+                }
+                if (!copiedCombatantIds.add(combatantId)) {
+                    throw new IllegalArgumentException("duplicate combatantId: " + combatantId);
+                }
+            }
         }
 
         LinkedHashMap<String, Set<String>> copiedStatuses = new LinkedHashMap<>();
@@ -31,13 +44,36 @@ public record BattleCoreBootstrapProjection(
                 if (combatantId == null || combatantId.isBlank()) {
                     throw new IllegalArgumentException("combatantId must not be blank");
                 }
+                if (!copiedCombatantIds.contains(combatantId)) {
+                    throw new IllegalArgumentException("status state references unknown combatant: " + combatantId);
+                }
                 Set<String> statuses = entry.getValue() == null ? Set.of() : Set.copyOf(entry.getValue());
                 if (!statuses.isEmpty()) {
                     copiedStatuses.put(combatantId, statuses);
                 }
             }
         }
+
+        combatantIds = Set.copyOf(copiedCombatantIds);
         statusesByCombatant = Map.copyOf(copiedStatuses);
+    }
+
+    /**
+     * Compatibility constructor for callers that only projected status-bearing
+     * combatants. New bootstrap code should use {@link #from(BattleAuthoritySnapshot)}
+     * so clean combatants are included in the authoritative roster as well.
+     */
+    public BattleCoreBootstrapProjection(
+            String reservationId,
+            long rngSeed,
+            Map<String, Set<String>> statusesByCombatant
+    ) {
+        this(
+                reservationId,
+                rngSeed,
+                statusesByCombatant == null ? Set.of() : statusesByCombatant.keySet(),
+                statusesByCombatant
+        );
     }
 
     public static BattleCoreBootstrapProjection from(BattleAuthoritySnapshot snapshot) {
@@ -45,13 +81,12 @@ public record BattleCoreBootstrapProjection(
             throw new IllegalArgumentException("snapshot is required");
         }
 
-        LinkedHashMap<String, Set<String>> statuses = new LinkedHashMap<>();
-        for (BattlePokemonSnapshot pokemon : snapshot.roster()) {
-            if (!pokemon.statuses().isEmpty()) {
-                statuses.put(pokemon.pokemonId(), pokemon.statuses());
-            }
-        }
-
-        return new BattleCoreBootstrapProjection(snapshot.reservationId(), snapshot.rngSeed(), statuses);
+        BattleCoreCombatantRosterProjection roster = BattleCoreCombatantRosterProjection.from(snapshot);
+        return new BattleCoreBootstrapProjection(
+                snapshot.reservationId(),
+                snapshot.rngSeed(),
+                roster.combatantIds(),
+                roster.statusesByCombatant()
+        );
     }
 }
