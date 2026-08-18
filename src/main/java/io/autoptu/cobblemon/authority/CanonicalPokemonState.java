@@ -12,6 +12,7 @@ public record CanonicalPokemonState(
         Set<String> capabilities,
         Set<String> statuses,
         CanonicalCombatStats combatStats,
+        CanonicalHealth health,
         String heldItemInstanceId,
         long revision
 ) {
@@ -45,10 +46,24 @@ public record CanonicalPokemonState(
             int level,
             Set<String> capabilities,
             Set<String> statuses,
+            CanonicalCombatStats combatStats,
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, null, heldItemInstanceId, revision);
+    }
+
+    public CanonicalPokemonState(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            Set<String> statuses,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, null, heldItemInstanceId, revision);
     }
 
     public CanonicalPokemonState(
@@ -61,7 +76,7 @@ public record CanonicalPokemonState(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, null, heldItemInstanceId, revision);
     }
 
     public CanonicalPokemonState(
@@ -73,7 +88,7 @@ public record CanonicalPokemonState(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, heldItemInstanceId, revision);
     }
 
     public CanonicalPokemonState(
@@ -84,7 +99,7 @@ public record CanonicalPokemonState(
             Set<String> capabilities,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, null, revision);
     }
 
     private static Set<String> normalizeStatuses(Set<String> values) {
