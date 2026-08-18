@@ -21,7 +21,8 @@ public record BattleCoreBootstrapProjection(
         Set<String> combatantIds,
         Map<String, Set<String>> statusesByCombatant,
         Map<String, BattleCombatantStatProjection> combatStatsByCombatant,
-        Map<String, BattleCombatantHealthProjection> healthByCombatant
+        Map<String, BattleCombatantHealthProjection> healthByCombatant,
+        Map<String, BattleCombatantAffiliationProjection> affiliationByCombatant
 ) {
     public BattleCoreBootstrapProjection {
         if (reservationId == null || reservationId.isBlank()) {
@@ -99,10 +100,43 @@ public record BattleCoreBootstrapProjection(
             }
         }
 
+        LinkedHashMap<String, BattleCombatantAffiliationProjection> copiedAffiliations = new LinkedHashMap<>();
+        if (affiliationByCombatant != null) {
+            for (Map.Entry<String, BattleCombatantAffiliationProjection> entry : affiliationByCombatant.entrySet()) {
+                String combatantId = entry.getKey();
+                if (combatantId == null || combatantId.isBlank()) {
+                    throw new IllegalArgumentException("combatantId must not be blank");
+                }
+                if (!copiedCombatantIds.contains(combatantId)) {
+                    throw new IllegalArgumentException("affiliation state references unknown combatant: " + combatantId);
+                }
+                BattleCombatantAffiliationProjection affiliation = entry.getValue();
+                if (affiliation == null) {
+                    throw new IllegalArgumentException("affiliation must not be null for combatant: " + combatantId);
+                }
+                if (!combatantId.equals(affiliation.combatantId())) {
+                    throw new IllegalArgumentException("affiliation projection id mismatch for combatant: " + combatantId);
+                }
+                copiedAffiliations.put(combatantId, affiliation);
+            }
+        }
+
         combatantIds = Set.copyOf(copiedCombatantIds);
         statusesByCombatant = Map.copyOf(copiedStatuses);
         combatStatsByCombatant = Map.copyOf(copiedCombatStats);
         healthByCombatant = Map.copyOf(copiedHealth);
+        affiliationByCombatant = Map.copyOf(copiedAffiliations);
+    }
+
+    public BattleCoreBootstrapProjection(
+            String reservationId,
+            long rngSeed,
+            Set<String> combatantIds,
+            Map<String, Set<String>> statusesByCombatant,
+            Map<String, BattleCombatantStatProjection> combatStatsByCombatant,
+            Map<String, BattleCombatantHealthProjection> healthByCombatant
+    ) {
+        this(reservationId, rngSeed, combatantIds, statusesByCombatant, combatStatsByCombatant, healthByCombatant, Map.of());
     }
 
     public BattleCoreBootstrapProjection(
@@ -112,7 +146,7 @@ public record BattleCoreBootstrapProjection(
             Map<String, Set<String>> statusesByCombatant,
             Map<String, BattleCombatantStatProjection> combatStatsByCombatant
     ) {
-        this(reservationId, rngSeed, combatantIds, statusesByCombatant, combatStatsByCombatant, Map.of());
+        this(reservationId, rngSeed, combatantIds, statusesByCombatant, combatStatsByCombatant, Map.of(), Map.of());
     }
 
     /** Compatibility constructor retained for pre-stat bootstrap callers. */
@@ -122,7 +156,7 @@ public record BattleCoreBootstrapProjection(
             Set<String> combatantIds,
             Map<String, Set<String>> statusesByCombatant
     ) {
-        this(reservationId, rngSeed, combatantIds, statusesByCombatant, Map.of(), Map.of());
+        this(reservationId, rngSeed, combatantIds, statusesByCombatant, Map.of(), Map.of(), Map.of());
     }
 
     /**
@@ -140,6 +174,7 @@ public record BattleCoreBootstrapProjection(
                 statusesByCombatant == null ? Set.of() : statusesByCombatant.keySet(),
                 statusesByCombatant,
                 Map.of(),
+                Map.of(),
                 Map.of()
         );
     }
@@ -152,17 +187,23 @@ public record BattleCoreBootstrapProjection(
         BattleCoreCombatantRosterProjection roster = BattleCoreCombatantRosterProjection.from(snapshot);
         LinkedHashMap<String, BattleCombatantStatProjection> combatStats = new LinkedHashMap<>();
         LinkedHashMap<String, BattleCombatantHealthProjection> health = new LinkedHashMap<>();
+        LinkedHashMap<String, BattleCombatantAffiliationProjection> affiliations = new LinkedHashMap<>();
         for (BattlePokemonSnapshot pokemon : snapshot.roster()) {
             BattleCombatantStatProjection statProjection = BattleCombatantStatProjection.from(pokemon);
             combatStats.put(statProjection.combatantId(), statProjection);
             BattleCombatantHealthProjection healthProjection = BattleCombatantHealthProjection.from(pokemon);
             health.put(healthProjection.combatantId(), healthProjection);
+            BattleCombatantAffiliationProjection affiliationProjection = BattleCombatantAffiliationProjection.from(pokemon);
+            affiliations.put(affiliationProjection.combatantId(), affiliationProjection);
         }
         if (!combatStats.keySet().equals(roster.combatantIds())) {
             throw new IllegalArgumentException("canonical combat stats must cover the authoritative roster exactly");
         }
         if (!health.keySet().equals(roster.combatantIds())) {
             throw new IllegalArgumentException("canonical health must cover the authoritative roster exactly");
+        }
+        if (!affiliations.keySet().equals(roster.combatantIds())) {
+            throw new IllegalArgumentException("canonical affiliation must cover the authoritative roster exactly");
         }
 
         return new BattleCoreBootstrapProjection(
@@ -171,7 +212,8 @@ public record BattleCoreBootstrapProjection(
                 roster.combatantIds(),
                 roster.statusesByCombatant(),
                 combatStats,
-                health
+                health,
+                affiliations
         );
     }
 }
