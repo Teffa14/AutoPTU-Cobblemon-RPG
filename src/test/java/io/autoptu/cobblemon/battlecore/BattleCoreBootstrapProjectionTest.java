@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleCoreBootstrapProjectionTest {
     @Test
-    void projectsOnlyServerReservedPokemonStatusesAndSeed() {
+    void projectsAuthoritativeRosterStatusesAndSeed() {
         BattleAuthoritySnapshot snapshot = new BattleAuthoritySnapshot(
                 "battle-42",
                 "player-1",
@@ -48,21 +48,27 @@ class BattleCoreBootstrapProjectionTest {
 
         assertEquals("battle-42", projection.reservationId());
         assertEquals(987654321L, projection.rngSeed());
+        assertEquals(Set.of("pokemon-burned", "pokemon-clean"), projection.combatantIds());
         assertEquals(Map.of("pokemon-burned", Set.of("burned")), projection.statusesByCombatant());
     }
 
     @Test
-    void projectionDefensivelyCopiesStatusCollections() {
+    void projectionDefensivelyCopiesRosterAndStatusCollections() {
+        LinkedHashSet<String> mutableCombatants = new LinkedHashSet<>(Set.of("pokemon-1"));
         LinkedHashSet<String> mutableStatuses = new LinkedHashSet<>(Set.of("burned"));
         BattleCoreBootstrapProjection projection = new BattleCoreBootstrapProjection(
                 "battle-43",
                 22L,
+                mutableCombatants,
                 Map.of("pokemon-1", mutableStatuses)
         );
 
+        mutableCombatants.add("pokemon-2");
         mutableStatuses.add("poisoned");
 
+        assertEquals(Set.of("pokemon-1"), projection.combatantIds());
         assertEquals(Set.of("burned"), projection.statusesByCombatant().get("pokemon-1"));
+        assertThrows(UnsupportedOperationException.class, () -> projection.combatantIds().add("pokemon-2"));
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> projection.statusesByCombatant().get("pokemon-1").add("frozen")
@@ -74,10 +80,27 @@ class BattleCoreBootstrapProjectionTest {
     }
 
     @Test
-    void rejectsUnidentifiedCombatants() {
+    void rejectsStatusStateForCombatantOutsideAuthoritativeRoster() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> new BattleCoreBootstrapProjection("battle-44", 1L, Map.of(" ", Set.of("burned")))
+                () -> new BattleCoreBootstrapProjection(
+                        "battle-44",
+                        1L,
+                        Set.of("pokemon-1"),
+                        Map.of("client-injected", Set.of("burned"))
+                )
         );
+    }
+
+    @Test
+    void compatibilityConstructorTreatsStatusKeysAsItsLegacyRoster() {
+        BattleCoreBootstrapProjection projection = new BattleCoreBootstrapProjection(
+                "battle-45",
+                2L,
+                Map.of("pokemon-1", Set.of("paralyzed"))
+        );
+
+        assertEquals(Set.of("pokemon-1"), projection.combatantIds());
+        assertEquals(Map.of("pokemon-1", Set.of("paralyzed")), projection.statusesByCombatant());
     }
 }
