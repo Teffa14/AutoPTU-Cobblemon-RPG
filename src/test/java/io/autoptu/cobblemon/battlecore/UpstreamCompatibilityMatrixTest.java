@@ -54,7 +54,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
         assertTrue(abilities.contracts().contains("Inner Focus"));
         assertTrue(abilities.contracts().contains("Lancer END"));
-        assertTrue(abilities.adapterPolicy().contains("generic rule-effect playback"));
+        assertTrue(abilities.adapterPolicy().contains("Generic rule-effect playback"));
         assertTrue(abilities.adapterPolicy().contains("do not implement the remaining ability library"));
     }
 
