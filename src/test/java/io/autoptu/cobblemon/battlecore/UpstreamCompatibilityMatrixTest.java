@@ -22,10 +22,6 @@ class UpstreamCompatibilityMatrixTest {
         assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_MOVEMENT_BEHAVIOR));
         assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
-                UpstreamCompatibilityMatrix.Capability.ABILITIES));
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
-                UpstreamCompatibilityMatrix.Capability.ITEMS));
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY));
         assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
@@ -39,16 +35,25 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE));
+        assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES));
+        assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+                UpstreamCompatibilityMatrix.Capability.ITEMS));
         assertEquals(
                 UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
-                        UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE).support()
+                        UpstreamCompatibilityMatrix.Capability.ABILITIES).support()
+        );
+        assertEquals(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.ITEMS).support()
         );
     }
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("7b0fac33d139d8bd72b265aa00bb939e895d5a9a", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("6570d95ac874bc26bc6bcc8ffe64d007bba37e34", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
