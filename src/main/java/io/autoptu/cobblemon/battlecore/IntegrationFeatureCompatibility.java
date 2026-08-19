@@ -8,6 +8,7 @@ import java.util.Set;
 public final class IntegrationFeatureCompatibility {
     public enum Feature {
         GRID_TARGET_PREVIEW,
+        GRID_WORLD_COORDINATE_TRANSFORM,
         PLAYER_SHIFT_REQUEST,
         MOVE_SELECTION_REQUEST,
         ROUND_LIFECYCLE_PLAYBACK,
@@ -57,6 +58,10 @@ public final class IntegrationFeatureCompatibility {
         requirements.put(Feature.GRID_TARGET_PREVIEW, requirement(
                 "Render only core-produced legal target/tile choices.",
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING));
+        requirements.put(Feature.GRID_WORLD_COORDINATE_TRANSFORM, requirement(
+                "Map authoritative 2D grid coordinates to a project-owned horizontal world-block plane only; collision, terrain cost, targeting and movement legality remain core-owned.",
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.PLAYER_SHIFT_REQUEST, requirement(
                 "Send a requested destination; core owns path/movement legality.",
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
