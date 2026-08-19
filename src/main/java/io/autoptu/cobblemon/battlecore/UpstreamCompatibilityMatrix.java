@@ -13,8 +13,8 @@ import java.util.Objects;
  * Cobblemon, and Craftics adapters must not fill the missing rules themselves.
  */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "a735d66c8bf19c5fdda712b4fce4773e6f0ee3d4";
-    public static final String AUTOPTU_PYTHON_SHA = "01e5c98b2825b433631ff8e913e56b0eadb251e2";
+    public static final String AUTOPTU_JAVA_SHA = "de0ab9f6224c76dc232071881f4a88435262d7e1";
+    public static final String AUTOPTU_PYTHON_SHA = "54e4fa8ccbe0e555afef8b4b3713e7568608e5d3";
 
     public enum Capability {
         CORE_TARGETING,
@@ -65,7 +65,7 @@ public final class UpstreamCompatibilityMatrix {
         EnumMap<Capability, Entry> entries = new EnumMap<>(Capability.class);
         entries.put(Capability.CORE_TARGETING, verified(
                 "MoveSpec, target anchors, footprints, range/area legality, line-of-sight tests and CombatantGeometryState size labels",
-                "Project grid inputs and render authoritative legal targets only. Combatant model scale, facing, footprint overlap and placement legality must not be invented by the adapter."));
+                "Project grid inputs and server-owned PTU size labels and render authoritative legal targets only. Combatant model scale, facing, footprint overlap and placement legality must not be invented by the adapter."));
         entries.put(Capability.CORE_MOVEMENT_LEGALITY, verified(
                 "MovementGrid, resolved MovementProfile/JumpProfile, Shift/Jump legality, Overland/Swim/Sky and terrain-cost Python parity tests",
                 "Supply canonical base movement and adapter-neutral world inputs only. Runtime movement effects such as sprint, Wallrunner, Naturewalk, statuses, abilities, weather, equipment and Trainer Features must be resolved by authoritative PTU contracts before geometry is evaluated; never decide them in Minecraft."));
@@ -79,8 +79,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, authoritative round damage-history and injury-history rotation, DelayedHitEntry/DelayedHitQueue scheduling and due/future partition, DelayedHitBinding/DelayedHitBindingResolver canonical move/target reconstruction, and authoritative move-damage-history recording",
-                "Consume verified lifecycle state/events only; actual delayed-hit execution, terrain/zone/room advancement, send-out effects, remaining status/ability/Feature hooks, broader payload expiry semantics and other Python lifecycle behavior remain deferred."));
+                "BattleRoundController, authoritative turn-end lifecycle boundary, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, authoritative round damage-history and injury-history rotation, DelayedHitEntry/DelayedHitQueue scheduling and due/future partition, DelayedHitBinding/DelayedHitBindingResolver canonical move/target reconstruction, and authoritative move-damage-history recording",
+                "Consume verified lifecycle state/events only; turn-end parity is a bounded seam, while actual delayed-hit execution, terrain/zone/room advancement, send-out effects, remaining status/ability/Feature hooks, broader payload expiry semantics and other Python lifecycle behavior remain deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
