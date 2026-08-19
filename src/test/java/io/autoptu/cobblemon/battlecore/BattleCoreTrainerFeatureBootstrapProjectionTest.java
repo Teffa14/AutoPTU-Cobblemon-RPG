@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleCoreTrainerFeatureBootstrapProjectionTest {
@@ -28,6 +29,9 @@ class BattleCoreTrainerFeatureBootstrapProjectionTest {
         assertEquals(Set.of("Defense Mastery", "Stat Mastery"), projection.trainer().trainerFeatures());
         assertThrows(UnsupportedOperationException.class,
                 () -> projection.trainer().trainerFeatures().add("Attack Link"));
+        assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.CANONICAL_TRAINER_FEATURE_BOOTSTRAP)
+                .hasBlockingDependency());
     }
 
     @Test
