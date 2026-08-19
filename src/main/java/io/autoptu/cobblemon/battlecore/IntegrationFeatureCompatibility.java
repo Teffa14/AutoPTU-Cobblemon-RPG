@@ -12,6 +12,7 @@ public final class IntegrationFeatureCompatibility {
         BATTLE_ARENA_RESERVATION,
         INITIAL_COMBATANT_PLACEMENT,
         CANONICAL_BASE_MOVEMENT_SNAPSHOT,
+        CANONICAL_BASE_MOVEMENT_BOOTSTRAP,
         BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT,
         BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT,
         WORLD_RELOCATION_PROJECTION,
@@ -78,6 +79,9 @@ public final class IntegrationFeatureCompatibility {
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.CANONICAL_BASE_MOVEMENT_SNAPSHOT, requirement(
                 "Freeze persistent base Overland/Swim/Sky/Long Jump/High Jump values into the battle Pokemon snapshot only. Sprint, Wallrunner, Naturewalk, statuses, abilities, weather, equipment, Trainer Features and other runtime movement effects remain unresolved and core-owned.",
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
+        requirements.put(Feature.CANONICAL_BASE_MOVEMENT_BOOTSTRAP, requirement(
+                "Bind frozen base Overland/Swim/Sky/Long Jump/High Jump values to the same reservation, roster and initial placement used by the battle bootstrap. Do not construct or approximate the resolved AutoPTU-Java MovementProfile; all battle-scoped movement flags and modifiers remain core-owned.",
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT, requirement(
                 "Freeze adapter-observed block/fluid/collision/elevation facts against the reserved arena transform. These are raw world inputs only; PTU terrain classification, movement cost, hazards, zones, reactions and legality remain core-owned.",
