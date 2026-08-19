@@ -33,19 +33,16 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void statusMetadataSeamDoesNotPromoteWholeLifecycleOrStatusLibrary() {
+    void structuredStatusRuntimeBindingDoesNotPromoteWholeLifecycleOrStatusLibrary() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
-        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
-        assertTrue(lifecycle.contracts().contains("StatusStateStore"));
-        assertTrue(lifecycle.contracts().contains("Flinch START"));
-        assertTrue(lifecycle.contracts().contains("Strange Tempo"));
+        assertTrue(lifecycle.contracts().contains("bound into BattleRuntimeState"));
+        assertTrue(lifecycle.contracts().contains("Flinch round-boundary expiry"));
         assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
-        assertTrue(statuses.adapterPolicy().contains("not that expiry"));
-        assertTrue(abilities.contracts().contains("Strange Tempo"));
+        assertTrue(statuses.contracts().contains("Flinch round-boundary expiry"));
+        assertTrue(statuses.adapterPolicy().contains("Do not implement missing"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
 
     @Test
@@ -87,7 +84,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("48c3cb0b79bbdf3410c646d5232d7bc91ea416e1", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("b7a71bc6e8a4f6b03f8b0a10cca2a15b915a4e53", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
