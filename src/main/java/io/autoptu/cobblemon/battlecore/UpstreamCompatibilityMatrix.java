@@ -7,25 +7,15 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "48c3cb0b79bbdf3410c646d5232d7bc91ea416e1";
+    public static final String AUTOPTU_JAVA_SHA = "b7a71bc6e8a4f6b03f8b0a10cca2a15b915a4e53";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public enum Capability {
-        CORE_TARGETING,
-        CORE_MOVEMENT_LEGALITY,
-        COMPLETE_MOVEMENT_BEHAVIOR,
-        CORE_CALCULATIONS_AND_COMBAT_STATS,
-        ACTION_ECONOMY_AND_INITIATIVE,
-        FULL_TURN_ROUND_LIFECYCLE,
-        FULL_STATEFUL_DAMAGE_PIPELINE,
-        COMPLETE_STATUS_LIFECYCLE,
-        TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
-        MOVE_SPECIFIC_BEHAVIOR,
-        ABILITIES,
-        ITEMS,
-        TRAINER_FEATURES_AND_PERKS,
-        AI_LEGAL_ACTION_INFRASTRUCTURE,
-        AI_TACTICAL_SCORING_POLICY,
+        CORE_TARGETING, CORE_MOVEMENT_LEGALITY, COMPLETE_MOVEMENT_BEHAVIOR,
+        CORE_CALCULATIONS_AND_COMBAT_STATS, ACTION_ECONOMY_AND_INITIATIVE,
+        FULL_TURN_ROUND_LIFECYCLE, FULL_STATEFUL_DAMAGE_PIPELINE, COMPLETE_STATUS_LIFECYCLE,
+        TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, MOVE_SPECIFIC_BEHAVIOR, ABILITIES, ITEMS,
+        TRAINER_FEATURES_AND_PERKS, AI_LEGAL_ACTION_INFRASTRUCTURE, AI_TACTICAL_SCORING_POLICY,
         MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK
     }
 
@@ -41,7 +31,6 @@ public final class UpstreamCompatibilityMatrix {
 
     private static final Map<Capability, Entry> ENTRIES = buildEntries();
     private UpstreamCompatibilityMatrix() {}
-
     public static Entry entry(Capability capability) {
         Entry entry = ENTRIES.get(Objects.requireNonNull(capability, "capability"));
         if (entry == null) throw new IllegalStateException("unmapped upstream capability: " + capability);
@@ -68,14 +57,14 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state. The integration layer must not initialize or mutate ActionBudget on behalf of PTU lifecycle logic."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, canonical StatusEntry/StatusStateStore metadata seam, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior and Strange Tempo Confusion START branching",
-                "Consume verified lifecycle state/events only. Status metadata can be transported, but metadata-dependent expiry, duration, source-sensitive behavior and the broader status library remain core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, structured StatusEntry/StatusStateStore bound into BattleRuntimeState, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior, Flinch round-boundary expiry and Strange Tempo Confusion START branching",
+                "Consume verified lifecycle state/events only. Structured status metadata can be passed into runtime state, but broader duration/source-sensitive behavior and the remaining status library stay core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
         entries.put(Capability.COMPLETE_STATUS_LIFECYCLE, partial(
-                "Canonical status names plus StatusEntry/StatusStateStore scalar metadata, reusable ordered StatusPhaseEffectRegistry, Burn damage penalty, Sleep/Paralysis/Freeze evasion effects, status skips, pending phase status-skip consumption, Flinch START behavior, Strange Tempo Confusion START branching and selected Trainer Feature exceptions",
-                "Transport server-owned status identity and scalar metadata only. Flinch currently proves applied_round metadata is representable, not that expiry or the full status lifecycle is complete; do not implement missing ticks, cures, duration/source rules, phase effects or interactions client-side."));
+                "Canonical status names plus structured StatusEntry/StatusStateStore bound into BattleRuntimeState, reusable ordered StatusPhaseEffectRegistry, Burn damage penalty, Sleep/Paralysis/Freeze evasion effects, status skips, pending phase status-skip consumption, Flinch START behavior, parity-backed Flinch round-boundary expiry, Strange Tempo Confusion START branching and selected Trainer Feature exceptions",
+                "Transport server-owned status identity and scalar metadata into the runtime preparation boundary only. Do not implement missing ticks, cures, immunities, durations, source-sensitive behavior, phase effects or interactions in Minecraft; only specifically parity-backed lifecycle branches may execute upstream."));
         entries.put(Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, partial(
                 "Terrain movement costs, weather calculation primitives, generic HookSource categories and lifecycle seams exist",
                 "Project raw terrain/world observations and semantic events only. Do not classify Minecraft blocks into PTU terrain or approximate hazards, zones, reactions or forced movement before core contracts exist."));
