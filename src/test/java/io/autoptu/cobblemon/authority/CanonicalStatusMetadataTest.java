@@ -1,0 +1,62 @@
+package io.autoptu.cobblemon.authority;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class CanonicalStatusMetadataTest {
+    @Test
+    void freezesOrderedScalarMetadataIntoBattleSnapshot() {
+        LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
+        payload.put("applied_round", 7);
+        payload.put("source", "move:fake-out");
+        CanonicalStatusState statusState = new CanonicalStatusState(List.of(
+                new CanonicalStatusEntry(" Flinched ", payload),
+                new CanonicalStatusEntry("Burned")
+        ));
+
+        CanonicalPokemonState canonical = new CanonicalPokemonState(
+                "pkmn-1", "player-1", "pikachu", 20,
+                Set.of(), Set.of("flinched", "burned"), statusState,
+                null, null, null, null, null, null, null, 4L);
+        BattlePokemonSnapshot snapshot = BattlePokemonSnapshot.from(canonical);
+        payload.put("applied_round", 99);
+
+        assertEquals(List.of("flinched", "burned"), snapshot.statusState().entries().stream().map(CanonicalStatusEntry::name).toList());
+        assertEquals(7, snapshot.statusState().entries().get(0).payload().get("applied_round"));
+        assertEquals("move:fake-out", snapshot.statusState().entries().get(0).payload().get("source"));
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.statusState().entries().get(0).payload().put("x", 1));
+    }
+
+    @Test
+    void legacyStatusNamesRemainMetadataFreeAndConsistent() {
+        CanonicalPokemonState canonical = new CanonicalPokemonState(
+                "pkmn-1", "player-1", "pikachu", 20,
+                Set.of(), Set.of(" Sleep "), null, null, null, null, null, null, 1L);
+
+        assertEquals(Set.of("sleep"), canonical.statuses());
+        assertEquals(List.of("sleep"), canonical.statusState().entries().stream().map(CanonicalStatusEntry::name).toList());
+        assertTrue(canonical.statusState().entries().get(0).payload().isEmpty());
+    }
+
+    @Test
+    void rejectsNameDriftDuplicateStatusesAndNonScalarPayloads() {
+        assertThrows(IllegalArgumentException.class, () -> new CanonicalStatusState(List.of(
+                new CanonicalStatusEntry("flinch"),
+                new CanonicalStatusEntry("FLINCH")
+        )));
+        assertThrows(IllegalArgumentException.class, () -> new CanonicalStatusEntry("flinch", Map.of("nested", List.of(1))));
+        CanonicalStatusState flinch = new CanonicalStatusState(List.of(new CanonicalStatusEntry("flinch")));
+        assertThrows(IllegalArgumentException.class, () -> new CanonicalPokemonState(
+                "pkmn-1", "player-1", "pikachu", 20,
+                Set.of(), Set.of("burned"), flinch,
+                null, null, null, null, null, null, null, 1L));
+    }
+}

@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "48083562c03b50e2e6601b3c52101f7a91934cac";
+    public static final String AUTOPTU_JAVA_SHA = "48c3cb0b79bbdf3410c646d5232d7bc91ea416e1";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public enum Capability {
@@ -68,14 +68,14 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state. The integration layer must not initialize or mutate ActionBudget on behalf of PTU lifecycle logic."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior and Strange Tempo Confusion START branching",
-                "Consume verified lifecycle state/events only. Flinch and Strange Tempo are bounded parity-backed slices, not complete status behavior. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, canonical StatusEntry/StatusStateStore metadata seam, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior and Strange Tempo Confusion START branching",
+                "Consume verified lifecycle state/events only. Status metadata can be transported, but metadata-dependent expiry, duration, source-sensitive behavior and the broader status library remain core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
         entries.put(Capability.COMPLETE_STATUS_LIFECYCLE, partial(
-                "Canonical statuses, reusable ordered StatusPhaseEffectRegistry, Burn damage penalty, Sleep/Paralysis/Freeze evasion effects, status skips, pending phase status-skip consumption, Flinch START behavior, Strange Tempo Confusion START branching and selected Trainer Feature exceptions",
-                "Expose only parity-backed status effects. Flinch and Strange Tempo coverage does not imply the status library is complete; do not implement missing ticks, cures, phase effects or interactions client-side."));
+                "Canonical status names plus StatusEntry/StatusStateStore scalar metadata, reusable ordered StatusPhaseEffectRegistry, Burn damage penalty, Sleep/Paralysis/Freeze evasion effects, status skips, pending phase status-skip consumption, Flinch START behavior, Strange Tempo Confusion START branching and selected Trainer Feature exceptions",
+                "Transport server-owned status identity and scalar metadata only. Flinch currently proves applied_round metadata is representable, not that expiry or the full status lifecycle is complete; do not implement missing ticks, cures, duration/source rules, phase effects or interactions client-side."));
         entries.put(Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, partial(
                 "Terrain movement costs, weather calculation primitives, generic HookSource categories and lifecycle seams exist",
                 "Project raw terrain/world observations and semantic events only. Do not classify Minecraft blocks into PTU terrain or approximate hazards, zones, reactions or forced movement before core contracts exist."));

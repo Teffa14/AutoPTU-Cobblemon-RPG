@@ -33,14 +33,15 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void boundedStatusSlicesDoNotPromoteWholeLifecycleOrStatusLibrary() {
+    void statusMetadataSeamDoesNotPromoteWholeLifecycleOrStatusLibrary() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
-        assertTrue(lifecycle.contracts().contains("StatusPhaseEffectRegistry"));
+        assertTrue(lifecycle.contracts().contains("StatusStateStore"));
         assertTrue(lifecycle.contracts().contains("Flinch START"));
         assertTrue(lifecycle.contracts().contains("Strange Tempo"));
-        assertTrue(statuses.adapterPolicy().contains("does not imply"));
+        assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
+        assertTrue(statuses.adapterPolicy().contains("not that expiry"));
         assertTrue(abilities.contracts().contains("Strange Tempo"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
@@ -86,7 +87,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("48083562c03b50e2e6601b3c52101f7a91934cac", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("48c3cb0b79bbdf3410c646d5232d7bc91ea416e1", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
