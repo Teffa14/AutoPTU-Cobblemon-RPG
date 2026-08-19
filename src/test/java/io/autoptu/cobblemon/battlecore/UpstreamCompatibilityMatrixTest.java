@@ -33,9 +33,11 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void newLifecyclePointerDoesNotPromoteWholeLifecycle() {
+    void pendingStatusSkipSliceDoesNotPromoteWholeLifecycle() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         assertTrue(lifecycle.contracts().contains("phase-transition events"));
+        assertTrue(lifecycle.contracts().contains("pending status-skip"));
+        assertTrue(lifecycle.adapterPolicy().contains("Corrosive Toxins"));
         assertTrue(lifecycle.adapterPolicy().contains("delayed-hit execution"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
     }
@@ -61,7 +63,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("d8809213d819eea7c9f142fe4b930c35f0614e05", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("957e7eaa0ce056b8fc6f2f66aba7f24440c2c2be", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("54e4fa8ccbe0e555afef8b4b3713e7568608e5d3", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
