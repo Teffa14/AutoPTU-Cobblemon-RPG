@@ -23,7 +23,9 @@ public record BattlePresentationCommand(
         ENTITY_RELOCATION,
         STATUS_SKIP_CUE,
         TRAINER_FEATURE_CUE,
-        RULE_EFFECT_CUE
+        RULE_EFFECT_CUE,
+        PHASE_CUE,
+        TURN_END_CUE
     }
 
     public BattlePresentationCommand {
