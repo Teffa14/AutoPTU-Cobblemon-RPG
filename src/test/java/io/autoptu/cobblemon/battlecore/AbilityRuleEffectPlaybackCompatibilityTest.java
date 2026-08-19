@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.battlecore;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -12,7 +13,8 @@ class AbilityRuleEffectPlaybackCompatibilityTest {
         BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
                 41,
                 "rule_effect",
-                "rule_effect|ability|lancer|pokemon-a|||crit_range|3.0|37"
+                "rule_effect|ability|lancer|pokemon-a|||crit_range|3.0|37",
+                Map.of()
         );
 
         List<BattlePresentationCommand> commands = new BattlePresentationProjector().project(event);
@@ -33,7 +35,8 @@ class AbilityRuleEffectPlaybackCompatibilityTest {
         BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
                 42,
                 "rule_effect",
-                "rule_effect|ability|inner focus|target|target|fake-out|status_block|0.0|20"
+                "rule_effect|ability|inner focus|target|target|fake-out|status_block|0.0|20",
+                Map.of()
         );
 
         List<BattlePresentationCommand> commands = new BattlePresentationProjector().project(event);
