@@ -48,18 +48,19 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void defaultLifecycleRunsOrderedPhaseFamiliesButRemainsPartial() {
+    void defaultLifecycleHasPerkRegistrySeamButTrainerFeatureBindingRemainsPartial() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry perks = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
         assertTrue(lifecycle.contracts().contains("CombatantPhaseEffectDispatcher"));
         assertTrue(lifecycle.contracts().contains("STATUS -> ABILITY -> PERK"));
-        assertTrue(lifecycle.contracts().contains("default PHASE_CHANGE lifecycle path"));
+        assertTrue(lifecycle.contracts().contains("PerkPhaseEffectRegistry"));
         assertTrue(lifecycle.contracts().contains("phase and turn-end semantic events"));
-        assertTrue(lifecycle.adapterPolicy().contains("Preserve authoritative phase and rule-effect event ordering"));
-        assertTrue(lifecycle.adapterPolicy().contains("START-on-beginTurn"));
-        assertTrue(perks.contracts().contains("concrete perk registry behavior remains unimplemented"));
+        assertTrue(lifecycle.adapterPolicy().contains("binding Trainer Features into BattleRuntimeState"));
+        assertTrue(perks.contracts().contains("PerkPhaseEffectRegistry"));
+        assertTrue(perks.contracts().contains("runtime Trainer Feature binding"));
+        assertTrue(perks.adapterPolicy().contains("Do not let Minecraft or client payloads grant features"));
     }
 
     @Test
@@ -113,7 +114,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("cd510f3cd812532ae84304b01377c34a285863c5", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("d49e11fc6558386c55ecf6b40993f5fc1c9ebfcd", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
