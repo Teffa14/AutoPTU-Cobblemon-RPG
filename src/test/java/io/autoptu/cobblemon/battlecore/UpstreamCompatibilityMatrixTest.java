@@ -33,14 +33,18 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void statusRegistryDoesNotPromoteWholeLifecycleOrStatusLibrary() {
+    void boundedStatusSlicesDoNotPromoteWholeLifecycleOrStatusLibrary() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
         assertTrue(lifecycle.contracts().contains("StatusPhaseEffectRegistry"));
-        assertTrue(lifecycle.adapterPolicy().contains("draft Flinch"));
+        assertTrue(lifecycle.contracts().contains("Flinch START"));
+        assertTrue(lifecycle.contracts().contains("Strange Tempo"));
         assertTrue(statuses.adapterPolicy().contains("does not imply"));
+        assertTrue(abilities.contracts().contains("Strange Tempo"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
 
     @Test
@@ -82,7 +86,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("5576e433b7b2f9e87fad7c669bd008b992b9bb62", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("2e824854851df766e77fd65dbfc1d713bdf268e5", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("48083562c03b50e2e6601b3c52101f7a91934cac", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
