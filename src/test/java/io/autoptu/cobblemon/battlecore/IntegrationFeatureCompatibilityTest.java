@@ -22,6 +22,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.GRID_TARGET_PREVIEW).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.PLAYER_SHIFT_REQUEST).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.MOVE_SELECTION_REQUEST).hasBlockingDependency());
@@ -33,6 +35,25 @@ class IntegrationFeatureCompatibilityTest {
                 IntegrationFeatureCompatibility.Feature.ITEM_BATTLE_EFFECT_PLAYBACK).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.SEMANTIC_PRESENTATION_COMMANDS).hasBlockingDependency());
+    }
+
+    @Test
+    void gridWorldTransformDependsOnlyOnVerifiedGridContracts() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM
+        );
+
+        assertEquals(
+                EnumSet.of(
+                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                        UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY
+                ),
+                EnumSet.copyOf(requirement.capabilities())
+        );
+        requirement.capabilities().forEach(capability -> assertEquals(
+                UpstreamCompatibilityMatrix.Support.VERIFIED,
+                UpstreamCompatibilityMatrix.entry(capability).support()
+        ));
     }
 
     @Test
