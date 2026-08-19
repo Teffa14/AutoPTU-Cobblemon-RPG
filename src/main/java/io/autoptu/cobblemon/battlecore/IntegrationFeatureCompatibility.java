@@ -13,6 +13,9 @@ public final class IntegrationFeatureCompatibility {
         INITIAL_COMBATANT_PLACEMENT,
         CANONICAL_BASE_MOVEMENT_SNAPSHOT,
         CANONICAL_BASE_MOVEMENT_BOOTSTRAP,
+        CANONICAL_COMBATANT_GEOMETRY_BOOTSTRAP,
+        CANONICAL_BATTLE_TRAITS_SNAPSHOT,
+        CANONICAL_BATTLE_TRAITS_BOOTSTRAP,
         BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT,
         BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT,
         WORLD_RELOCATION_PROJECTION,
@@ -83,6 +86,17 @@ public final class IntegrationFeatureCompatibility {
         requirements.put(Feature.CANONICAL_BASE_MOVEMENT_BOOTSTRAP, requirement(
                 "Bind frozen base Overland/Swim/Sky/Long Jump/High Jump values to the same reservation, roster and initial placement used by the battle bootstrap. Do not construct or approximate the resolved AutoPTU-Java MovementProfile; all battle-scoped movement flags and modifiers remain core-owned.",
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
+        requirements.put(Feature.CANONICAL_COMBATANT_GEOMETRY_BOOTSTRAP, requirement(
+                "Bind server-owned PTU size labels to the exact placed roster. AutoPTU-Java owns footprint expansion, overlap, collision, range and placement legality; Minecraft model dimensions never become rule inputs.",
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING));
+        requirements.put(Feature.CANONICAL_BATTLE_TRAITS_SNAPSHOT, requirement(
+                "Freeze server-owned Pokemon type and ability identities into the immutable battle snapshot. Type arithmetic and every ability effect remain AutoPTU-Java-owned; the adapter may not grant abilities or infer hooks from names.",
+                UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS,
+                UpstreamCompatibilityMatrix.Capability.ABILITIES));
+        requirements.put(Feature.CANONICAL_BATTLE_TRAITS_BOOTSTRAP, requirement(
+                "Bind canonical type and ability identities to the exact reservation/roster used by geometry. Transport identities only; STAB/type effectiveness and parity-backed ability hooks are resolved by AutoPTU-Java, while the unported ability library remains deferred.",
+                UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS,
+                UpstreamCompatibilityMatrix.Capability.ABILITIES));
         requirements.put(Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT, requirement(
                 "Freeze adapter-observed block/fluid/collision/elevation facts against the reserved arena transform. These are raw world inputs only; PTU terrain classification, movement cost, hazards, zones, reactions and legality remain core-owned.",
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
