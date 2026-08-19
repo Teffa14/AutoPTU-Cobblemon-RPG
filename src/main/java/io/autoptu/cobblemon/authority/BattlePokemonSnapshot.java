@@ -12,6 +12,7 @@ public record BattlePokemonSnapshot(
         CanonicalCombatStats combatStats,
         CanonicalHealth health,
         CanonicalMoveLoadout moveLoadout,
+        CanonicalBaseMovement baseMovement,
         String heldItemInstanceId,
         long revision
 ) {
@@ -38,6 +39,23 @@ public record BattlePokemonSnapshot(
         }
     }
 
+    /** Compatibility constructor retained for callers created before canonical base movement. */
+    public BattlePokemonSnapshot(
+            String pokemonId,
+            String ownerPlayerId,
+            String speciesId,
+            int level,
+            Set<String> capabilities,
+            Set<String> statuses,
+            CanonicalCombatStats combatStats,
+            CanonicalHealth health,
+            CanonicalMoveLoadout moveLoadout,
+            String heldItemInstanceId,
+            long revision
+    ) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, health, moveLoadout, null, heldItemInstanceId, revision);
+    }
+
     /** Compatibility constructor retained for callers created before canonical move loadouts. */
     public BattlePokemonSnapshot(
             String pokemonId,
@@ -51,7 +69,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, health, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, health, null, null, heldItemInstanceId, revision);
     }
 
     public BattlePokemonSnapshot(
@@ -65,7 +83,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, null, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, combatStats, null, null, null, heldItemInstanceId, revision);
     }
 
     public BattlePokemonSnapshot(
@@ -78,7 +96,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, null, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, null, null, null, null, heldItemInstanceId, revision);
     }
 
     public BattlePokemonSnapshot(
@@ -91,7 +109,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, null, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), combatStats, null, null, null, heldItemInstanceId, revision);
     }
 
     public BattlePokemonSnapshot(
@@ -103,7 +121,7 @@ public record BattlePokemonSnapshot(
             String heldItemInstanceId,
             long revision
     ) {
-        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, null, heldItemInstanceId, revision);
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, Set.of(), null, null, null, null, heldItemInstanceId, revision);
     }
 
     public static BattlePokemonSnapshot from(CanonicalPokemonState state) {
@@ -117,6 +135,7 @@ public record BattlePokemonSnapshot(
                 state.combatStats(),
                 state.health(),
                 state.moveLoadout(),
+                state.baseMovement(),
                 state.heldItemInstanceId(),
                 state.revision());
     }
