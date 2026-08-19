@@ -28,6 +28,8 @@ public final class BattlePresentationProjector {
             case "status_skip" -> List.of(projectStatusSkip(event.sequence(), parts));
             case "trainer_feature" -> List.of(projectTrainerFeature(event.sequence(), parts));
             case "rule_effect" -> List.of(projectRuleEffect(event.sequence(), parts));
+            case "phase" -> List.of(projectLifecycleCue(event.sequence(), parts, "phase", BattlePresentationCommand.Kind.PHASE_CUE));
+            case "turn_end" -> List.of(projectLifecycleCue(event.sequence(), parts, "turn_end", BattlePresentationCommand.Kind.TURN_END_CUE));
             default -> throw new IllegalArgumentException("unsupported battle event kind: " + event.kind());
         };
     }
@@ -107,6 +109,25 @@ public final class BattlePresentationProjector {
                         "amount", Double.toString(amount),
                         "actorHp", Integer.toString(actorHp)
                 )
+        );
+    }
+
+    private static BattlePresentationCommand projectLifecycleCue(
+            long sequence,
+            String[] parts,
+            String kind,
+            BattlePresentationCommand.Kind commandKind
+    ) {
+        requireParts(parts, 4, kind);
+        int round = parseNonNegativeInt(parts[1], "round");
+        String actorId = required(parts[2], "actorId");
+        String phase = required(parts[3], "phase");
+        return command(
+                sequence,
+                0,
+                commandKind,
+                actorId,
+                data("round", Integer.toString(round), "phase", phase)
         );
     }
 
