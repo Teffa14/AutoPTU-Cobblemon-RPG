@@ -7,8 +7,8 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "957e7eaa0ce056b8fc6f2f66aba7f24440c2c2be";
-    public static final String AUTOPTU_PYTHON_SHA = "54e4fa8ccbe0e555afef8b4b3713e7568608e5d3";
+    public static final String AUTOPTU_JAVA_SHA = "4b3f3280fdfb25bad5318097201808405733ca08";
+    public static final String AUTOPTU_PYTHON_SHA = "38819d6ffd0d7f03c1cfc1a01f00aa6140d97076";
 
     public enum Capability {
         CORE_TARGETING,
@@ -66,9 +66,9 @@ public final class UpstreamCompatibilityMatrix {
                 "Supply canonical baseline inputs only. Final evasion and accuracy effects remain core-owned, including ability, item, Trainer Feature, status, terrain and temporary-effect contributions."));
         entries.put(Capability.ACTION_ECONOMY_AND_INITIATIVE, verified(
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
-                "Treat action availability and ordering as core-owned state."));
+                "Treat action availability and ordering as core-owned state. The integration layer must not initialize or mutate ActionBudget on behalf of PTU lifecycle logic."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
+                "BattleRoundController, ordered LifecycleHookRegistry, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
                 "Consume verified lifecycle state/events only. Active actor/phase ownership, phase transitions and pending status-skip consumption are bounded parity-backed seams; Trainer Feature phase dispatch, full status phase effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
@@ -86,8 +86,8 @@ public final class UpstreamCompatibilityMatrix {
                 "Canonical ability identities, generic hook source support and parity-backed Mega Launcher behavior",
                 "Render only authoritative ability events/results already emitted by the core; do not implement the remaining ability library in Minecraft."));
         entries.put(Capability.ITEMS, partial(
-                "Canonical held-item battle state, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
-                "Reserve/commit canonical items server-side and render verified core item events only; do not manufacture unported item effects."));
+                "BattleRuntimeState canonical heldItemsByCombatant map, HeldItemState stable item identity, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
+                "Project only frozen held-item instance/catalog identity into authoritative runtime state, reserve/commit canonical items server-side, and render verified core item events only; do not manufacture unported item effects or trust client/entity equipment claims."));
         entries.put(Capability.TRAINER_FEATURES_AND_PERKS, partial(
                 "Selected status-skip Trainer Feature exceptions plus TRAINER_FEATURE/PERK hook-source and lifecycle categories",
                 "Use only specifically verified Feature behavior/events; keep all other perks/features deferred."));
