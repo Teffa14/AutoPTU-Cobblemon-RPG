@@ -17,6 +17,7 @@ public final class IntegrationFeatureCompatibility {
         ABILITY_EFFECT_PLAYBACK,
         ITEM_BATTLE_EFFECT_PLAYBACK,
         TRAINER_FEATURE_PLAYBACK,
+        SEMANTIC_PRESENTATION_COMMANDS,
         AUTOBATTLER_LEGAL_CHOICE_INPUT,
         AUTOBATTLER_TACTICAL_POLICY,
         LIVE_MINECRAFT_BATTLE_ADAPTER
@@ -66,7 +67,7 @@ public final class IntegrationFeatureCompatibility {
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE));
         requirements.put(Feature.ROUND_LIFECYCLE_PLAYBACK, requirement(
-                "Render only lifecycle events emitted through verified core hooks; do not invent missing round/turn effects.",
+                "Render only lifecycle events/state emitted through verified core behavior; do not invent missing round/turn effects.",
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE));
         requirements.put(Feature.DAMAGE_RESULT_PLAYBACK, requirement(
                 "Render resolved HP/damage events without adapter-side modifiers.",
@@ -87,6 +88,15 @@ public final class IntegrationFeatureCompatibility {
         requirements.put(Feature.TRAINER_FEATURE_PLAYBACK, requirement(
                 "Only selected verified Trainer Feature behavior/events may be projected.",
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS));
+        requirements.put(Feature.SEMANTIC_PRESENTATION_COMMANDS, requirement(
+                "Convert current authoritative move/shift/status/Trainer Feature/rule-effect stable event contracts into rendering commands only; malformed or unknown semantics fail closed.",
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
+                UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS,
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
+                UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE,
+                UpstreamCompatibilityMatrix.Capability.ABILITIES,
+                UpstreamCompatibilityMatrix.Capability.ITEMS,
+                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS));
         requirements.put(Feature.AUTOBATTLER_LEGAL_CHOICE_INPUT, requirement(
                 "Consume the legal BattleChoice space produced from authoritative runtime state.",
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE));
@@ -94,7 +104,7 @@ public final class IntegrationFeatureCompatibility {
                 "Wait for Python-equivalent tactical scoring/policy.",
                 UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY));
         requirements.put(Feature.LIVE_MINECRAFT_BATTLE_ADAPTER, requirement(
-                "Requires an actually exercised Minecraft/Cobblemon/Craftics adapter; the headless playback envelope alone does not satisfy this capability.",
+                "Requires an actually exercised Minecraft/Cobblemon/Craftics adapter; headless playback and presentation commands alone do not satisfy this capability.",
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
 
         if (requirements.size() != Feature.values().length) {
