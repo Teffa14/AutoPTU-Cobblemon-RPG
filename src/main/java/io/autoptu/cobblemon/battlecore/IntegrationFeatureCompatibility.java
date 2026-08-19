@@ -10,6 +10,7 @@ public final class IntegrationFeatureCompatibility {
         GRID_TARGET_PREVIEW,
         GRID_WORLD_COORDINATE_TRANSFORM,
         BATTLE_ARENA_RESERVATION,
+        WORLD_RELOCATION_PROJECTION,
         PLAYER_SHIFT_REQUEST,
         MOVE_SELECTION_REQUEST,
         ROUND_LIFECYCLE_PLAYBACK,
@@ -65,6 +66,10 @@ public final class IntegrationFeatureCompatibility {
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.BATTLE_ARENA_RESERVATION, requirement(
                 "Freeze dimension, world origin, elevation and cardinal grid orientation into the server-owned battle reservation. The snapshot supplies a stable coordinate frame only and never decides PTU legality.",
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
+        requirements.put(Feature.WORLD_RELOCATION_PROJECTION, requirement(
+                "Bind authoritative ENTITY_RELOCATION commands to the matching frozen reservation/roster and translate their grid endpoints into world coordinates only. Path legality, collision, terrain, forced movement and reactions remain core-owned.",
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.PLAYER_SHIFT_REQUEST, requirement(
