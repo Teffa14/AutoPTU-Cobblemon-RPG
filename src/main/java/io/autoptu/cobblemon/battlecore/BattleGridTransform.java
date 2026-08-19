@@ -1,5 +1,7 @@
 package io.autoptu.cobblemon.battlecore;
 
+import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
+
 import java.util.Objects;
 
 /**
@@ -20,6 +22,21 @@ public record BattleGridTransform(
         if (!gridX.isPerpendicularTo(gridY)) {
             throw new IllegalArgumentException("grid axes must be perpendicular");
         }
+    }
+
+    public static BattleGridTransform from(BattleArenaSnapshot arena) {
+        Objects.requireNonNull(arena, "arena");
+        return new BattleGridTransform(
+                new WorldBlockCoordinate(
+                        arena.dimensionId(), arena.originX(), arena.originY(), arena.originZ()),
+                axis(arena.gridXdx(), arena.gridXdz()),
+                axis(arena.gridYdx(), arena.gridYdz()));
+    }
+
+    public BattleArenaSnapshot toArenaSnapshot() {
+        return new BattleArenaSnapshot(
+                origin.dimensionId(), origin.x(), origin.y(), origin.z(),
+                gridX.dx(), gridX.dz(), gridY.dx(), gridY.dz());
     }
 
     public WorldBlockCoordinate toWorld(BattleGridCoordinate grid) {
@@ -55,5 +72,14 @@ public record BattleGridTransform(
                 Math.multiplyExact(deltaZ, gridY.dz())
         );
         return new BattleGridCoordinate(gridCoordinateX, gridCoordinateY);
+    }
+
+    private static HorizontalGridAxis axis(int dx, int dz) {
+        for (HorizontalGridAxis axis : HorizontalGridAxis.values()) {
+            if (axis.dx() == dx && axis.dz() == dz) {
+                return axis;
+            }
+        }
+        throw new IllegalArgumentException("arena axis is not a supported horizontal cardinal direction");
     }
 }
