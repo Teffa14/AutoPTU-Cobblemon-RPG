@@ -28,6 +28,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.INITIAL_COMBATANT_PLACEMENT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.CANONICAL_BASE_MOVEMENT_SNAPSHOT).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT).hasBlockingDependency());
@@ -68,6 +70,18 @@ class IntegrationFeatureCompatibilityTest {
                     UpstreamCompatibilityMatrix.entry(capability).support()
             ));
         }
+    }
+
+    @Test
+    void canonicalBaseMovementStopsBeforeRuntimeEffectResolution() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.CANONICAL_BASE_MOVEMENT_SNAPSHOT);
+        assertEquals(EnumSet.of(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY),
+                EnumSet.copyOf(requirement.capabilities()));
+        assertTrue(requirement.boundedScope().contains("Overland/Swim/Sky"));
+        assertTrue(requirement.boundedScope().contains("Wallrunner"));
+        assertTrue(requirement.boundedScope().contains("weather"));
+        assertTrue(requirement.boundedScope().contains("core-owned"));
     }
 
     @Test
