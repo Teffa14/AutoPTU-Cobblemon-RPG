@@ -31,6 +31,8 @@ class IntegrationFeatureCompatibilityTest {
                 IntegrationFeatureCompatibility.Feature.ABILITY_EFFECT_PLAYBACK).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.ITEM_BATTLE_EFFECT_PLAYBACK).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.SEMANTIC_PRESENTATION_COMMANDS).hasBlockingDependency());
     }
 
     @Test
