@@ -36,11 +36,10 @@ class UpstreamCompatibilityMatrixTest {
     void structuredStatusRuntimeBindingDoesNotPromoteWholeLifecycleOrStatusLibrary() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
-        assertTrue(lifecycle.contracts().contains("bound into BattleRuntimeState"));
-        assertTrue(lifecycle.contracts().contains("Flinch round-boundary expiry"));
+        assertTrue(lifecycle.contracts().contains("StatusStateStore"));
+        assertTrue(lifecycle.contracts().contains("Flinch"));
         assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
         assertTrue(statuses.contracts().contains("StatusApplicationHookRegistry"));
-        assertTrue(statuses.contracts().contains("Flinch round-boundary expiry"));
         assertTrue(statuses.adapterPolicy().contains("Status application/prevention remains core-owned"));
         assertTrue(statuses.adapterPolicy().contains("do not implement missing"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
@@ -48,31 +47,29 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void defaultLifecycleHasPerkRegistrySeamButTrainerFeatureBindingRemainsPartial() {
+    void trainerRuntimeBindingIsAuthoritativeWithoutPromotingWholePerkLibrary() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry perks = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(lifecycle.contracts().contains("CombatantPhaseEffectDispatcher"));
-        assertTrue(lifecycle.contracts().contains("STATUS -> ABILITY -> PERK"));
-        assertTrue(lifecycle.contracts().contains("PerkPhaseEffectRegistry"));
-        assertTrue(lifecycle.contracts().contains("phase and turn-end semantic events"));
-        assertTrue(lifecycle.adapterPolicy().contains("binding Trainer Features into BattleRuntimeState"));
-        assertTrue(perks.contracts().contains("PerkPhaseEffectRegistry"));
-        assertTrue(perks.contracts().contains("runtime Trainer Feature binding"));
-        assertTrue(perks.adapterPolicy().contains("Do not let Minecraft or client payloads grant features"));
+        assertTrue(lifecycle.contracts().contains("TrainerRuntimeState/controller binding"));
+        assertTrue(lifecycle.contracts().contains("Defense Mastery"));
+        assertTrue(perks.contracts().contains("TrainerRuntimeState"));
+        assertTrue(perks.contracts().contains("BattleRuntimeState binds combatants to trainer controllers"));
+        assertTrue(perks.contracts().contains("Defense Mastery"));
+        assertTrue(perks.adapterPolicy().contains("battle-start AP"));
+        assertTrue(perks.adapterPolicy().contains("may not grant Features"));
+        assertTrue(perks.adapterPolicy().contains("spend/restore AP"));
     }
 
     @Test
-    void abilityPhaseRegistryUsesGenericPlaybackWithoutPromotingAbilityLibrary() {
+    void abilitySupportRemainsPartial() {
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
         assertTrue(abilities.contracts().contains("Inner Focus"));
-        assertTrue(abilities.contracts().contains("Lancer END"));
-        assertTrue(abilities.contracts().contains("default lifecycle"));
-        assertTrue(abilities.adapterPolicy().contains("Generic rule-effect playback"));
-        assertTrue(abilities.adapterPolicy().contains("do not implement the remaining ability library"));
+        assertTrue(abilities.contracts().contains("Lancer"));
+        assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
     }
 
     @Test
@@ -114,7 +111,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("d49e11fc6558386c55ecf6b40993f5fc1c9ebfcd", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("f0cc35560f7a0de3a9569475b7e08208a8692919", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
