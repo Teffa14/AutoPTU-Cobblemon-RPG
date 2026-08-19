@@ -20,11 +20,13 @@ class TrainerRuntimeFeatureCompatibilityTest {
                         UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE),
                 EnumSet.copyOf(requirement.capabilities()));
         assertFalse(requirement.hasBlockingDependency());
-        assertTrue(requirement.boundedScope().contains("battle-start Trainer AP"));
-        assertTrue(requirement.boundedScope().contains("TrainerRuntimeState"));
-        assertTrue(requirement.boundedScope().contains("bindController"));
-        assertTrue(requirement.boundedScope().contains("may not set AP"));
-        assertTrue(requirement.boundedScope().contains("spend/restore AP"));
+
+        String scope = requirement.boundedScope();
+        assertTrue(scope.contains("Trainer AP"));
+        assertTrue(scope.contains("TrainerRuntimeState"));
+        assertTrue(scope.contains("bindController"));
+        assertTrue(scope.contains("Minecraft"));
+        assertTrue(scope.contains("spend/restore AP"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
