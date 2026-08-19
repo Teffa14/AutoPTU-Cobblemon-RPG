@@ -5,15 +5,9 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Executable compatibility checklist for the currently inspected AutoPTU-Java contract.
- *
- * Adapter code must only expose PTU behavior that the upstream battle core owns. PARTIAL
- * categories may be consumed only through the concrete contracts listed here; Minecraft,
- * Cobblemon, and Craftics adapters must not fill the missing rules themselves.
- */
+/** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "de0ab9f6224c76dc232071881f4a88435262d7e1";
+    public static final String AUTOPTU_JAVA_SHA = "163710b089500f7c9e389ff42044210574ee7f2d";
     public static final String AUTOPTU_PYTHON_SHA = "54e4fa8ccbe0e555afef8b4b3713e7568608e5d3";
 
     public enum Capability {
@@ -46,7 +40,6 @@ public final class UpstreamCompatibilityMatrix {
     }
 
     private static final Map<Capability, Entry> ENTRIES = buildEntries();
-
     private UpstreamCompatibilityMatrix() {}
 
     public static Entry entry(Capability capability) {
@@ -54,12 +47,8 @@ public final class UpstreamCompatibilityMatrix {
         if (entry == null) throw new IllegalStateException("unmapped upstream capability: " + capability);
         return entry;
     }
-
     public static Map<Capability, Entry> entries() { return ENTRIES; }
-
-    public static boolean mayProjectAuthoritativeBehavior(Capability capability) {
-        return entry(capability).support() != Support.BLOCKING;
-    }
+    public static boolean mayProjectAuthoritativeBehavior(Capability capability) { return entry(capability).support() != Support.BLOCKING; }
 
     private static Map<Capability, Entry> buildEntries() {
         EnumMap<Capability, Entry> entries = new EnumMap<>(Capability.class);
@@ -73,14 +62,14 @@ public final class UpstreamCompatibilityMatrix {
                 "Forced movement, push/pull/knockback, interception and interaction-driven movement are not complete",
                 "Do not synthesize forced movement, interception or knockback rules in the adapter."));
         entries.put(Capability.CORE_CALCULATIONS_AND_COMBAT_STATS, verified(
-                "Damage Base tables, type effectiveness, STAB, accuracy/evasion, combat stages and CombatantStatProfile",
-                "Supply canonical inputs only and render resolved values/results."));
+                "Damage Base tables, type effectiveness, STAB, accuracy stages, EvasionProfile, combat stages and CombatantStatProfile with Python parity coverage",
+                "Supply canonical baseline inputs only. Final evasion and accuracy effects remain core-owned, including ability, item, Trainer Feature, status, terrain and temporary-effect contributions."));
         entries.put(Capability.ACTION_ECONOMY_AND_INITIATIVE, verified(
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, authoritative turn-end lifecycle boundary, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, authoritative round damage-history and injury-history rotation, DelayedHitEntry/DelayedHitQueue scheduling and due/future partition, DelayedHitBinding/DelayedHitBindingResolver canonical move/target reconstruction, and authoritative move-damage-history recording",
-                "Consume verified lifecycle state/events only; turn-end parity is a bounded seam, while actual delayed-hit execution, terrain/zone/room advancement, send-out effects, remaining status/ability/Feature hooks, broader payload expiry semantics and other Python lifecycle behavior remain deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, turn-end boundary, server-owned active actor/phase pointer, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
+                "Consume verified lifecycle state/events only. Active actor/phase ownership and turn-end parity are bounded seams; delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
@@ -91,10 +80,10 @@ public final class UpstreamCompatibilityMatrix {
                 "Terrain movement costs, weather calculation primitives, generic HookSource categories and lifecycle seams exist",
                 "Project raw terrain/world observations and semantic events only. Do not classify Minecraft blocks into PTU terrain or approximate hazards, zones, reactions or forced movement before core contracts exist."));
         entries.put(Capability.MOVE_SPECIFIC_BEHAVIOR, partial(
-                "Authoritative movesets, MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect payload state, ordered pre-damage move hook seam, DelayedHitEntry scheduling and DelayedHitBinding canonical move/target inputs",
-                "Send requested move identity/target intent only; consume verified move-specific events and state while actual delayed-hit execution and unported specials remain core-owned and deferred."));
+                "Authoritative movesets, MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect state, ordered pre-damage move hooks and delayed-hit scheduling/binding",
+                "Send requested move identity/target intent only; consume verified move-specific events and state while unported specials remain core-owned and deferred."));
         entries.put(Capability.ABILITIES, partial(
-                "Canonical ability identities, generic hook source support and parity-backed Mega Launcher pre-damage behavior",
+                "Canonical ability identities, generic hook source support and parity-backed Mega Launcher behavior",
                 "Render only authoritative ability events/results already emitted by the core; do not implement the remaining ability library in Minecraft."));
         entries.put(Capability.ITEMS, partial(
                 "Canonical held-item battle state, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
@@ -109,8 +98,8 @@ public final class UpstreamCompatibilityMatrix {
                 "Full Python-equivalent tactical scoring/policy is not yet ported",
                 "Do not claim Python AI parity or move tactical policy into the Minecraft adapter."));
         entries.put(Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK, blocking(
-                "BattleEvent/RuleEffectEvent semantic contracts and project-owned headless playback/presentation/world-projection DTOs can exist, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
-                "Keep headless presentation tests separate from claims about in-game entity animation, networking or playback until a live adapter is exercised."));
+                "Semantic battle-event contracts and project-owned headless playback/world-projection DTOs exist, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
+                "Keep headless presentation tests separate from claims about in-game networking, animation or playback until a live adapter is exercised."));
         if (entries.size() != Capability.values().length) throw new IllegalStateException("compatibility matrix must cover every upstream capability");
         return Collections.unmodifiableMap(entries);
     }
