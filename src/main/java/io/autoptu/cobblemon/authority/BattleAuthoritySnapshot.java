@@ -10,8 +10,20 @@ public record BattleAuthoritySnapshot(
         BattleTrainerSnapshot trainer,
         List<BattlePokemonSnapshot> roster,
         List<BattleItemSnapshot> items,
-        long rngSeed
+        long rngSeed,
+        BattleArenaSnapshot arena
 ) {
+    public BattleAuthoritySnapshot(
+            String reservationId,
+            String playerId,
+            BattleTrainerSnapshot trainer,
+            List<BattlePokemonSnapshot> roster,
+            List<BattleItemSnapshot> items,
+            long rngSeed
+    ) {
+        this(reservationId, playerId, trainer, roster, items, rngSeed, null);
+    }
+
     public BattleAuthoritySnapshot {
         if (reservationId == null || reservationId.isBlank()) {
             throw new IllegalArgumentException("reservationId must not be blank");

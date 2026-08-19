@@ -58,7 +58,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("b71a0c1887cd303b78099eed846293a9dd60ef2f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("6c357d59061be2eae7bbbb85f401750acd7cf686", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("4242dc95e183279db52f0a672a50c3fa66425431", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
