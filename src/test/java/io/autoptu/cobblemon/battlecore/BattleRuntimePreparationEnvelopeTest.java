@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.battlecore;
 
+import io.autoptu.cobblemon.authority.CanonicalStatusEntry;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -17,7 +18,8 @@ class BattleRuntimePreparationEnvelopeTest {
         BattleRuntimePreparationEnvelope envelope = BattleRuntimePreparationEnvelope.from(
                 materialization("battle-1", List.of("tackle")),
                 moves("battle-1", List.of(tackle())),
-                heldItems("battle-1", "mon-1")
+                heldItems("battle-1", "mon-1"),
+                statusState("battle-1", "mon-1", List.of(new CanonicalStatusEntry("burned", Map.of("source", "move:ember"))))
         );
 
         assertEquals("battle-1", envelope.reservationId());
@@ -25,6 +27,7 @@ class BattleRuntimePreparationEnvelopeTest {
         assertEquals(Set.of("mon-1"), envelope.combatants().keySet());
         assertEquals(List.of(tackle()), envelope.movesByCombatant().get("mon-1"));
         assertEquals("item-1", envelope.heldItemsByCombatant().get("mon-1").itemInstanceId());
+        assertEquals("move:ember", envelope.statusStateByCombatant().get("mon-1").entries().get(0).metadata().get("source"));
         assertEquals(EnumSet.of(
                         RuntimeCombatantMaterializationReadiness.Requirement.RESOLVED_MOVEMENT_PROFILE,
                         RuntimeCombatantMaterializationReadiness.Requirement.ACTION_BUDGET_INITIALIZATION,
@@ -38,6 +41,8 @@ class BattleRuntimePreparationEnvelopeTest {
         assertThrows(UnsupportedOperationException.class,
                 () -> envelope.movesByCombatant().get("mon-1").add(tackle()));
         assertThrows(UnsupportedOperationException.class,
+                () -> envelope.statusStateByCombatant().clear());
+        assertThrows(UnsupportedOperationException.class,
                 () -> envelope.unresolvedCoreRequirements().clear());
     }
 
@@ -46,7 +51,14 @@ class BattleRuntimePreparationEnvelopeTest {
         assertThrows(IllegalArgumentException.class, () -> BattleRuntimePreparationEnvelope.from(
                 materialization("battle-1", List.of("tackle")),
                 moves("battle-2", List.of(tackle())),
-                heldItems("battle-1", "mon-1")
+                heldItems("battle-1", "mon-1"),
+                statusState("battle-1", "mon-1", List.of(new CanonicalStatusEntry("burned")))
+        ));
+        assertThrows(IllegalArgumentException.class, () -> BattleRuntimePreparationEnvelope.from(
+                materialization("battle-1", List.of("tackle")),
+                moves("battle-1", List.of(tackle())),
+                heldItems("battle-1", "mon-1"),
+                statusState("battle-2", "mon-1", List.of(new CanonicalStatusEntry("burned")))
         ));
     }
 
@@ -61,7 +73,8 @@ class BattleRuntimePreparationEnvelopeTest {
         assertThrows(IllegalArgumentException.class, () -> BattleRuntimePreparationEnvelope.from(
                 materialization("battle-1", List.of("tackle", "growl")),
                 moves("battle-1", List.of(growl, tackle())),
-                heldItems("battle-1", "mon-1")
+                heldItems("battle-1", "mon-1"),
+                statusState("battle-1", "mon-1", List.of(new CanonicalStatusEntry("burned")))
         ));
     }
 
@@ -75,7 +88,18 @@ class BattleRuntimePreparationEnvelopeTest {
         assertThrows(IllegalArgumentException.class, () -> BattleRuntimePreparationEnvelope.from(
                 materialization("battle-1", List.of("tackle")),
                 moves("battle-1", List.of(tackle())),
-                injected
+                injected,
+                statusState("battle-1", "mon-1", List.of(new CanonicalStatusEntry("burned")))
+        ));
+    }
+
+    @Test
+    void rejectsStructuredStatusStateThatDoesNotMatchCanonicalNames() {
+        assertThrows(IllegalArgumentException.class, () -> BattleRuntimePreparationEnvelope.from(
+                materialization("battle-1", List.of("tackle")),
+                moves("battle-1", List.of(tackle())),
+                heldItems("battle-1", "mon-1"),
+                statusState("battle-1", "mon-1", List.of(new CanonicalStatusEntry("flinched", Map.of("applied_round", 2))))
         ));
     }
 
@@ -92,7 +116,7 @@ class BattleRuntimePreparationEnvelopeTest {
                 new BattleCombatantAffiliationProjection(id, "team-1", true),
                 new BattleCombatantGeometryProjection(id, "Small"),
                 new BattleCombatantBaseMovementProjection(id, 5, 2, 0, 1, 1),
-                Set.of("Burned")
+                Set.of("burned")
         );
         return new BattleCoreMaterializationInputProjection(reservationId, 123L, Map.of(id, input));
     }
@@ -105,6 +129,24 @@ class BattleRuntimePreparationEnvelopeTest {
         return new BattleCoreHeldItemBootstrapProjection(
                 reservationId,
                 Map.of(combatantId, new BattleCombatantHeldItemProjection(combatantId, "item-1", "Leftovers"))
+        );
+    }
+
+    private static BattleCoreStatusStateBootstrapProjection statusState(
+            String reservationId,
+            String combatantId,
+            List<CanonicalStatusEntry> entries
+    ) {
+        Set<String> names = entries.stream().map(CanonicalStatusEntry::name).collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+        BattleCoreBootstrapProjection bootstrap = new BattleCoreBootstrapProjection(
+                reservationId,
+                123L,
+                Map.of(combatantId, names)
+        );
+        return new BattleCoreStatusStateBootstrapProjection(
+                reservationId,
+                bootstrap,
+                Map.of(combatantId, new BattleCombatantStatusStateProjection(combatantId, entries))
         );
     }
 
