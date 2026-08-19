@@ -11,6 +11,7 @@ public record CanonicalPlayerState(
         Map<String, Integer> skillRanks,
         Set<String> availablePokemonCapabilities,
         Set<String> trainerFeatures,
+        int actionPoints,
         long revision
 ) {
     public CanonicalPlayerState(
@@ -20,7 +21,18 @@ public record CanonicalPlayerState(
             Set<String> availablePokemonCapabilities,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, Set.of(), revision);
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, Set.of(), 0, revision);
+    }
+
+    public CanonicalPlayerState(
+            String playerId,
+            Set<String> trainerClasses,
+            Map<String, Integer> skillRanks,
+            Set<String> availablePokemonCapabilities,
+            Set<String> trainerFeatures,
+            long revision
+    ) {
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, 0, revision);
     }
 
     public CanonicalPlayerState {
@@ -33,6 +45,9 @@ public record CanonicalPlayerState(
                 ? Set.of()
                 : Set.copyOf(availablePokemonCapabilities);
         trainerFeatures = normalizeTrainerFeatures(trainerFeatures);
+        if (actionPoints < 0) {
+            throw new IllegalArgumentException("actionPoints must be >= 0");
+        }
         if (revision < 0) {
             throw new IllegalArgumentException("revision must be >= 0");
         }
