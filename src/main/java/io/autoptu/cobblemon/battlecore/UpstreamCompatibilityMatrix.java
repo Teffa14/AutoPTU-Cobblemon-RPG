@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "f0cc35560f7a0de3a9569475b7e08208a8692919";
+    public static final String AUTOPTU_JAVA_SHA = "864761bf75c62976022f245ffd8deeacc61e85e6";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public enum Capability {
@@ -51,14 +51,14 @@ public final class UpstreamCompatibilityMatrix {
                 "Forced movement, push/pull/knockback, interception and interaction-driven movement are not complete",
                 "Do not synthesize forced movement, interception or knockback rules in the adapter."));
         entries.put(Capability.CORE_CALCULATIONS_AND_COMBAT_STATS, verified(
-                "Damage Base tables, type effectiveness, STAB, accuracy stages, EvasionProfile, combat stages and CombatantStatProfile with Python parity coverage",
-                "Supply canonical baseline inputs only. Final evasion and accuracy effects remain core-owned, including ability, item, Trainer Feature, status, terrain and temporary-effect contributions."));
+                "Damage Base tables, type effectiveness, STAB, accuracy stages, EvasionProfile, CombatantStatProfile and server-owned mutable CombatStageState with Python parity coverage",
+                "Supply canonical baseline inputs only. Final evasion, accuracy and combat-stage mutation effects remain core-owned, including move, ability, item, Trainer Feature, status, terrain and temporary-effect contributions."));
         entries.put(Capability.ACTION_ECONOMY_AND_INITIATIVE, verified(
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering; Trainer AP is separately authoritative in TrainerRuntimeState",
                 "Treat action availability, initiative and Trainer resource spending as core-owned state. The integration may freeze canonical Trainer AP at battle start, but must not spend/restore AP or initialize/mutate ActionBudget on behalf of PTU lifecycle logic."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, StatusPhaseEffectRegistry, AbilityPhaseEffectRegistry, PerkPhaseEffectRegistry, CombatantPhaseEffectDispatcher STATUS -> ABILITY -> PERK ordering, structured StatusStateStore, active actor/phase state, authoritative phase/turn-end events, pending status-skip consumption, turn-end boundary, TemporaryEffectStore, move-frequency reset, selected round-start cleanup, history rotation, delayed-hit scheduling/binding, Flinch behavior, Strange Tempo, Lancer END, authoritative TrainerRuntimeState/controller binding and parity-backed Defense Mastery END behavior",
-                "Consume verified lifecycle state/events only. Preserve authoritative ordering. Canonical Trainer Features, AP and controller bindings may be prepared from the server reservation, but AP spending, perk execution, START-on-beginTurn wiring, broader concrete perk/status/ability libraries, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay core-owned."));
+                "BattleRoundController, ordered LifecycleHookRegistry, StatusPhaseEffectRegistry, AbilityPhaseEffectRegistry, PerkPhaseEffectRegistry, CombatantPhaseEffectDispatcher STATUS -> ABILITY -> PERK ordering, structured StatusStateStore, active actor/phase state, authoritative phase/turn-end events, pending status-skip consumption, turn-end boundary, TemporaryEffectStore, move-frequency reset, selected round-start cleanup, history rotation, delayed-hit scheduling/binding, Flinch behavior, Strange Tempo, Lancer END, authoritative TrainerRuntimeState/controller binding, mutable CombatStageState and parity-backed Defense Mastery/fixed Link Feature END behavior",
+                "Consume verified lifecycle state/events only. Preserve authoritative ordering. Canonical Trainer Features, AP and controller bindings may be prepared from the server reservation, but AP spending, combat-stage mutation, perk execution, START-on-beginTurn wiring, broader concrete perk/status/ability libraries, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay core-owned."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
@@ -78,8 +78,8 @@ public final class UpstreamCompatibilityMatrix {
                 "BattleRuntimeState heldItemsByCombatant, HeldItemState stable identity, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
                 "Project only frozen held-item identity into authoritative runtime state, reserve/commit canonical items server-side, and render verified core item events only; do not manufacture unported item effects or trust client/entity equipment claims."));
         entries.put(Capability.TRAINER_FEATURES_AND_PERKS, partial(
-                "Authoritative TrainerRuntimeState stores server-owned Trainer Feature identities and AP; BattleRuntimeState binds combatants to trainer controllers; PerkPhaseLifecycleHook derives owned Features from runtime state; selected status-skip exceptions and parity-backed Defense Mastery END behavior execute through the default perk lifecycle",
-                "Freeze and transport Trainer Feature ownership, battle-start AP and combatant-controller bindings only from canonical server state. Minecraft/client payloads may not grant Features, set AP, spend/restore AP, choose controllers or execute perks. Remaining Trainer Feature/perk implementations stay AutoPTU-Java-owned."));
+                "Authoritative TrainerRuntimeState stores server-owned Trainer Feature identities and AP; BattleRuntimeState binds combatants to trainer controllers; PerkPhaseLifecycleHook derives owned Features from runtime state; CombatStageState is authoritative mutable battle state; selected status-skip exceptions, Defense Mastery and fixed Attack/Defense/Special Attack/Special Defense/Speed Link END behavior are parity-backed",
+                "Freeze and transport Trainer Feature ownership, battle-start AP and combatant-controller bindings only from canonical server state. Minecraft/client payloads may not grant Features, set AP, spend/restore AP, choose controllers, mutate combat stages or execute perks. Remaining Trainer Feature/perk implementations stay AutoPTU-Java-owned."));
         entries.put(Capability.AI_LEGAL_ACTION_INFRASTRUCTURE, verified(
                 "Runtime-authoritative autobattler action space, affiliation, geometry, action budget, move availability and frequency filtering",
                 "AI may choose only from the legal choices produced by the core."));

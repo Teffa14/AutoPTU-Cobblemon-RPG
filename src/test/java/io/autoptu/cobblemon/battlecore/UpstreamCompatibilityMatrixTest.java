@@ -47,19 +47,23 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void trainerRuntimeBindingIsAuthoritativeWithoutPromotingWholePerkLibrary() {
+    void trainerRuntimeAndCombatStagesStayAuthoritativeWithoutPromotingWholePerkLibrary() {
+        UpstreamCompatibilityMatrix.Entry calculations = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS);
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry perks = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, calculations.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
+        assertTrue(calculations.contracts().contains("CombatStageState"));
         assertTrue(lifecycle.contracts().contains("TrainerRuntimeState/controller binding"));
-        assertTrue(lifecycle.contracts().contains("Defense Mastery"));
+        assertTrue(lifecycle.contracts().contains("fixed Link Feature"));
         assertTrue(perks.contracts().contains("TrainerRuntimeState"));
-        assertTrue(perks.contracts().contains("BattleRuntimeState binds combatants to trainer controllers"));
-        assertTrue(perks.contracts().contains("Defense Mastery"));
+        assertTrue(perks.contracts().contains("CombatStageState"));
+        assertTrue(perks.contracts().contains("Attack/Defense/Special Attack/Special Defense/Speed Link"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
         assertTrue(perks.adapterPolicy().contains("spend/restore AP"));
+        assertTrue(perks.adapterPolicy().contains("mutate combat stages"));
     }
 
     @Test
@@ -111,7 +115,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("f0cc35560f7a0de3a9569475b7e08208a8692919", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("864761bf75c62976022f245ffd8deeacc61e85e6", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
