@@ -13,8 +13,8 @@ import java.util.Objects;
  * Cobblemon, and Craftics adapters must not fill the missing rules themselves.
  */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "b71a0c1887cd303b78099eed846293a9dd60ef2f";
-    public static final String AUTOPTU_PYTHON_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
+    public static final String AUTOPTU_JAVA_SHA = "6c357d59061be2eae7bbbb85f401750acd7cf686";
+    public static final String AUTOPTU_PYTHON_SHA = "4242dc95e183279db52f0a672a50c3fa66425431";
 
     public enum Capability {
         CORE_TARGETING,
@@ -86,8 +86,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, authoritative TemporaryEffectStore, move-frequency reset, and parity-backed round-start cleanup for intercept_ready/extra_action/delayed/riposte_ready",
-                "Consume verified lifecycle state/events only; defer unported terrain/zone/room advancement, delayed hits, send-out effects, damage-history rotation, status/ability/Feature hooks and other Python lifecycle behavior."));
+                "BattleRoundController, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, and parity-backed round-start cleanup for intercept_ready/extra_action/delayed/riposte_ready",
+                "Consume verified lifecycle state/events only; defer unported terrain/zone/room advancement, delayed hits, send-out effects, damage-history rotation, status/ability/Feature hooks, payload expiry semantics and other Python lifecycle behavior."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl and Mega Launcher slices are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers in the adapter."));
@@ -98,7 +98,7 @@ public final class UpstreamCompatibilityMatrix {
                 "Terrain movement costs, weather calculation primitives, generic HookSource categories and lifecycle seams exist",
                 "Project terrain/world facts and semantic events only. Do not approximate hazards, zones, reactions or forced movement before core ports exist."));
         entries.put(Capability.MOVE_SPECIFIC_BEHAVIOR, partial(
-                "Authoritative movesets, MoveSpec/MoveCombatProfile metadata, move-frequency enforcement and ordered pre-damage move hook seam",
+                "Authoritative movesets, MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect payload state and ordered pre-damage move hook seam",
                 "Send requested move identity/target intent only; consume verified move-specific events and defer unported specials to the core."));
         entries.put(Capability.ABILITIES, partial(
                 "Canonical ability identities, generic hook source support and parity-backed Mega Launcher pre-damage behavior",
