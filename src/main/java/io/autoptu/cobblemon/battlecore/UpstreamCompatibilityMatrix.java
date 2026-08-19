@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "5860d75dd4690a9244269aea70e343cba0005755";
+    public static final String AUTOPTU_JAVA_SHA = "cd510f3cd812532ae84304b01377c34a285863c5";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public enum Capability {
@@ -57,8 +57,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state. The integration layer must not initialize or mutate ActionBudget on behalf of PTU lifecycle logic."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, ordered AbilityPhaseEffectRegistry bridged into lifecycle, CombatantPhaseEffectDispatcher composing STATUS -> ABILITY -> PERK in Python-oracle order, structured StatusEntry/StatusStateStore bound into BattleRuntimeState, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior, Flinch round-boundary expiry, Strange Tempo Confusion START branching and parity-backed Lancer END behavior",
-                "Consume verified lifecycle state/events only. Preserve core semantic event ordering across phase families and never regroup events by status, ability or perk in the adapter. Structured status metadata and canonical ability identities can be passed into runtime state, but broader duration/source-sensitive behavior and the remaining status/ability/perk libraries stay core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, ordered AbilityPhaseEffectRegistry, CombatantPhaseEffectDispatcher composing STATUS -> ABILITY -> PERK in Python-oracle order and now registered in the default PHASE_CHANGE lifecycle path, structured StatusEntry/StatusStateStore bound into BattleRuntimeState, server-owned active actor/phase pointer, authoritative phase and turn-end semantic events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior, Flinch round-boundary expiry, Strange Tempo Confusion START branching and parity-backed Lancer END behavior",
+                "Consume verified lifecycle state/events only. Preserve authoritative phase and rule-effect event ordering and never regroup events by status, ability or perk in the adapter. Structured status metadata and canonical ability identities can be passed into runtime state, but START-on-beginTurn wiring, perk registry behavior, broader duration/source-sensitive behavior and the remaining status/ability/perk libraries stay core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
@@ -72,13 +72,13 @@ public final class UpstreamCompatibilityMatrix {
                 "Authoritative movesets, public MoveOption/MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect state, ordered pre-damage move hooks and delayed-hit scheduling/binding",
                 "Resolve frozen move IDs only through trusted server-owned catalog metadata matching public core contracts. Client/Minecraft may request move identity/target intent only; unported specials remain core-owned and deferred."));
         entries.put(Capability.ABILITIES, partial(
-                "Canonical ability identities, generic HookSource support, ordered AbilityPhaseEffectRegistry, parity-backed Mega Launcher damage behavior, Strange Tempo Confusion START behavior, Inner Focus Flinch prevention and Lancer END phase behavior",
+                "Canonical ability identities, generic HookSource support, ordered AbilityPhaseEffectRegistry, parity-backed Mega Launcher damage behavior, Strange Tempo Confusion START behavior, Inner Focus Flinch prevention and Lancer END phase behavior wired through the default lifecycle",
                 "Render only authoritative ability events/results already emitted by the core. Generic rule-effect playback may carry verified ability outcomes without adding ability-specific adapter branches; do not implement the remaining ability library in Minecraft."));
         entries.put(Capability.ITEMS, partial(
                 "BattleRuntimeState canonical heldItemsByCombatant map, HeldItemState stable item identity, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
                 "Project only frozen held-item instance/catalog identity into authoritative runtime state, reserve/commit canonical items server-side, and render verified core item events only; do not manufacture unported item effects or trust client/entity equipment claims."));
         entries.put(Capability.TRAINER_FEATURES_AND_PERKS, partial(
-                "Selected status-skip Trainer Feature exceptions, TRAINER_FEATURE/PERK hook-source and lifecycle categories, and a stable PERK family position after status and ability phase families in CombatantPhaseEffectDispatcher",
+                "Selected status-skip Trainer Feature exceptions, TRAINER_FEATURE/PERK hook-source and lifecycle categories, and a stable PERK family position after status and ability phase families in CombatantPhaseEffectDispatcher; concrete perk registry behavior remains unimplemented",
                 "Use only specifically verified Feature/perk behavior and semantic events. Preserve upstream event order and keep all unported perks/features deferred."));
         entries.put(Capability.AI_LEGAL_ACTION_INFRASTRUCTURE, verified(
                 "Runtime-authoritative autobattler action space, affiliation, geometry, action budget, move availability and frequency filtering",
@@ -87,7 +87,7 @@ public final class UpstreamCompatibilityMatrix {
                 "Full Python-equivalent tactical scoring/policy is not yet ported",
                 "Do not claim Python AI parity or move tactical policy into the Minecraft adapter."));
         entries.put(Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK, blocking(
-                "Semantic battle-event contracts and project-owned headless playback/world-projection DTOs exist, including generic rule-effect projection for new upstream ability events, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
+                "Semantic battle-event contracts and project-owned headless playback/world-projection DTOs exist, including lifecycle, generic rule-effect and relocation presentation, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
                 "Keep headless presentation tests separate from claims about in-game networking, animation or playback until a live adapter is exercised."));
         if (entries.size() != Capability.values().length) throw new IllegalStateException("compatibility matrix must cover every upstream capability");
         return Collections.unmodifiableMap(entries);
