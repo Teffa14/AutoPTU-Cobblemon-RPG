@@ -37,6 +37,7 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         assertTrue(lifecycle.contracts().contains("phase-transition events"));
         assertTrue(lifecycle.contracts().contains("pending status-skip"));
+        assertTrue(lifecycle.contracts().contains("last-pending-request overwrite"));
         assertTrue(lifecycle.adapterPolicy().contains("Corrosive Toxins"));
         assertTrue(lifecycle.adapterPolicy().contains("delayed-hit execution"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
@@ -62,8 +63,18 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
+    void itemContractCarriesIdentityWithoutPromotingItemLibrary() {
+        UpstreamCompatibilityMatrix.Entry items = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ITEMS);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, items.support());
+        assertTrue(items.contracts().contains("HeldItemState"));
+        assertTrue(items.contracts().contains("heldItemsByCombatant"));
+        assertTrue(items.adapterPolicy().contains("item effects"));
+        assertTrue(items.adapterPolicy().contains("client/entity equipment"));
+    }
+
+    @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("957e7eaa0ce056b8fc6f2f66aba7f24440c2c2be", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("54e4fa8ccbe0e555afef8b4b3713e7568608e5d3", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("4b3f3280fdfb25bad5318097201808405733ca08", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("38819d6ffd0d7f03c1cfc1a01f00aa6140d97076", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
