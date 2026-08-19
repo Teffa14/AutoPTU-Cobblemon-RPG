@@ -28,6 +28,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.WORLD_RELOCATION_PROJECTION).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.PLAYER_SHIFT_REQUEST).hasBlockingDependency());
@@ -78,6 +80,19 @@ class IntegrationFeatureCompatibilityTest {
                 UpstreamCompatibilityMatrix.entry(
                         UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).support());
         assertTrue(requirement.boundedScope().contains("raw world inputs"));
+        assertFalse(requirement.hasBlockingDependency());
+    }
+
+    @Test
+    void movementObservationInputStopsBeforeMovementGridSemantics() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT);
+        assertEquals(EnumSet.of(
+                        UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
+                        UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS),
+                EnumSet.copyOf(requirement.capabilities()));
+        assertTrue(requirement.boundedScope().contains("stops before MovementGrid"));
+        assertTrue(requirement.boundedScope().contains("terrain cost"));
         assertFalse(requirement.hasBlockingDependency());
     }
 
