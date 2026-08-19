@@ -26,29 +26,32 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING));
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE));
-        assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.ABILITIES));
-        assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.ITEMS));
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ITEMS).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support());
     }
 
     @Test
-    void delayedHitBindingAndRoundHistoryDoNotPromoteLifecycleToVerified() {
-        assertTrue(UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts().contains("DelayedHitBinding"));
-        assertTrue(UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts().contains("DelayedHitBinding"));
-        assertTrue(UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts().contains("damage-history"));
-        assertTrue(UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts().contains("injury-history"));
-        assertTrue(UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts().contains("turn-end"));
-        assertTrue(UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).adapterPolicy().contains("actual delayed-hit execution"));
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+    void newLifecyclePointerDoesNotPromoteWholeLifecycle() {
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        assertTrue(lifecycle.contracts().contains("active actor/phase"));
+        assertTrue(lifecycle.adapterPolicy().contains("delayed-hit execution"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
+    }
+
+    @Test
+    void calculationContractKeepsDynamicEvasionCoreOwned() {
+        UpstreamCompatibilityMatrix.Entry calculations = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS);
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, calculations.support());
+        assertTrue(calculations.contracts().contains("EvasionProfile"));
+        assertTrue(calculations.adapterPolicy().contains("Trainer Feature"));
+        assertTrue(calculations.adapterPolicy().contains("terrain"));
     }
 
     @Test
     void movementContractKeepsRuntimeModifiersCoreOwned() {
-        UpstreamCompatibilityMatrix.Entry movement = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY);
+        UpstreamCompatibilityMatrix.Entry movement = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY);
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, movement.support());
         assertTrue(movement.contracts().contains("resolved MovementProfile"));
         assertTrue(movement.adapterPolicy().contains("Wallrunner"));
@@ -58,7 +61,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("de0ab9f6224c76dc232071881f4a88435262d7e1", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("163710b089500f7c9e389ff42044210574ee7f2d", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("54e4fa8ccbe0e555afef8b4b3713e7568608e5d3", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
