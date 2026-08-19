@@ -24,6 +24,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.PLAYER_SHIFT_REQUEST).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.MOVE_SELECTION_REQUEST).hasBlockingDependency());
@@ -38,22 +40,24 @@ class IntegrationFeatureCompatibilityTest {
     }
 
     @Test
-    void gridWorldTransformDependsOnlyOnVerifiedGridContracts() {
-        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
-                IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM
+    void gridWorldTransformAndArenaReservationDependOnlyOnVerifiedGridContracts() {
+        EnumSet<UpstreamCompatibilityMatrix.Capability> expected = EnumSet.of(
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY
         );
 
-        assertEquals(
-                EnumSet.of(
-                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
-                        UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY
-                ),
-                EnumSet.copyOf(requirement.capabilities())
-        );
-        requirement.capabilities().forEach(capability -> assertEquals(
-                UpstreamCompatibilityMatrix.Support.VERIFIED,
-                UpstreamCompatibilityMatrix.entry(capability).support()
-        ));
+        for (IntegrationFeatureCompatibility.Feature feature : new IntegrationFeatureCompatibility.Feature[]{
+                IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM,
+                IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION
+        }) {
+            IntegrationFeatureCompatibility.Requirement requirement =
+                    IntegrationFeatureCompatibility.requirement(feature);
+            assertEquals(expected, EnumSet.copyOf(requirement.capabilities()));
+            requirement.capabilities().forEach(capability -> assertEquals(
+                    UpstreamCompatibilityMatrix.Support.VERIFIED,
+                    UpstreamCompatibilityMatrix.entry(capability).support()
+            ));
+        }
     }
 
     @Test
