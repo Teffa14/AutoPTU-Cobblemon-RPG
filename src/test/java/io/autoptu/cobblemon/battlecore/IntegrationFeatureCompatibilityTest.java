@@ -26,6 +26,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.WORLD_RELOCATION_PROJECTION).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.PLAYER_SHIFT_REQUEST).hasBlockingDependency());
@@ -64,6 +66,22 @@ class IntegrationFeatureCompatibilityTest {
     }
 
     @Test
+    void worldObservationSnapshotUsesPartialTerrainContractWithoutClaimingLegality() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT);
+        assertEquals(EnumSet.of(
+                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                        UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
+                        UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS),
+                EnumSet.copyOf(requirement.capabilities()));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).support());
+        assertTrue(requirement.boundedScope().contains("raw world inputs"));
+        assertFalse(requirement.hasBlockingDependency());
+    }
+
+    @Test
     void unsupportedRuleFamiliesRemainExplicitlyBlocked() {
         assertTrue(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.FORCED_MOVEMENT_PLAYBACK).hasBlockingDependency());
@@ -75,20 +93,14 @@ class IntegrationFeatureCompatibilityTest {
 
     @Test
     void partialFamiliesRemainNarrowEvenWhenPlaybackIsAllowed() {
-        assertEquals(
-                UpstreamCompatibilityMatrix.Support.PARTIAL,
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
-                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).support()
-        );
-        assertEquals(
-                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
-                        UpstreamCompatibilityMatrix.Capability.ABILITIES).support()
-        );
-        assertEquals(
-                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                        UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
-                        UpstreamCompatibilityMatrix.Capability.ITEMS).support()
-        );
+                        UpstreamCompatibilityMatrix.Capability.ITEMS).support());
     }
 }

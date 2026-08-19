@@ -13,8 +13,8 @@ import java.util.Objects;
  * Cobblemon, and Craftics adapters must not fill the missing rules themselves.
  */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "6111b6c5bcda851a1015ddc3ac4d5b578edc2c10";
-    public static final String AUTOPTU_PYTHON_SHA = "9f6df7bae6337d112d7f1b88e78a8b70044fe257";
+    public static final String AUTOPTU_JAVA_SHA = "62e6bef9e45b2e30febb48b4b6b73927c36328c0";
+    public static final String AUTOPTU_PYTHON_SHA = "403181e35c64ec165d49c2d68329a56609c39a15";
 
     public enum Capability {
         CORE_TARGETING,
@@ -86,8 +86,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, and DelayedHitEntry/DelayedHitQueue scheduling plus due/future partition",
-                "Consume verified lifecycle state/events only; delayed-hit execution itself, terrain/zone/room advancement, send-out effects, damage-history rotation, status/ability/Feature hooks, broader payload expiry semantics and other Python lifecycle behavior remain deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, DelayedHitEntry/DelayedHitQueue scheduling and due/future partition, plus DelayedHitBinding/DelayedHitBindingResolver canonical move/target reconstruction",
+                "Consume verified lifecycle state/events only; actual delayed-hit execution, terrain/zone/room advancement, send-out effects, damage-history rotation, status/ability/Feature hooks, broader payload expiry semantics and other Python lifecycle behavior remain deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl and Mega Launcher slices are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers in the adapter."));
@@ -96,10 +96,10 @@ public final class UpstreamCompatibilityMatrix {
                 "Expose only parity-backed status effects; do not implement missing ticks, cures or interactions client-side."));
         entries.put(Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, partial(
                 "Terrain movement costs, weather calculation primitives, generic HookSource categories and lifecycle seams exist",
-                "Project terrain/world facts and semantic events only. Do not approximate hazards, zones, reactions or forced movement before core ports exist."));
+                "Project raw terrain/world observations and semantic events only. Do not classify Minecraft blocks into PTU terrain or approximate hazards, zones, reactions or forced movement before core contracts exist."));
         entries.put(Capability.MOVE_SPECIFIC_BEHAVIOR, partial(
-                "Authoritative movesets, MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect payload state, ordered pre-damage move hook seam, and parity-backed delayed-hit scheduling metadata",
-                "Send requested move identity/target intent only; consume verified move-specific events and state while delayed-hit execution and unported specials remain core-owned and deferred."));
+                "Authoritative movesets, MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect payload state, ordered pre-damage move hook seam, DelayedHitEntry scheduling and DelayedHitBinding canonical move/target inputs",
+                "Send requested move identity/target intent only; consume verified move-specific events and state while actual delayed-hit execution and unported specials remain core-owned and deferred."));
         entries.put(Capability.ABILITIES, partial(
                 "Canonical ability identities, generic hook source support and parity-backed Mega Launcher pre-damage behavior",
                 "Render only authoritative ability events/results already emitted by the core; do not implement the remaining ability library in Minecraft."));
