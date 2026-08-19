@@ -26,6 +26,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.WORLD_RELOCATION_PROJECTION).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.PLAYER_SHIFT_REQUEST).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.MOVE_SELECTION_REQUEST).hasBlockingDependency());
@@ -40,7 +42,7 @@ class IntegrationFeatureCompatibilityTest {
     }
 
     @Test
-    void gridWorldTransformAndArenaReservationDependOnlyOnVerifiedGridContracts() {
+    void gridWorldFeaturesDependOnlyOnVerifiedGridContracts() {
         EnumSet<UpstreamCompatibilityMatrix.Capability> expected = EnumSet.of(
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY
@@ -48,7 +50,8 @@ class IntegrationFeatureCompatibilityTest {
 
         for (IntegrationFeatureCompatibility.Feature feature : new IntegrationFeatureCompatibility.Feature[]{
                 IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM,
-                IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION
+                IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION,
+                IntegrationFeatureCompatibility.Feature.WORLD_RELOCATION_PROJECTION
         }) {
             IntegrationFeatureCompatibility.Requirement requirement =
                     IntegrationFeatureCompatibility.requirement(feature);
