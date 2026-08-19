@@ -10,6 +10,7 @@ public final class IntegrationFeatureCompatibility {
         GRID_TARGET_PREVIEW,
         GRID_WORLD_COORDINATE_TRANSFORM,
         BATTLE_ARENA_RESERVATION,
+        INITIAL_COMBATANT_PLACEMENT,
         BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT,
         BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT,
         WORLD_RELOCATION_PROJECTION,
@@ -68,6 +69,10 @@ public final class IntegrationFeatureCompatibility {
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.BATTLE_ARENA_RESERVATION, requirement(
                 "Freeze dimension, world origin, elevation and cardinal grid orientation into the server-owned battle reservation. The snapshot supplies a stable coordinate frame only and never decides PTU legality.",
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
+        requirements.put(Feature.INITIAL_COMBATANT_PLACEMENT, requirement(
+                "Freeze one initial authoritative grid anchor for every reserved combatant and bind it to the battle reservation/arena. Footprint size, overlap/collision, facing, terrain and placement legality remain core-owned or deferred until explicit upstream contracts exist.",
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT, requirement(
