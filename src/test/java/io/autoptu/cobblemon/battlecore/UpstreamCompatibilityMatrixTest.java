@@ -39,10 +39,23 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(lifecycle.contracts().contains("bound into BattleRuntimeState"));
         assertTrue(lifecycle.contracts().contains("Flinch round-boundary expiry"));
         assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
+        assertTrue(statuses.contracts().contains("StatusApplicationHookRegistry"));
         assertTrue(statuses.contracts().contains("Flinch round-boundary expiry"));
-        assertTrue(statuses.adapterPolicy().contains("Do not implement missing"));
+        assertTrue(statuses.adapterPolicy().contains("Status application/prevention remains core-owned"));
+        assertTrue(statuses.adapterPolicy().contains("do not implement missing"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
+    }
+
+    @Test
+    void abilityPhaseRegistryUsesGenericPlaybackWithoutPromotingAbilityLibrary() {
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
+        assertTrue(abilities.contracts().contains("Inner Focus"));
+        assertTrue(abilities.contracts().contains("Lancer END"));
+        assertTrue(abilities.adapterPolicy().contains("Generic rule-effect playback"));
+        assertTrue(abilities.adapterPolicy().contains("do not implement the remaining ability library"));
     }
 
     @Test
@@ -84,7 +97,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("b7a71bc6e8a4f6b03f8b0a10cca2a15b915a4e53", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("b3dee6e1e7aa954173fc152b2dd4bf5b960e54cd", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
