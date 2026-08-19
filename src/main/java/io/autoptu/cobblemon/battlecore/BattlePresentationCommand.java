@@ -8,7 +8,7 @@ import java.util.Objects;
  * Project-owned presentation instruction derived only from an authoritative semantic battle event.
  *
  * Commands are rendering inputs. They never decide PTU legality, damage, status changes, movement,
- * item/ability effects, or any other battle outcome.
+ * item/ability effects, lifecycle state, or any other battle outcome.
  */
 public record BattlePresentationCommand(
         long sequence,
@@ -23,7 +23,9 @@ public record BattlePresentationCommand(
         ENTITY_RELOCATION,
         STATUS_SKIP_CUE,
         TRAINER_FEATURE_CUE,
-        RULE_EFFECT_CUE
+        RULE_EFFECT_CUE,
+        PHASE_CUE,
+        TURN_END_CUE
     }
 
     public BattlePresentationCommand {
