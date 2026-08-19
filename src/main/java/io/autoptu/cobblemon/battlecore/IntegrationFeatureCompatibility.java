@@ -66,7 +66,7 @@ public final class IntegrationFeatureCompatibility {
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE));
         requirements.put(Feature.ROUND_LIFECYCLE_PLAYBACK, requirement(
-                "Reflect verified round transitions; do not invent missing lifecycle hooks.",
+                "Render only lifecycle events emitted through verified core hooks; do not invent missing round/turn effects.",
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE));
         requirements.put(Feature.DAMAGE_RESULT_PLAYBACK, requirement(
                 "Render resolved HP/damage events without adapter-side modifiers.",
@@ -79,13 +79,13 @@ public final class IntegrationFeatureCompatibility {
                 "Wait for core-owned push/pull/knockback/interception semantics.",
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_MOVEMENT_BEHAVIOR));
         requirements.put(Feature.ABILITY_EFFECT_PLAYBACK, requirement(
-                "Wait for parity-backed ability hooks/events.",
+                "Render only parity-backed ability RuleEffectEvent/results, currently including Mega Launcher behavior; defer the remaining ability library.",
                 UpstreamCompatibilityMatrix.Capability.ABILITIES));
         requirements.put(Feature.ITEM_BATTLE_EFFECT_PLAYBACK, requirement(
-                "Canonical reservation is allowed; battle effect playback waits for core item rules.",
+                "Render only parity-backed item RuleEffectEvent/results, currently including Pink Pearl; canonical reservation remains server-owned.",
                 UpstreamCompatibilityMatrix.Capability.ITEMS));
         requirements.put(Feature.TRAINER_FEATURE_PLAYBACK, requirement(
-                "Only selected verified Trainer Feature behavior may be projected.",
+                "Only selected verified Trainer Feature behavior/events may be projected.",
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS));
         requirements.put(Feature.AUTOBATTLER_LEGAL_CHOICE_INPUT, requirement(
                 "Consume the legal BattleChoice space produced from authoritative runtime state.",
@@ -94,7 +94,7 @@ public final class IntegrationFeatureCompatibility {
                 "Wait for Python-equivalent tactical scoring/policy.",
                 UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY));
         requirements.put(Feature.LIVE_MINECRAFT_BATTLE_ADAPTER, requirement(
-                "Requires an actually exercised Minecraft/Cobblemon/Craftics adapter and semantic playback path.",
+                "Requires an actually exercised Minecraft/Cobblemon/Craftics adapter; the headless playback envelope alone does not satisfy this capability.",
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
 
         if (requirements.size() != Feature.values().length) {
