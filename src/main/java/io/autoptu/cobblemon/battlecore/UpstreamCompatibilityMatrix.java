@@ -13,7 +13,7 @@ import java.util.Objects;
  * Cobblemon, and Craftics adapters must not fill the missing rules themselves.
  */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "53d9a7b521fb398e28984334e9aa2a9a33d98db0";
+    public static final String AUTOPTU_JAVA_SHA = "28d49949b63f2e675680356e650ac5b04e0c5c6b";
     public static final String AUTOPTU_PYTHON_SHA = "8238201919f176c8c3923340dd9e887ca3be44f6";
 
     public enum Capability {
@@ -71,8 +71,8 @@ public final class UpstreamCompatibilityMatrix {
     private static Map<Capability, Entry> buildEntries() {
         EnumMap<Capability, Entry> entries = new EnumMap<>(Capability.class);
         entries.put(Capability.CORE_TARGETING, verified(
-                "MoveSpec, target anchors, footprints, range/area legality, line-of-sight tests",
-                "Project grid inputs and render authoritative legal targets only."));
+                "MoveSpec, target anchors, footprints, range/area legality, line-of-sight tests and CombatantGeometryState size labels",
+                "Project grid inputs and render authoritative legal targets only. Combatant model scale, facing, footprint overlap and placement legality must not be invented by the adapter."));
         entries.put(Capability.CORE_MOVEMENT_LEGALITY, verified(
                 "MovementGrid, MovementProfile, Shift/Jump legality, Overland/Swim/Sky and terrain-cost tests",
                 "Project adapter-neutral world observations toward core movement inputs; never decide PTU path legality or invent terrain costs in Minecraft."));
@@ -86,7 +86,7 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, authoritative round damage-history rotation, DelayedHitEntry/DelayedHitQueue scheduling and due/future partition, plus DelayedHitBinding/DelayedHitBindingResolver canonical move/target reconstruction",
+                "BattleRoundController, ordered LifecycleHookRegistry, payload-bearing TemporaryEffectEntry/TemporaryEffectStore, move-frequency reset, parity-backed round-start cleanup, authoritative round damage-history and injury-history rotation, DelayedHitEntry/DelayedHitQueue scheduling and due/future partition, plus DelayedHitBinding/DelayedHitBindingResolver canonical move/target reconstruction",
                 "Consume verified lifecycle state/events only; actual delayed-hit execution, terrain/zone/room advancement, send-out effects, remaining status/ability/Feature hooks, broader payload expiry semantics and other Python lifecycle behavior remain deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl and Mega Launcher slices are parity-backed",

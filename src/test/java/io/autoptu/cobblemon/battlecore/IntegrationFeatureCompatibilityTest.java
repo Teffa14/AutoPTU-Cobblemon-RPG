@@ -26,6 +26,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.INITIAL_COMBATANT_PLACEMENT).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT).hasBlockingDependency());
@@ -55,6 +57,7 @@ class IntegrationFeatureCompatibilityTest {
         for (IntegrationFeatureCompatibility.Feature feature : new IntegrationFeatureCompatibility.Feature[]{
                 IntegrationFeatureCompatibility.Feature.GRID_WORLD_COORDINATE_TRANSFORM,
                 IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION,
+                IntegrationFeatureCompatibility.Feature.INITIAL_COMBATANT_PLACEMENT,
                 IntegrationFeatureCompatibility.Feature.WORLD_RELOCATION_PROJECTION
         }) {
             IntegrationFeatureCompatibility.Requirement requirement =
@@ -65,6 +68,15 @@ class IntegrationFeatureCompatibilityTest {
                     UpstreamCompatibilityMatrix.entry(capability).support()
             ));
         }
+    }
+
+    @Test
+    void initialPlacementScopeDoesNotClaimMissingSpatialRules() {
+        String scope = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.INITIAL_COMBATANT_PLACEMENT).boundedScope();
+        assertTrue(scope.contains("Footprint size"));
+        assertTrue(scope.contains("facing"));
+        assertTrue(scope.contains("placement legality"));
     }
 
     @Test
