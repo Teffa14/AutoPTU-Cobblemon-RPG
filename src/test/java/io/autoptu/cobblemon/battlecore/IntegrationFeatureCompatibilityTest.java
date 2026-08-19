@@ -30,6 +30,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.CANONICAL_BASE_MOVEMENT_SNAPSHOT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.RUNTIME_COMBATANT_MATERIALIZATION_INPUT).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT).hasBlockingDependency());
@@ -47,6 +49,25 @@ class IntegrationFeatureCompatibilityTest {
                 IntegrationFeatureCompatibility.Feature.ITEM_BATTLE_EFFECT_PLAYBACK).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.SEMANTIC_PRESENTATION_COMMANDS).hasBlockingDependency());
+    }
+
+    @Test
+    void materializationInputPackagesOnlyFrozenDataAndLeavesRuntimeResolutionAbsent() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.RUNTIME_COMBATANT_MATERIALIZATION_INPUT);
+        assertEquals(EnumSet.of(
+                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                        UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
+                        UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS,
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
+                        UpstreamCompatibilityMatrix.Capability.ABILITIES),
+                EnumSet.copyOf(requirement.capabilities()));
+        assertTrue(requirement.boundedScope().contains("Resolved MovementProfile"));
+        assertTrue(requirement.boundedScope().contains("ActionBudget"));
+        assertTrue(requirement.boundedScope().contains("dynamic accuracy/evasion"));
+        assertTrue(requirement.boundedScope().contains("damage modifiers"));
+        assertTrue(requirement.boundedScope().contains("remain absent"));
+        assertFalse(requirement.hasBlockingDependency());
     }
 
     @Test

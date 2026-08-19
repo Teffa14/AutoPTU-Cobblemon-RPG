@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "d8809213d819eea7c9f142fe4b930c35f0614e05";
+    public static final String AUTOPTU_JAVA_SHA = "957e7eaa0ce056b8fc6f2f66aba7f24440c2c2be";
     public static final String AUTOPTU_PYTHON_SHA = "54e4fa8ccbe0e555afef8b4b3713e7568608e5d3";
 
     public enum Capability {
@@ -68,14 +68,14 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, server-owned active actor/phase pointer, authoritative phase-transition events, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
-                "Consume verified lifecycle state/events only. Active actor/phase ownership and phase transitions are bounded parity-backed seams; delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
+                "Consume verified lifecycle state/events only. Active actor/phase ownership, phase transitions and pending status-skip consumption are bounded parity-backed seams; Trainer Feature phase dispatch, full status phase effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
         entries.put(Capability.COMPLETE_STATUS_LIFECYCLE, partial(
-                "Canonical statuses, Burn damage penalty, Sleep/Paralysis/Freeze evasion effects, status skips and selected Trainer Feature exceptions",
-                "Expose only parity-backed status effects; do not implement missing ticks, cures or interactions client-side."));
+                "Canonical statuses, Burn damage penalty, Sleep/Paralysis/Freeze evasion effects, status skips, pending phase status-skip consumption and selected Trainer Feature exceptions",
+                "Expose only parity-backed status effects; do not implement missing ticks, cures, phase effects or interactions client-side."));
         entries.put(Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, partial(
                 "Terrain movement costs, weather calculation primitives, generic HookSource categories and lifecycle seams exist",
                 "Project raw terrain/world observations and semantic events only. Do not classify Minecraft blocks into PTU terrain or approximate hazards, zones, reactions or forced movement before core contracts exist."));
