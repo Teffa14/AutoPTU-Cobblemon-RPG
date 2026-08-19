@@ -11,6 +11,7 @@ public final class IntegrationFeatureCompatibility {
         GRID_WORLD_COORDINATE_TRANSFORM,
         BATTLE_ARENA_RESERVATION,
         BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT,
+        BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT,
         WORLD_RELOCATION_PROJECTION,
         PLAYER_SHIFT_REQUEST,
         MOVE_SELECTION_REQUEST,
@@ -72,6 +73,10 @@ public final class IntegrationFeatureCompatibility {
         requirements.put(Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT, requirement(
                 "Freeze adapter-observed block/fluid/collision/elevation facts against the reserved arena transform. These are raw world inputs only; PTU terrain classification, movement cost, hazards, zones, reactions and legality remain core-owned.",
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
+                UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS));
+        requirements.put(Feature.BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT, requirement(
+                "Strip Minecraft block/fluid identifiers from frozen world observations and expose only adapter-neutral physical facts keyed by authoritative grid coordinates. This deliberately stops before MovementGrid terrain cost, blocker, path or traversability semantics.",
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
                 UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS));
         requirements.put(Feature.WORLD_RELOCATION_PROJECTION, requirement(

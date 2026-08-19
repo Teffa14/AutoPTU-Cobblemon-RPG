@@ -48,11 +48,13 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void delayedHitBindingDoesNotPromoteLifecycleOrMoveSpecificBehaviorToVerified() {
+    void delayedHitBindingAndDamageHistoryDoNotPromoteLifecycleToVerified() {
         assertTrue(UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts().contains("DelayedHitBinding"));
         assertTrue(UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts().contains("DelayedHitBinding"));
+        assertTrue(UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts().contains("damage-history rotation"));
         assertTrue(UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).adapterPolicy().contains("actual delayed-hit execution"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
@@ -63,7 +65,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("62e6bef9e45b2e30febb48b4b6b73927c36328c0", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("403181e35c64ec165d49c2d68329a56609c39a15", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("53d9a7b521fb398e28984334e9aa2a9a33d98db0", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("8238201919f176c8c3923340dd9e887ca3be44f6", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
