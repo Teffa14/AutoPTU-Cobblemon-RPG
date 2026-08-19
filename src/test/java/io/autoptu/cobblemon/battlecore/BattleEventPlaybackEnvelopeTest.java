@@ -32,7 +32,9 @@ class BattleEventPlaybackEnvelopeTest {
                 "shift_resolved",
                 "status_skip",
                 "trainer_feature",
-                "rule_effect"
+                "rule_effect",
+                "phase",
+                "turn_end"
         )));
     }
 
