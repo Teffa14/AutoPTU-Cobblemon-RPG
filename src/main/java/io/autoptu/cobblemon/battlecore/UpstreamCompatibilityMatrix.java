@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "b3dee6e1e7aa954173fc152b2dd4bf5b960e54cd";
+    public static final String AUTOPTU_JAVA_SHA = "5860d75dd4690a9244269aea70e343cba0005755";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public enum Capability {
@@ -57,8 +57,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state. The integration layer must not initialize or mutate ActionBudget on behalf of PTU lifecycle logic."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, ordered AbilityPhaseEffectRegistry bridged into lifecycle, structured StatusEntry/StatusStateStore bound into BattleRuntimeState, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior, Flinch round-boundary expiry, Strange Tempo Confusion START branching and parity-backed Lancer END behavior",
-                "Consume verified lifecycle state/events only. Structured status metadata and canonical ability identities can be passed into runtime state, but broader duration/source-sensitive behavior and the remaining status/ability libraries stay core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, reusable ordered StatusPhaseEffectRegistry, ordered AbilityPhaseEffectRegistry bridged into lifecycle, CombatantPhaseEffectDispatcher composing STATUS -> ABILITY -> PERK in Python-oracle order, structured StatusEntry/StatusStateStore bound into BattleRuntimeState, server-owned active actor/phase pointer, authoritative phase-transition events, pending status-skip consumption after ordered phase hooks with last-pending-request overwrite parity, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding, move-damage history, Flinch START behavior, Flinch round-boundary expiry, Strange Tempo Confusion START branching and parity-backed Lancer END behavior",
+                "Consume verified lifecycle state/events only. Preserve core semantic event ordering across phase families and never regroup events by status, ability or perk in the adapter. Structured status metadata and canonical ability identities can be passed into runtime state, but broader duration/source-sensitive behavior and the remaining status/ability/perk libraries stay core-owned. Trainer Feature phase dispatch, concrete remaining status effects, Corrosive Toxins, delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
@@ -78,8 +78,8 @@ public final class UpstreamCompatibilityMatrix {
                 "BattleRuntimeState canonical heldItemsByCombatant map, HeldItemState stable item identity, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
                 "Project only frozen held-item instance/catalog identity into authoritative runtime state, reserve/commit canonical items server-side, and render verified core item events only; do not manufacture unported item effects or trust client/entity equipment claims."));
         entries.put(Capability.TRAINER_FEATURES_AND_PERKS, partial(
-                "Selected status-skip Trainer Feature exceptions plus TRAINER_FEATURE/PERK hook-source and lifecycle categories",
-                "Use only specifically verified Feature behavior/events; keep all other perks/features deferred."));
+                "Selected status-skip Trainer Feature exceptions, TRAINER_FEATURE/PERK hook-source and lifecycle categories, and a stable PERK family position after status and ability phase families in CombatantPhaseEffectDispatcher",
+                "Use only specifically verified Feature/perk behavior and semantic events. Preserve upstream event order and keep all unported perks/features deferred."));
         entries.put(Capability.AI_LEGAL_ACTION_INFRASTRUCTURE, verified(
                 "Runtime-authoritative autobattler action space, affiliation, geometry, action budget, move availability and frequency filtering",
                 "AI may choose only from the legal choices produced by the core."));

@@ -48,6 +48,19 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
+    void orderedPhaseFamiliesRemainPartialAndAdapterPreservesCoreOrder() {
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry perks = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
+        assertTrue(lifecycle.contracts().contains("CombatantPhaseEffectDispatcher"));
+        assertTrue(lifecycle.contracts().contains("STATUS -> ABILITY -> PERK"));
+        assertTrue(lifecycle.adapterPolicy().contains("never regroup events"));
+        assertTrue(perks.contracts().contains("PERK family position"));
+        assertTrue(perks.adapterPolicy().contains("Preserve upstream event order"));
+    }
+
+    @Test
     void abilityPhaseRegistryUsesGenericPlaybackWithoutPromotingAbilityLibrary() {
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
@@ -97,7 +110,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("b3dee6e1e7aa954173fc152b2dd4bf5b960e54cd", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("5860d75dd4690a9244269aea70e343cba0005755", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
