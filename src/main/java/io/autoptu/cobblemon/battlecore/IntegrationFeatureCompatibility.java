@@ -11,6 +11,7 @@ public final class IntegrationFeatureCompatibility {
         GRID_WORLD_COORDINATE_TRANSFORM,
         BATTLE_ARENA_RESERVATION,
         INITIAL_COMBATANT_PLACEMENT,
+        CANONICAL_BASE_MOVEMENT_SNAPSHOT,
         BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT,
         BATTLEFIELD_MOVEMENT_OBSERVATION_INPUT,
         WORLD_RELOCATION_PROJECTION,
@@ -74,6 +75,9 @@ public final class IntegrationFeatureCompatibility {
         requirements.put(Feature.INITIAL_COMBATANT_PLACEMENT, requirement(
                 "Freeze one initial authoritative grid anchor for every reserved combatant and bind it to the battle reservation/arena. Footprint size, overlap/collision, facing, terrain and placement legality remain core-owned or deferred until explicit upstream contracts exist.",
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
+        requirements.put(Feature.CANONICAL_BASE_MOVEMENT_SNAPSHOT, requirement(
+                "Freeze persistent base Overland/Swim/Sky/Long Jump/High Jump values into the battle Pokemon snapshot only. Sprint, Wallrunner, Naturewalk, statuses, abilities, weather, equipment, Trainer Features and other runtime movement effects remain unresolved and core-owned.",
                 UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         requirements.put(Feature.BATTLEFIELD_WORLD_OBSERVATION_SNAPSHOT, requirement(
                 "Freeze adapter-observed block/fluid/collision/elevation facts against the reserved arena transform. These are raw world inputs only; PTU terrain classification, movement cost, hazards, zones, reactions and legality remain core-owned.",
