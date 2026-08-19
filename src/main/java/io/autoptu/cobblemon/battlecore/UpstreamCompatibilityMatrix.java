@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public final class UpstreamCompatibilityMatrix {
     public static final String AUTOPTU_JAVA_SHA = "28d49949b63f2e675680356e650ac5b04e0c5c6b";
-    public static final String AUTOPTU_PYTHON_SHA = "8238201919f176c8c3923340dd9e887ca3be44f6";
+    public static final String AUTOPTU_PYTHON_SHA = "9233a6e4bc159c5d7326a2ec9d828da9f828cffd";
 
     public enum Capability {
         CORE_TARGETING,
@@ -35,11 +35,7 @@ public final class UpstreamCompatibilityMatrix {
         MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK
     }
 
-    public enum Support {
-        VERIFIED,
-        PARTIAL,
-        BLOCKING
-    }
+    public enum Support { VERIFIED, PARTIAL, BLOCKING }
 
     public record Entry(Support support, String contracts, String adapterPolicy) {
         public Entry {
@@ -51,8 +47,7 @@ public final class UpstreamCompatibilityMatrix {
 
     private static final Map<Capability, Entry> ENTRIES = buildEntries();
 
-    private UpstreamCompatibilityMatrix() {
-    }
+    private UpstreamCompatibilityMatrix() {}
 
     public static Entry entry(Capability capability) {
         Entry entry = ENTRIES.get(Objects.requireNonNull(capability, "capability"));
@@ -60,9 +55,7 @@ public final class UpstreamCompatibilityMatrix {
         return entry;
     }
 
-    public static Map<Capability, Entry> entries() {
-        return ENTRIES;
-    }
+    public static Map<Capability, Entry> entries() { return ENTRIES; }
 
     public static boolean mayProjectAuthoritativeBehavior(Capability capability) {
         return entry(capability).support() != Support.BLOCKING;
@@ -118,22 +111,11 @@ public final class UpstreamCompatibilityMatrix {
         entries.put(Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK, blocking(
                 "BattleEvent/RuleEffectEvent semantic contracts and project-owned headless playback/presentation/world-projection DTOs can exist, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
                 "Keep headless presentation tests separate from claims about in-game entity animation, networking or playback until a live adapter is exercised."));
-
-        if (entries.size() != Capability.values().length) {
-            throw new IllegalStateException("compatibility matrix must cover every upstream capability");
-        }
+        if (entries.size() != Capability.values().length) throw new IllegalStateException("compatibility matrix must cover every upstream capability");
         return Collections.unmodifiableMap(entries);
     }
 
-    private static Entry verified(String contracts, String policy) {
-        return new Entry(Support.VERIFIED, contracts, policy);
-    }
-
-    private static Entry partial(String contracts, String policy) {
-        return new Entry(Support.PARTIAL, contracts, policy);
-    }
-
-    private static Entry blocking(String contracts, String policy) {
-        return new Entry(Support.BLOCKING, contracts, policy);
-    }
+    private static Entry verified(String contracts, String policy) { return new Entry(Support.VERIFIED, contracts, policy); }
+    private static Entry partial(String contracts, String policy) { return new Entry(Support.PARTIAL, contracts, policy); }
+    private static Entry blocking(String contracts, String policy) { return new Entry(Support.BLOCKING, contracts, policy); }
 }
