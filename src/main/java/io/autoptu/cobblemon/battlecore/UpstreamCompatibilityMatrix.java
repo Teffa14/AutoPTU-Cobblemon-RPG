@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "163710b089500f7c9e389ff42044210574ee7f2d";
+    public static final String AUTOPTU_JAVA_SHA = "d8809213d819eea7c9f142fe4b930c35f0614e05";
     public static final String AUTOPTU_PYTHON_SHA = "54e4fa8ccbe0e555afef8b4b3713e7568608e5d3";
 
     public enum Capability {
@@ -68,8 +68,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController, ordered LifecycleHookRegistry, turn-end boundary, server-owned active actor/phase pointer, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
-                "Consume verified lifecycle state/events only. Active actor/phase ownership and turn-end parity are bounded seams; delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
+                "BattleRoundController, ordered LifecycleHookRegistry, server-owned active actor/phase pointer, authoritative phase-transition events, turn-end boundary, payload-bearing TemporaryEffectStore, move-frequency reset, selected round-start cleanup, damage/injury history rotation, delayed-hit scheduling/binding and move-damage history",
+                "Consume verified lifecycle state/events only. Active actor/phase ownership and phase transitions are bounded parity-backed seams; delayed-hit execution, terrain/zone/room advancement, send-out effects and remaining Python lifecycle hooks stay deferred."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl, Mega Launcher and actual-HP-loss move-damage-history recording are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers or infer non-move damage-history semantics in the adapter."));
