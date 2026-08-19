@@ -11,6 +11,7 @@ public record CanonicalPokemonState(
         int level,
         Set<String> capabilities,
         Set<String> statuses,
+        CanonicalStatusState statusState,
         CanonicalCombatStats combatStats,
         CanonicalHealth health,
         CanonicalMoveLoadout moveLoadout,
@@ -27,8 +28,23 @@ public record CanonicalPokemonState(
         if (level < 1) throw new IllegalArgumentException("level must be >= 1");
         capabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
         statuses = normalizeStatuses(statuses);
+        statusState = statusState == null ? CanonicalStatusState.fromNames(statuses) : statusState;
+        if (!statusState.names().equals(statuses)) {
+            throw new IllegalArgumentException("statusState names must exactly match canonical statuses");
+        }
         heldItemInstanceId = heldItemInstanceId == null || heldItemInstanceId.isBlank() ? null : heldItemInstanceId;
         if (revision < 0) throw new IllegalArgumentException("revision must be >= 0");
+    }
+
+    /** Compatibility constructor retained for callers created before canonical status metadata. */
+    public CanonicalPokemonState(String pokemonId, String ownerPlayerId, String speciesId, int level,
+            Set<String> capabilities, Set<String> statuses, CanonicalCombatStats combatStats,
+            CanonicalHealth health, CanonicalMoveLoadout moveLoadout, CanonicalBaseMovement baseMovement,
+            CanonicalBattleTraits battleTraits, CanonicalAccuracyEvasion accuracyEvasion,
+            String heldItemInstanceId, long revision) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses,
+                CanonicalStatusState.fromNames(statuses), combatStats, health, moveLoadout, baseMovement,
+                battleTraits, accuracyEvasion, heldItemInstanceId, revision);
     }
 
     /** Compatibility constructor retained for callers created before canonical accuracy/evasion inputs. */
