@@ -45,8 +45,19 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
+    void movementContractKeepsRuntimeModifiersCoreOwned() {
+        UpstreamCompatibilityMatrix.Entry movement = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY);
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, movement.support());
+        assertTrue(movement.contracts().contains("resolved MovementProfile"));
+        assertTrue(movement.adapterPolicy().contains("Wallrunner"));
+        assertTrue(movement.adapterPolicy().contains("weather"));
+        assertTrue(movement.adapterPolicy().contains("Trainer Features"));
+    }
+
+    @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("28d49949b63f2e675680356e650ac5b04e0c5c6b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("9233a6e4bc159c5d7326a2ec9d828da9f828cffd", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("a735d66c8bf19c5fdda712b4fce4773e6f0ee3d4", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("01e5c98b2825b433631ff8e913e56b0eadb251e2", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
