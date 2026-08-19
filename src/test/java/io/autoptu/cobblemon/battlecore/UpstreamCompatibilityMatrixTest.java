@@ -33,14 +33,22 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void pendingStatusSkipSliceDoesNotPromoteWholeLifecycle() {
+    void statusRegistryDoesNotPromoteWholeLifecycleOrStatusLibrary() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
-        assertTrue(lifecycle.contracts().contains("phase-transition events"));
-        assertTrue(lifecycle.contracts().contains("pending status-skip"));
-        assertTrue(lifecycle.contracts().contains("last-pending-request overwrite"));
-        assertTrue(lifecycle.adapterPolicy().contains("Corrosive Toxins"));
-        assertTrue(lifecycle.adapterPolicy().contains("delayed-hit execution"));
+        UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
+        assertTrue(lifecycle.contracts().contains("StatusPhaseEffectRegistry"));
+        assertTrue(lifecycle.adapterPolicy().contains("draft Flinch"));
+        assertTrue(statuses.adapterPolicy().contains("does not imply"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
+    }
+
+    @Test
+    void moveContractRequiresTrustedCatalogMetadata() {
+        UpstreamCompatibilityMatrix.Entry moves = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        assertTrue(moves.contracts().contains("MoveOption/MoveSpec/MoveCombatProfile"));
+        assertTrue(moves.adapterPolicy().contains("trusted server-owned catalog"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
     }
 
     @Test
@@ -74,7 +82,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("4b3f3280fdfb25bad5318097201808405733ca08", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("38819d6ffd0d7f03c1cfc1a01f00aa6140d97076", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("5576e433b7b2f9e87fad7c669bd008b992b9bb62", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("2e824854851df766e77fd65dbfc1d713bdf268e5", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
