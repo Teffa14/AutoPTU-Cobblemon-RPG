@@ -21,6 +21,7 @@ public record BattleRuntimePreparationEnvelope(
         Map<String, RuntimeCombatantMaterializationInput> combatants,
         Map<String, List<AuthoritativeMoveMetadata>> movesByCombatant,
         Map<String, BattleCombatantHeldItemProjection> heldItemsByCombatant,
+        Map<String, BattleCombatantStatusStateProjection> statusStateByCombatant,
         Set<RuntimeCombatantMaterializationReadiness.Requirement> unresolvedCoreRequirements
 ) {
     public BattleRuntimePreparationEnvelope {
@@ -31,6 +32,7 @@ public record BattleRuntimePreparationEnvelope(
         combatants = copyCombatants(combatants);
         movesByCombatant = copyMoves(movesByCombatant);
         heldItemsByCombatant = copyHeldItems(heldItemsByCombatant);
+        statusStateByCombatant = copyStatusState(statusStateByCombatant);
         unresolvedCoreRequirements = unresolvedCoreRequirements == null
                 ? Set.of()
                 : Set.copyOf(unresolvedCoreRequirements);
@@ -38,6 +40,9 @@ public record BattleRuntimePreparationEnvelope(
         Set<String> roster = combatants.keySet();
         if (!movesByCombatant.keySet().equals(roster)) {
             throw new IllegalArgumentException("resolved move metadata must exactly cover the materialization roster");
+        }
+        if (!statusStateByCombatant.keySet().equals(roster)) {
+            throw new IllegalArgumentException("structured status state must exactly cover the materialization roster");
         }
         if (!roster.containsAll(heldItemsByCombatant.keySet())) {
             throw new IllegalArgumentException("held items may reference only authoritative combatants");
@@ -52,19 +57,27 @@ public record BattleRuntimePreparationEnvelope(
             if (!expectedMoveIds.equals(actualMoveIds)) {
                 throw new IllegalArgumentException("resolved move metadata must match canonical loadout order for " + combatantId);
             }
+            Set<String> structuredStatusNames = new LinkedHashSet<>();
+            statusStateByCombatant.get(combatantId).entries().forEach(entry -> structuredStatusNames.add(entry.name()));
+            if (!structuredStatusNames.equals(input.statuses())) {
+                throw new IllegalArgumentException("structured status state must match canonical status names for " + combatantId);
+            }
         }
     }
 
     public static BattleRuntimePreparationEnvelope from(
             BattleCoreMaterializationInputProjection materialization,
             BattleCoreMoveCatalogProjection moveCatalog,
-            BattleCoreHeldItemBootstrapProjection heldItems
+            BattleCoreHeldItemBootstrapProjection heldItems,
+            BattleCoreStatusStateBootstrapProjection statusState
     ) {
         Objects.requireNonNull(materialization, "materialization");
         Objects.requireNonNull(moveCatalog, "moveCatalog");
         Objects.requireNonNull(heldItems, "heldItems");
+        Objects.requireNonNull(statusState, "statusState");
         requireReservation(materialization.reservationId(), moveCatalog.reservationId());
         requireReservation(materialization.reservationId(), heldItems.reservationId());
+        requireReservation(materialization.reservationId(), statusState.reservationId());
 
         LinkedHashSet<RuntimeCombatantMaterializationReadiness.Requirement> unresolved = new LinkedHashSet<>();
         for (Map.Entry<RuntimeCombatantMaterializationReadiness.Requirement, RuntimeCombatantMaterializationReadiness.Entry> entry
@@ -80,6 +93,7 @@ public record BattleRuntimePreparationEnvelope(
                 materialization.combatants(),
                 moveCatalog.movesByCombatant(),
                 heldItems.heldItemsByCombatant(),
+                statusState.statusStateByCombatant(),
                 unresolved
         );
     }
@@ -142,6 +156,26 @@ public record BattleRuntimePreparationEnvelope(
                 if (copy.put(id, value) != null) {
                     throw new IllegalArgumentException("duplicate held-item combatant");
                 }
+            }
+        }
+        return Map.copyOf(copy);
+    }
+
+    private static Map<String, BattleCombatantStatusStateProjection> copyStatusState(
+            Map<String, BattleCombatantStatusStateProjection> source
+    ) {
+        if (source == null) {
+            throw new IllegalArgumentException("statusStateByCombatant is required");
+        }
+        LinkedHashMap<String, BattleCombatantStatusStateProjection> copy = new LinkedHashMap<>();
+        for (Map.Entry<String, BattleCombatantStatusStateProjection> entry : source.entrySet()) {
+            String id = normalizeId(entry.getKey(), "status-state map key");
+            BattleCombatantStatusStateProjection value = Objects.requireNonNull(entry.getValue(), "status-state projection");
+            if (!id.equals(value.combatantId())) {
+                throw new IllegalArgumentException("status-state map key must match embedded combatantId");
+            }
+            if (copy.put(id, value) != null) {
+                throw new IllegalArgumentException("duplicate status-state combatant");
             }
         }
         return Map.copyOf(copy);
