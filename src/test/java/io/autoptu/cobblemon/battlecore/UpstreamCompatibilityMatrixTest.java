@@ -49,11 +49,16 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.entry(
                         UpstreamCompatibilityMatrix.Capability.ITEMS).support()
         );
+        assertEquals(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support()
+        );
     }
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("6570d95ac874bc26bc6bcc8ffe64d007bba37e34", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("b71a0c1887cd303b78099eed846293a9dd60ef2f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

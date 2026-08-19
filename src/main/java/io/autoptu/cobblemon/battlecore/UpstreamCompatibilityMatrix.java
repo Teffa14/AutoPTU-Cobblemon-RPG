@@ -13,7 +13,7 @@ import java.util.Objects;
  * Cobblemon, and Craftics adapters must not fill the missing rules themselves.
  */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "6570d95ac874bc26bc6bcc8ffe64d007bba37e34";
+    public static final String AUTOPTU_JAVA_SHA = "b71a0c1887cd303b78099eed846293a9dd60ef2f";
     public static final String AUTOPTU_PYTHON_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     public enum Capability {
@@ -86,8 +86,8 @@ public final class UpstreamCompatibilityMatrix {
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering",
                 "Treat action availability and ordering as core-owned state."));
         entries.put(Capability.FULL_TURN_ROUND_LIFECYCLE, partial(
-                "BattleRoundController plus ordered LifecycleHookRegistry with ROUND_START/ROUND_END/TURN_START/PHASE_CHANGE/TURN_END seams; only round move-frequency reset is built in",
-                "Consume emitted lifecycle events and verified round transitions only; defer unported terrain, delayed-hit, temporary-expiry, status, ability and Feature lifecycle hooks."));
+                "BattleRoundController, ordered LifecycleHookRegistry, authoritative TemporaryEffectStore, move-frequency reset, and parity-backed round-start cleanup for intercept_ready/extra_action/delayed/riposte_ready",
+                "Consume verified lifecycle state/events only; defer unported terrain/zone/room advancement, delayed hits, send-out effects, damage-history rotation, status/ability/Feature hooks and other Python lifecycle behavior."));
         entries.put(Capability.FULL_STATEFUL_DAMAGE_PIPELINE, partial(
                 "RuntimeMoveResolution, authoritative stats/types/statuses, ordered DamageModifierHookRegistry and pre-damage move hooks; Burn, Pink Pearl and Mega Launcher slices are parity-backed",
                 "Consume resolved damage and semantic events; never inject unported move/ability/item/terrain modifiers in the adapter."));
@@ -116,8 +116,8 @@ public final class UpstreamCompatibilityMatrix {
                 "Full Python-equivalent tactical scoring/policy is not yet ported",
                 "Do not claim Python AI parity or move tactical policy into the Minecraft adapter."));
         entries.put(Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK, blocking(
-                "BattleEvent/RuleEffectEvent semantic playback contracts exist upstream and integration has a headless playback envelope, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
-                "Keep semantic DTO tests separate from claims about in-game entity animation, networking or playback until a live adapter is exercised."));
+                "BattleEvent/RuleEffectEvent semantic contracts and project-owned headless playback/presentation DTOs can exist, but no verified live Minecraft/Cobblemon/Craftics runtime adapter has executed them",
+                "Keep headless presentation tests separate from claims about in-game entity animation, networking or playback until a live adapter is exercised."));
 
         if (entries.size() != Capability.values().length) {
             throw new IllegalStateException("compatibility matrix must cover every upstream capability");
