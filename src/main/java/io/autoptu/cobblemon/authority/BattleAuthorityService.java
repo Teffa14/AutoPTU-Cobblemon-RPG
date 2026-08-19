@@ -41,6 +41,27 @@ public final class BattleAuthorityService {
             List<String> pokemonIds,
             Map<String, Integer> consumableQuantities
     ) {
+        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, null);
+    }
+
+    public BattleSnapshotDecision reserveBattleInArena(
+            String playerId,
+            List<String> pokemonIds,
+            Map<String, Integer> consumableQuantities,
+            BattleArenaSnapshot arena
+    ) {
+        if (arena == null) {
+            return BattleSnapshotDecision.deny("invalid_battle_arena");
+        }
+        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, arena);
+    }
+
+    private BattleSnapshotDecision reserveBattleInternal(
+            String playerId,
+            List<String> pokemonIds,
+            Map<String, Integer> consumableQuantities,
+            BattleArenaSnapshot arena
+    ) {
         if (playerId == null || playerId.isBlank() || pokemonIds == null || pokemonIds.isEmpty()) {
             return BattleSnapshotDecision.deny("invalid_request");
         }
@@ -127,7 +148,8 @@ public final class BattleAuthorityService {
                 BattleTrainerSnapshot.from(player),
                 roster,
                 List.copyOf(items.values()),
-                rngSeeds.getAsLong());
+                rngSeeds.getAsLong(),
+                arena);
 
         if (!snapshotRepository.tryReserveSnapshot(snapshot)) {
             return BattleSnapshotDecision.deny("state_changed_or_assets_reserved");
