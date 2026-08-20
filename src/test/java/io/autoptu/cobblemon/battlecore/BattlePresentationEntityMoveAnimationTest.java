@@ -26,7 +26,7 @@ class BattlePresentationEntityMoveAnimationTest {
                         25,
                         "move_resolved",
                         "move_resolved|runtime|pokemon-1|pokemon-2|ember|true|false|14|46",
-                        Map.of("targetId", "pokemon-injected", "moveId", "forged-move"))))) ;
+                        Map.of("targetId", "pokemon-injected", "moveId", "forged-move")))));
 
         List<EntityBoundMoveAnimation> moves = entityProjector.bindMoveAnimations(presentation, bindings);
 
