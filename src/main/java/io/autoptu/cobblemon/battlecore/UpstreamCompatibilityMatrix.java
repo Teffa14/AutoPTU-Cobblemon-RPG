@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /** Executable compatibility checklist for the currently inspected AutoPTU-Java contract. */
 public final class UpstreamCompatibilityMatrix {
-    public static final String AUTOPTU_JAVA_SHA = "053c61f949a02bd6baedf769ff74e88ebdfa8ea8";
+    public static final String AUTOPTU_JAVA_SHA = "6eef56913a0727e997bad39b961e2b03d8085d76";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public enum Capability {
@@ -51,8 +51,8 @@ public final class UpstreamCompatibilityMatrix {
                 "Forced movement, push/pull/knockback, interception and interaction-driven movement are not complete",
                 "Do not synthesize forced movement, interception or knockback rules in the adapter."));
         entries.put(Capability.CORE_CALCULATIONS_AND_COMBAT_STATS, verified(
-                "Damage Base tables, type effectiveness, STAB, accuracy stages, EvasionProfile, CombatantStatProfile, server-owned mutable CombatStageState and ordered CombatStageHookRegistry with Simple POST_APPLY Python parity coverage",
-                "Supply canonical baseline inputs only. Final evasion, accuracy, combat-stage mutation and combat-stage reaction effects remain core-owned, including move, ability, item, Trainer Feature, status, terrain and temporary-effect contributions. Render emitted semantic events without applying stage deltas in Minecraft."));
+                "Damage Base tables, type effectiveness, STAB, accuracy stages, EvasionProfile, CombatantStatProfile, server-owned mutable CombatStageState, ordered CombatStageHookRegistry with Simple POST_APPLY Python parity, and centralized CombatStageMutationService/CombatStageMutationResult authoritative mutation contracts",
+                "Supply canonical baseline inputs only. Final evasion, accuracy, combat-stage mutation and combat-stage reaction effects remain core-owned, including move, ability, item, Trainer Feature, status, terrain and temporary-effect contributions. The adapter may project returned starting/base/final stages and emitted semantic events, but must not claim current stages, applied deltas or apply stage deltas in Minecraft."));
         entries.put(Capability.ACTION_ECONOMY_AND_INITIATIVE, verified(
                 "ActionBudget, typed turn phases, deterministic initiative, Trick Room/League ordering; Trainer AP is separately authoritative in TrainerRuntimeState",
                 "Treat action availability, initiative and Trainer resource spending as core-owned state. The integration may freeze canonical Trainer AP at battle start, but must not spend/restore AP or initialize/mutate ActionBudget on behalf of PTU lifecycle logic."));
@@ -72,13 +72,13 @@ public final class UpstreamCompatibilityMatrix {
                 "Authoritative movesets, public MoveOption/MoveSpec/MoveCombatProfile metadata, move-frequency enforcement, temporary-effect state, ordered pre-damage move hooks and delayed-hit scheduling/binding",
                 "Resolve frozen move IDs only through trusted server-owned catalog metadata matching public core contracts. Client/Minecraft may request move identity/target intent only; unported specials remain core-owned and deferred."));
         entries.put(Capability.ABILITIES, partial(
-                "Canonical ability identities, generic HookSource support, AbilityPhaseEffectRegistry, CombatStageHookRegistry and parity-backed Mega Launcher, Strange Tempo, Inner Focus, Lancer and Simple combat-stage reaction behavior",
-                "Render only authoritative ability events/results already emitted by the core. Combat-stage reactions must be rendered from semantic events rather than recomputed from stage deltas. Do not implement the remaining ability library in Minecraft."));
+                "Canonical ability identities, generic HookSource support, AbilityPhaseEffectRegistry, CombatStageHookRegistry and parity-backed Mega Launcher, Strange Tempo, Inner Focus, Lancer and Simple combat-stage reaction behavior; Defiant and Competitive recursive stage-mutation contracts are frozen but not yet ported",
+                "Render only authoritative ability events/results already emitted by the core. Combat-stage reactions and final stage values must be projected from core results rather than recomputed from requested deltas. Do not implement the remaining ability library in Minecraft."));
         entries.put(Capability.ITEMS, partial(
                 "BattleRuntimeState heldItemsByCombatant, HeldItemState stable identity, generic rule-effect playback and parity-backed Pink Pearl damage hook; integration also has canonical item reservations",
                 "Project only frozen held-item identity into authoritative runtime state, reserve/commit canonical items server-side, and render verified core item events only; do not manufacture unported item effects or trust client/entity equipment claims."));
         entries.put(Capability.TRAINER_FEATURES_AND_PERKS, partial(
-                "Authoritative TrainerRuntimeState stores server-owned Trainer Feature identities and AP; BattleRuntimeState binds combatants to trainer controllers; PerkPhaseLifecycleHook derives owned Features from runtime state; CombatStageState and CombatStageHookRegistry are authoritative battle state/reaction seams; selected status-skip exceptions, Defense Mastery and fixed Attack/Defense/Special Attack/Special Defense/Speed Link END behavior are parity-backed",
+                "Authoritative TrainerRuntimeState stores server-owned Trainer Feature identities and AP; BattleRuntimeState binds combatants to trainer controllers; PerkPhaseLifecycleHook derives owned Features from runtime state; CombatStageState and CombatStageHookRegistry are authoritative battle state/reaction seams; selected status-skip exceptions, Defense Mastery and fixed Attack/Defense/Special Attack/Special Defense/Speed Link END behavior are parity-backed; Link stage changes intentionally remain on their Python-parity direct mutation path",
                 "Freeze and transport Trainer Feature ownership, battle-start AP and combatant-controller bindings only from canonical server state. Minecraft/client payloads may not grant Features, set AP, spend/restore AP, choose controllers, mutate combat stages, run combat-stage reactions or execute perks. Remaining Trainer Feature/perk implementations stay AutoPTU-Java-owned."));
         entries.put(Capability.AI_LEGAL_ACTION_INFRASTRUCTURE, verified(
                 "Runtime-authoritative autobattler action space, affiliation, geometry, action budget, move availability and frequency filtering",
