@@ -10,25 +10,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InjuryFeatureCompatibilityTest {
     @Test
-    void injuryTransportUsesOnlyPartialDamageAndAbilityContracts() {
-        for (IntegrationFeatureCompatibility.Feature feature : new IntegrationFeatureCompatibility.Feature[]{
-                IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_SNAPSHOT,
-                IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_BOOTSTRAP
-        }) {
-            IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(feature);
-            assertEquals(EnumSet.of(
-                    UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
-                    UpstreamCompatibilityMatrix.Capability.ABILITIES), EnumSet.copyOf(requirement.capabilities()));
-            assertFalse(requirement.hasBlockingDependency());
-        }
+    void injuryTransportUsesOnlyPartialDamageAbilityAndLifecycleContracts() {
+        IntegrationFeatureCompatibility.Requirement snapshot = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_SNAPSHOT);
+        assertEquals(EnumSet.of(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
+                UpstreamCompatibilityMatrix.Capability.ABILITIES), EnumSet.copyOf(snapshot.capabilities()));
+        assertFalse(snapshot.hasBlockingDependency());
+
+        IntegrationFeatureCompatibility.Requirement bootstrap = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_BOOTSTRAP);
+        assertEquals(EnumSet.of(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
+                UpstreamCompatibilityMatrix.Capability.ABILITIES,
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE), EnumSet.copyOf(bootstrap.capabilities()));
+        assertFalse(bootstrap.hasBlockingDependency());
+
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support());
     }
 
     @Test
-    void injuryScopeKeepsAuraAndRestRulesOutOfMinecraft() {
+    void injuryScopeKeepsAuraHistoryAndRestRulesOutOfMinecraft() {
         String snapshot = IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_SNAPSHOT).boundedScope();
         String bootstrap = IntegrationFeatureCompatibility.requirement(
@@ -37,7 +44,9 @@ class InjuryFeatureCompatibilityTest {
         assertTrue(snapshot.contains("healing/rest"));
         assertTrue(snapshot.contains("Aura Storm scaling"));
         assertTrue(snapshot.contains("Aura Break"));
-        assertTrue(bootstrap.contains("may not supply injury counts"));
-        assertTrue(bootstrap.contains("Aura Storm/Aura Break"));
+        assertTrue(bootstrap.contains("current counts only"));
+        assertTrue(bootstrap.contains("Previous/last-round history"));
+        assertTrue(bootstrap.contains("lifecycle rotation"));
+        assertTrue(bootstrap.contains("Minecraft/client payloads may not supply"));
     }
 }

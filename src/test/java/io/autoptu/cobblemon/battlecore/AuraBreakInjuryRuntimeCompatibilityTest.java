@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AuraBreakInjuryRuntimeCompatibilityTest {
     @Test
     void currentAuraBreakContractDoesNotPromoteBroadCategories() {
-        assertEquals("9e1c918f33faa45c4c8832ba457cc36b875267c7", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("cdcff66c6b38a87fbe2388146ff45c36d3fc4817", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
@@ -23,10 +23,12 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
         assertTrue(abilities.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(damage.contracts().contains("still requires"));
-        assertTrue(abilities.contracts().contains("still awaits"));
+        assertTrue(damage.contracts().contains("BattleRuntimeState now owns canonical current injury counts"));
+        assertTrue(abilities.contracts().contains("RoundInjuryHistoryState"));
+        assertTrue(damage.contracts().contains("still requires the authoritative Aura Break blocker query"));
+        assertTrue(abilities.contracts().contains("still awaits the authoritative Aura Break blocker query"));
         assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
-        assertTrue(abilities.adapterPolicy().contains("temporary-effect cleanup"));
+        assertTrue(abilities.adapterPolicy().contains("injury history rotation"));
     }
 
     @Test
@@ -38,11 +40,14 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
 
         assertEquals(EnumSet.of(
                         UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
-                        UpstreamCompatibilityMatrix.Capability.ABILITIES),
+                        UpstreamCompatibilityMatrix.Capability.ABILITIES,
+                        UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE),
                 EnumSet.copyOf(injury.capabilities()));
         assertFalse(injury.hasBlockingDependency());
         assertFalse(runtime.hasBlockingDependency());
-        assertTrue(injury.boundedScope().contains("future core runtime contracts"));
+        assertTrue(injury.boundedScope().contains("BattleRuntimeState.injuryHistory()/RoundInjuryHistoryState"));
+        assertTrue(injury.boundedScope().contains("Previous/last-round history"));
+        assertTrue(injury.boundedScope().contains("Minecraft/client payloads may not supply"));
         assertTrue(runtime.boundedScope().contains("must not construct RuntimeCombatantState"));
     }
 }
