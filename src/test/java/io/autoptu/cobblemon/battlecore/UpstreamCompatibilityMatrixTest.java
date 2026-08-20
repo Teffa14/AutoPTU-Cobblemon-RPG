@@ -106,7 +106,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Type Aura"));
         assertTrue(abilities.contracts().contains("AuraStormResolution"));
         assertTrue(abilities.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(abilities.contracts().contains("authoritative injury count"));
+        assertTrue(abilities.contracts().contains("RoundInjuryHistoryState"));
         assertTrue(abilities.adapterPolicy().contains("Aura Storm scaling"));
         assertTrue(abilities.adapterPolicy().contains("Aura Break"));
         assertTrue(abilities.contracts().contains("authoritative positions"));
@@ -120,9 +120,10 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(damage.contracts().contains("Type Aura"));
         assertTrue(damage.contracts().contains("AuraStormResolution"));
         assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(damage.contracts().contains("Live Aura Storm registry wiring"));
-        assertTrue(damage.adapterPolicy().contains("Server-owned injury count"));
-        assertTrue(damage.adapterPolicy().contains("Aura Break"));
+        assertTrue(damage.contracts().contains("BattleRuntimeState now owns canonical current injury counts"));
+        assertTrue(damage.contracts().contains("still requires the authoritative Aura Break blocker query"));
+        assertTrue(damage.adapterPolicy().contains("Current injury count may be initialized only"));
+        assertTrue(damage.adapterPolicy().contains("previous/last-round injury history"));
         assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
         assertTrue(abilities.adapterPolicy().contains("Aura-adjusted damage/HP may be mirrored"));
@@ -173,7 +174,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("9e1c918f33faa45c4c8832ba457cc36b875267c7", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("cdcff66c6b38a87fbe2388146ff45c36d3fc4817", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
