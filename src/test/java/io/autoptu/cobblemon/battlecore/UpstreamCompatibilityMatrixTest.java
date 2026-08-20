@@ -57,10 +57,17 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(calculations.contracts().contains("CombatStageState"));
         assertTrue(calculations.contracts().contains("CombatStageHookRegistry"));
         assertTrue(calculations.contracts().contains("CombatStageMutationService/CombatStageMutationResult"));
+        assertTrue(calculations.contracts().contains("CombatStageMutationOptions"));
+        assertTrue(calculations.contracts().contains("SpatialAbilityQuery"));
         assertTrue(calculations.contracts().contains("Simple"));
+        assertTrue(calculations.contracts().contains("Defiant"));
+        assertTrue(calculations.contracts().contains("Competitive"));
+        assertTrue(calculations.contracts().contains("Plus [SwSh]"));
+        assertTrue(calculations.contracts().contains("Minus [SwSh]"));
         assertTrue(calculations.adapterPolicy().contains("combat-stage reaction effects remain core-owned"));
         assertTrue(calculations.adapterPolicy().contains("returned starting/base/final stages"));
         assertTrue(calculations.adapterPolicy().contains("must not claim current stages"));
+        assertTrue(calculations.adapterPolicy().contains("recursive suppression state"));
         assertTrue(calculations.adapterPolicy().contains("apply stage deltas in Minecraft"));
         assertTrue(lifecycle.contracts().contains("TrainerRuntimeState/controller binding"));
         assertTrue(lifecycle.contracts().contains("fixed Link Feature"));
@@ -77,18 +84,32 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void abilitySupportRemainsPartialAfterCentralizedStageMutation() {
+    void abilitySupportRemainsPartialAfterRecursiveSpatialStageReactionsAndPostDamageAuras() {
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
         assertTrue(abilities.contracts().contains("CombatStageHookRegistry"));
+        assertTrue(abilities.contracts().contains("PostDamageHookRegistry"));
         assertTrue(abilities.contracts().contains("Inner Focus"));
         assertTrue(abilities.contracts().contains("Lancer"));
         assertTrue(abilities.contracts().contains("Simple"));
         assertTrue(abilities.contracts().contains("Defiant"));
-        assertTrue(abilities.contracts().contains("not yet ported"));
-        assertTrue(abilities.adapterPolicy().contains("Combat-stage reactions"));
+        assertTrue(abilities.contracts().contains("Competitive"));
+        assertTrue(abilities.contracts().contains("Plus [SwSh]"));
+        assertTrue(abilities.contracts().contains("Minus [SwSh]"));
+        assertTrue(abilities.contracts().contains("Aqua Boost"));
+        assertTrue(abilities.contracts().contains("Ignition Boost"));
+        assertTrue(abilities.contracts().contains("Thunder Boost"));
+        assertTrue(abilities.contracts().contains("authoritative positions"));
+        assertTrue(abilities.adapterPolicy().contains("radius/adjacency holder selection"));
+        assertTrue(abilities.adapterPolicy().contains("damage-bonus source selection"));
         assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
+        assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
+        assertTrue(damage.contracts().contains("not yet wired into BattleRuntime final HP mutation"));
+        assertTrue(damage.adapterPolicy().contains("apply post-damage aura bonuses"));
+        assertTrue(damage.adapterPolicy().contains("mutate final HP"));
     }
 
     @Test
@@ -130,7 +151,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("6eef56913a0727e997bad39b961e2b03d8085d76", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("2543881dd5863d7a4b01336dadc24a3be40fd6aa", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
