@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AuraBreakInjuryRuntimeCompatibilityTest {
     @Test
     void currentAuraBreakContractDoesNotPromoteBroadCategories() {
-        assertEquals("cdcff66c6b38a87fbe2388146ff45c36d3fc4817", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("260ca29699e34d56da8fb32d43d2b6de7dba6892", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
@@ -23,12 +23,13 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
         assertTrue(abilities.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(damage.contracts().contains("BattleRuntimeState now owns canonical current injury counts"));
-        assertTrue(abilities.contracts().contains("RoundInjuryHistoryState"));
-        assertTrue(damage.contracts().contains("still requires the authoritative Aura Break blocker query"));
-        assertTrue(abilities.contracts().contains("still awaits the authoritative Aura Break blocker query"));
-        assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
+        assertTrue(damage.contracts().contains("AuraBreakBlockerQuery"));
+        assertTrue(abilities.contracts().contains("AuraBreakBlockerQuery"));
+        assertTrue(damage.contracts().contains("Normal Aura Storm is now live-wired"));
+        assertTrue(abilities.contracts().contains("Normal Aura Storm is live-wired"));
+        assertTrue(damage.adapterPolicy().contains("Aura Break blockers"));
         assertTrue(abilities.adapterPolicy().contains("injury history rotation"));
+        assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
     }
 
     @Test
@@ -37,6 +38,8 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
                 IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_BOOTSTRAP);
         IntegrationFeatureCompatibility.Requirement runtime = IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.RUNTIME_BATTLE_PREPARATION_ENVELOPE);
+        IntegrationFeatureCompatibility.Requirement ruleState = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.RUNTIME_RULE_STATE_SEED);
 
         assertEquals(EnumSet.of(
                         UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
@@ -45,9 +48,12 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
                 EnumSet.copyOf(injury.capabilities()));
         assertFalse(injury.hasBlockingDependency());
         assertFalse(runtime.hasBlockingDependency());
+        assertFalse(ruleState.hasBlockingDependency());
         assertTrue(injury.boundedScope().contains("BattleRuntimeState.injuryHistory()/RoundInjuryHistoryState"));
         assertTrue(injury.boundedScope().contains("Previous/last-round history"));
         assertTrue(injury.boundedScope().contains("Minecraft/client payloads may not supply"));
         assertTrue(runtime.boundedScope().contains("must not construct RuntimeCombatantState"));
+        assertTrue(ruleState.boundedScope().contains("battle round"));
+        assertTrue(ruleState.boundedScope().contains("Aura Break blocker selection"));
     }
 }
