@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.battlecore;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,48 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
     }
 
     @Test
+    void preservesTurnStartThenStartEffectThenPendingSkipBeforeDecisionWindow() {
+        BattlePlaybackBatch playback = new BattlePlaybackBatch(
+                "reservation-start-effects",
+                List.of(
+                        new BattleEventPlaybackEnvelope(
+                                50,
+                                "turn_start",
+                                "turn_start|3|pokemon-alpha|start|4",
+                                Map.of()
+                        ),
+                        new BattleEventPlaybackEnvelope(
+                                51,
+                                "rule_effect",
+                                "rule_effect|status|flinch|pokemon-alpha|||flinch|0.0|30",
+                                Map.of("effect", "forged")
+                        ),
+                        new BattleEventPlaybackEnvelope(
+                                52,
+                                "status_skip",
+                                "status_skip|pokemon-alpha|Flinch|start|flinched",
+                                Map.of("status", "forged", "phase", "end")
+                        )
+                )
+        );
+
+        BattlePresentationBatch presentation = projector.project(playback);
+
+        assertEquals(List.of(50L, 51L, 52L), presentation.commands().stream()
+                .map(BattlePresentationCommand::sequence)
+                .toList());
+        assertEquals(List.of(
+                        BattlePresentationCommand.Kind.TURN_START_CUE,
+                        BattlePresentationCommand.Kind.RULE_EFFECT_CUE,
+                        BattlePresentationCommand.Kind.STATUS_SKIP_CUE),
+                presentation.commands().stream().map(BattlePresentationCommand::kind).toList());
+        assertEquals("status", presentation.commands().get(1).data().get("sourceKind"));
+        assertEquals("flinch", presentation.commands().get(1).data().get("effect"));
+        assertEquals("Flinch", presentation.commands().get(2).data().get("status"));
+        assertEquals("start", presentation.commands().get(2).data().get("phase"));
+    }
+
+    @Test
     void rejectsMalformedTurnStartInsteadOfInventingInitiativeState() {
         assertThrows(IllegalArgumentException.class, () -> projector.project(new BattleEventPlaybackEnvelope(
                 1, "turn_start", "turn_start|3|actor|start|-1", Map.of()
@@ -50,22 +93,31 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
     }
 
     @Test
-    void compatibilityKeepsTurnSelectionCoreOwnedAndLifecyclePartial() {
+    void compatibilityKeepsTurnSelectionAndStartEffectsCoreOwnedWhileLifecycleStaysPartial() {
         UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE
         );
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE
         );
+        UpstreamCompatibilityMatrix.Entry legalActions = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE
+        );
 
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
         assertTrue(initiative.contracts().contains("advanceInitiativeTurn"));
         assertTrue(initiative.contracts().contains("TurnStartedEvent"));
+        assertTrue(initiative.contracts().contains("START status/ability/perk hooks"));
+        assertTrue(initiative.contracts().contains("pending status skip"));
         assertTrue(initiative.adapterPolicy().contains("must not choose the next actor"));
-        assertTrue(lifecycle.contracts().contains("turn-start"));
+        assertTrue(initiative.adapterPolicy().contains("execute START hooks"));
+        assertTrue(lifecycle.contracts().contains("TURN_START START dispatcher"));
+        assertTrue(lifecycle.adapterPolicy().contains("turn_start -> START status/ability/perk semantic effects -> pending status_skip"));
         assertTrue(lifecycle.adapterPolicy().contains("Automatic round rollover"));
-        assertTrue(lifecycle.adapterPolicy().contains("actor selection"));
-        assertEquals("201e52e68184b52b14a5040f8a440058e6d8daa9", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertTrue(legalActions.contracts().contains("before the AI receives its decision window"));
+        assertTrue(legalActions.adapterPolicy().contains("must not expose a decision window from pre-START or pre-skip state"));
+        assertEquals("20841745242df28ef2e6a5f0e6f593dbcdfb2547", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
     }
 }
