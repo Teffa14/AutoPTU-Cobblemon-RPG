@@ -81,7 +81,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Inner Focus"));
         assertTrue(abilities.contracts().contains("Lancer"));
         assertTrue(abilities.contracts().contains("Simple"));
-        assertTrue(abilities.adapterPolicy().contains("combat-stage reactions"));
+        assertTrue(abilities.adapterPolicy().contains("Combat-stage reactions"));
         assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
     }
 
