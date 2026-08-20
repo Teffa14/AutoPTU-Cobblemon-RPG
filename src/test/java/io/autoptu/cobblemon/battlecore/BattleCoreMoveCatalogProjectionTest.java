@@ -15,7 +15,9 @@ class BattleCoreMoveCatalogProjectionTest {
     private static AuthoritativeMoveMetadata tackle() {
         return new AuthoritativeMoveMetadata(
                 "tackle",
-                new AuthoritativeMoveMetadata.Targeting("single", "melee", 1, 1, null, null, "Melee, 1 Target"),
+                new AuthoritativeMoveMetadata.Targeting(
+                        "single", "melee", 1, 1, null, null, "Melee, 1 Target",
+                        List.of(" Contact ", "Push")),
                 "standard",
                 true,
                 new AuthoritativeMoveMetadata.Combat(2, 5, 20, "physical", "Normal"),
@@ -46,8 +48,28 @@ class BattleCoreMoveCatalogProjectionTest {
 
         assertEquals("battle-1", projection.reservationId());
         assertEquals(List.of(tackle, growl), projection.movesByCombatant().get("pokemon-1"));
+        assertEquals(List.of("Contact", "Push"),
+                projection.movesByCombatant().get("pokemon-1").getFirst().targeting().keywords());
         assertThrows(UnsupportedOperationException.class,
                 () -> projection.movesByCombatant().get("pokemon-1").add(tackle));
+        assertThrows(UnsupportedOperationException.class,
+                () -> projection.movesByCombatant().get("pokemon-1").getFirst().targeting().keywords().add("Pull"));
+    }
+
+    @Test
+    void legacyTargetingConstructorCarriesNoInventedKeywords() {
+        AuthoritativeMoveMetadata.Targeting targeting = new AuthoritativeMoveMetadata.Targeting(
+                "single", "melee", 1, 1, null, null, "Melee, 1 Target");
+        assertEquals(List.of(), targeting.keywords());
+    }
+
+    @Test
+    void canonicalKeywordNormalizationMatchesPublicMoveSpecTransportBoundary() {
+        AuthoritativeMoveMetadata.Targeting targeting = new AuthoritativeMoveMetadata.Targeting(
+                "single", "melee", 1, 1, null, null, "Melee, 1 Target",
+                List.of(" Contact ", "", "  ", "Push", "contact"));
+
+        assertEquals(List.of("Contact", "Push", "contact"), targeting.keywords());
     }
 
     @Test

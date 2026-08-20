@@ -102,6 +102,8 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Aqua Boost"));
         assertTrue(abilities.contracts().contains("Ignition Boost"));
         assertTrue(abilities.contracts().contains("Thunder Boost"));
+        assertTrue(abilities.contracts().contains("Power Spot"));
+        assertTrue(abilities.contracts().contains("Type Aura"));
         assertTrue(abilities.contracts().contains("authoritative positions"));
         assertTrue(abilities.adapterPolicy().contains("radius/adjacency holder selection"));
         assertTrue(abilities.adapterPolicy().contains("damage-bonus source selection"));
@@ -109,6 +111,8 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
         assertTrue(damage.contracts().contains("before authoritative HP mutation"));
         assertTrue(damage.contracts().contains("MoveResolvedEvent"));
+        assertTrue(damage.contracts().contains("Power Spot"));
+        assertTrue(damage.contracts().contains("Type Aura"));
         assertTrue(damage.adapterPolicy().contains("MoveResolvedEvent damage/targetHp"));
         assertTrue(damage.adapterPolicy().contains("must never select aura sources"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
@@ -120,7 +124,12 @@ class UpstreamCompatibilityMatrixTest {
     void moveContractRequiresTrustedCatalogMetadata() {
         UpstreamCompatibilityMatrix.Entry moves = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
         assertTrue(moves.contracts().contains("MoveOption/MoveSpec/MoveCombatProfile"));
+        assertTrue(moves.contracts().contains("MoveSpec keyword"));
+        assertTrue(moves.contracts().contains("move_has_keyword"));
         assertTrue(moves.adapterPolicy().contains("trusted server-owned catalog"));
+        assertTrue(moves.adapterPolicy().contains("keyword identities"));
+        assertTrue(moves.adapterPolicy().contains("infer from text"));
+        assertTrue(moves.adapterPolicy().contains("push, pull, crash or contact"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
     }
 
@@ -155,7 +164,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("9e68bde8391b057c982900d038cc9ec3a3d348f9", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("11748b3c77f86ea96f78a357aaa92370e3478a58", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
