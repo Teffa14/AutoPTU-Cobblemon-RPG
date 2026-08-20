@@ -84,7 +84,7 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void abilitySupportRemainsPartialAfterRecursiveSpatialStageReactionsAndPostDamageAuras() {
+    void postDamageAuraRuntimeBindingKeepsDamageAndAbilitiesPartial() {
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
@@ -107,9 +107,13 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.adapterPolicy().contains("damage-bonus source selection"));
         assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
-        assertTrue(damage.contracts().contains("not yet wired into BattleRuntime final HP mutation"));
-        assertTrue(damage.adapterPolicy().contains("apply post-damage aura bonuses"));
-        assertTrue(damage.adapterPolicy().contains("mutate final HP"));
+        assertTrue(damage.contracts().contains("before authoritative HP mutation"));
+        assertTrue(damage.contracts().contains("MoveResolvedEvent"));
+        assertTrue(damage.adapterPolicy().contains("MoveResolvedEvent damage/targetHp"));
+        assertTrue(damage.adapterPolicy().contains("must never select aura sources"));
+        assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
+        assertTrue(abilities.adapterPolicy().contains("Aura-adjusted damage/HP may be mirrored"));
+        assertTrue(abilities.adapterPolicy().contains("do not apply aura bonuses"));
     }
 
     @Test
@@ -151,7 +155,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("2543881dd5863d7a4b01336dadc24a3be40fd6aa", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("9e68bde8391b057c982900d038cc9ec3a3d348f9", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
