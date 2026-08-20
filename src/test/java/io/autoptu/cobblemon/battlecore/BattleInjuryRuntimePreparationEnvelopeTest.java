@@ -19,7 +19,7 @@ class BattleInjuryRuntimePreparationEnvelopeTest {
         );
 
         assertEquals("battle-1", envelope.reservationId());
-        assertEquals(2, envelope.injuriesByCombatant().get("mon-1").injuryCount());
+        assertEquals(2, envelope.injuriesByCombatant().get("mon-1").injuries());
         assertEquals(Set.of("mon-1"), envelope.runtimePreparation().combatants().keySet());
         assertThrows(UnsupportedOperationException.class, () -> envelope.injuriesByCombatant().clear());
     }
