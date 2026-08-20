@@ -64,7 +64,7 @@ class InitiativeRoundRolloverPlaybackCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
         assertTrue(initiative.contracts().contains("advanceInitiativeTurnWithRollover"));
         assertTrue(initiative.contracts().contains("core-owned InitiativeRoundRebuilder"));
-        assertTrue(initiative.adapterPolicy().contains("providing client-computed initiative"));
+        assertTrue(initiative.adapterPolicy().contains("client-computed initiative"));
         assertTrue(lifecycle.adapterPolicy().contains("round-start lifecycle events before the next turn_start"));
         assertTrue(lifecycle.adapterPolicy().contains("initiative rebuild invocation/order"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply the next-round initiative order"));
