@@ -104,37 +104,37 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Thunder Boost"));
         assertTrue(abilities.contracts().contains("Power Spot"));
         assertTrue(abilities.contracts().contains("Type Aura"));
-        assertTrue(abilities.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(abilities.contracts().contains("AuraBreakBlockerQuery"));
-        assertTrue(abilities.contracts().contains("Normal Aura Storm is live-wired"));
-        assertTrue(abilities.contracts().contains("Aura Storm [Errata] is now live-wired"));
-        assertTrue(abilities.adapterPolicy().contains("Aura Storm scaling"));
-        assertTrue(abilities.adapterPolicy().contains("Aura Break"));
-        assertTrue(abilities.contracts().contains("authoritative current injuries"));
-        assertTrue(abilities.adapterPolicy().contains("select aura holders"));
-        assertTrue(abilities.adapterPolicy().contains("signed damage adjustments"));
-        assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
+        assertTrue(abilities.contracts().contains("Normal Aura Storm"));
+        assertTrue(abilities.contracts().contains("Aura Storm [Errata]"));
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
-        assertTrue(damage.contracts().contains("before authoritative HP mutation"));
-        assertTrue(damage.contracts().contains("MoveResolvedEvent"));
-        assertTrue(damage.contracts().contains("Power Spot"));
-        assertTrue(damage.contracts().contains("Type Aura"));
-        assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(damage.contracts().contains("AuraBreakBlockerQuery"));
-        assertTrue(damage.contracts().contains("Normal Aura Storm is live-wired"));
-        assertTrue(damage.contracts().contains("Aura Storm [Errata] is now live-wired"));
-        assertTrue(damage.adapterPolicy().contains("Current injury count may be initialized only"));
-        assertTrue(damage.adapterPolicy().contains("previous/last-round injury history"));
-        assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
+        assertTrue(damage.contracts().contains("RuntimeMoveResolution"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
-        assertTrue(abilities.adapterPolicy().contains("Aura-adjusted damage/HP may be mirrored"));
         assertTrue(abilities.adapterPolicy().contains("final MoveResolvedEvent"));
     }
 
     @Test
+    void rngPostDamageParityDoesNotBecomeLiveAdapterBehaviorEarly() {
+        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertTrue(damage.contracts().contains("PostDamageHookContext is now RNG-ready"));
+        assertTrue(damage.contracts().contains("RandomD10PostDamageAbility"));
+        assertTrue(damage.contracts().contains("Adaptability [Errata]/Damp [Errata]"));
+        assertTrue(damage.contracts().contains("not yet wired into live RuntimeMoveResolution"));
+        assertTrue(abilities.contracts().contains("server-owned PythonRandom"));
+        assertTrue(abilities.contracts().contains("parity-only"));
+        assertTrue(damage.adapterPolicy().contains("must never set currentRound, supply or advance the battle RNG"));
+        assertTrue(damage.adapterPolicy().contains("render them as live effects before RuntimeMoveResolution emits them"));
+        assertTrue(abilities.adapterPolicy().contains("must not set battle round"));
+        assertTrue(abilities.adapterPolicy().contains("supply RNG"));
+        assertTrue(abilities.adapterPolicy().contains("parity-only RNG abilities as live battle effects"));
+    }
+
+    @Test
     void lifecycleOwnsCanonicalRoundWithoutAdapterInput() {
-        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertTrue(lifecycle.contracts().contains("BattleRuntimeState.currentRound"));
         assertTrue(lifecycle.contracts().contains("synchronized only by lifecycle"));
@@ -185,7 +185,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("dc8cc6677dcfcf830fb176458b05ad08dba9b526", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("98b5aca32262f902f2260ab73b6d22a8b6e468d5", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
