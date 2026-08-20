@@ -40,7 +40,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(lifecycle.contracts().contains("Flinch"));
         assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
         assertTrue(statuses.contracts().contains("StatusApplicationHookRegistry"));
-        assertTrue(statuses.adapterPolicy().contains("Status application/prevention remains core-owned"));
+        assertTrue(statuses.adapterPolicy().contains("Status application/prevention"));
         assertTrue(statuses.adapterPolicy().contains("do not implement missing"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
@@ -138,16 +138,22 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void initiativeTurnAdvanceIsAuthoritativeWithoutPromotingFullLifecycle() {
+    void initiativeTurnAdvanceResolvesStartEffectsBeforeDecisionWithoutPromotingFullLifecycle() {
         UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry legalActions = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE);
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
         assertTrue(initiative.contracts().contains("advanceInitiativeTurn"));
         assertTrue(initiative.contracts().contains("TurnStartedEvent"));
+        assertTrue(initiative.contracts().contains("START status/ability/perk hooks"));
+        assertTrue(initiative.contracts().contains("pending status skip"));
         assertTrue(initiative.adapterPolicy().contains("must not choose the next actor"));
-        assertTrue(lifecycle.contracts().contains("turn-start"));
+        assertTrue(lifecycle.contracts().contains("TURN_START START dispatcher"));
+        assertTrue(lifecycle.contracts().contains("pending status-skip consumption after START effects"));
         assertTrue(lifecycle.adapterPolicy().contains("Automatic round rollover"));
+        assertTrue(legalActions.contracts().contains("before the AI receives its decision window"));
     }
 
     @Test
@@ -203,7 +209,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("201e52e68184b52b14a5040f8a440058e6d8daa9", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("20841745242df28ef2e6a5f0e6f593dbcdfb2547", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
