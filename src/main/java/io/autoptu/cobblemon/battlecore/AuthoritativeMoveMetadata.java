@@ -1,5 +1,7 @@
 package io.autoptu.cobblemon.battlecore;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -25,6 +27,10 @@ public record AuthoritativeMoveMetadata(
         frequency = optional(frequency);
     }
 
+    /**
+     * Project-owned mirror of the public AutoPTU-Java MoveSpec contract.
+     * Keywords are authoritative catalog metadata only. This adapter does not interpret them as PTU effects.
+     */
     public record Targeting(
             String targetKind,
             String rangeKind,
@@ -32,7 +38,8 @@ public record AuthoritativeMoveMetadata(
             Integer rangeValue,
             String areaKind,
             Integer areaValue,
-            String rangeText
+            String rangeText,
+            List<String> keywords
     ) {
         public Targeting {
             targetKind = optional(targetKind);
@@ -42,6 +49,20 @@ public record AuthoritativeMoveMetadata(
             nonNegative(targetRange, "targetRange");
             nonNegative(rangeValue, "rangeValue");
             nonNegative(areaValue, "areaValue");
+            keywords = normalizeKeywords(keywords);
+        }
+
+        /** Backwards-compatible constructor for older catalog fixtures that predate MoveSpec keywords. */
+        public Targeting(
+                String targetKind,
+                String rangeKind,
+                Integer targetRange,
+                Integer rangeValue,
+                String areaKind,
+                Integer areaValue,
+                String rangeText
+        ) {
+            this(targetKind, rangeKind, targetRange, rangeValue, areaKind, areaValue, rangeText, List.of());
         }
     }
 
@@ -56,6 +77,16 @@ public record AuthoritativeMoveMetadata(
             }
             moveType = optional(moveType);
         }
+    }
+
+    private static List<String> normalizeKeywords(List<String> values) {
+        if (values == null || values.isEmpty()) return List.of();
+        ArrayList<String> normalized = new ArrayList<>(values.size());
+        for (String value : values) {
+            if (value == null || value.isBlank()) continue;
+            normalized.add(value.strip());
+        }
+        return List.copyOf(normalized);
     }
 
     private static String required(String value, String field) {
