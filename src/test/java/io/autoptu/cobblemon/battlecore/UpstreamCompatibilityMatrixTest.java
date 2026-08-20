@@ -113,22 +113,27 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void rngPostDamageAbilitiesAreLiveButRemainCoreOwned() {
+    void rngAndAnalyticPostDamageAbilitiesAreLiveButRemainCoreOwned() {
+        UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
 
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, actionEconomy.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
-        assertTrue(damage.contracts().contains("PostDamageHookContext receives the core-owned PythonRandom only after accuracy and ordinary DamageResolution"));
-        assertTrue(damage.contracts().contains("RandomD10PostDamageAbility Adaptability [Errata] and Damp [Errata] are now live-wired"));
-        assertTrue(damage.contracts().contains("final damage, HP and damage-history mutation"));
+        assertTrue(actionEconomy.contracts().contains("InitiativeProgressState"));
+        assertTrue(actionEconomy.contracts().contains("Analytic"));
+        assertTrue(damage.contracts().contains("PythonRandom"));
+        assertTrue(damage.contracts().contains("Adaptability [Errata] and Damp [Errata] are live-wired"));
+        assertTrue(damage.contracts().contains("Analytic is live-wired"));
         assertTrue(abilities.contracts().contains("Adaptability [Errata] and Damp [Errata] are live post-damage abilities"));
-        assertTrue(abilities.contracts().contains("server-owned PythonRandom"));
-        assertTrue(damage.adapterPolicy().contains("must never set currentRound, supply or advance the battle RNG"));
-        assertTrue(damage.adapterPolicy().contains("roll or apply Adaptability [Errata]/Damp [Errata] bonuses"));
-        assertTrue(damage.adapterPolicy().contains("mirrored only from Java-emitted semantic events and final MoveResolvedEvent"));
+        assertTrue(abilities.contracts().contains("Analytic is live-wired"));
+        assertTrue(damage.adapterPolicy().contains("supply or advance the battle RNG"));
+        assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
+        assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("supply RNG"));
-        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
+        assertTrue(abilities.adapterPolicy().contains("replace initiative order/cursor"));
+        assertTrue(abilities.adapterPolicy().contains("apply Analytic's +5 bonus"));
         assertTrue(abilities.adapterPolicy().contains("final MoveResolvedEvent"));
     }
 
@@ -185,7 +190,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("339c0a876fa3b4b3da0e410bb8aabd83cc74a405", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("014933ea022198d5558a4f899ba4b41d0c59a47f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
