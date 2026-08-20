@@ -113,23 +113,23 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void rngPostDamageParityDoesNotBecomeLiveAdapterBehaviorEarly() {
+    void rngPostDamageAbilitiesAreLiveButRemainCoreOwned() {
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
-        assertTrue(damage.contracts().contains("PostDamageHookContext is now RNG-ready"));
-        assertTrue(damage.contracts().contains("RandomD10PostDamageAbility"));
-        assertTrue(damage.contracts().contains("Adaptability [Errata]/Damp [Errata]"));
-        assertTrue(damage.contracts().contains("not yet wired into live RuntimeMoveResolution"));
+        assertTrue(damage.contracts().contains("PostDamageHookContext receives the core-owned PythonRandom only after accuracy and ordinary DamageResolution"));
+        assertTrue(damage.contracts().contains("RandomD10PostDamageAbility Adaptability [Errata] and Damp [Errata] are now live-wired"));
+        assertTrue(damage.contracts().contains("final damage, HP and damage-history mutation"));
+        assertTrue(abilities.contracts().contains("Adaptability [Errata] and Damp [Errata] are live post-damage abilities"));
         assertTrue(abilities.contracts().contains("server-owned PythonRandom"));
-        assertTrue(abilities.contracts().contains("parity-only"));
         assertTrue(damage.adapterPolicy().contains("must never set currentRound, supply or advance the battle RNG"));
-        assertTrue(damage.adapterPolicy().contains("render them as live effects before RuntimeMoveResolution emits them"));
-        assertTrue(abilities.adapterPolicy().contains("must not set battle round"));
+        assertTrue(damage.adapterPolicy().contains("roll or apply Adaptability [Errata]/Damp [Errata] bonuses"));
+        assertTrue(damage.adapterPolicy().contains("mirrored only from Java-emitted semantic events and final MoveResolvedEvent"));
         assertTrue(abilities.adapterPolicy().contains("supply RNG"));
-        assertTrue(abilities.adapterPolicy().contains("parity-only RNG abilities as live battle effects"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
+        assertTrue(abilities.adapterPolicy().contains("final MoveResolvedEvent"));
     }
 
     @Test
@@ -185,7 +185,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("98b5aca32262f902f2260ab73b6d22a8b6e468d5", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("752603a002a31c8d73078ef238f22d2b39ccb024", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
