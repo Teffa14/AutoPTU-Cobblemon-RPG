@@ -84,11 +84,14 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void abilitySupportRemainsPartialAfterRecursiveSpatialStageReactions() {
+    void abilitySupportRemainsPartialAfterRecursiveSpatialStageReactionsAndPostDamageAuras() {
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
         assertTrue(abilities.contracts().contains("CombatStageHookRegistry"));
+        assertTrue(abilities.contracts().contains("PostDamageHookRegistry"));
         assertTrue(abilities.contracts().contains("Inner Focus"));
         assertTrue(abilities.contracts().contains("Lancer"));
         assertTrue(abilities.contracts().contains("Simple"));
@@ -96,10 +99,17 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Competitive"));
         assertTrue(abilities.contracts().contains("Plus [SwSh]"));
         assertTrue(abilities.contracts().contains("Minus [SwSh]"));
+        assertTrue(abilities.contracts().contains("Aqua Boost"));
+        assertTrue(abilities.contracts().contains("Ignition Boost"));
+        assertTrue(abilities.contracts().contains("Thunder Boost"));
         assertTrue(abilities.contracts().contains("authoritative positions"));
-        assertTrue(abilities.adapterPolicy().contains("radius holder selection"));
-        assertTrue(abilities.adapterPolicy().contains("recursive mutation"));
+        assertTrue(abilities.adapterPolicy().contains("radius/adjacency holder selection"));
+        assertTrue(abilities.adapterPolicy().contains("damage-bonus source selection"));
         assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
+        assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
+        assertTrue(damage.contracts().contains("not yet wired into BattleRuntime final HP mutation"));
+        assertTrue(damage.adapterPolicy().contains("apply post-damage aura bonuses"));
+        assertTrue(damage.adapterPolicy().contains("mutate final HP"));
     }
 
     @Test
@@ -141,7 +151,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("0af71f13a3066c22fb03aee5d864d53ab01619e4", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("2543881dd5863d7a4b01336dadc24a3be40fd6aa", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
