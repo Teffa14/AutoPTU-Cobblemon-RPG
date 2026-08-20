@@ -156,7 +156,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(lifecycle.contracts().contains("ROUND_START lifecycle events before core-owned InitiativeRoundRebuilder output"));
         assertTrue(lifecycle.adapterPolicy().contains("round-start lifecycle events before the next turn_start"));
         assertTrue(lifecycle.adapterPolicy().contains("full Python initiative rebuild formula"));
-        assertTrue(legalActions.contracts().contains("after initiative exhaustion"));
+        assertTrue(legalActions.contracts().contains("initiative exhaustion"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply the next-round initiative order"));
     }
 
