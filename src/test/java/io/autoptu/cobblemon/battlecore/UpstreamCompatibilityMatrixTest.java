@@ -105,6 +105,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Power Spot"));
         assertTrue(abilities.contracts().contains("Type Aura"));
         assertTrue(abilities.contracts().contains("AuraStormResolution"));
+        assertTrue(abilities.contracts().contains("AuraBreakErrataAdjustment"));
         assertTrue(abilities.contracts().contains("authoritative injury count"));
         assertTrue(abilities.adapterPolicy().contains("Aura Storm scaling"));
         assertTrue(abilities.adapterPolicy().contains("Aura Break"));
@@ -118,9 +119,11 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(damage.contracts().contains("Power Spot"));
         assertTrue(damage.contracts().contains("Type Aura"));
         assertTrue(damage.contracts().contains("AuraStormResolution"));
-        assertTrue(damage.contracts().contains("live registry wiring"));
+        assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
+        assertTrue(damage.contracts().contains("Live Aura Storm registry wiring"));
         assertTrue(damage.adapterPolicy().contains("Server-owned injury count"));
         assertTrue(damage.adapterPolicy().contains("Aura Break"));
+        assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
         assertTrue(abilities.adapterPolicy().contains("Aura-adjusted damage/HP may be mirrored"));
         assertTrue(abilities.adapterPolicy().contains("do not apply aura bonuses"));
@@ -170,7 +173,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("59f48a5be4446bef66959ba577d330e18696ad43", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("9e1c918f33faa45c4c8832ba457cc36b875267c7", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
