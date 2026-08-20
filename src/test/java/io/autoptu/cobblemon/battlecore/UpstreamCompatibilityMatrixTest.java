@@ -104,31 +104,31 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Thunder Boost"));
         assertTrue(abilities.contracts().contains("Power Spot"));
         assertTrue(abilities.contracts().contains("Type Aura"));
-        assertTrue(abilities.contracts().contains("AuraStormResolution"));
         assertTrue(abilities.contracts().contains("AuraBreakErrataAdjustment"));
         assertTrue(abilities.contracts().contains("AuraBreakBlockerQuery"));
         assertTrue(abilities.contracts().contains("Normal Aura Storm is live-wired"));
+        assertTrue(abilities.contracts().contains("Aura Storm [Errata] is now live-wired"));
         assertTrue(abilities.adapterPolicy().contains("Aura Storm scaling"));
         assertTrue(abilities.adapterPolicy().contains("Aura Break"));
         assertTrue(abilities.contracts().contains("authoritative current injuries"));
-        assertTrue(abilities.adapterPolicy().contains("radius/adjacency holder selection"));
-        assertTrue(abilities.adapterPolicy().contains("damage-bonus source selection"));
+        assertTrue(abilities.adapterPolicy().contains("select aura holders"));
+        assertTrue(abilities.adapterPolicy().contains("signed damage adjustments"));
         assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
         assertTrue(damage.contracts().contains("before authoritative HP mutation"));
         assertTrue(damage.contracts().contains("MoveResolvedEvent"));
         assertTrue(damage.contracts().contains("Power Spot"));
         assertTrue(damage.contracts().contains("Type Aura"));
-        assertTrue(damage.contracts().contains("AuraStormResolution"));
         assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
         assertTrue(damage.contracts().contains("AuraBreakBlockerQuery"));
-        assertTrue(damage.contracts().contains("Normal Aura Storm is now live-wired"));
+        assertTrue(damage.contracts().contains("Normal Aura Storm is live-wired"));
+        assertTrue(damage.contracts().contains("Aura Storm [Errata] is now live-wired"));
         assertTrue(damage.adapterPolicy().contains("Current injury count may be initialized only"));
         assertTrue(damage.adapterPolicy().contains("previous/last-round injury history"));
         assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
         assertTrue(abilities.adapterPolicy().contains("Aura-adjusted damage/HP may be mirrored"));
-        assertTrue(abilities.adapterPolicy().contains("do not apply aura bonuses"));
+        assertTrue(abilities.adapterPolicy().contains("final MoveResolvedEvent"));
     }
 
     @Test
@@ -185,7 +185,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("260ca29699e34d56da8fb32d43d2b6de7dba6892", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("dc8cc6677dcfcf830fb176458b05ad08dba9b526", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
