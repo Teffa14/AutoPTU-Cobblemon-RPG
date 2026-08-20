@@ -107,17 +107,19 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
-        assertTrue(initiative.contracts().contains("advanceInitiativeTurn"));
+        assertTrue(initiative.contracts().contains("advanceInitiativeTurnWithRollover"));
+        assertTrue(initiative.contracts().contains("InitiativeRoundRebuilder"));
         assertTrue(initiative.contracts().contains("TurnStartedEvent"));
         assertTrue(initiative.contracts().contains("START status/ability/perk hooks"));
         assertTrue(initiative.contracts().contains("pending status skip"));
         assertTrue(initiative.adapterPolicy().contains("must not choose the next actor"));
+        assertTrue(initiative.adapterPolicy().contains("provide client-computed initiative"));
         assertTrue(initiative.adapterPolicy().contains("execute START hooks"));
-        assertTrue(lifecycle.contracts().contains("TURN_START START dispatcher"));
-        assertTrue(lifecycle.adapterPolicy().contains("turn_start -> START status/ability/perk semantic effects -> pending status_skip"));
-        assertTrue(lifecycle.adapterPolicy().contains("Automatic round rollover"));
-        assertTrue(legalActions.contracts().contains("before the AI receives its decision window"));
-        assertTrue(legalActions.adapterPolicy().contains("must not expose a decision window from pre-START or pre-skip state"));
-        assertEquals("20841745242df28ef2e6a5f0e6f593dbcdfb2547", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertTrue(lifecycle.contracts().contains("ROUND_START lifecycle events before core-owned InitiativeRoundRebuilder output"));
+        assertTrue(lifecycle.adapterPolicy().contains("round-start lifecycle events before the next turn_start"));
+        assertTrue(lifecycle.adapterPolicy().contains("full Python initiative rebuild formula"));
+        assertTrue(legalActions.contracts().contains("before opening the next decision window"));
+        assertTrue(legalActions.adapterPolicy().contains("must not supply the next-round initiative order"));
+        assertEquals("6678d4563116a4ec8c70d9daafc00d28bb9ab25b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
     }
 }
