@@ -19,8 +19,8 @@ public record EntityBoundMoveAnimation(
         }
         attackerPresentationEntityId = requireId(attackerPresentationEntityId, "attackerPresentationEntityId");
         targetPresentationEntityId = requireId(targetPresentationEntityId, "targetPresentationEntityId");
-        targetCombatantId();
-        moveId();
+        requireId(command.data().get("targetId"), "targetId");
+        requireId(command.data().get("moveId"), "moveId");
     }
 
     public String attackerCombatantId() {
