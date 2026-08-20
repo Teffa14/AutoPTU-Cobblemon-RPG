@@ -39,4 +39,30 @@ public final class BattlePresentationEntityProjector {
         }
         return List.copyOf(result);
     }
+
+    /**
+     * Binds only semantic cues whose public event contract defines the command subject as a combatant.
+     * Trainer-owned and future field/global cues intentionally remain outside this method.
+     */
+    public List<EntityBoundBattlePresentationCommand> bindCombatantSemanticCues(
+            BattlePresentationBatch batch,
+            BattlePresentationEntityBindings bindings) {
+        if (batch == null) throw new IllegalArgumentException("batch is required");
+        if (bindings == null) throw new IllegalArgumentException("bindings are required");
+
+        ArrayList<EntityBoundBattlePresentationCommand> result = new ArrayList<>();
+        for (BattlePresentationCommand command : batch.commands()) {
+            if (!isCombatantSemanticCue(command.kind())) continue;
+            PresentationEntityBinding binding = bindings.requireBinding(batch.reservationId(), command.subjectId());
+            result.add(new EntityBoundBattlePresentationCommand(command, binding.presentationEntityId()));
+        }
+        return List.copyOf(result);
+    }
+
+    private static boolean isCombatantSemanticCue(BattlePresentationCommand.Kind kind) {
+        return switch (kind) {
+            case STATUS_SKIP_CUE, RULE_EFFECT_CUE, PHASE_CUE, TURN_START_CUE, TURN_END_CUE -> true;
+            case MOVE_ANIMATION, HP_PROJECTION, ENTITY_RELOCATION, TRAINER_FEATURE_CUE -> false;
+        };
+    }
 }
