@@ -16,6 +16,7 @@ public record BattlePokemonSnapshot(
         CanonicalBaseMovement baseMovement,
         CanonicalBattleTraits battleTraits,
         CanonicalAccuracyEvasion accuracyEvasion,
+        CanonicalInjuryState injuryState,
         String heldItemInstanceId,
         long revision
 ) {
@@ -32,6 +33,16 @@ public record BattlePokemonSnapshot(
         }
         heldItemInstanceId = heldItemInstanceId == null || heldItemInstanceId.isBlank() ? null : heldItemInstanceId;
         if (revision < 0) throw new IllegalArgumentException("revision must be >= 0");
+    }
+
+    /** Compatibility constructor retained for callers created before canonical injury state. */
+    public BattlePokemonSnapshot(String pokemonId, String ownerPlayerId, String speciesId, int level,
+            Set<String> capabilities, Set<String> statuses, CanonicalStatusState statusState,
+            CanonicalCombatStats combatStats, CanonicalHealth health, CanonicalMoveLoadout moveLoadout,
+            CanonicalBaseMovement baseMovement, CanonicalBattleTraits battleTraits,
+            CanonicalAccuracyEvasion accuracyEvasion, String heldItemInstanceId, long revision) {
+        this(pokemonId, ownerPlayerId, speciesId, level, capabilities, statuses, statusState, combatStats,
+                health, moveLoadout, baseMovement, battleTraits, accuracyEvasion, null, heldItemInstanceId, revision);
     }
 
     /** Compatibility constructor retained for callers created before canonical status metadata. */
@@ -109,6 +120,6 @@ public record BattlePokemonSnapshot(
                 state.pokemonId(), state.ownerPlayerId(), state.speciesId(), state.level(),
                 state.capabilities(), state.statuses(), state.statusState(), state.combatStats(), state.health(),
                 state.moveLoadout(), state.baseMovement(), state.battleTraits(), state.accuracyEvasion(),
-                state.heldItemInstanceId(), state.revision());
+                state.injuryState(), state.heldItemInstanceId(), state.revision());
     }
 }
