@@ -138,22 +138,26 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void initiativeTurnAdvanceResolvesStartEffectsBeforeDecisionWithoutPromotingFullLifecycle() {
+    void initiativeRolloverRemainsCoreOwnedWithoutPromotingFullLifecycle() {
         UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry legalActions = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE);
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
-        assertTrue(initiative.contracts().contains("advanceInitiativeTurn"));
+        assertTrue(initiative.contracts().contains("advanceInitiativeTurnWithRollover"));
+        assertTrue(initiative.contracts().contains("InitiativeRoundRebuilder"));
         assertTrue(initiative.contracts().contains("TurnStartedEvent"));
         assertTrue(initiative.contracts().contains("START status/ability/perk hooks"));
         assertTrue(initiative.contracts().contains("pending status skip"));
         assertTrue(initiative.adapterPolicy().contains("must not choose the next actor"));
-        assertTrue(lifecycle.contracts().contains("TURN_START START dispatcher"));
-        assertTrue(lifecycle.contracts().contains("pending status-skip consumption after START effects"));
-        assertTrue(lifecycle.adapterPolicy().contains("Automatic round rollover"));
-        assertTrue(legalActions.contracts().contains("before the AI receives its decision window"));
+        assertTrue(initiative.adapterPolicy().contains("client-computed initiative"));
+        assertTrue(lifecycle.contracts().contains("advanceInitiativeTurnWithRollover"));
+        assertTrue(lifecycle.contracts().contains("ROUND_START lifecycle events before core-owned InitiativeRoundRebuilder output"));
+        assertTrue(lifecycle.adapterPolicy().contains("round-start lifecycle events before the next turn_start"));
+        assertTrue(lifecycle.adapterPolicy().contains("full Python initiative rebuild formula"));
+        assertTrue(legalActions.contracts().contains("after initiative exhaustion"));
+        assertTrue(legalActions.adapterPolicy().contains("must not supply the next-round initiative order"));
     }
 
     @Test
@@ -161,7 +165,7 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertTrue(lifecycle.contracts().contains("BattleRuntimeState.currentRound"));
-        assertTrue(lifecycle.contracts().contains("synchronized only by lifecycle"));
+        assertTrue(lifecycle.contracts().contains("server-owned BattleRuntimeState.currentRound"));
         assertTrue(lifecycle.adapterPolicy().contains("must never set or advance BattleRuntimeState.currentRound"));
     }
 
@@ -209,7 +213,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("20841745242df28ef2e6a5f0e6f593dbcdfb2547", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("6678d4563116a4ec8c70d9daafc00d28bb9ab25b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
