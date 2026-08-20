@@ -12,7 +12,7 @@ class BattlePokemonInjurySnapshotTest {
     @Test
     void freezesCanonicalInjuryCount() {
         CanonicalPokemonState state = new CanonicalPokemonState(
-                "pokemon-1", "player-1", "pikachu", 12, Set.of(), Set.of(), CanonicalStatusState.empty(),
+                "pokemon-1", "player-1", "pikachu", 12, Set.of(), Set.of(), CanonicalStatusState.fromNames(Set.of()),
                 null, null, null, null, null, null, new CanonicalInjuryState(3), null, 4L);
 
         BattlePokemonSnapshot snapshot = BattlePokemonSnapshot.from(state);
