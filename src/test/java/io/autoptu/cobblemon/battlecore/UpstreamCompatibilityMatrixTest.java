@@ -104,6 +104,10 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Thunder Boost"));
         assertTrue(abilities.contracts().contains("Power Spot"));
         assertTrue(abilities.contracts().contains("Type Aura"));
+        assertTrue(abilities.contracts().contains("AuraStormResolution"));
+        assertTrue(abilities.contracts().contains("authoritative injury count"));
+        assertTrue(abilities.adapterPolicy().contains("Aura Storm scaling"));
+        assertTrue(abilities.adapterPolicy().contains("Aura Break"));
         assertTrue(abilities.contracts().contains("authoritative positions"));
         assertTrue(abilities.adapterPolicy().contains("radius/adjacency holder selection"));
         assertTrue(abilities.adapterPolicy().contains("damage-bonus source selection"));
@@ -113,8 +117,10 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(damage.contracts().contains("MoveResolvedEvent"));
         assertTrue(damage.contracts().contains("Power Spot"));
         assertTrue(damage.contracts().contains("Type Aura"));
-        assertTrue(damage.adapterPolicy().contains("MoveResolvedEvent damage/targetHp"));
-        assertTrue(damage.adapterPolicy().contains("must never select aura sources"));
+        assertTrue(damage.contracts().contains("AuraStormResolution"));
+        assertTrue(damage.contracts().contains("live registry wiring"));
+        assertTrue(damage.adapterPolicy().contains("Server-owned injury count"));
+        assertTrue(damage.adapterPolicy().contains("Aura Break"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
         assertTrue(abilities.adapterPolicy().contains("Aura-adjusted damage/HP may be mirrored"));
         assertTrue(abilities.adapterPolicy().contains("do not apply aura bonuses"));
@@ -164,7 +170,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("11748b3c77f86ea96f78a357aaa92370e3478a58", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("59f48a5be4446bef66959ba577d330e18696ad43", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
