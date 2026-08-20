@@ -41,6 +41,34 @@ public final class BattlePresentationEntityProjector {
     }
 
     /**
+     * Binds both combatant endpoints of an already-authoritative move animation.
+     * Target legality, move resolution and damage remain upstream-owned; this only prevents
+     * a correct move event from being redirected to unrelated presentation entities.
+     */
+    public List<EntityBoundMoveAnimation> bindMoveAnimations(
+            BattlePresentationBatch batch,
+            BattlePresentationEntityBindings bindings) {
+        if (batch == null) throw new IllegalArgumentException("batch is required");
+        if (bindings == null) throw new IllegalArgumentException("bindings are required");
+
+        ArrayList<EntityBoundMoveAnimation> result = new ArrayList<>();
+        for (BattlePresentationCommand command : batch.commands()) {
+            if (command.kind() != BattlePresentationCommand.Kind.MOVE_ANIMATION) continue;
+            PresentationEntityBinding attacker = bindings.requireBinding(
+                    batch.reservationId(), command.subjectId());
+            String targetCombatantId = command.data().get("targetId");
+            if (targetCombatantId == null || targetCombatantId.isBlank()) {
+                throw new IllegalArgumentException("MOVE_ANIMATION targetId is required");
+            }
+            PresentationEntityBinding target = bindings.requireBinding(
+                    batch.reservationId(), targetCombatantId.strip());
+            result.add(new EntityBoundMoveAnimation(
+                    command, attacker.presentationEntityId(), target.presentationEntityId()));
+        }
+        return List.copyOf(result);
+    }
+
+    /**
      * Binds only semantic cues whose public event contract defines the command subject as a combatant.
      * Trainer-owned and future field/global cues intentionally remain outside this method.
      */
