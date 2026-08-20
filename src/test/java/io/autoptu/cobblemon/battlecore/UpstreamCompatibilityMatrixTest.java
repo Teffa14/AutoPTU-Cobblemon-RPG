@@ -97,7 +97,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("Plus [SwSh]"));
         assertTrue(abilities.contracts().contains("Minus [SwSh]"));
         assertTrue(abilities.contracts().contains("authoritative positions"));
-        assertTrue(abilities.adapterPolicy().contains("spatial reaction sources"));
+        assertTrue(abilities.adapterPolicy().contains("radius holder selection"));
         assertTrue(abilities.adapterPolicy().contains("recursive mutation"));
         assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
     }
