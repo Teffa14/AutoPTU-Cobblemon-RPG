@@ -7,13 +7,23 @@ package io.autoptu.cobblemon.battlecore;
 public record EntityBoundBattlePresentationCommand(
         BattlePresentationCommand command,
         String presentationEntityId
-) {
+) implements EntityBoundPresentationOutput {
     public EntityBoundBattlePresentationCommand {
         if (command == null) throw new IllegalArgumentException("command is required");
         if (presentationEntityId == null || presentationEntityId.isBlank()) {
             throw new IllegalArgumentException("presentationEntityId is required");
         }
         presentationEntityId = presentationEntityId.strip();
+    }
+
+    @Override
+    public long sequence() {
+        return command.sequence();
+    }
+
+    @Override
+    public int ordinal() {
+        return command.ordinal();
     }
 
     public String combatantId() {
