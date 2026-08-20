@@ -70,7 +70,7 @@ class BattleRuntimeRuleStateSeedTest {
         assertTrue(requirement.boundedScope().contains("current injury"));
         assertTrue(requirement.boundedScope().contains("battle round"));
         assertTrue(requirement.boundedScope().contains("Aura Break"));
-        assertTrue(requirement.boundedScope().contains("core-owned"));
+        assertTrue(requirement.boundedScope().contains("AutoPTU-Java owns"));
     }
 
     private static BattleRuntimePreparationEnvelope runtimePreparation(String reservationId) {
