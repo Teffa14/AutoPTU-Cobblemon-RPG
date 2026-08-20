@@ -25,6 +25,7 @@ public record BattleEventPlaybackEnvelope(
             "trainer_feature",
             "rule_effect",
             "phase",
+            "turn_start",
             "turn_end"
     );
 

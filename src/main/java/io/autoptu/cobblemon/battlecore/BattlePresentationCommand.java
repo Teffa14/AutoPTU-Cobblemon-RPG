@@ -25,6 +25,7 @@ public record BattlePresentationCommand(
         TRAINER_FEATURE_CUE,
         RULE_EFFECT_CUE,
         PHASE_CUE,
+        TURN_START_CUE,
         TURN_END_CUE
     }
 

@@ -138,6 +138,19 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
+    void initiativeTurnAdvanceIsAuthoritativeWithoutPromotingFullLifecycle() {
+        UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
+        assertTrue(initiative.contracts().contains("advanceInitiativeTurn"));
+        assertTrue(initiative.contracts().contains("TurnStartedEvent"));
+        assertTrue(initiative.adapterPolicy().contains("must not choose the next actor"));
+        assertTrue(lifecycle.contracts().contains("turn-start"));
+        assertTrue(lifecycle.adapterPolicy().contains("Automatic round rollover"));
+    }
+
+    @Test
     void lifecycleOwnsCanonicalRoundWithoutAdapterInput() {
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
@@ -190,7 +203,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("014933ea022198d5558a4f899ba4b41d0c59a47f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("201e52e68184b52b14a5040f8a440058e6d8daa9", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
