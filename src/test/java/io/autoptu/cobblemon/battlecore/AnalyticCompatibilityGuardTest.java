@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnalyticCompatibilityGuardTest {
     @Test
-    void pinsCurrentAnalyticParityContractWithoutPromotingBroadSupport() {
-        assertEquals("339c0a876fa3b4b3da0e410bb8aabd83cc74a405", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+    void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
+        assertEquals("014933ea022198d5558a4f899ba4b41d0c59a47f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
@@ -22,9 +22,9 @@ class AnalyticCompatibilityGuardTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, actionEconomy.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
-        assertTrue(actionEconomy.contracts().contains("AnalyticResolution"));
-        assertTrue(damage.contracts().contains("no verified live RuntimeMoveResolution binding"));
-        assertTrue(abilities.contracts().contains("not yet verified as live-wired"));
+        assertTrue(actionEconomy.contracts().contains("InitiativeProgressState"));
+        assertTrue(damage.contracts().contains("Analytic is live-wired"));
+        assertTrue(abilities.contracts().contains("Analytic is live-wired"));
     }
 
     @Test
