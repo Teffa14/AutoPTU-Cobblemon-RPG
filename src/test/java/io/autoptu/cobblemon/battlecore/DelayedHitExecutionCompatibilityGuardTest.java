@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitExecutionCompatibilityGuardTest {
     @Test
-    void delayedHitCombatantExecutionUsesBattleOwnedQueueRngAndTargetBindingButLifecycleRemainsPartial() {
+    void delayedHitCombatantExecutionUsesBattleOwnedRoundStartLifecycleResourcesAndTargetBinding() {
         CurrentUpstreamCompatibilityInspection.Evidence lifecycle =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
@@ -25,12 +25,14 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
         assertTrue(lifecycle.contracts().contains("BattleDelayedHitState"));
         assertTrue(lifecycle.contracts().contains("Python-compatible battle RNG stream"));
-        assertTrue(lifecycle.contracts().contains("DelayedHitLifecycleExecutor"));
+        assertTrue(lifecycle.contracts().contains("DelayedHitRoundLifecycleHook"));
+        assertTrue(lifecycle.contracts().contains("ROUND_START order 10"));
+        assertTrue(lifecycle.contracts().contains("order 20"));
         assertTrue(lifecycle.contracts().contains("COMBATANT-target"));
-        assertTrue(lifecycle.contracts().contains("in insertion order"));
-        assertTrue(lifecycle.limitation().contains("Delayed-hit execution is still not registered"));
-        assertTrue(lifecycle.limitation().contains("TILE/area delayed hits"));
+        assertTrue(lifecycle.contracts().contains("originating action/frequency spend unchanged"));
+        assertTrue(lifecycle.limitation().contains("TILE/area delayed hits remain unsupported"));
         assertTrue(lifecycle.limitation().contains("own the delayed queue or mutable RNG"));
+        assertTrue(lifecycle.limitation().contains("mature delayed hits"));
 
         assertTrue(moves.contracts().contains("forwards both targetId and targetPosition unchanged"));
         assertTrue(moves.contracts().contains("targetId remains COMBATANT targeting"));
@@ -42,7 +44,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("damage-history"));
         assertTrue(moves.contracts().contains("MoveResolvedEvent"));
         assertTrue(moves.contracts().contains("without a second action/frequency spend"));
-        assertTrue(moves.limitation().contains("automatic ROUND_START delayed-hit dispatch has not landed on main"));
+        assertTrue(moves.limitation().contains("TILE/area delayed execution remains unsupported on main"));
         assertTrue(moves.limitation().contains("rewrite target mode because a target position exists"));
         assertTrue(moves.limitation().contains("replace a canonical targetId with TILE targeting"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
@@ -50,7 +52,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
     }
 
     @Test
-    void runtimeAssemblyCannotInjectDelayedHitExecutionResourceCombatPreparationOrTargetInterpretation() {
+    void runtimeAssemblyCannotInjectDelayedHitLifecycleResourceCombatPreparationOrTargetInterpretation() {
         Set<String> components = Arrays.stream(BattleRuntimeAssemblySeed.class.getRecordComponents())
                 .map(RecordComponent::getName)
                 .collect(Collectors.toSet());
@@ -62,6 +64,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "delayedHitPolicy",
                 "delayedHitResourcePolicy",
                 "delayedHitMaturityDispatcher",
+                "delayedHitRoundLifecycleHook",
                 "delayedHitQueue",
                 "delayedHitState",
                 "delayedHitRng",
