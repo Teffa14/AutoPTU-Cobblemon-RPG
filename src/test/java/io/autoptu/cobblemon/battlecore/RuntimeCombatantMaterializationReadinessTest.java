@@ -13,6 +13,7 @@ import static io.autoptu.cobblemon.battlecore.RuntimeCombatantMaterializationRea
 import static io.autoptu.cobblemon.battlecore.RuntimeCombatantMaterializationReadiness.State.READY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RuntimeCombatantMaterializationReadinessTest {
     @Test
@@ -22,15 +23,23 @@ class RuntimeCombatantMaterializationReadinessTest {
 
         assertEquals(AUTOPTU_JAVA_RESOLVED, RuntimeCombatantMaterializationReadiness.entry(RESOLVED_MOVEMENT_PROFILE).authority());
         assertEquals(BLOCKED, RuntimeCombatantMaterializationReadiness.entry(RESOLVED_MOVEMENT_PROFILE).state());
-        assertEquals(BLOCKED, RuntimeCombatantMaterializationReadiness.entry(ACTION_BUDGET_INITIALIZATION).state());
+
+        assertEquals(AUTOPTU_JAVA_RESOLVED, RuntimeCombatantMaterializationReadiness.entry(ACTION_BUDGET_INITIALIZATION).authority());
+        assertEquals(READY, RuntimeCombatantMaterializationReadiness.entry(ACTION_BUDGET_INITIALIZATION).state());
+        assertTrue(RuntimeCombatantMaterializationReadiness.entry(ACTION_BUDGET_INITIALIZATION).evidence().contains("ActionBudget()"));
+        assertTrue(RuntimeCombatantMaterializationReadiness.entry(ACTION_BUDGET_INITIALIZATION).evidence().contains("adapter supplies no trusted action availability"));
+
         assertEquals(BLOCKED, RuntimeCombatantMaterializationReadiness.entry(DYNAMIC_ACCURACY_EVASION_FLAGS).state());
         assertEquals(BLOCKED, RuntimeCombatantMaterializationReadiness.entry(RESOLVED_DAMAGE_MODIFIERS).state());
     }
 
     @Test
-    void runtimeMaterializationFailsClosedUntilEveryCoreOwnedInputIsResolved() {
+    void runtimeMaterializationFailsClosedUntilEveryRemainingCoreOwnedInputIsResolved() {
         assertEquals(RuntimeCombatantMaterializationReadiness.Requirement.values().length,
                 RuntimeCombatantMaterializationReadiness.entries().size());
+        assertEquals(3, RuntimeCombatantMaterializationReadiness.entries().values().stream()
+                .filter(entry -> entry.state() == BLOCKED)
+                .count());
         assertFalse(RuntimeCombatantMaterializationReadiness.canMaterializeRuntimeCombatant());
     }
 }
