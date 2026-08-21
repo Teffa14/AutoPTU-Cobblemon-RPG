@@ -12,6 +12,7 @@ public record CanonicalPlayerState(
         Set<String> availablePokemonCapabilities,
         Set<String> trainerFeatures,
         int actionPoints,
+        int initiativeModifier,
         long revision
 ) {
     public CanonicalPlayerState(
@@ -21,7 +22,7 @@ public record CanonicalPlayerState(
             Set<String> availablePokemonCapabilities,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, Set.of(), 0, revision);
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, Set.of(), 0, 0, revision);
     }
 
     public CanonicalPlayerState(
@@ -32,7 +33,20 @@ public record CanonicalPlayerState(
             Set<String> trainerFeatures,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, 0, revision);
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, 0, 0, revision);
+    }
+
+    /** Backwards-compatible battle authority constructor using the Python default initiative modifier. */
+    public CanonicalPlayerState(
+            String playerId,
+            Set<String> trainerClasses,
+            Map<String, Integer> skillRanks,
+            Set<String> availablePokemonCapabilities,
+            Set<String> trainerFeatures,
+            int actionPoints,
+            long revision
+    ) {
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, actionPoints, 0, revision);
     }
 
     public CanonicalPlayerState {
