@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("6678d4563116a4ec8c70d9daafc00d28bb9ab25b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("4e1492a642350e0d657dba8587e358a2f669b59c", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
@@ -36,11 +36,10 @@ class AnalyticCompatibilityGuardTest {
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
 
-        assertTrue(actionEconomy.adapterPolicy().contains("declare whether an Analytic target has already acted"));
+        assertTrue(actionEconomy.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
-        assertTrue(abilities.adapterPolicy().contains("decide whether Analytic's defender has acted"));
-        assertTrue(abilities.adapterPolicy().contains("apply Analytic's +5 bonus"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
         assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
     }

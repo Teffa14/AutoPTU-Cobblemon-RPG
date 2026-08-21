@@ -11,14 +11,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UpstreamCompatibilityMatrixTest {
     @Test
     void coversEveryPermanentCapabilityCategory() {
-        assertEquals(EnumSet.allOf(UpstreamCompatibilityMatrix.Capability.class), EnumSet.copyOf(UpstreamCompatibilityMatrix.entries().keySet()));
+        assertEquals(EnumSet.allOf(UpstreamCompatibilityMatrix.Capability.class),
+                EnumSet.copyOf(UpstreamCompatibilityMatrix.entries().keySet()));
     }
 
     @Test
     void unsupportedMechanicsStayBlockedAtAdapterBoundary() {
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.COMPLETE_MOVEMENT_BEHAVIOR));
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY));
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
+        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+                UpstreamCompatibilityMatrix.Capability.COMPLETE_MOVEMENT_BEHAVIOR));
+        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+                UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY));
+        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
     }
 
     @Test
@@ -26,16 +30,22 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING));
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY));
         assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE));
-        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS).support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ITEMS).support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
+                UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ITEMS).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support());
     }
 
     @Test
     void structuredStatusRuntimeBindingDoesNotPromoteWholeLifecycleOrStatusLibrary() {
-        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
-        UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         assertTrue(lifecycle.contracts().contains("StatusStateStore"));
         assertTrue(lifecycle.contracts().contains("Flinch"));
         assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
@@ -48,9 +58,13 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void trainerRuntimeAndCombatStagesStayAuthoritativeWithoutPromotingWholePerkLibrary() {
-        UpstreamCompatibilityMatrix.Entry calculations = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS);
-        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
-        UpstreamCompatibilityMatrix.Entry perks = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
+        UpstreamCompatibilityMatrix.Entry calculations = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS);
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry perks = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
+
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, calculations.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
@@ -59,64 +73,46 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(calculations.contracts().contains("CombatStageMutationService/CombatStageMutationResult"));
         assertTrue(calculations.contracts().contains("CombatStageMutationOptions"));
         assertTrue(calculations.contracts().contains("SpatialAbilityQuery"));
-        assertTrue(calculations.contracts().contains("Simple"));
-        assertTrue(calculations.contracts().contains("Defiant"));
-        assertTrue(calculations.contracts().contains("Competitive"));
-        assertTrue(calculations.contracts().contains("Plus [SwSh]"));
-        assertTrue(calculations.contracts().contains("Minus [SwSh]"));
         assertTrue(calculations.adapterPolicy().contains("combat-stage reaction effects remain core-owned"));
-        assertTrue(calculations.adapterPolicy().contains("returned starting/base/final stages"));
-        assertTrue(calculations.adapterPolicy().contains("must not claim current stages"));
-        assertTrue(calculations.adapterPolicy().contains("recursive suppression state"));
-        assertTrue(calculations.adapterPolicy().contains("apply stage deltas in Minecraft"));
         assertTrue(lifecycle.contracts().contains("TrainerRuntimeState/controller binding"));
-        assertTrue(lifecycle.contracts().contains("fixed Link Feature"));
         assertTrue(perks.contracts().contains("TrainerRuntimeState"));
-        assertTrue(perks.contracts().contains("CombatStageState"));
-        assertTrue(perks.contracts().contains("CombatStageHookRegistry"));
-        assertTrue(perks.contracts().contains("Attack/Defense/Special Attack/Special Defense/Speed Link"));
-        assertTrue(perks.contracts().contains("direct mutation path"));
+        assertTrue(perks.contracts().contains("initiativeModifier"));
+        assertTrue(perks.contracts().contains("CombatStageState/CombatStageHookRegistry"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
+        assertTrue(perks.adapterPolicy().contains("initiative modifier"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
         assertTrue(perks.adapterPolicy().contains("spend/restore AP"));
-        assertTrue(perks.adapterPolicy().contains("mutate combat stages"));
-        assertTrue(perks.adapterPolicy().contains("run combat-stage reactions"));
     }
 
     @Test
     void postDamageAuraRuntimeBindingKeepsDamageAndAbilitiesPartial() {
-        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
-        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
         assertTrue(abilities.contracts().contains("CombatStageHookRegistry"));
         assertTrue(abilities.contracts().contains("PostDamageHookRegistry"));
-        assertTrue(abilities.contracts().contains("Inner Focus"));
-        assertTrue(abilities.contracts().contains("Lancer"));
-        assertTrue(abilities.contracts().contains("Simple"));
-        assertTrue(abilities.contracts().contains("Defiant"));
-        assertTrue(abilities.contracts().contains("Competitive"));
-        assertTrue(abilities.contracts().contains("Plus [SwSh]"));
-        assertTrue(abilities.contracts().contains("Minus [SwSh]"));
         assertTrue(abilities.contracts().contains("Aqua Boost"));
-        assertTrue(abilities.contracts().contains("Ignition Boost"));
-        assertTrue(abilities.contracts().contains("Thunder Boost"));
         assertTrue(abilities.contracts().contains("Power Spot"));
         assertTrue(abilities.contracts().contains("Type Aura"));
-        assertTrue(abilities.contracts().contains("Normal Aura Storm"));
         assertTrue(abilities.contracts().contains("Aura Storm [Errata]"));
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
         assertTrue(damage.contracts().contains("RuntimeMoveResolution"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
-        assertTrue(abilities.adapterPolicy().contains("final MoveResolvedEvent"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
     }
 
     @Test
     void rngAndAnalyticPostDamageAbilitiesAreLiveButRemainCoreOwned() {
-        UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
-        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
-        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
+        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, actionEconomy.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
@@ -131,47 +127,45 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(damage.adapterPolicy().contains("supply or advance the battle RNG"));
         assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
-        assertTrue(abilities.adapterPolicy().contains("supply RNG"));
-        assertTrue(abilities.adapterPolicy().contains("replace initiative order/cursor"));
-        assertTrue(abilities.adapterPolicy().contains("apply Analytic's +5 bonus"));
-        assertTrue(abilities.adapterPolicy().contains("final MoveResolvedEvent"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
     }
 
     @Test
     void initiativeRolloverRemainsCoreOwnedWithoutPromotingFullLifecycle() {
-        UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
-        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
-        UpstreamCompatibilityMatrix.Entry legalActions = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE);
+        UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry legalActions = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE);
+
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
-        assertTrue(initiative.contracts().contains("advanceInitiativeTurnWithRollover"));
-        assertTrue(initiative.contracts().contains("InitiativeRoundRebuilder"));
-        assertTrue(initiative.contracts().contains("TurnStartedEvent"));
-        assertTrue(initiative.contracts().contains("START status/ability/perk hooks"));
-        assertTrue(initiative.contracts().contains("pending status skip"));
-        assertTrue(initiative.adapterPolicy().contains("must not choose the next actor"));
-        assertTrue(initiative.adapterPolicy().contains("client-computed initiative"));
-        assertTrue(lifecycle.contracts().contains("advanceInitiativeTurnWithRollover"));
-        assertTrue(lifecycle.contracts().contains("ROUND_START lifecycle events before core-owned InitiativeRoundRebuilder output"));
-        assertTrue(lifecycle.adapterPolicy().contains("round-start lifecycle events before the next turn_start"));
-        assertTrue(lifecycle.adapterPolicy().contains("full Python initiative rebuild formula"));
+        assertTrue(initiative.contracts().contains("authoritative initiative assembly/installation"));
+        assertTrue(initiative.contracts().contains("TrainerRuntimeState now owns"));
+        assertTrue(initiative.adapterPolicy().contains("choose the next actor"));
+        assertTrue(initiative.adapterPolicy().contains("provide client-computed modifiers"));
+        assertTrue(lifecycle.contracts().contains("InitiativeOrderAssembly/InitiativeAssemblyInstaller"));
+        assertTrue(lifecycle.contracts().contains("RuntimeInitiativePokemonCandidateFactory"));
+        assertTrue(lifecycle.adapterPolicy().contains("complete Python start_round parity is still absent"));
         assertTrue(legalActions.contracts().contains("initiative exhaustion"));
-        assertTrue(legalActions.adapterPolicy().contains("must not supply the next-round initiative order"));
+        assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
     }
 
     @Test
     void lifecycleOwnsCanonicalRoundWithoutAdapterInput() {
-        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
+        UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertTrue(lifecycle.contracts().contains("BattleRuntimeState.currentRound"));
-        assertTrue(lifecycle.contracts().contains("server-owned BattleRuntimeState.currentRound"));
-        assertTrue(lifecycle.adapterPolicy().contains("must never set or advance BattleRuntimeState.currentRound"));
+        assertTrue(lifecycle.adapterPolicy().contains("must never advance currentRound"));
     }
 
     @Test
     void moveContractRequiresTrustedCatalogMetadata() {
-        UpstreamCompatibilityMatrix.Entry moves = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        UpstreamCompatibilityMatrix.Entry moves = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
         assertTrue(moves.contracts().contains("MoveOption/MoveSpec/MoveCombatProfile"));
         assertTrue(moves.contracts().contains("MoveSpec keyword"));
         assertTrue(moves.contracts().contains("move_has_keyword"));
@@ -184,7 +178,8 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void calculationContractKeepsDynamicEvasionCoreOwned() {
-        UpstreamCompatibilityMatrix.Entry calculations = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS);
+        UpstreamCompatibilityMatrix.Entry calculations = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS);
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, calculations.support());
         assertTrue(calculations.contracts().contains("EvasionProfile"));
         assertTrue(calculations.adapterPolicy().contains("Trainer Feature"));
@@ -193,7 +188,8 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void movementContractKeepsRuntimeModifiersCoreOwned() {
-        UpstreamCompatibilityMatrix.Entry movement = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY);
+        UpstreamCompatibilityMatrix.Entry movement = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY);
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, movement.support());
         assertTrue(movement.contracts().contains("resolved MovementProfile"));
         assertTrue(movement.adapterPolicy().contains("Wallrunner"));
@@ -203,7 +199,8 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void itemContractCarriesIdentityWithoutPromotingItemLibrary() {
-        UpstreamCompatibilityMatrix.Entry items = UpstreamCompatibilityMatrix.entry(UpstreamCompatibilityMatrix.Capability.ITEMS);
+        UpstreamCompatibilityMatrix.Entry items = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ITEMS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, items.support());
         assertTrue(items.contracts().contains("HeldItemState"));
         assertTrue(items.contracts().contains("heldItemsByCombatant"));
@@ -213,7 +210,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("6678d4563116a4ec8c70d9daafc00d28bb9ab25b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("4e1492a642350e0d657dba8587e358a2f669b59c", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

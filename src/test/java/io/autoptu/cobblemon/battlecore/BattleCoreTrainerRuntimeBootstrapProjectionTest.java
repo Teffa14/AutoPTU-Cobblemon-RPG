@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleCoreTrainerRuntimeBootstrapProjectionTest {
     @Test
-    void freezesCanonicalTrainerFeaturesApAndControllerBindings() {
+    void freezesCanonicalTrainerFeaturesApInitiativeAndControllerBindings() {
         CanonicalPlayerState player = new CanonicalPlayerState(
                 "trainer-1",
                 Set.of("Ace Trainer"),
@@ -23,6 +23,7 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
                 Set.of("Overland"),
                 Set.of("Defense Mastery", "Stat Mastery"),
                 3,
+                -2,
                 9
         );
         BattleAuthoritySnapshot snapshot = new BattleAuthoritySnapshot(
@@ -44,16 +45,19 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
         assertEquals("trainer-1", projection.trainer().trainerId());
         assertEquals(Set.of("Defense Mastery", "Stat Mastery"), projection.trainer().trainerFeatures());
         assertEquals(3, projection.trainer().actionPoints());
+        assertEquals(-2, projection.trainer().initiativeModifier());
         assertEquals(Set.of("pokemon-1", "pokemon-2"), projection.trainer().controlledCombatantIds());
     }
 
     @Test
-    void legacyPlayerStateCarriesNoInventedBattleAp() {
+    void legacyPlayerStateCarriesPythonDefaultsForBattleApAndInitiative() {
         CanonicalPlayerState legacy = new CanonicalPlayerState(
                 "trainer-1", Set.of(), Map.of(), Set.of(), Set.of("Defense Mastery"), 4
         );
         assertEquals(0, legacy.actionPoints());
+        assertEquals(0, legacy.initiativeModifier());
         assertEquals(0, BattleTrainerSnapshot.from(legacy).actionPoints());
+        assertEquals(0, BattleTrainerSnapshot.from(legacy).initiativeModifier());
     }
 
     @Test
@@ -66,7 +70,7 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
     @Test
     void trainerRuntimeProjectionRequiresControlledCombatants() {
         assertThrows(IllegalArgumentException.class, () -> new BattleTrainerRuntimeProjection(
-                "trainer-1", Set.of("Defense Mastery"), 2, Set.of()
+                "trainer-1", Set.of("Defense Mastery"), 2, 1, Set.of()
         ));
     }
 
