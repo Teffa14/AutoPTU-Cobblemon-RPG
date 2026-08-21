@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleRuntimeEnvironmentSeedTest {
     @Test
@@ -23,7 +25,23 @@ class BattleRuntimeEnvironmentSeedTest {
         assertEquals(Set.of("team-1"), seed.tailwindTeams());
         assertEquals(Map.of("mon-1", true), seed.groundedByCombatant());
         assertEquals(Map.of(), seed.mountedPairs());
+        assertFalse(seed.trickRoomOrdering());
+        assertFalse(seed.leagueBattleOrdering());
         assertThrows(UnsupportedOperationException.class, () -> seed.groundedByCombatant().clear());
+    }
+
+    @Test
+    void carriesCanonicalInitiativeOrderingModesWithoutAdapterDerivation() {
+        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1");
+        BattleRuntimeEnvironmentSeed trickRoom = new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(), Map.of("mon-1", true), Map.of(), true, false);
+        BattleRuntimeEnvironmentSeed league = new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(), Map.of("mon-1", true), Map.of(), false, true);
+
+        assertTrue(trickRoom.trickRoomOrdering());
+        assertFalse(trickRoom.leagueBattleOrdering());
+        assertFalse(league.trickRoomOrdering());
+        assertTrue(league.leagueBattleOrdering());
     }
 
     @Test
@@ -38,6 +56,8 @@ class BattleRuntimeEnvironmentSeedTest {
         pairs.clear();
 
         assertEquals(Map.of("rider", "mount"), seed.mountedPairs());
+        assertFalse(seed.trickRoomOrdering());
+        assertFalse(seed.leagueBattleOrdering());
         assertThrows(UnsupportedOperationException.class, () -> seed.mountedPairs().clear());
         assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeEnvironmentSeed(
                 "battle-1", runtime, "", "", Set.of(), Map.of("rider", true, "mount", true),
