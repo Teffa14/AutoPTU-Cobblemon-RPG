@@ -85,6 +85,9 @@ class BattleRuntimeAssemblySeedTest {
                 "currentRound",
                 "initiativeOrder",
                 "initiativeCursor",
+                "initiativeRebuilder",
+                "rolloverStrategy",
+                "lifecycleStrategy",
                 "temporaryEffects",
                 "battleOutcome")) {
             assertFalse(components.contains(forbidden));
