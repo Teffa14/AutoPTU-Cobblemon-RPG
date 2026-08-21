@@ -51,7 +51,7 @@ public record BattleRuntimeFieldEffectSeed(
                     && !(value instanceof Boolean)) {
                 throw new IllegalArgumentException("field-effect payload values must be scalar: " + key);
             }
-            copied.put(key.strip(), value);
+            copied.put(key, value);
         }
         return Collections.unmodifiableMap(copied);
     }
