@@ -78,6 +78,23 @@ class BattlePresentationProjectorTest {
     }
 
     @Test
+    void projectsFieldExpiryFromStableContractOnly() {
+        BattlePresentationCommand command = projector.project(new BattleEventPlaybackEnvelope(
+                6,
+                "field_effect",
+                "field_effect|room|wonder room|room_ends|4",
+                Map.of("fieldKind", "terrain", "effect", "forged", "round", "999")
+        )).getFirst();
+
+        assertEquals(BattlePresentationCommand.Kind.FIELD_EFFECT_CUE, command.kind());
+        assertEquals("room", command.subjectId());
+        assertEquals("room", command.data().get("fieldKind"));
+        assertEquals("wonder room", command.data().get("effectName"));
+        assertEquals("room_ends", command.data().get("effect"));
+        assertEquals("4", command.data().get("round"));
+    }
+
+    @Test
     void batchPreservesAuthoritativeEventOrderAndIntraEventCommandOrder() {
         BattlePlaybackBatch input = new BattlePlaybackBatch("reservation-19", List.of(
                 new BattleEventPlaybackEnvelope(
@@ -109,6 +126,9 @@ class BattlePresentationProjectorTest {
         )));
         assertThrows(IllegalArgumentException.class, () -> projector.project(new BattleEventPlaybackEnvelope(
                 0, "move_resolved", "move_resolved|runtime|alpha|beta|tackle|false|true|4|30", Map.of()
+        )));
+        assertThrows(IllegalArgumentException.class, () -> projector.project(new BattleEventPlaybackEnvelope(
+                0, "field_effect", "field_effect|room|wonder room|zone_ends|4", Map.of()
         )));
     }
 }

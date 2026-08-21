@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "fb91a65dc3bd92f49c7020ec856406df78bfc70a";
+    public static final String AUTOPTU_JAVA_SHA = "c78ebef5203b2ab67b59ae58b3729fb2ab282cef";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -43,8 +43,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "The default production rollover call advances the round, derives and installs the next mixed Trainer/Pokemon initiative order only from BattleRuntimeState, applies initiative temporary-effect cleanup, resets the initiative cursor and opens the next actor turn without an adapter-supplied rebuilder. BattleRuntimeState now owns BattleDelayedHitState, including the delayed queue and single Python-compatible battle RNG stream. DelayedHitLifecycleExecutor resolves due COMBATANT-target entries in insertion order through the ordinary authoritative move-resolution path, while adapters receive only a read-only delayed-hit snapshot. The upstream round-order parity contract freezes delayed-hit placement after terrain/zones/rooms and before Follow Me/Foresight expiry.",
-                        "Complete lifecycle remains broader than the delayed-hit executor. PR #119 intentionally does not register delayed-hit execution into ROUND_START, and due TILE/area delayed hits still fail before queue mutation pending dedicated target-resolution parity. Broader Python terrain, zone, room, Trainer AP/temporary-AP, send-out Feature and other round-start behavior remains core-owned follow-up work. Minecraft must not own the delayed queue, mutable RNG, due-entry selection, execution ordering or resource consumption."));
+                        "The default production rollover call advances the round, derives and installs the next mixed Trainer/Pokemon initiative order only from BattleRuntimeState, applies initiative temporary-effect cleanup, resets the initiative cursor and opens the next actor turn without an adapter-supplied rebuilder. BattleRuntimeState owns BattleDelayedHitState, including the delayed queue and single Python-compatible battle RNG stream. DelayedHitLifecycleExecutor resolves due COMBATANT-target entries in insertion order through the ordinary authoritative move-resolution path. FieldRoundProgression now ports the Python ROUND_START terrain -> zones -> rooms duration step, emits FieldEffectEndedEvent semantic events, and returns explicit Wonder Room status-cleanup requests.",
+                        "Complete lifecycle remains broader than these bounded services. Delayed-hit execution is still not registered into the default ROUND_START flow, due TILE/area delayed hits remain unsupported, and field progression is a dedicated authoritative resolver rather than proof of the complete Python start_round sequence. Trainer AP/temporary-AP, send-out Features, Air Lock, Arena Trap, Intimidate, Impostor and other round-start behavior remain core-owned follow-up work. Minecraft must not advance field durations, remove Wonder Room statuses, own the delayed queue or mutable RNG, or choose lifecycle ordering."));
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
@@ -53,8 +53,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleEnvironmentState provides a server-owned runtime seam for weather, PTU terrain identity, Tailwind teams, per-combatant grounded state, mounted rider->mount relationships, Trick Room ordering and League battle ordering; initiative consumes those values authoritatively. The delayed-hit round-order contract also records the Python ordering position relative to terrain, zones and rooms.",
-                        "This is environment/battle-mode state ownership plus ordering evidence, not complete terrain/weather/hazard/zone/reaction support. Minecraft block observations, entity passenger state, live pose and UI/controller flags must not be converted directly into PTU terrain, weather, Tailwind, grounded, mounted, Trick Room, League, zone or hazard semantics by the adapter."));
+                        "BattleEnvironmentState provides server-owned weather, PTU terrain identity, Tailwind teams, grounded state, mounted relationships and initiative ordering modes. FieldEffectEntry, FieldEffectKind, FieldRoundProgression and FieldRoundProgressionResult now provide Python-parity duration progression for terrain, zones and rooms, with FieldEffectEndedEvent semantic playback and FieldStatusCleanupRequest for Wonder Room cleanup.",
+                        "This remains partial field-system support. The new progression handles duration-bearing terrain/zone/room entries and expiry semantics, not full terrain effects, weather progression, hazards, zones, reactions, field creation, forced movement or complete round integration. Minecraft block observations, entity state and presentation metadata must not advance durations, classify PTU field effects, perform Wonder Room cleanup or invent missing field mechanics."));
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
@@ -68,8 +68,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
-                        "Adapter-neutral entity-bound playback, PresentationEntityGateway and a reservation-scoped live-handle registry/backend boundary exist in the integration project.",
-                        "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking despite the headless registry infrastructure."));
+                        "Adapter-neutral entity-bound playback, PresentationEntityGateway and a reservation-scoped live-handle registry/backend boundary exist in the integration project. The semantic playback boundary can now carry Java's global field_effect expiry event without binding it to a combatant entity.",
+                        "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking despite the headless presentation infrastructure."));
         return Map.copyOf(result);
     }
 }

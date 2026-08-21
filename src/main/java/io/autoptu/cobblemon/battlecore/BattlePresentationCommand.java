@@ -24,6 +24,7 @@ public record BattlePresentationCommand(
         STATUS_SKIP_CUE,
         TRAINER_FEATURE_CUE,
         RULE_EFFECT_CUE,
+        FIELD_EFFECT_CUE,
         PHASE_CUE,
         TURN_START_CUE,
         TURN_END_CUE

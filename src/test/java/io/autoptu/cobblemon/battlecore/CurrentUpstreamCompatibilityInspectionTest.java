@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("fb91a65dc3bd92f49c7020ec856406df78bfc70a",
+        assertEquals("c78ebef5203b2ab67b59ae58b3729fb2ab282cef",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -57,21 +57,22 @@ class CurrentUpstreamCompatibilityInspectionTest {
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
-        assertTrue(lifecycleContracts.contains("BattleRuntimeState now owns BattleDelayedHitState"));
+        assertTrue(lifecycleContracts.contains("BattleDelayedHitState"));
         assertTrue(lifecycleContracts.contains("Python-compatible battle RNG stream"));
         assertTrue(lifecycleContracts.contains("DelayedHitLifecycleExecutor"));
-        assertTrue(lifecycleContracts.contains("COMBATANT-target"));
-        assertTrue(lifecycleContracts.contains("in insertion order"));
-        assertTrue(lifecycleContracts.contains("read-only delayed-hit snapshot"));
+        assertTrue(lifecycleContracts.contains("FieldRoundProgression"));
+        assertTrue(lifecycleContracts.contains("terrain -> zones -> rooms"));
+        assertTrue(lifecycleContracts.contains("FieldEffectEndedEvent"));
+        assertTrue(lifecycleContracts.contains("Wonder Room"));
 
         String lifecycleLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
-        assertTrue(lifecycleLimitation.contains("does not register delayed-hit execution into ROUND_START"));
+        assertTrue(lifecycleLimitation.contains("Complete lifecycle remains broader"));
+        assertTrue(lifecycleLimitation.contains("Delayed-hit execution is still not registered"));
         assertTrue(lifecycleLimitation.contains("TILE/area delayed hits"));
-        assertTrue(lifecycleLimitation.contains("terrain, zone, room"));
         assertTrue(lifecycleLimitation.contains("Trainer AP/temporary-AP"));
-        assertTrue(lifecycleLimitation.contains("must not own the delayed queue"));
-        assertTrue(lifecycleLimitation.contains("mutable RNG"));
+        assertTrue(lifecycleLimitation.contains("Air Lock"));
+        assertTrue(lifecycleLimitation.contains("must not advance field durations"));
 
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
@@ -91,6 +92,21 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moveLimitation.contains("supply RNG/combat inputs"));
         assertTrue(moveLimitation.contains("consume or refund move frequency/actions"));
 
+        String fieldContracts = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).contracts();
+        assertTrue(fieldContracts.contains("FieldEffectEntry"));
+        assertTrue(fieldContracts.contains("FieldRoundProgression"));
+        assertTrue(fieldContracts.contains("FieldEffectEndedEvent"));
+        assertTrue(fieldContracts.contains("FieldStatusCleanupRequest"));
+
+        String environmentLimitation = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).limitation();
+        assertTrue(environmentLimitation.contains("partial field-system support"));
+        assertTrue(environmentLimitation.contains("not full terrain effects"));
+        assertTrue(environmentLimitation.contains("forced movement"));
+        assertTrue(environmentLimitation.contains("must not advance durations"));
+        assertTrue(environmentLimitation.contains("Wonder Room cleanup"));
+
         String abilityContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
         assertTrue(abilityContracts.contains("delayed-hit combat preparation"));
@@ -104,12 +120,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(trainerContracts.contains("Rider Agility Training"));
         assertTrue(trainerContracts.contains("Hardened Initiative"));
 
-        String environmentLimitation = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).limitation();
-        assertTrue(environmentLimitation.contains("not complete"));
-        assertTrue(environmentLimitation.contains("entity passenger state"));
-        assertTrue(environmentLimitation.contains("Trick Room"));
-        assertTrue(environmentLimitation.contains("League"));
+        String adapterContracts = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).contracts();
+        assertTrue(adapterContracts.contains("field_effect"));
+        assertTrue(adapterContracts.contains("without binding it to a combatant entity"));
 
         String adapterLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).limitation();

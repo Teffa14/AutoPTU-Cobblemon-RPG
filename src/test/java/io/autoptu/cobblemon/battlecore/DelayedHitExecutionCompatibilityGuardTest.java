@@ -23,16 +23,14 @@ class DelayedHitExecutionCompatibilityGuardTest {
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
-        assertTrue(lifecycle.contracts().contains("BattleRuntimeState now owns BattleDelayedHitState"));
+        assertTrue(lifecycle.contracts().contains("BattleDelayedHitState"));
         assertTrue(lifecycle.contracts().contains("Python-compatible battle RNG stream"));
         assertTrue(lifecycle.contracts().contains("DelayedHitLifecycleExecutor"));
         assertTrue(lifecycle.contracts().contains("COMBATANT-target"));
         assertTrue(lifecycle.contracts().contains("in insertion order"));
-        assertTrue(lifecycle.contracts().contains("read-only delayed-hit snapshot"));
-        assertTrue(lifecycle.limitation().contains("does not register delayed-hit execution into ROUND_START"));
+        assertTrue(lifecycle.limitation().contains("Delayed-hit execution is still not registered"));
         assertTrue(lifecycle.limitation().contains("TILE/area delayed hits"));
-        assertTrue(lifecycle.limitation().contains("must not own the delayed queue"));
-        assertTrue(lifecycle.limitation().contains("mutable RNG"));
+        assertTrue(lifecycle.limitation().contains("own the delayed queue or mutable RNG"));
 
         assertTrue(moves.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
         assertTrue(moves.contracts().contains("PythonRandom"));
