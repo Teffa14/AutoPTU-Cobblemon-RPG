@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("7ae49515a2bb22bc5b7a1da0fb1afe38643c243b",
+        assertEquals("3d7adc9ed7c3ca49d847c45f024046f62a5e159c",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -29,15 +29,15 @@ class CurrentUpstreamCompatibilityInspectionTest {
 
         String contracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
-        assertTrue(contracts.contains("InitiativeAdditionalBonusResolution"));
-        assertTrue(contracts.contains("TrainerInitiativeSpeedResolution"));
-        assertTrue(contracts.contains("TrainerInitiativeEntryResolution"));
-        assertTrue(contracts.contains("Tailwind"));
+        assertTrue(contracts.contains("InitiativeOrderAssembly"));
+        assertTrue(contracts.contains("Trick Room"));
+        assertTrue(contracts.contains("League"));
+        assertTrue(contracts.contains("deterministic"));
 
         String limitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
-        assertTrue(limitation.contains("initiative-order rebuild/installation"));
-        assertTrue(limitation.contains("Hardened Initiative"));
+        assertTrue(limitation.contains("must not assemble"));
+        assertTrue(limitation.contains("lifecycle installation"));
         assertFalse(limitation.isBlank());
     }
 }
