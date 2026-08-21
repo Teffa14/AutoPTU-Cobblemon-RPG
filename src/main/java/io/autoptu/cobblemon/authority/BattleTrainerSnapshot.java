@@ -9,6 +9,7 @@ public record BattleTrainerSnapshot(
         Map<String, Integer> skillRanks,
         Set<String> trainerFeatures,
         int actionPoints,
+        int initiativeModifier,
         long revision
 ) {
     public BattleTrainerSnapshot(
@@ -17,7 +18,7 @@ public record BattleTrainerSnapshot(
             Map<String, Integer> skillRanks,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, Set.of(), 0, revision);
+        this(playerId, trainerClasses, skillRanks, Set.of(), 0, 0, revision);
     }
 
     public BattleTrainerSnapshot(
@@ -27,7 +28,19 @@ public record BattleTrainerSnapshot(
             Set<String> trainerFeatures,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, trainerFeatures, 0, revision);
+        this(playerId, trainerClasses, skillRanks, trainerFeatures, 0, 0, revision);
+    }
+
+    /** Backwards-compatible battle snapshot constructor using the Python default initiative modifier. */
+    public BattleTrainerSnapshot(
+            String playerId,
+            Set<String> trainerClasses,
+            Map<String, Integer> skillRanks,
+            Set<String> trainerFeatures,
+            int actionPoints,
+            long revision
+    ) {
+        this(playerId, trainerClasses, skillRanks, trainerFeatures, actionPoints, 0, revision);
     }
 
     public BattleTrainerSnapshot {
@@ -52,6 +65,7 @@ public record BattleTrainerSnapshot(
                 state.skillRanks(),
                 state.trainerFeatures(),
                 state.actionPoints(),
+                state.initiativeModifier(),
                 state.revision());
     }
 }
