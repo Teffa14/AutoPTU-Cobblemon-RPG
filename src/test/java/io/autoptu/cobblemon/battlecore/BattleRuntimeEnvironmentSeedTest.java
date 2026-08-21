@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.battlecore;
 import io.autoptu.cobblemon.authority.CanonicalStatusEntry;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,6 +29,9 @@ class BattleRuntimeEnvironmentSeedTest {
         assertEquals(Map.of(), seed.mountedPairs());
         assertFalse(seed.trickRoomOrdering());
         assertFalse(seed.leagueBattleOrdering());
+        assertNull(seed.terrainEffect());
+        assertEquals(List.of(), seed.zoneEffects());
+        assertEquals(List.of(), seed.roomEffects());
         assertThrows(UnsupportedOperationException.class, () -> seed.groundedByCombatant().clear());
     }
 
@@ -42,6 +47,49 @@ class BattleRuntimeEnvironmentSeedTest {
         assertFalse(trickRoom.leagueBattleOrdering());
         assertFalse(league.trickRoomOrdering());
         assertTrue(league.leagueBattleOrdering());
+    }
+
+    @Test
+    void carriesCanonicalDurationBearingFieldEffectsWithoutMinecraftDerivation() {
+        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1");
+        LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
+        payload.put("source", "move");
+        payload.put("priority", 2);
+        BattleRuntimeFieldEffectSeed terrain = new BattleRuntimeFieldEffectSeed(
+                BattleRuntimeFieldEffectSeed.Kind.TERRAIN, " Electric Terrain ", 3, payload);
+        ArrayList<BattleRuntimeFieldEffectSeed> zones = new ArrayList<>();
+        zones.add(new BattleRuntimeFieldEffectSeed(BattleRuntimeFieldEffectSeed.Kind.ZONE, "Hazard Zone", 2));
+        ArrayList<BattleRuntimeFieldEffectSeed> rooms = new ArrayList<>();
+        rooms.add(new BattleRuntimeFieldEffectSeed(BattleRuntimeFieldEffectSeed.Kind.ROOM, "Wonder Room", 1));
+
+        BattleRuntimeEnvironmentSeed seed = new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "Electric Terrain", Set.of(), Map.of("mon-1", true),
+                Map.of(), false, false, terrain, zones, rooms);
+        payload.clear();
+        zones.clear();
+        rooms.clear();
+
+        assertEquals("Electric Terrain", seed.terrainEffect().name());
+        assertEquals(3, seed.terrainEffect().remainingRounds());
+        assertEquals(Map.of("source", "move", "priority", 2), seed.terrainEffect().payload());
+        assertEquals("Hazard Zone", seed.zoneEffects().getFirst().name());
+        assertEquals("Wonder Room", seed.roomEffects().getFirst().name());
+        assertThrows(UnsupportedOperationException.class, () -> seed.terrainEffect().payload().clear());
+        assertThrows(UnsupportedOperationException.class, () -> seed.zoneEffects().clear());
+        assertThrows(UnsupportedOperationException.class, () -> seed.roomEffects().clear());
+
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(), Map.of("mon-1", true), Map.of(), false, false,
+                new BattleRuntimeFieldEffectSeed(BattleRuntimeFieldEffectSeed.Kind.ROOM, "forged", 1),
+                List.of(), List.of()));
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(), Map.of("mon-1", true), Map.of(), false, false,
+                null,
+                List.of(new BattleRuntimeFieldEffectSeed(BattleRuntimeFieldEffectSeed.Kind.TERRAIN, "forged", 1)),
+                List.of()));
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeFieldEffectSeed(
+                BattleRuntimeFieldEffectSeed.Kind.ZONE, "bad payload", 1,
+                Map.of("minecraftBlock", (Object) List.of("stone"))));
     }
 
     @Test

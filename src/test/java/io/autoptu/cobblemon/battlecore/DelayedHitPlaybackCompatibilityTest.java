@@ -41,7 +41,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedQueueRngAndCombatantMaturityExecution() {
-        assertEquals("c78ebef5203b2ab67b59ae58b3729fb2ab282cef",
+        assertEquals("f4a5232b406fe0c80137e4d1d2f8408771ab4ba0",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
@@ -57,7 +57,7 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(lifecycleContracts.contains("in insertion order"));
         assertTrue(moveContracts.contains("without a second action/frequency spend"));
         assertTrue(limitations.contains("TILE/area delayed targets remain unsupported"));
-        assertTrue(limitations.contains("automatic ROUND_START dispatch has not landed"));
+        assertTrue(limitations.contains("automatic ROUND_START delayed-hit dispatch has not landed"));
     }
 
     @Test

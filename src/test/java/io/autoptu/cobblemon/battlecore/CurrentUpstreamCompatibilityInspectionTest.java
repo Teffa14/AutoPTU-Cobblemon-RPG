@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("c78ebef5203b2ab67b59ae58b3729fb2ab282cef",
+        assertEquals("f4a5232b406fe0c80137e4d1d2f8408771ab4ba0",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -60,8 +60,9 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycleContracts.contains("BattleDelayedHitState"));
         assertTrue(lifecycleContracts.contains("Python-compatible battle RNG stream"));
         assertTrue(lifecycleContracts.contains("DelayedHitLifecycleExecutor"));
-        assertTrue(lifecycleContracts.contains("FieldRoundProgression"));
+        assertTrue(lifecycleContracts.contains("FieldRoundLifecycleHook"));
         assertTrue(lifecycleContracts.contains("terrain -> zones -> rooms"));
+        assertTrue(lifecycleContracts.contains("BattleEnvironmentState"));
         assertTrue(lifecycleContracts.contains("FieldEffectEndedEvent"));
         assertTrue(lifecycleContracts.contains("Wonder Room"));
 
@@ -73,6 +74,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycleLimitation.contains("Trainer AP/temporary-AP"));
         assertTrue(lifecycleLimitation.contains("Air Lock"));
         assertTrue(lifecycleLimitation.contains("must not advance field durations"));
+        assertTrue(lifecycleLimitation.contains("inject lifecycle hooks"));
 
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
@@ -88,23 +90,25 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
         assertTrue(moveLimitation.contains("bounded delayed-hit execution"));
         assertTrue(moveLimitation.contains("TILE/area delayed targets remain unsupported"));
-        assertTrue(moveLimitation.contains("automatic ROUND_START dispatch has not landed"));
+        assertTrue(moveLimitation.contains("automatic ROUND_START delayed-hit dispatch has not landed"));
         assertTrue(moveLimitation.contains("supply RNG/combat inputs"));
         assertTrue(moveLimitation.contains("consume or refund move frequency/actions"));
 
         String fieldContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).contracts();
         assertTrue(fieldContracts.contains("FieldEffectEntry"));
+        assertTrue(fieldContracts.contains("FieldRoundLifecycleHook"));
         assertTrue(fieldContracts.contains("FieldRoundProgression"));
         assertTrue(fieldContracts.contains("FieldEffectEndedEvent"));
         assertTrue(fieldContracts.contains("FieldStatusCleanupRequest"));
+        assertTrue(fieldContracts.contains("authoritative environment"));
 
         String environmentLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).limitation();
         assertTrue(environmentLimitation.contains("partial field-system support"));
-        assertTrue(environmentLimitation.contains("not full terrain effects"));
+        assertTrue(environmentLimitation.contains("full terrain effects"));
         assertTrue(environmentLimitation.contains("forced movement"));
-        assertTrue(environmentLimitation.contains("must not advance durations"));
+        assertTrue(environmentLimitation.contains("must not create PTU field entries"));
         assertTrue(environmentLimitation.contains("Wonder Room cleanup"));
 
         String abilityContracts = CurrentUpstreamCompatibilityInspection.evidence(
@@ -124,6 +128,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).contracts();
         assertTrue(adapterContracts.contains("field_effect"));
         assertTrue(adapterContracts.contains("without binding it to a combatant entity"));
+        assertTrue(adapterContracts.contains("runtime environment seed"));
 
         String adapterLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).limitation();

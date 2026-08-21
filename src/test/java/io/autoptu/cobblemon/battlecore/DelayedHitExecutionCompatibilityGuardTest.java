@@ -38,7 +38,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("damage-history"));
         assertTrue(moves.contracts().contains("MoveResolvedEvent"));
         assertTrue(moves.contracts().contains("without a second action/frequency spend"));
-        assertTrue(moves.limitation().contains("automatic ROUND_START dispatch has not landed"));
+        assertTrue(moves.limitation().contains("automatic ROUND_START delayed-hit dispatch has not landed"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
     }
