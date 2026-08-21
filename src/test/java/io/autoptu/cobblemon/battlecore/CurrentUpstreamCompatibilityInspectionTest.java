@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("3e26f9d856da02a23403164f49bb46ea296ecd99",
+        assertEquals("7ae49515a2bb22bc5b7a1da0fb1afe38643c243b",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -31,13 +31,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
         assertTrue(contracts.contains("InitiativeAdditionalBonusResolution"));
         assertTrue(contracts.contains("TrainerInitiativeSpeedResolution"));
-        assertTrue(contracts.contains("fastest controlled-Pokemon"));
+        assertTrue(contracts.contains("TrainerInitiativeEntryResolution"));
+        assertTrue(contracts.contains("Tailwind"));
 
         String limitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
-        assertTrue(limitation.contains("trainer initiative entry construction"));
+        assertTrue(limitation.contains("initiative-order rebuild/installation"));
         assertTrue(limitation.contains("Hardened Initiative"));
-        assertTrue(limitation.contains("final complete initiative-order rebuild"));
         assertFalse(limitation.isBlank());
     }
 }

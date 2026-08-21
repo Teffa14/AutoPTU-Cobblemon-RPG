@@ -13,7 +13,7 @@ public record EntityBoundBattleWorldRelocation(
         String presentationEntityId,
         WorldBlockCoordinate origin,
         WorldBlockCoordinate destination
-) {
+) implements EntityBoundPresentationOutput {
     public EntityBoundBattleWorldRelocation {
         if (sequence < 0) throw new IllegalArgumentException("sequence cannot be negative");
         if (ordinal < 0) throw new IllegalArgumentException("ordinal cannot be negative");

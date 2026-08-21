@@ -11,7 +11,7 @@ public record EntityBoundMoveAnimation(
         BattlePresentationCommand command,
         String attackerPresentationEntityId,
         String targetPresentationEntityId
-) {
+) implements EntityBoundPresentationOutput {
     public EntityBoundMoveAnimation {
         if (command == null) throw new IllegalArgumentException("command is required");
         if (command.kind() != BattlePresentationCommand.Kind.MOVE_ANIMATION) {
@@ -21,6 +21,16 @@ public record EntityBoundMoveAnimation(
         targetPresentationEntityId = requireId(targetPresentationEntityId, "targetPresentationEntityId");
         requireId(command.data().get("targetId"), "targetId");
         requireId(command.data().get("moveId"), "moveId");
+    }
+
+    @Override
+    public long sequence() {
+        return command.sequence();
+    }
+
+    @Override
+    public int ordinal() {
+        return command.ordinal();
     }
 
     public String attackerCombatantId() {
