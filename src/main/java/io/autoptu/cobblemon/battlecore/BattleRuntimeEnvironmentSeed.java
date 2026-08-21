@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.battlecore;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -10,9 +11,9 @@ import java.util.Set;
  * Reservation-scoped seed for server-owned battle environment and spatial relationship state.
  *
  * Weather, PTU terrain identity, Tailwind team state, grounded state, mounted rider->mount
- * relationships and initiative ordering modes must already be resolved by trusted server/domain
- * code before this boundary. Minecraft world observations, entity pose/passenger state and client
- * payloads are not accepted as PTU semantics.
+ * relationships, initiative ordering modes and duration-bearing PTU field effects must already be
+ * resolved by trusted server/domain code before this boundary. Minecraft world observations,
+ * entity pose/passenger state and client payloads are not accepted as PTU semantics.
  */
 public record BattleRuntimeEnvironmentSeed(
         String reservationId,
@@ -23,7 +24,10 @@ public record BattleRuntimeEnvironmentSeed(
         Map<String, Boolean> groundedByCombatant,
         Map<String, String> mountedPairs,
         boolean trickRoomOrdering,
-        boolean leagueBattleOrdering
+        boolean leagueBattleOrdering,
+        BattleRuntimeFieldEffectSeed terrainEffect,
+        List<BattleRuntimeFieldEffectSeed> zoneEffects,
+        List<BattleRuntimeFieldEffectSeed> roomEffects
 ) {
     /** Compatibility constructor for callers without mounted relationship or initiative-order state. */
     public BattleRuntimeEnvironmentSeed(
@@ -35,7 +39,7 @@ public record BattleRuntimeEnvironmentSeed(
             Map<String, Boolean> groundedByCombatant
     ) {
         this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams,
-                groundedByCombatant, Map.of(), false, false);
+                groundedByCombatant, Map.of(), false, false, null, List.of(), List.of());
     }
 
     /** Compatibility constructor for callers without explicit initiative-order state. */
@@ -49,7 +53,24 @@ public record BattleRuntimeEnvironmentSeed(
             Map<String, String> mountedPairs
     ) {
         this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams,
-                groundedByCombatant, mountedPairs, false, false);
+                groundedByCombatant, mountedPairs, false, false, null, List.of(), List.of());
+    }
+
+    /** Compatibility constructor for callers that predate duration-bearing field state. */
+    public BattleRuntimeEnvironmentSeed(
+            String reservationId,
+            BattleRuntimePreparationEnvelope runtimePreparation,
+            String weather,
+            String terrainName,
+            Set<String> tailwindTeams,
+            Map<String, Boolean> groundedByCombatant,
+            Map<String, String> mountedPairs,
+            boolean trickRoomOrdering,
+            boolean leagueBattleOrdering
+    ) {
+        this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams,
+                groundedByCombatant, mountedPairs, trickRoomOrdering, leagueBattleOrdering,
+                null, List.of(), List.of());
     }
 
     public BattleRuntimeEnvironmentSeed {
@@ -79,6 +100,9 @@ public record BattleRuntimeEnvironmentSeed(
         }
 
         mountedPairs = copyMountedPairs(mountedPairs, roster);
+        validateFieldKind(terrainEffect, BattleRuntimeFieldEffectSeed.Kind.TERRAIN, "terrainEffect");
+        zoneEffects = copyFieldEffects(zoneEffects, BattleRuntimeFieldEffectSeed.Kind.ZONE, "zoneEffects");
+        roomEffects = copyFieldEffects(roomEffects, BattleRuntimeFieldEffectSeed.Kind.ROOM, "roomEffects");
     }
 
     private static String normalizeOptional(String value) {
@@ -143,6 +167,28 @@ public record BattleRuntimeEnvironmentSeed(
             }
         }
         return Map.copyOf(copy);
+    }
+
+    private static List<BattleRuntimeFieldEffectSeed> copyFieldEffects(
+            List<BattleRuntimeFieldEffectSeed> source,
+            BattleRuntimeFieldEffectSeed.Kind expectedKind,
+            String label
+    ) {
+        if (source == null || source.isEmpty()) return List.of();
+        for (BattleRuntimeFieldEffectSeed effect : source) {
+            validateFieldKind(Objects.requireNonNull(effect, label + " entry"), expectedKind, label);
+        }
+        return List.copyOf(source);
+    }
+
+    private static void validateFieldKind(
+            BattleRuntimeFieldEffectSeed effect,
+            BattleRuntimeFieldEffectSeed.Kind expectedKind,
+            String label
+    ) {
+        if (effect != null && effect.kind() != expectedKind) {
+            throw new IllegalArgumentException(label + " must contain only " + expectedKind + " effects");
+        }
     }
 
     private static String normalizeRequired(String value, String label) {
