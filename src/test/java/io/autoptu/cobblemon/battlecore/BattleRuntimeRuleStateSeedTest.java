@@ -57,17 +57,23 @@ class BattleRuntimeRuleStateSeedTest {
     }
 
     @Test
-    void compatibilityEntryKeepsRuleExecutionCoreOwned() {
+    void compatibilityEntryKeepsRuleAndEnvironmentExecutionCoreOwned() {
         IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.RUNTIME_RULE_STATE_SEED);
 
         assertEquals(Set.of(
                         UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
                         UpstreamCompatibilityMatrix.Capability.ABILITIES,
-                        UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE),
+                        UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
+                        UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
+                        UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE),
                 requirement.capabilities());
         assertFalse(requirement.hasBlockingDependency());
         assertTrue(requirement.boundedScope().contains("current injury"));
+        assertTrue(requirement.boundedScope().contains("weather"));
+        assertTrue(requirement.boundedScope().contains("Tailwind"));
+        assertTrue(requirement.boundedScope().contains("grounded"));
+        assertTrue(requirement.boundedScope().contains("mounted"));
         assertTrue(requirement.boundedScope().contains("battle round"));
         assertTrue(requirement.boundedScope().contains("Aura Break"));
         assertTrue(requirement.boundedScope().contains("AutoPTU-Java owns"));
