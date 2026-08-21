@@ -40,12 +40,14 @@ class DelayedHitPlaybackCompatibilityTest {
     }
 
     @Test
-    void currentUpstreamOwnsDelayedQueueRngCombatantMaturityAndTargetBinding() {
-        assertEquals("a2931ccc3dd37119a94445f44fb833c755d311c1",
+    void currentUpstreamOwnsRoundStartDelayedMaturityQueueRngResourcesAndTargetBinding() {
+        assertEquals("bffc16b3642738757e3c8eb09fbd9a4921e9beba",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
+        String lifecycleLimitations = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         String limitations = CurrentUpstreamCompatibilityInspection.evidence(
@@ -53,15 +55,24 @@ class DelayedHitPlaybackCompatibilityTest {
 
         assertTrue(lifecycleContracts.contains("BattleDelayedHitState"));
         assertTrue(lifecycleContracts.contains("Python-compatible battle RNG stream"));
-        assertTrue(lifecycleContracts.contains("DelayedHitLifecycleExecutor"));
-        assertTrue(lifecycleContracts.contains("in insertion order"));
+        assertTrue(lifecycleContracts.contains("FieldRoundLifecycleHook at ROUND_START order 10"));
+        assertTrue(lifecycleContracts.contains("DelayedHitRoundLifecycleHook at order 20"));
+        assertTrue(lifecycleContracts.contains("terrain -> zones -> rooms"));
+        assertTrue(lifecycleContracts.contains("MoveResolvedEvent"));
+        assertTrue(lifecycleContracts.contains("originating action/frequency spend unchanged"));
+        assertTrue(lifecycleContracts.contains("damage-history rotation"));
+        assertTrue(lifecycleLimitations.contains("TILE/area delayed hits remain unsupported"));
+        assertTrue(lifecycleLimitations.contains("must not"));
+        assertTrue(lifecycleLimitations.contains("mature delayed hits"));
+
         assertTrue(moveContracts.contains("targetId remains COMBATANT targeting"));
         assertTrue(moveContracts.contains("aim anchor"));
         assertTrue(moveContracts.contains("position-only delayed entry resolves as TILE"));
+        assertTrue(moveContracts.contains("DelayedHitRoundLifecycleHook automatically during ROUND_START"));
         assertTrue(moveContracts.contains("without a second action/frequency spend"));
         assertTrue(limitations.contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(limitations.contains("automatic ROUND_START delayed-hit dispatch has not landed on main"));
         assertTrue(limitations.contains("rewrite target mode because a target position exists"));
+        assertTrue(limitations.contains("consume or refund move frequency/actions"));
     }
 
     @Test
