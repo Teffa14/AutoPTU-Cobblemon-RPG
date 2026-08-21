@@ -11,11 +11,12 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleCoreTrainerRuntimeBootstrapProjectionTest {
     @Test
-    void freezesCanonicalTrainerFeaturesSkillsApInitiativeAndControllerBindings() {
+    void freezesCanonicalTrainerFeaturesSkillsApAndCompleteInitiativeProfile() {
         CanonicalPlayerState player = new CanonicalPlayerState(
                 "trainer-1",
                 Set.of("Ace Trainer"),
@@ -24,22 +25,20 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
                 Set.of("Defense Mastery", "Stat Mastery", "Press On!"),
                 3,
                 -2,
+                7,
+                "trainer-team",
                 9
         );
         BattleAuthoritySnapshot snapshot = new BattleAuthoritySnapshot(
                 "reservation-1",
                 "trainer-1",
                 BattleTrainerSnapshot.from(player),
-                List.of(
-                        pokemon("pokemon-1", "trainer-1"),
-                        pokemon("pokemon-2", "trainer-1")
-                ),
+                List.of(pokemon("pokemon-1", "trainer-1"), pokemon("pokemon-2", "trainer-1")),
                 List.of(),
                 42L
         );
 
-        BattleCoreTrainerRuntimeBootstrapProjection projection =
-                BattleCoreTrainerRuntimeBootstrapProjection.from(snapshot);
+        BattleCoreTrainerRuntimeBootstrapProjection projection = BattleCoreTrainerRuntimeBootstrapProjection.from(snapshot);
 
         assertEquals("reservation-1", projection.reservationId());
         assertEquals("trainer-1", projection.trainer().trainerId());
@@ -47,9 +46,10 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
         assertEquals(Map.of("Command", 4, "Intimidate", 6), projection.trainer().skillRanks());
         assertEquals(3, projection.trainer().actionPoints());
         assertEquals(-2, projection.trainer().initiativeModifier());
+        assertEquals(7, projection.trainer().explicitInitiativeSpeed());
+        assertEquals("trainer-team", projection.trainer().teamId());
         assertEquals(Set.of("pokemon-1", "pokemon-2"), projection.trainer().controlledCombatantIds());
-        assertThrows(UnsupportedOperationException.class,
-                () -> projection.trainer().skillRanks().put("Intimidate", 1));
+        assertThrows(UnsupportedOperationException.class, () -> projection.trainer().skillRanks().put("Intimidate", 1));
     }
 
     @Test
@@ -59,12 +59,27 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
         );
         assertEquals(0, legacy.actionPoints());
         assertEquals(0, legacy.initiativeModifier());
-        assertEquals(0, BattleTrainerSnapshot.from(legacy).actionPoints());
-        assertEquals(0, BattleTrainerSnapshot.from(legacy).initiativeModifier());
+        assertNull(legacy.explicitInitiativeSpeed());
+        assertEquals("", legacy.teamId());
+        BattleTrainerSnapshot snapshot = BattleTrainerSnapshot.from(legacy);
+        assertEquals(0, snapshot.actionPoints());
+        assertEquals(0, snapshot.initiativeModifier());
+        assertNull(snapshot.explicitInitiativeSpeed());
+        assertEquals("", snapshot.teamId());
 
         BattleTrainerRuntimeProjection projection = new BattleTrainerRuntimeProjection(
                 "trainer-1", Set.of("Defense Mastery"), 0, 0, Set.of("pokemon-1"));
         assertEquals(Map.of(), projection.skillRanks());
+        assertNull(projection.explicitInitiativeSpeed());
+        assertEquals("", projection.teamId());
+    }
+
+    @Test
+    void teamIdentityIsNormalizedButNeverDerivedFromMinecraftState() {
+        CanonicalPlayerState player = new CanonicalPlayerState(
+                "trainer-1", Set.of(), Map.of(), Set.of(), Set.of(), 0, 0, null, "  red-team  ", 1
+        );
+        assertEquals("red-team", BattleTrainerSnapshot.from(player).teamId());
     }
 
     @Test
@@ -86,14 +101,6 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
     }
 
     private static BattlePokemonSnapshot pokemon(String pokemonId, String ownerId) {
-        return new BattlePokemonSnapshot(
-                pokemonId,
-                ownerId,
-                "species:test",
-                10,
-                Set.of(),
-                null,
-                1
-        );
+        return new BattlePokemonSnapshot(pokemonId, ownerId, "species:test", 10, Set.of(), null, 1);
     }
 }
