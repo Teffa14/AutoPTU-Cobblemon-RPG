@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("3d7adc9ed7c3ca49d847c45f024046f62a5e159c",
+        assertEquals("e5fa51e0de6dc53c78ba6826e4266e901a4b0313",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -30,14 +30,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String contracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
         assertTrue(contracts.contains("InitiativeOrderAssembly"));
-        assertTrue(contracts.contains("Trick Room"));
-        assertTrue(contracts.contains("League"));
-        assertTrue(contracts.contains("deterministic"));
+        assertTrue(contracts.contains("InitiativeAssemblyInstaller"));
+        assertTrue(contracts.contains("temporary-effect cleanup"));
+        assertTrue(contracts.contains("cursor reset"));
 
         String limitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
         assertTrue(limitation.contains("must not assemble"));
-        assertTrue(limitation.contains("lifecycle installation"));
+        assertTrue(limitation.contains("Trainer initiative slots"));
         assertFalse(limitation.isBlank());
     }
 }
