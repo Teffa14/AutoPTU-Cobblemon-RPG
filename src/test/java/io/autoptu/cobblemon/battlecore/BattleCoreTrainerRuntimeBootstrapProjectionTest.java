@@ -15,13 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleCoreTrainerRuntimeBootstrapProjectionTest {
     @Test
-    void freezesCanonicalTrainerFeaturesApInitiativeAndControllerBindings() {
+    void freezesCanonicalTrainerFeaturesSkillsApInitiativeAndControllerBindings() {
         CanonicalPlayerState player = new CanonicalPlayerState(
                 "trainer-1",
                 Set.of("Ace Trainer"),
-                Map.of("Command", 4),
+                Map.of("Command", 4, "Intimidate", 6),
                 Set.of("Overland"),
-                Set.of("Defense Mastery", "Stat Mastery"),
+                Set.of("Defense Mastery", "Stat Mastery", "Press On!"),
                 3,
                 -2,
                 9
@@ -43,14 +43,17 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
 
         assertEquals("reservation-1", projection.reservationId());
         assertEquals("trainer-1", projection.trainer().trainerId());
-        assertEquals(Set.of("Defense Mastery", "Stat Mastery"), projection.trainer().trainerFeatures());
+        assertEquals(Set.of("Defense Mastery", "Stat Mastery", "Press On!"), projection.trainer().trainerFeatures());
+        assertEquals(Map.of("Command", 4, "Intimidate", 6), projection.trainer().skillRanks());
         assertEquals(3, projection.trainer().actionPoints());
         assertEquals(-2, projection.trainer().initiativeModifier());
         assertEquals(Set.of("pokemon-1", "pokemon-2"), projection.trainer().controlledCombatantIds());
+        assertThrows(UnsupportedOperationException.class,
+                () -> projection.trainer().skillRanks().put("Intimidate", 1));
     }
 
     @Test
-    void legacyPlayerStateCarriesPythonDefaultsForBattleApAndInitiative() {
+    void legacyProjectionCarriesPythonDefaultsForBattleApInitiativeAndSkills() {
         CanonicalPlayerState legacy = new CanonicalPlayerState(
                 "trainer-1", Set.of(), Map.of(), Set.of(), Set.of("Defense Mastery"), 4
         );
@@ -58,6 +61,10 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
         assertEquals(0, legacy.initiativeModifier());
         assertEquals(0, BattleTrainerSnapshot.from(legacy).actionPoints());
         assertEquals(0, BattleTrainerSnapshot.from(legacy).initiativeModifier());
+
+        BattleTrainerRuntimeProjection projection = new BattleTrainerRuntimeProjection(
+                "trainer-1", Set.of("Defense Mastery"), 0, 0, Set.of("pokemon-1"));
+        assertEquals(Map.of(), projection.skillRanks());
     }
 
     @Test
@@ -68,9 +75,13 @@ class BattleCoreTrainerRuntimeBootstrapProjectionTest {
     }
 
     @Test
-    void trainerRuntimeProjectionRequiresControlledCombatants() {
+    void trainerRuntimeProjectionRejectsMissingCombatantsAndDuplicateSkillIdentities() {
         assertThrows(IllegalArgumentException.class, () -> new BattleTrainerRuntimeProjection(
                 "trainer-1", Set.of("Defense Mastery"), 2, 1, Set.of()
+        ));
+        assertThrows(IllegalArgumentException.class, () -> new BattleTrainerRuntimeProjection(
+                "trainer-1", Set.of("Press On!"), 2, 1,
+                Map.of("Intimidate", 6, " intimidate ", 5), Set.of("pokemon-1")
         ));
     }
 
