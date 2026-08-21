@@ -29,7 +29,9 @@ class BattlePresentationEntitySemanticCueTest {
                         "pokemon-1", Map.of("sourceKind", "ability", "sourceName", "Simple", "effect", "stage")),
                 new BattlePresentationCommand(4, 0, BattlePresentationCommand.Kind.TRAINER_FEATURE_CUE,
                         "trainer-1", Map.of("feature", "Defense Mastery")),
-                new BattlePresentationCommand(5, 0, BattlePresentationCommand.Kind.MOVE_ANIMATION,
+                new BattlePresentationCommand(5, 0, BattlePresentationCommand.Kind.FIELD_EFFECT_CUE,
+                        "room", Map.of("effectName", "wonder room", "effect", "room_ends", "round", "3")),
+                new BattlePresentationCommand(6, 0, BattlePresentationCommand.Kind.MOVE_ANIMATION,
                         "pokemon-2", Map.of("moveId", "Tackle"))));
 
         List<EntityBoundBattlePresentationCommand> bound = projector.bindCombatantSemanticCues(batch, bindings);
@@ -72,6 +74,9 @@ class BattlePresentationEntitySemanticCueTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
                         UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).support());
     }
 
     private static BattleAuthoritySnapshot snapshot() {
