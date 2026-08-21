@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("3906892c11129c419e702d87ff71db071c12050f",
+        assertEquals("fe9cfc5e073f444d5ef3182265f5313b4bb48e51",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -23,6 +23,9 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS).support());
@@ -61,15 +64,36 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycleContracts.contains("default production rollover"));
         assertTrue(lifecycleContracts.contains("mixed Trainer/Pokemon initiative order"));
         assertTrue(lifecycleContracts.contains("temporary-effect cleanup"));
-        assertTrue(lifecycleContracts.contains("without an adapter-supplied rebuilder"));
+        assertTrue(lifecycleContracts.contains("DelayedHitExecutionPolicy"));
+        assertTrue(lifecycleContracts.contains("target resolution"));
+        assertTrue(lifecycleContracts.contains("target_id"));
+        assertTrue(lifecycleContracts.contains("target_position"));
+        assertTrue(lifecycleContracts.contains("move-action resolution"));
 
         String lifecycleLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
+        assertTrue(lifecycleLimitation.contains("not yet connected to ROUND_START"));
+        assertTrue(lifecycleLimitation.contains("action-economy"));
+        assertTrue(lifecycleLimitation.contains("move-frequency"));
         assertTrue(lifecycleLimitation.contains("Trainer-specific action-space"));
         assertTrue(lifecycleLimitation.contains("round-start Trainer AP"));
         assertTrue(lifecycleLimitation.contains("broader Python terrain/weather/round effects"));
-        assertTrue(lifecycleLimitation.contains("default authoritative rollover path"));
-        assertTrue(lifecycleLimitation.contains("injecting lifecycle strategy"));
+        assertTrue(lifecycleLimitation.contains("must not inject delayed-hit execution"));
+
+        String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
+        assertTrue(moveContracts.contains("DelayedHitExecutionPolicy"));
+        assertTrue(moveContracts.contains("TARGET_RESOLUTION"));
+        assertTrue(moveContracts.contains("target identity"));
+        assertTrue(moveContracts.contains("target position"));
+        assertTrue(moveContracts.contains("ordinary move-action resolver"));
+
+        String moveLimitation = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
+        assertTrue(moveLimitation.contains("not live delayed-hit execution parity"));
+        assertTrue(moveLimitation.contains("must not execute delayed hits"));
+        assertTrue(moveLimitation.contains("bypass target resolution"));
+        assertTrue(moveLimitation.contains("consume move frequency/actions"));
 
         String trainerContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
