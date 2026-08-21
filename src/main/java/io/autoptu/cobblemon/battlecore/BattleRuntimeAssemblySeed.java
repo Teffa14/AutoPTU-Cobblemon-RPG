@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.battlecore;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -9,9 +10,10 @@ import java.util.Set;
  * This record joins the prepared combatant/move/item/status state, canonical Trainer runtime input,
  * and canonical battle rule/environment seed for exactly one server reservation. It deliberately
  * carries no resolved MovementProfile, dynamic accuracy/evasion flags, resolved damage modifiers,
- * lifecycle clock, initiative order/cursor, initiative rebuilder/strategy, temporary effects, or
- * rule outcomes. Current AutoPTU-Java production rollover selects InitiativeRoundRebuilder.authoritative
- * inside BattleRoundController, so an adapter-side lifecycle strategy has no valid place in this seed.
+ * lifecycle clock, initiative order/cursor, initiative rebuilder/strategy, temporary effects, field
+ * progression/cleanup strategy, or rule outcomes. Current AutoPTU-Java production rollover selects
+ * InitiativeRoundRebuilder.authoritative inside BattleRoundController, while field progression and
+ * Wonder Room cleanup execute inside the authoritative ROUND_START lifecycle.
  *
  * Trainer and combatant identities must also be disjoint before runtime construction. AutoPTU-Java
  * initiative rollover treats both identity families as initiative actors; allowing one stable ID to
@@ -67,6 +69,21 @@ public record BattleRuntimeAssemblySeed(
 
     public BattleRuntimeEnvironmentSeed environmentState() {
         return canonicalState.environmentState();
+    }
+
+    /** Canonical duration-bearing terrain state prepared for AutoPTU-Java materialization. */
+    public BattleRuntimeFieldEffectSeed terrainEffect() {
+        return environmentState().terrainEffect();
+    }
+
+    /** Canonical ordered PTU zone state; lifecycle progression remains AutoPTU-Java-owned. */
+    public List<BattleRuntimeFieldEffectSeed> zoneEffects() {
+        return environmentState().zoneEffects();
+    }
+
+    /** Canonical ordered PTU room state; lifecycle progression remains AutoPTU-Java-owned. */
+    public List<BattleRuntimeFieldEffectSeed> roomEffects() {
+        return environmentState().roomEffects();
     }
 
     public long rngSeed() {
