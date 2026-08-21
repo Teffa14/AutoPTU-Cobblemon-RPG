@@ -62,11 +62,13 @@ class InitiativeRoundRolloverPlaybackCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
-        assertTrue(initiative.contracts().contains("advanceInitiativeTurnWithRollover"));
-        assertTrue(initiative.contracts().contains("core-owned InitiativeRoundRebuilder"));
-        assertTrue(initiative.adapterPolicy().contains("client-computed initiative"));
-        assertTrue(lifecycle.adapterPolicy().contains("round-start lifecycle events before the next turn_start"));
-        assertTrue(lifecycle.adapterPolicy().contains("initiative rebuild invocation/order"));
-        assertTrue(legalActions.adapterPolicy().contains("must not supply the next-round initiative order"));
+        assertTrue(initiative.contracts().contains("authoritative initiative assembly/installation"));
+        assertTrue(initiative.contracts().contains("BattleRoundController"));
+        assertTrue(initiative.adapterPolicy().contains("choose the next actor"));
+        assertTrue(initiative.adapterPolicy().contains("provide client-computed modifiers"));
+        assertTrue(lifecycle.contracts().contains("InitiativeOrderAssembly/InitiativeAssemblyInstaller"));
+        assertTrue(lifecycle.adapterPolicy().contains("Java now owns much more of initiative rebuilding inputs and installation"));
+        assertTrue(legalActions.contracts().contains("initiative exhaustion"));
+        assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
     }
 }
