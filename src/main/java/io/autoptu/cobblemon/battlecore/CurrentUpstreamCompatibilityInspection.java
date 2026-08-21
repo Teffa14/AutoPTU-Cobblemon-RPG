@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "3906892c11129c419e702d87ff71db071c12050f";
+    public static final String AUTOPTU_JAVA_SHA = "fe9cfc5e073f444d5ef3182265f5313b4bb48e51";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -43,8 +43,13 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "The default production rollover call now advances the round, derives and installs the next mixed Trainer/Pokemon initiative order only from BattleRuntimeState, applies initiative temporary-effect cleanup, resets the initiative cursor and opens the next actor turn without an adapter-supplied rebuilder.",
-                        "Complete lifecycle remains broader than canonical initiative rollover. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work. The adapter must consume the default authoritative rollover path rather than injecting lifecycle strategy."));
+                        "The default production rollover call advances the round, derives and installs the next mixed Trainer/Pokemon initiative order only from BattleRuntimeState, applies initiative temporary-effect cleanup, resets the initiative cursor and opens the next actor turn without an adapter-supplied rebuilder. DelayedHitExecutionPolicy now freezes the Python delayed-hit execution call chain: due entries enter target resolution, forward target_id and target_position, and that target resolver re-enters ordinary move-action resolution.",
+                        "Complete lifecycle remains broader than canonical initiative rollover. Delayed-hit execution is contract-frozen but is not yet connected to ROUND_START in Java; action-economy and move-frequency consequences of the re-entry remain separate upstream work. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work. The adapter must consume the default authoritative rollover path and must not inject delayed-hit execution or lifecycle strategy."));
+        result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
+                new Evidence(
+                        UpstreamCompatibilityMatrix.Support.PARTIAL,
+                        "DelayedHitExecutionPolicy freezes that matured delayed hits enter TARGET_RESOLUTION, forward both target identity and target position, and re-enter the ordinary move-action resolver exactly as the Python oracle does.",
+                        "This is an execution call-chain contract, not live delayed-hit execution parity. Minecraft must not execute delayed hits, bypass target resolution, call move execution directly, consume move frequency/actions, or invent target fallback semantics while Java has not wired the contract into ROUND_START."));
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
