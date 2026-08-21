@@ -24,6 +24,7 @@ public record BattleEventPlaybackEnvelope(
             "status_skip",
             "trainer_feature",
             "rule_effect",
+            "field_effect",
             "phase",
             "turn_start",
             "turn_end"
