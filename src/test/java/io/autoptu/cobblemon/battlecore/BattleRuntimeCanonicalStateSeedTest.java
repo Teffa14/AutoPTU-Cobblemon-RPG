@@ -14,50 +14,57 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BattleRuntimeRuleStateSeedTest {
+class BattleRuntimeCanonicalStateSeedTest {
     @Test
-    void bindsPreparedCombatantsToCanonicalCurrentInjuries() {
-        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1");
-        BattleRuntimeInjuryStateSeed injuries = new BattleRuntimeInjuryStateSeed(
-                "battle-1", Set.of("mon-1"), Map.of("mon-1", 2));
+    void combinesCanonicalInjuriesAndEnvironmentForOnePreparedBattle() {
+        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1", 123L);
+        BattleRuntimeRuleStateSeed ruleState = ruleState("battle-1", runtime, 2);
+        BattleRuntimeEnvironmentSeed environment = environment("battle-1", runtime);
 
-        BattleRuntimeRuleStateSeed seed = new BattleRuntimeRuleStateSeed("battle-1", runtime, injuries);
+        BattleRuntimeCanonicalStateSeed seed =
+                new BattleRuntimeCanonicalStateSeed("battle-1", ruleState, environment);
 
         assertEquals("battle-1", seed.reservationId());
-        assertEquals(Set.of("mon-1"), seed.runtimePreparation().combatants().keySet());
-        assertEquals(2, seed.injuryState().currentInjuriesByCombatant().get("mon-1"));
+        assertEquals(runtime, seed.runtimePreparation());
+        assertEquals(2, seed.ruleState().injuryState().currentInjuriesByCombatant().get("mon-1"));
+        assertEquals("Rain", seed.environmentState().weather());
+        assertEquals("Forest", seed.environmentState().terrainName());
+        assertEquals(Set.of("team-1"), seed.environmentState().tailwindTeams());
+        assertEquals(Boolean.TRUE, seed.environmentState().groundedByCombatant().get("mon-1"));
     }
 
     @Test
-    void rejectsCrossReservationOrRosterInjection() {
-        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1");
+    void rejectsCrossReservationOrDifferentPreparedBattleInjection() {
+        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1", 123L);
+        BattleRuntimeRuleStateSeed ruleState = ruleState("battle-1", runtime, 2);
 
-        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeRuleStateSeed(
-                "battle-1", runtime,
-                new BattleRuntimeInjuryStateSeed("battle-2", Set.of("mon-1"), Map.of("mon-1", 2))
-        ));
-        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeRuleStateSeed(
-                "battle-1", runtime,
-                new BattleRuntimeInjuryStateSeed("battle-1", Set.of("other"), Map.of("other", 2))
-        ));
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeCanonicalStateSeed(
+                "battle-1", ruleState, environment("battle-2", runtimePreparation("battle-2", 123L))));
+
+        BattleRuntimePreparationEnvelope altered = runtimePreparation("battle-1", 999L);
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeCanonicalStateSeed(
+                "battle-1", ruleState, environment("battle-1", altered)));
     }
 
     @Test
-    void boundaryCannotSeedLifecycleClockOrAbilityDecisions() {
-        Set<String> componentNames = Arrays.stream(BattleRuntimeRuleStateSeed.class.getRecordComponents())
+    void boundaryCannotSeedLifecycleInitiativeOrDerivedEffects() {
+        Set<String> componentNames = Arrays.stream(BattleRuntimeCanonicalStateSeed.class.getRecordComponents())
                 .map(RecordComponent::getName)
                 .collect(java.util.stream.Collectors.toSet());
 
-        assertEquals(Set.of("reservationId", "runtimePreparation", "injuryState"), componentNames);
+        assertEquals(Set.of("reservationId", "ruleState", "environmentState"), componentNames);
         assertFalse(componentNames.contains("currentRound"));
-        assertFalse(componentNames.contains("auraBreakBlockers"));
-        assertFalse(componentNames.contains("auraStormBonus"));
+        assertFalse(componentNames.contains("initiativeOrder"));
+        assertFalse(componentNames.contains("initiativeCursor"));
+        assertFalse(componentNames.contains("trainerActions"));
         assertFalse(componentNames.contains("injuriesLastRound"));
         assertFalse(componentNames.contains("injuriesPreviousRound"));
+        assertFalse(componentNames.contains("auraBreakBlockers"));
+        assertFalse(componentNames.contains("auraStormBonus"));
     }
 
     @Test
-    void compatibilityEntryKeepsRuleAndEnvironmentExecutionCoreOwned() {
+    void compatibilityScopeKeepsEnvironmentInterpretationAndMutationCoreOwned() {
         IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.RUNTIME_RULE_STATE_SEED);
 
@@ -74,12 +81,31 @@ class BattleRuntimeRuleStateSeedTest {
         assertTrue(requirement.boundedScope().contains("Tailwind"));
         assertTrue(requirement.boundedScope().contains("grounded"));
         assertTrue(requirement.boundedScope().contains("mounted"));
-        assertTrue(requirement.boundedScope().contains("battle round"));
-        assertTrue(requirement.boundedScope().contains("Aura Break"));
         assertTrue(requirement.boundedScope().contains("AutoPTU-Java owns"));
     }
 
-    private static BattleRuntimePreparationEnvelope runtimePreparation(String reservationId) {
+    private static BattleRuntimeRuleStateSeed ruleState(
+            String reservationId, BattleRuntimePreparationEnvelope runtime, int injuries) {
+        return new BattleRuntimeRuleStateSeed(
+                reservationId,
+                runtime,
+                new BattleRuntimeInjuryStateSeed(
+                        reservationId, Set.of("mon-1"), Map.of("mon-1", injuries)));
+    }
+
+    private static BattleRuntimeEnvironmentSeed environment(
+            String reservationId, BattleRuntimePreparationEnvelope runtime) {
+        return new BattleRuntimeEnvironmentSeed(
+                reservationId,
+                runtime,
+                "Rain",
+                "Forest",
+                Set.of("team-1"),
+                Map.of("mon-1", true),
+                Map.of());
+    }
+
+    private static BattleRuntimePreparationEnvelope runtimePreparation(String reservationId, long seed) {
         String id = "mon-1";
         RuntimeCombatantMaterializationInput input = new RuntimeCombatantMaterializationInput(
                 id,
@@ -96,7 +122,8 @@ class BattleRuntimeRuleStateSeedTest {
         );
         AuthoritativeMoveMetadata tackle = new AuthoritativeMoveMetadata(
                 "tackle",
-                new AuthoritativeMoveMetadata.Targeting("single", "melee", 1, 1, null, null, "Melee, 1 Target"),
+                new AuthoritativeMoveMetadata.Targeting(
+                        "single", "melee", 1, 1, null, null, "Melee, 1 Target"),
                 "standard",
                 true,
                 new AuthoritativeMoveMetadata.Combat(2, 5, 20, "physical", "Normal"),
@@ -104,12 +131,13 @@ class BattleRuntimeRuleStateSeedTest {
         );
         return new BattleRuntimePreparationEnvelope(
                 reservationId,
-                123L,
+                seed,
                 Map.of(id, input),
                 Map.of(id, List.of(tackle)),
                 Map.of(id, new BattleCombatantHeldItemProjection(id, "item-1", "Leftovers")),
                 Map.of(id, new BattleCombatantStatusStateProjection(
-                        id, List.of(new CanonicalStatusEntry("burned", Map.of("source", "move:ember"))))),
+                        id, List.of(new CanonicalStatusEntry(
+                                "burned", Map.of("source", "move:ember"))))),
                 Set.of(RuntimeCombatantMaterializationReadiness.Requirement.RESOLVED_MOVEMENT_PROFILE)
         );
     }
