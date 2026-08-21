@@ -13,12 +13,13 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleRuntimeAssemblySeedTest {
     @Test
-    void joinsTrainerAndCanonicalRuntimeStateAroundOnePreparedBattle() {
+    void joinsTrainerCanonicalRuleAndFieldStateAroundOnePreparedBattle() {
         BattleRuntimePreparationEnvelope battle = battle("battle-1", 123L);
         BattleTrainerRuntimePreparationEnvelope trainer = trainer(battle);
         BattleRuntimeCanonicalStateSeed canonical = canonical(battle);
@@ -31,6 +32,16 @@ class BattleRuntimeAssemblySeedTest {
         assertEquals("trainer-1", seed.trainer().trainerId());
         assertEquals(2, seed.ruleState().injuryState().currentInjuriesByCombatant().get("mon-1"));
         assertEquals("Rain", seed.environmentState().weather());
+        assertEquals("Grassy Terrain", seed.terrainEffect().name());
+        assertEquals(2, seed.terrainEffect().remainingRounds());
+        assertEquals(List.of("Mist Zone"), seed.zoneEffects().stream().map(BattleRuntimeFieldEffectSeed::name).toList());
+        assertEquals(List.of("Wonder Room"), seed.roomEffects().stream().map(BattleRuntimeFieldEffectSeed::name).toList());
+        assertSame(canonical.environmentState().terrainEffect(), seed.terrainEffect());
+        assertEquals(canonical.environmentState().zoneEffects(), seed.zoneEffects());
+        assertEquals(canonical.environmentState().roomEffects(), seed.roomEffects());
+        assertThrows(UnsupportedOperationException.class,
+                () -> seed.zoneEffects().add(new BattleRuntimeFieldEffectSeed(
+                        BattleRuntimeFieldEffectSeed.Kind.ZONE, "Forged Zone", 1)));
         assertEquals(EnumSet.of(
                         RuntimeCombatantMaterializationReadiness.Requirement.RESOLVED_MOVEMENT_PROFILE,
                         RuntimeCombatantMaterializationReadiness.Requirement.DYNAMIC_ACCURACY_EVASION_FLAGS,
@@ -88,6 +99,10 @@ class BattleRuntimeAssemblySeedTest {
                 "initiativeRebuilder",
                 "rolloverStrategy",
                 "lifecycleStrategy",
+                "fieldProgression",
+                "fieldLifecycleHook",
+                "fieldStatusCleanup",
+                "wonderRoomCleanup",
                 "temporaryEffects",
                 "battleOutcome")) {
             assertFalse(components.contains(forbidden));
@@ -127,8 +142,31 @@ class BattleRuntimeAssemblySeedTest {
         BattleRuntimeRuleStateSeed rules = new BattleRuntimeRuleStateSeed(
                 battle.reservationId(), battle, injuries);
         BattleRuntimeEnvironmentSeed environment = new BattleRuntimeEnvironmentSeed(
-                battle.reservationId(), battle, "Rain", "Forest", Set.of("team-1"),
-                Map.of("mon-1", true), Map.of());
+                battle.reservationId(),
+                battle,
+                "Rain",
+                "Forest",
+                Set.of("team-1"),
+                Map.of("mon-1", true),
+                Map.of(),
+                false,
+                false,
+                new BattleRuntimeFieldEffectSeed(
+                        BattleRuntimeFieldEffectSeed.Kind.TERRAIN,
+                        "Grassy Terrain",
+                        2,
+                        Map.of("source", "move:grassy_terrain")),
+                List.of(new BattleRuntimeFieldEffectSeed(
+                        BattleRuntimeFieldEffectSeed.Kind.ZONE,
+                        "Mist Zone",
+                        1,
+                        Map.of("source", "move:mist"))),
+                List.of(new BattleRuntimeFieldEffectSeed(
+                        BattleRuntimeFieldEffectSeed.Kind.ROOM,
+                        "Wonder Room",
+                        3,
+                        Map.of("source", "move:wonder_room")))
+        );
         return new BattleRuntimeCanonicalStateSeed(
                 battle.reservationId(), rules, environment);
     }
