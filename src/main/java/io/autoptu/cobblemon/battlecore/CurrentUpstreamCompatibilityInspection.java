@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "4bab1de9abcc28dc1257af8ad7aa4b803dfaa9c3";
+    public static final String AUTOPTU_JAVA_SHA = "becdfc6f7f8130c38d4e0834c49041c94aa0b5de";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -38,18 +38,18 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState supplies canonical Pokemon initiative inputs and RuntimeInitiativeTrainerEntryFactory projects Trainer initiative from TrainerRuntimeState. TrainerRuntimeState owns Feature identities, AP, initiative modifier, skill ranks, explicitInitiativeSpeed, teamId and server-owned action buckets. RuntimeCombatantState receives an ActionBudget whose public no-arg constructor creates canonical empty consumed/extra-action state; BattleRoundController and ActionBudget own later reset, grant and consume mutations. InitiativeAssemblyInstaller accepts canonical Pokemon or Trainer identities, and BattleRoundController now advances mixed Trainer/Pokemon orders, resets the selected Trainer action buckets, opens START and emits turn_start.",
-                        "Minecraft must never supply initial consumed/extra-action claims, actor kind, Trainer action state, resolved Speed, Trainer explicit Speed, Trainer team, Tailwind key or eligibility, controlled-Pokemon Speed lists, InitiativeEntry, sorted initiative, Hardened bonuses, injury counts, Press On! eligibility, Intimidate rank, mounted-pair eligibility, Rider Agility Training doubling, weather/terrain ability outcomes or grounded claims during initiative resolution."));
+                        "BattleRuntimeState now supplies the full initiative assembly inputs from canonical runtime state. RuntimeInitiativeOrderAssembly.fromState derives Pokemon candidates, Trainer entries, Trick Room ordering and League ordering internally. BattleEnvironmentState owns trickRoomOrdering and leagueBattleOrdering alongside weather, terrain, Tailwind, grounded and mounted state. TrainerRuntimeState owns Feature identities, AP, initiative modifier, skill ranks, explicitInitiativeSpeed, teamId and server-owned action buckets. InitiativeAssemblyInstaller and BattleRoundController retain installation, actor selection and turn-start authority.",
+                        "Minecraft must never supply Trick Room or League ordering flags, initial consumed/extra-action claims, actor kind, Trainer action state, resolved Speed, Trainer explicit Speed, Trainer team, Tailwind key or eligibility, InitiativeEntry, participant filters, sorted initiative, Hardened bonuses, mounted-pair eligibility or weather/terrain ability outcomes during initiative resolution."));
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Canonical Trainer initiative slots can now execute alongside Pokemon slots: TrainerRuntimeState owns action buckets, BattleRoundController selects the Trainer actor, resets its actions, opens START and emits turn_start while canonical initiative projection continues to consume runtime-owned round, environment, injury, temporary-effect and Trainer state. RuntimeCombatantState can also begin with Java-owned empty ActionBudget state without importing client availability claims.",
-                        "Complete lifecycle remains broader than executable Trainer initiative slots or canonical empty action-budget initialization. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle, fully autonomous initiative rebuild installation from BattleRuntimeState and broader Python terrain/weather/round effects remain core-owned follow-up work."));
+                        "Canonical Trainer and Pokemon initiative entries can now be assembled from BattleRuntimeState with ordering modes read from BattleEnvironmentState, then installed and executed through the existing authoritative lifecycle seams.",
+                        "Complete lifecycle remains broader than canonical initiative assembly. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work."));
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleEnvironmentState provides a server-owned runtime seam for weather, PTU terrain identity, Tailwind teams, per-combatant grounded state and semantic mounted rider->mount relationships; initiative resolution consumes those values authoritatively.",
-                        "This is environment/spatial relationship state ownership, not complete terrain/weather/hazard/zone/reaction support. Minecraft block observations, entity passenger state and live pose must not be converted directly into PTU terrain, weather, Tailwind, grounded or mounted legality by the adapter."));
+                        "BattleEnvironmentState provides a server-owned runtime seam for weather, PTU terrain identity, Tailwind teams, per-combatant grounded state, mounted rider->mount relationships, Trick Room ordering and League battle ordering; initiative consumes those values authoritatively.",
+                        "This is environment and battle-mode state ownership, not complete terrain/weather/hazard/zone/reaction support. Minecraft block observations, entity passenger state, live pose and UI/controller flags must not be converted directly into PTU terrain, weather, Tailwind, grounded, mounted, Trick Room or League semantics by the adapter."));
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
@@ -58,8 +58,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Feature identities, AP, initiative modifier, skill ranks, explicit initiative Speed, team identity and Trainer action buckets. RuntimeInitiativeTrainerEntryFactory consumes that profile together with authoritative controlled Pokemon and environment state; Rider Agility Training and Hardened Initiative remain server-owned consumers.",
-                        "Only bounded Trainer Feature/skill/initiative consumers and Trainer initiative-slot execution are implemented. Minecraft may transport frozen canonical Trainer identities and inputs but must not grant Features, choose skill ranks, invent Trainer Speed/team, infer mounts from passengers, execute perks, construct Trainer-specific action spaces or calculate Trainer/Rider/Hardened outcomes."));
+                        "TrainerRuntimeState owns Feature identities, AP, initiative modifier, skill ranks, explicit initiative Speed, team identity and Trainer action buckets. Runtime initiative assembly consumes that profile together with authoritative Pokemon and BattleEnvironmentState ordering modes; Rider Agility Training and Hardened Initiative remain server-owned consumers.",
+                        "Only bounded Trainer Feature/skill/initiative consumers and Trainer initiative-slot execution are implemented. Minecraft may transport frozen canonical Trainer identities and inputs but must not grant Features, choose skill ranks, invent Trainer Speed/team, infer mounts from passengers, choose League ordering, execute perks, construct Trainer-specific action spaces or calculate Trainer/Rider/Hardened outcomes."));
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
