@@ -10,6 +10,11 @@ import java.util.Set;
  * and canonical battle rule/environment seed for exactly one server reservation. It deliberately
  * carries no resolved MovementProfile, dynamic accuracy/evasion flags, resolved damage modifiers,
  * lifecycle clock, initiative order/cursor, temporary effects, or rule outcomes.
+ *
+ * Trainer and combatant identities must also be disjoint before runtime construction. Current
+ * AutoPTU-Java initiative rollover treats both identity families as initiative actors; allowing one
+ * stable ID to exist in both families can create a duplicate canonical order and partial cleanup
+ * before the core rejects that duplicate. The integration fails closed before any runtime mutation.
  */
 public record BattleRuntimeAssemblySeed(
         String reservationId,
@@ -29,6 +34,10 @@ public record BattleRuntimeAssemblySeed(
         if (!trainerPreparation.battle().equals(canonicalState.runtimePreparation())) {
             throw new IllegalArgumentException(
                     "runtime assembly must bind one identical prepared battle");
+        }
+        if (trainerPreparation.battle().combatants().containsKey(trainerPreparation.trainer().trainerId())) {
+            throw new IllegalArgumentException(
+                    "trainer identity must not collide with a combatant identity");
         }
     }
 
