@@ -9,10 +9,10 @@ import java.util.Set;
 /**
  * Reservation-scoped seed for server-owned battle environment and spatial relationship state.
  *
- * Weather, PTU terrain identity, Tailwind team state, grounded state and mounted rider->mount
- * relationships must already be resolved by trusted server/domain code before this boundary.
- * Minecraft world observations, entity pose/passenger state and client payloads are not accepted
- * as PTU semantics.
+ * Weather, PTU terrain identity, Tailwind team state, grounded state, mounted rider->mount
+ * relationships and initiative ordering modes must already be resolved by trusted server/domain
+ * code before this boundary. Minecraft world observations, entity pose/passenger state and client
+ * payloads are not accepted as PTU semantics.
  */
 public record BattleRuntimeEnvironmentSeed(
         String reservationId,
@@ -21,9 +21,11 @@ public record BattleRuntimeEnvironmentSeed(
         String terrainName,
         Set<String> tailwindTeams,
         Map<String, Boolean> groundedByCombatant,
-        Map<String, String> mountedPairs
+        Map<String, String> mountedPairs,
+        boolean trickRoomOrdering,
+        boolean leagueBattleOrdering
 ) {
-    /** Compatibility constructor for callers without explicit mounted relationship state. */
+    /** Compatibility constructor for callers without mounted relationship or initiative-order state. */
     public BattleRuntimeEnvironmentSeed(
             String reservationId,
             BattleRuntimePreparationEnvelope runtimePreparation,
@@ -32,7 +34,22 @@ public record BattleRuntimeEnvironmentSeed(
             Set<String> tailwindTeams,
             Map<String, Boolean> groundedByCombatant
     ) {
-        this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams, groundedByCombatant, Map.of());
+        this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams,
+                groundedByCombatant, Map.of(), false, false);
+    }
+
+    /** Compatibility constructor for callers without explicit initiative-order state. */
+    public BattleRuntimeEnvironmentSeed(
+            String reservationId,
+            BattleRuntimePreparationEnvelope runtimePreparation,
+            String weather,
+            String terrainName,
+            Set<String> tailwindTeams,
+            Map<String, Boolean> groundedByCombatant,
+            Map<String, String> mountedPairs
+    ) {
+        this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams,
+                groundedByCombatant, mountedPairs, false, false);
     }
 
     public BattleRuntimeEnvironmentSeed {
