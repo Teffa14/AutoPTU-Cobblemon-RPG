@@ -7,8 +7,9 @@ import java.util.Objects;
 
 /**
  * Executable boundary describing which inputs needed by AutoPTU-Java RuntimeCombatantState
- * are already frozen by this integration project and which still require authoritative
- * upstream resolution. This class must not manufacture PTU defaults for blocked inputs.
+ * are already frozen by this integration project or can be initialized canonically by
+ * AutoPTU-Java itself, and which still require additional authoritative upstream resolution.
+ * This class must not manufacture PTU defaults for blocked inputs.
  */
 public final class RuntimeCombatantMaterializationReadiness {
     public enum Requirement {
@@ -84,11 +85,11 @@ public final class RuntimeCombatantMaterializationReadiness {
                 "BattleCombatantGeometryProjection authoritative PTU footprint size");
         ready(entries, Requirement.BASE_MOVEMENT, Authority.INTEGRATION_FROZEN,
                 "CanonicalBaseMovement values are frozen without runtime modifiers");
+        ready(entries, Requirement.ACTION_BUDGET_INITIALIZATION, Authority.AUTOPTU_JAVA_RESOLVED,
+                "AutoPTU-Java ActionBudget() creates the canonical empty consumed/extra-action state; BattleRoundController and ActionBudget own subsequent resets, grants and consumption, so the adapter supplies no trusted action availability");
 
         blocked(entries, Requirement.RESOLVED_MOVEMENT_PROFILE, Authority.AUTOPTU_JAVA_RESOLVED,
                 "MovementProfile also requires sprint/capability/status/ability/weather/equipment/Trainer Feature resolution; integration must not invent these values");
-        blocked(entries, Requirement.ACTION_BUDGET_INITIALIZATION, Authority.AUTOPTU_JAVA_RESOLVED,
-                "RuntimeCombatantState requires ActionBudget; lifecycle/action-economy initialization must remain authoritative in AutoPTU-Java");
         blocked(entries, Requirement.DYNAMIC_ACCURACY_EVASION_FLAGS, Authority.AUTOPTU_JAVA_RESOLVED,
                 "Sniper, No Guard, Blur, Probability Control and other dynamic evasion/accuracy effects are hook/runtime state, not Minecraft inputs");
         blocked(entries, Requirement.RESOLVED_DAMAGE_MODIFIERS, Authority.AUTOPTU_JAVA_RESOLVED,

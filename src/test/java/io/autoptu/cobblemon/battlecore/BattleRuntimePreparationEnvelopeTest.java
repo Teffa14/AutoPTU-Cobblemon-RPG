@@ -29,7 +29,6 @@ class BattleRuntimePreparationEnvelopeTest {
         assertEquals("move:ember", envelope.statusStateByCombatant().get("mon-1").entries().get(0).payload().get("source"));
         assertEquals(EnumSet.of(
                         RuntimeCombatantMaterializationReadiness.Requirement.RESOLVED_MOVEMENT_PROFILE,
-                        RuntimeCombatantMaterializationReadiness.Requirement.ACTION_BUDGET_INITIALIZATION,
                         RuntimeCombatantMaterializationReadiness.Requirement.DYNAMIC_ACCURACY_EVASION_FLAGS,
                         RuntimeCombatantMaterializationReadiness.Requirement.RESOLVED_DAMAGE_MODIFIERS),
                 EnumSet.copyOf(envelope.unresolvedCoreRequirements()));
