@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.battlecore;
 import io.autoptu.cobblemon.authority.CanonicalStatusEntry;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +22,40 @@ class BattleRuntimeEnvironmentSeedTest {
         assertEquals("Electric Terrain", seed.terrainName());
         assertEquals(Set.of("team-1"), seed.tailwindTeams());
         assertEquals(Map.of("mon-1", true), seed.groundedByCombatant());
+        assertEquals(Map.of(), seed.mountedPairs());
         assertThrows(UnsupportedOperationException.class, () -> seed.groundedByCombatant().clear());
+    }
+
+    @Test
+    void preservesCanonicalMountedPairOrderAndRejectsLiveEntityForgery() {
+        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1", "rider", "mount");
+        LinkedHashMap<String, String> pairs = new LinkedHashMap<>();
+        pairs.put(" rider ", " mount ");
+
+        BattleRuntimeEnvironmentSeed seed = new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(),
+                Map.of("rider", true, "mount", true), pairs);
+        pairs.clear();
+
+        assertEquals(Map.of("rider", "mount"), seed.mountedPairs());
+        assertThrows(UnsupportedOperationException.class, () -> seed.mountedPairs().clear());
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(), Map.of("rider", true, "mount", true),
+                Map.of("rider", "forged-live-entity")));
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(), Map.of("rider", true, "mount", true),
+                Map.of("rider", "rider")));
+    }
+
+    @Test
+    void rejectsOneMountAssignedToMultipleRiders() {
+        BattleRuntimePreparationEnvelope runtime = runtimePreparation("battle-1", "rider-1", "rider-2", "mount");
+        LinkedHashMap<String, String> pairs = new LinkedHashMap<>();
+        pairs.put("rider-1", "mount");
+        pairs.put("rider-2", "mount");
+        assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeEnvironmentSeed(
+                "battle-1", runtime, "", "", Set.of(),
+                Map.of("rider-1", true, "rider-2", true, "mount", true), pairs));
     }
 
     @Test
@@ -43,38 +77,50 @@ class BattleRuntimeEnvironmentSeedTest {
                 "battle-1", runtime, "", "", Set.of(), Map.of()));
     }
 
-    private static BattleRuntimePreparationEnvelope runtimePreparation(String reservationId) {
-        String id = "mon-1";
-        RuntimeCombatantMaterializationInput input = new RuntimeCombatantMaterializationInput(
-                id,
-                new BattleCombatantInitialPlacement(id, new BattleGridCoordinate(2, 3)),
-                new BattleCombatantHealthProjection(id, 42, 50),
-                new BattleCombatantStatProjection(id, 10, 11, 12, 13, 14),
-                new BattleCombatantAccuracyEvasionProjection(id, 1, 2, 3, 4),
-                new BattleCombatantTraitsProjection(id, List.of("Ice"), List.of("Slush Rush")),
-                new BattleCombatantMoveLoadoutProjection(id, List.of("tackle")),
-                new BattleCombatantAffiliationProjection(id, "team-1", true),
-                new BattleCombatantGeometryProjection(id, "Small"),
-                new BattleCombatantBaseMovementProjection(id, 5, 2, 0, 1, 1),
-                Set.of("burned"));
+    private static BattleRuntimePreparationEnvelope runtimePreparation(String reservationId, String... ids) {
+        String[] combatantIds = ids.length == 0 ? new String[]{"mon-1"} : ids;
+        LinkedHashMap<String, RuntimeCombatantMaterializationInput> inputs = new LinkedHashMap<>();
+        LinkedHashMap<String, List<AuthoritativeMoveMetadata>> moveInputs = new LinkedHashMap<>();
+        LinkedHashMap<String, Set<String>> statusNames = new LinkedHashMap<>();
+        LinkedHashMap<String, BattleCombatantStatusStateProjection> statusEntries = new LinkedHashMap<>();
 
-        BattleCoreMaterializationInputProjection materialization =
-                new BattleCoreMaterializationInputProjection(reservationId, 123L, Map.of(id, input));
         AuthoritativeMoveMetadata tackle = new AuthoritativeMoveMetadata(
                 "tackle",
                 new AuthoritativeMoveMetadata.Targeting("single", "melee", 1, 1, null, null, "Melee, 1 Target"),
                 "standard", true,
                 new AuthoritativeMoveMetadata.Combat(2, 5, 20, "physical", "Normal"),
                 "At-Will");
+
+        int x = 1;
+        for (String id : combatantIds) {
+            RuntimeCombatantMaterializationInput input = new RuntimeCombatantMaterializationInput(
+                    id,
+                    new BattleCombatantInitialPlacement(id, new BattleGridCoordinate(x++, 3)),
+                    new BattleCombatantHealthProjection(id, 42, 50),
+                    new BattleCombatantStatProjection(id, 10, 11, 12, 13, 14),
+                    new BattleCombatantAccuracyEvasionProjection(id, 1, 2, 3, 4),
+                    new BattleCombatantTraitsProjection(id, List.of("Ice"), List.of("Slush Rush")),
+                    new BattleCombatantMoveLoadoutProjection(id, List.of("tackle")),
+                    new BattleCombatantAffiliationProjection(id, "team-1", true),
+                    new BattleCombatantGeometryProjection(id, "Small"),
+                    new BattleCombatantBaseMovementProjection(id, 5, 2, 0, 1, 1),
+                    Set.of("burned"));
+            inputs.put(id, input);
+            moveInputs.put(id, List.of(tackle));
+            statusNames.put(id, Set.of("burned"));
+            statusEntries.put(id, new BattleCombatantStatusStateProjection(id, List.of(new CanonicalStatusEntry("burned"))));
+        }
+
+        BattleCoreMaterializationInputProjection materialization =
+                new BattleCoreMaterializationInputProjection(reservationId, 123L, inputs);
         BattleCoreMoveCatalogProjection moves =
-                new BattleCoreMoveCatalogProjection(reservationId, Map.of(id, List.of(tackle)));
+                new BattleCoreMoveCatalogProjection(reservationId, moveInputs);
         BattleCoreHeldItemBootstrapProjection heldItems =
                 new BattleCoreHeldItemBootstrapProjection(reservationId, Map.of());
         BattleCoreBootstrapProjection bootstrap =
-                new BattleCoreBootstrapProjection(reservationId, 123L, Map.of(id, Set.of("burned")));
+                new BattleCoreBootstrapProjection(reservationId, 123L, statusNames);
         BattleCoreStatusStateBootstrapProjection statuses =
-                new BattleCoreStatusStateBootstrapProjection(reservationId, bootstrap,
-                        Map.of(id, new BattleCombatantStatusStateProjection(id, List.of(new CanonicalStatusEntry("burned")))));
+                new BattleCoreStatusStateBootstrapProjection(reservationId, bootstrap, statusEntries);
 
         return BattleRuntimePreparationEnvelope.from(materialization, moves, heldItems, statuses);
     }
