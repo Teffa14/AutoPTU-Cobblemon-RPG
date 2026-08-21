@@ -9,12 +9,14 @@ import java.util.Set;
  * This record joins the prepared combatant/move/item/status state, canonical Trainer runtime input,
  * and canonical battle rule/environment seed for exactly one server reservation. It deliberately
  * carries no resolved MovementProfile, dynamic accuracy/evasion flags, resolved damage modifiers,
- * lifecycle clock, initiative order/cursor, temporary effects, or rule outcomes.
+ * lifecycle clock, initiative order/cursor, initiative rebuilder/strategy, temporary effects, or
+ * rule outcomes. Current AutoPTU-Java production rollover selects InitiativeRoundRebuilder.authoritative
+ * inside BattleRoundController, so an adapter-side lifecycle strategy has no valid place in this seed.
  *
- * Trainer and combatant identities must also be disjoint before runtime construction. Current
- * AutoPTU-Java initiative rollover treats both identity families as initiative actors; allowing one
- * stable ID to exist in both families can create a duplicate canonical order and partial cleanup
- * before the core rejects that duplicate. The integration fails closed before any runtime mutation.
+ * Trainer and combatant identities must also be disjoint before runtime construction. AutoPTU-Java
+ * initiative rollover treats both identity families as initiative actors; allowing one stable ID to
+ * exist in both families can create a duplicate canonical order and partial cleanup before the core
+ * rejects that duplicate. The integration fails closed before any runtime mutation.
  */
 public record BattleRuntimeAssemblySeed(
         String reservationId,
