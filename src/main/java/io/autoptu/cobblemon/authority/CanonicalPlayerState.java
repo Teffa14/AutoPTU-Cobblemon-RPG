@@ -13,6 +13,8 @@ public record CanonicalPlayerState(
         Set<String> trainerFeatures,
         int actionPoints,
         int initiativeModifier,
+        Integer explicitInitiativeSpeed,
+        String teamId,
         long revision
 ) {
     public CanonicalPlayerState(
@@ -22,7 +24,7 @@ public record CanonicalPlayerState(
             Set<String> availablePokemonCapabilities,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, Set.of(), 0, 0, revision);
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, Set.of(), 0, 0, null, "", revision);
     }
 
     public CanonicalPlayerState(
@@ -33,10 +35,10 @@ public record CanonicalPlayerState(
             Set<String> trainerFeatures,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, 0, 0, revision);
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, 0, 0, null, "", revision);
     }
 
-    /** Backwards-compatible battle authority constructor using the Python default initiative modifier. */
+    /** Backwards-compatible battle authority constructor using the Python default initiative modifier/profile. */
     public CanonicalPlayerState(
             String playerId,
             Set<String> trainerClasses,
@@ -46,7 +48,22 @@ public record CanonicalPlayerState(
             int actionPoints,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, actionPoints, 0, revision);
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures, actionPoints, 0, null, "", revision);
+    }
+
+    /** Backwards-compatible constructor used before explicit Trainer initiative Speed/team entered canonical state. */
+    public CanonicalPlayerState(
+            String playerId,
+            Set<String> trainerClasses,
+            Map<String, Integer> skillRanks,
+            Set<String> availablePokemonCapabilities,
+            Set<String> trainerFeatures,
+            int actionPoints,
+            int initiativeModifier,
+            long revision
+    ) {
+        this(playerId, trainerClasses, skillRanks, availablePokemonCapabilities, trainerFeatures,
+                actionPoints, initiativeModifier, null, "", revision);
     }
 
     public CanonicalPlayerState {
@@ -62,6 +79,7 @@ public record CanonicalPlayerState(
         if (actionPoints < 0) {
             throw new IllegalArgumentException("actionPoints must be >= 0");
         }
+        teamId = teamId == null ? "" : teamId.strip();
         if (revision < 0) {
             throw new IllegalArgumentException("revision must be >= 0");
         }
