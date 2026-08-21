@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "7ae49515a2bb22bc5b7a1da0fb1afe38643c243b";
+    public static final String AUTOPTU_JAVA_SHA = "3d7adc9ed7c3ca49d847c45f024046f62a5e159c";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -38,17 +38,17 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "InitiativeRoundModifierResolution, InitiativeSpeedAbilityResolution, InitiativeAdditionalBonusResolution, TrainerInitiativeSpeedResolution and TrainerInitiativeEntryResolution now cover bounded Python-parity Pokemon/Trainer initiative inputs, Trainer Speed fallback, Tailwind Trainer-entry adjustment and deterministic Trainer InitiativeEntry construction.",
-                        "The complete authoritative initiative-order rebuild/installation, pending full Hardened Initiative derivation and all remaining Python initiative interactions are outside this bounded support."));
+                        "InitiativeRoundModifierResolution, InitiativeSpeedAbilityResolution, InitiativeAdditionalBonusResolution, TrainerInitiativeSpeedResolution, TrainerInitiativeEntryResolution and InitiativeOrderAssembly now cover bounded Python-parity Pokemon/Trainer initiative inputs, participation filtering, round modifiers, Trick Room ordering, League trainer-before-Pokemon ordering and deterministic ordered InitiativeEntry output.",
+                        "Minecraft must not assemble, sort or inject initiative order. Remaining upstream gaps are limited to lifecycle installation/consumption and any Python interactions not yet wired into the authoritative runtime path."));
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Initiative rebuild now has parity-safe Pokemon entry modifiers, weather/terrain Speed ability contracts, post-Speed bonus resolution, Trainer initiative Speed resolution and Trainer initiative entry construction.",
-                        "The complete Python round rebuild/installation and broader lifecycle remain incomplete, so Minecraft must not rebuild initiative or promote lifecycle to complete support."));
+                        "InitiativeOrderAssembly can now produce the authoritative ordered entries and temporary-effect cleanup requests from parity-backed inputs.",
+                        "Complete round lifecycle remains broader than order assembly: installation timing, remaining round-start effects, later lifecycle hooks and other Python start_round behavior remain incomplete."));
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Slush Rush, Surge Surfer, Chlorophyll [Errata] and Early Bird [Errata] initiative behavior now have parity-safe Java contracts.",
+                        "Slush Rush, Surge Surfer, Chlorophyll [Errata], Early Bird [Errata] and bounded initiative ability inputs participate in parity-backed initiative construction.",
                         "This is a bounded ability subset and does not complete the PTU ability library."));
         return Map.copyOf(result);
     }
