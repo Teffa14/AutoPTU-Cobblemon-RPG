@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("f4a5232b406fe0c80137e4d1d2f8408771ab4ba0",
+        assertEquals("a2931ccc3dd37119a94445f44fb833c755d311c1",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -79,6 +79,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         assertTrue(moveContracts.contains("DelayedHitExecutionPolicy"));
+        assertTrue(moveContracts.contains("forwards both targetId and targetPosition unchanged"));
+        assertTrue(moveContracts.contains("targetId remains COMBATANT targeting"));
+        assertTrue(moveContracts.contains("position retained as the aim anchor"));
+        assertTrue(moveContracts.contains("position-only delayed entry resolves as TILE"));
         assertTrue(moveContracts.contains("DelayedHitResourcePolicy"));
         assertTrue(moveContracts.contains("BattleRuntimeState owns BattleDelayedHitState"));
         assertTrue(moveContracts.contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
@@ -89,8 +93,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String moveLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
         assertTrue(moveLimitation.contains("bounded delayed-hit execution"));
-        assertTrue(moveLimitation.contains("TILE/area delayed targets remain unsupported"));
-        assertTrue(moveLimitation.contains("automatic ROUND_START delayed-hit dispatch has not landed"));
+        assertTrue(moveLimitation.contains("TILE/area delayed execution remains unsupported on main"));
+        assertTrue(moveLimitation.contains("automatic ROUND_START delayed-hit dispatch has not landed on main"));
+        assertTrue(moveLimitation.contains("rewrite target mode because a target position exists"));
+        assertTrue(moveLimitation.contains("replace a canonical targetId with TILE targeting"));
         assertTrue(moveLimitation.contains("supply RNG/combat inputs"));
         assertTrue(moveLimitation.contains("consume or refund move frequency/actions"));
 

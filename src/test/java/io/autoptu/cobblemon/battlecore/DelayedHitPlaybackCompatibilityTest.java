@@ -40,8 +40,8 @@ class DelayedHitPlaybackCompatibilityTest {
     }
 
     @Test
-    void currentUpstreamOwnsDelayedQueueRngAndCombatantMaturityExecution() {
-        assertEquals("f4a5232b406fe0c80137e4d1d2f8408771ab4ba0",
+    void currentUpstreamOwnsDelayedQueueRngCombatantMaturityAndTargetBinding() {
+        assertEquals("a2931ccc3dd37119a94445f44fb833c755d311c1",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
@@ -55,9 +55,13 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(lifecycleContracts.contains("Python-compatible battle RNG stream"));
         assertTrue(lifecycleContracts.contains("DelayedHitLifecycleExecutor"));
         assertTrue(lifecycleContracts.contains("in insertion order"));
+        assertTrue(moveContracts.contains("targetId remains COMBATANT targeting"));
+        assertTrue(moveContracts.contains("aim anchor"));
+        assertTrue(moveContracts.contains("position-only delayed entry resolves as TILE"));
         assertTrue(moveContracts.contains("without a second action/frequency spend"));
-        assertTrue(limitations.contains("TILE/area delayed targets remain unsupported"));
-        assertTrue(limitations.contains("automatic ROUND_START delayed-hit dispatch has not landed"));
+        assertTrue(limitations.contains("TILE/area delayed execution remains unsupported on main"));
+        assertTrue(limitations.contains("automatic ROUND_START delayed-hit dispatch has not landed on main"));
+        assertTrue(limitations.contains("rewrite target mode because a target position exists"));
     }
 
     @Test
