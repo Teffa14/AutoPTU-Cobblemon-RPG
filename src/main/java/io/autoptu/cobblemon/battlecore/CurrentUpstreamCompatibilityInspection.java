@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "2ca88352fbf5ca4d07bd795c49533dc26c41f5c6";
+    public static final String AUTOPTU_JAVA_SHA = "3906892c11129c419e702d87ff71db071c12050f";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -38,13 +38,13 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState derives Pokemon candidates, Trainer entries, Trick Room ordering and League ordering internally. InitiativeRoundRebuilder.authoritative now composes state-derived assembly with InitiativeAssemblyInstaller during rollover, including Python-derived cleanup, canonical order installation and mixed Trainer/Pokemon turn opening. BattleEnvironmentState owns ordering/environment state and TrainerRuntimeState owns server-side Trainer initiative/action inputs.",
-                        "Minecraft must never supply Trick Room or League ordering flags, initial action availability, actor kind, Trainer action state, resolved Speed, Trainer team, InitiativeEntry, participant filters or a precomputed rollover order. AutoPTU-Java PR #111 review identified a current cross-type identity collision edge case; this integration rejects any Trainer ID that collides with a reserved combatant ID before runtime assembly."));
+                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState derives Pokemon candidates, Trainer entries, Trick Room ordering and League ordering internally. InitiativeRoundRebuilder.authoritative composes state-derived assembly with InitiativeAssemblyInstaller during rollover. BattleRoundController.advanceInitiativeTurnWithRollover() is now the default production path and selects the authoritative rebuilder internally; the injectable rebuilder overload is deprecated for parity/migration tests. BattleEnvironmentState owns ordering/environment state and TrainerRuntimeState owns server-side Trainer initiative/action inputs.",
+                        "Minecraft must never supply Trick Room or League ordering flags, initial action availability, actor kind, Trainer action state, resolved Speed, Trainer team, InitiativeEntry, participant filters, a precomputed rollover order, InitiativeRoundRebuilder, or any alternative rollover strategy. The integration also rejects any Trainer ID that collides with a reserved combatant ID before runtime assembly."));
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Authoritative initiative rollover can now advance the round, derive and install the next mixed Trainer/Pokemon order from BattleRuntimeState, apply initiative temporary-effect cleanup, reset the initiative cursor and open the next actor turn without a Minecraft-computed order.",
-                        "Complete lifecycle remains broader than canonical initiative rollover. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work. The integration also guards the known Trainer/combatant identity-collision edge case before Java runtime mutation."));
+                        "The default production rollover call now advances the round, derives and installs the next mixed Trainer/Pokemon initiative order only from BattleRuntimeState, applies initiative temporary-effect cleanup, resets the initiative cursor and opens the next actor turn without an adapter-supplied rebuilder.",
+                        "Complete lifecycle remains broader than canonical initiative rollover. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work. The adapter must consume the default authoritative rollover path rather than injecting lifecycle strategy."));
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
