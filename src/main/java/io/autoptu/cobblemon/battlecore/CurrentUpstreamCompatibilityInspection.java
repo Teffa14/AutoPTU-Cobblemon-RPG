@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "becdfc6f7f8130c38d4e0834c49041c94aa0b5de";
+    public static final String AUTOPTU_JAVA_SHA = "2ca88352fbf5ca4d07bd795c49533dc26c41f5c6";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -38,13 +38,13 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState now supplies the full initiative assembly inputs from canonical runtime state. RuntimeInitiativeOrderAssembly.fromState derives Pokemon candidates, Trainer entries, Trick Room ordering and League ordering internally. BattleEnvironmentState owns trickRoomOrdering and leagueBattleOrdering alongside weather, terrain, Tailwind, grounded and mounted state. TrainerRuntimeState owns Feature identities, AP, initiative modifier, skill ranks, explicitInitiativeSpeed, teamId and server-owned action buckets. InitiativeAssemblyInstaller and BattleRoundController retain installation, actor selection and turn-start authority.",
-                        "Minecraft must never supply Trick Room or League ordering flags, initial consumed/extra-action claims, actor kind, Trainer action state, resolved Speed, Trainer explicit Speed, Trainer team, Tailwind key or eligibility, InitiativeEntry, participant filters, sorted initiative, Hardened bonuses, mounted-pair eligibility or weather/terrain ability outcomes during initiative resolution."));
+                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState derives Pokemon candidates, Trainer entries, Trick Room ordering and League ordering internally. InitiativeRoundRebuilder.authoritative now composes state-derived assembly with InitiativeAssemblyInstaller during rollover, including Python-derived cleanup, canonical order installation and mixed Trainer/Pokemon turn opening. BattleEnvironmentState owns ordering/environment state and TrainerRuntimeState owns server-side Trainer initiative/action inputs.",
+                        "Minecraft must never supply Trick Room or League ordering flags, initial action availability, actor kind, Trainer action state, resolved Speed, Trainer team, InitiativeEntry, participant filters or a precomputed rollover order. AutoPTU-Java PR #111 review identified a current cross-type identity collision edge case; this integration rejects any Trainer ID that collides with a reserved combatant ID before runtime assembly."));
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Canonical Trainer and Pokemon initiative entries can now be assembled from BattleRuntimeState with ordering modes read from BattleEnvironmentState, then installed and executed through the existing authoritative lifecycle seams.",
-                        "Complete lifecycle remains broader than canonical initiative assembly. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work."));
+                        "Authoritative initiative rollover can now advance the round, derive and install the next mixed Trainer/Pokemon order from BattleRuntimeState, apply initiative temporary-effect cleanup, reset the initiative cursor and open the next actor turn without a Minecraft-computed order.",
+                        "Complete lifecycle remains broader than canonical initiative rollover. Trainer-specific action-space generation, complete Trainer Feature phase/turn dispatch, round-start Trainer AP/temporary-AP lifecycle and broader Python terrain/weather/round effects remain core-owned follow-up work. The integration also guards the known Trainer/combatant identity-collision edge case before Java runtime mutation."));
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,

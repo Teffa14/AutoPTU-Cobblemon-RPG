@@ -56,6 +56,21 @@ class BattleRuntimeAssemblySeedTest {
     }
 
     @Test
+    void rejectsTrainerCombatantIdentityCollisionBeforeRuntimeAssembly() {
+        BattleRuntimePreparationEnvelope battle = battle("battle-1", 123L);
+        BattleTrainerRuntimePreparationEnvelope collidingTrainer = new BattleTrainerRuntimePreparationEnvelope(
+                battle,
+                new BattleTrainerRuntimeProjection(
+                        "mon-1", Set.of("Attack Link"), 3, Set.of("mon-1")));
+
+        IllegalArgumentException error = assertThrows(
+                IllegalArgumentException.class,
+                () -> BattleRuntimeAssemblySeed.from(collidingTrainer, canonical(battle)));
+
+        assertTrue(error.getMessage().contains("must not collide"));
+    }
+
+    @Test
     void boundaryCannotSeedCoreOwnedRuntimeResolutionOrLifecycleState() {
         Set<String> components = Arrays.stream(BattleRuntimeAssemblySeed.class.getRecordComponents())
                 .map(RecordComponent::getName)

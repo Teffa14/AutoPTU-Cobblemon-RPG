@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("becdfc6f7f8130c38d4e0834c49041c94aa0b5de",
+        assertEquals("2ca88352fbf5ca4d07bd795c49533dc26c41f5c6",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -40,38 +40,36 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
         assertTrue(contracts.contains("BattleRuntimeState"));
         assertTrue(contracts.contains("RuntimeInitiativeOrderAssembly.fromState"));
+        assertTrue(contracts.contains("InitiativeRoundRebuilder.authoritative"));
+        assertTrue(contracts.contains("InitiativeAssemblyInstaller"));
         assertTrue(contracts.contains("BattleEnvironmentState"));
-        assertTrue(contracts.contains("trickRoomOrdering"));
-        assertTrue(contracts.contains("leagueBattleOrdering"));
         assertTrue(contracts.contains("TrainerRuntimeState"));
-        assertTrue(contracts.contains("BattleRoundController"));
 
         String limitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
-        assertTrue(limitation.contains("Trick Room"));
-        assertTrue(limitation.contains("League ordering"));
-        assertTrue(limitation.contains("Trainer action state"));
-        assertTrue(limitation.contains("Trainer explicit Speed"));
-        assertTrue(limitation.contains("InitiativeEntry"));
+        assertTrue(limitation.contains("precomputed rollover order"));
+        assertTrue(limitation.contains("cross-type identity collision"));
+        assertTrue(limitation.contains("Trainer ID"));
         assertFalse(limitation.isBlank());
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
-        assertTrue(lifecycleContracts.contains("Trainer and Pokemon initiative entries"));
-        assertTrue(lifecycleContracts.contains("BattleEnvironmentState"));
+        assertTrue(lifecycleContracts.contains("advance the round"));
+        assertTrue(lifecycleContracts.contains("mixed Trainer/Pokemon order"));
+        assertTrue(lifecycleContracts.contains("temporary-effect cleanup"));
 
         String lifecycleLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
         assertTrue(lifecycleLimitation.contains("Trainer-specific action-space"));
         assertTrue(lifecycleLimitation.contains("round-start Trainer AP"));
         assertTrue(lifecycleLimitation.contains("broader Python terrain/weather/round effects"));
+        assertTrue(lifecycleLimitation.contains("identity-collision"));
 
         String trainerContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         assertTrue(trainerContracts.contains("TrainerRuntimeState"));
         assertTrue(trainerContracts.contains("explicit initiative Speed"));
         assertTrue(trainerContracts.contains("team identity"));
-        assertTrue(trainerContracts.contains("BattleEnvironmentState ordering modes"));
         assertTrue(trainerContracts.contains("Rider Agility Training"));
         assertTrue(trainerContracts.contains("Hardened Initiative"));
 
