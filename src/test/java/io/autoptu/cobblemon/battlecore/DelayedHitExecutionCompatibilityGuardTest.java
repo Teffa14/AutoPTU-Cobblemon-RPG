@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitExecutionCompatibilityGuardTest {
     @Test
-    void delayedHitCombatantExecutionReDerivesCombatInputsButLifecycleRemainsPartialAndCoreOwned() {
+    void delayedHitCombatantExecutionUsesBattleOwnedQueueAndRngButLifecycleRemainsPartial() {
         CurrentUpstreamCompatibilityInspection.Evidence lifecycle =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
@@ -23,27 +23,26 @@ class DelayedHitExecutionCompatibilityGuardTest {
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
-        assertTrue(lifecycle.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
+        assertTrue(lifecycle.contracts().contains("BattleRuntimeState now owns BattleDelayedHitState"));
+        assertTrue(lifecycle.contracts().contains("Python-compatible battle RNG stream"));
+        assertTrue(lifecycle.contracts().contains("DelayedHitLifecycleExecutor"));
         assertTrue(lifecycle.contracts().contains("COMBATANT-target"));
-        assertTrue(lifecycle.contracts().contains("evasion"));
-        assertTrue(lifecycle.contracts().contains("accuracy stage"));
-        assertTrue(lifecycle.contracts().contains("STAB"));
-        assertTrue(lifecycle.contracts().contains("type effectiveness"));
-        assertTrue(lifecycle.contracts().contains("damage modifiers"));
-        assertTrue(lifecycle.contracts().contains("post-damage hooks"));
-        assertTrue(lifecycle.contracts().contains("HP"));
-        assertTrue(lifecycle.contracts().contains("damage-history"));
-        assertTrue(lifecycle.contracts().contains("MoveResolvedEvent"));
-        assertTrue(lifecycle.contracts().contains("without spending action or move frequency again"));
-        assertTrue(lifecycle.limitation().contains("not yet connected delayed-hit maturity to ROUND_START"));
-        assertTrue(lifecycle.limitation().contains("TILE target expansion"));
-        assertTrue(lifecycle.limitation().contains("legacy delayed-hit combat inputs"));
-        assertTrue(moves.contracts().contains("Forged legacy AC"));
-        assertTrue(moves.contracts().contains("MoveResolutionInput"));
-        assertTrue(moves.limitation().contains("Minecraft must not execute delayed hits"));
+        assertTrue(lifecycle.contracts().contains("in insertion order"));
+        assertTrue(lifecycle.contracts().contains("read-only delayed-hit snapshot"));
+        assertTrue(lifecycle.limitation().contains("does not register delayed-hit execution into ROUND_START"));
+        assertTrue(lifecycle.limitation().contains("TILE/area delayed hits"));
+        assertTrue(lifecycle.limitation().contains("must not own the delayed queue"));
+        assertTrue(lifecycle.limitation().contains("mutable RNG"));
+
+        assertTrue(moves.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
+        assertTrue(moves.contracts().contains("PythonRandom"));
+        assertTrue(moves.contracts().contains("HP mutation"));
+        assertTrue(moves.contracts().contains("damage-history"));
+        assertTrue(moves.contracts().contains("MoveResolvedEvent"));
+        assertTrue(moves.contracts().contains("without a second action/frequency spend"));
+        assertTrue(moves.limitation().contains("automatic ROUND_START dispatch has not landed"));
+        assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
-        assertTrue(moves.limitation().contains("decide when they mature"));
-        assertTrue(moves.limitation().contains("MoveResolutionInput-style combat values"));
     }
 
     @Test
@@ -59,6 +58,10 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "delayedHitPolicy",
                 "delayedHitResourcePolicy",
                 "delayedHitMaturityDispatcher",
+                "delayedHitQueue",
+                "delayedHitState",
+                "delayedHitRng",
+                "pythonRandom",
                 "targetResolver",
                 "moveActionResolver",
                 "frequencyConsumer",
