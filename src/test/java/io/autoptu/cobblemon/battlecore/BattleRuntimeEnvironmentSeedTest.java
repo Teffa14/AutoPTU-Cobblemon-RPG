@@ -88,7 +88,8 @@ class BattleRuntimeEnvironmentSeedTest {
                 List.of(new BattleRuntimeFieldEffectSeed(BattleRuntimeFieldEffectSeed.Kind.TERRAIN, "forged", 1)),
                 List.of()));
         assertThrows(IllegalArgumentException.class, () -> new BattleRuntimeFieldEffectSeed(
-                BattleRuntimeFieldEffectSeed.Kind.ZONE, "bad payload", 1, Map.of("minecraftBlock", List.of("stone"))));
+                BattleRuntimeFieldEffectSeed.Kind.ZONE, "bad payload", 1,
+                Map.of("minecraftBlock", (Object) List.of("stone"))));
     }
 
     @Test
