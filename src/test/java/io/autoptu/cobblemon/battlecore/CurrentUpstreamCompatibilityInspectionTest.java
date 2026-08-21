@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("c36163210105df5a609863cb5583779b2db5f245",
+        assertEquals("fe572021445fa0aa862db17514ca2b7e2cff3b18",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -39,20 +39,24 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String contracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
         assertTrue(contracts.contains("BattleRuntimeState"));
-        assertTrue(contracts.contains("RuntimeInitiativePokemonCandidateFactory"));
-        assertTrue(contracts.contains("RiderAgilityTrainingResolution"));
-        assertTrue(contracts.contains("mounted rider->mount"));
+        assertTrue(contracts.contains("RuntimeInitiativeTrainerEntryFactory"));
+        assertTrue(contracts.contains("explicitInitiativeSpeed"));
+        assertTrue(contracts.contains("teamId"));
+        assertTrue(contracts.contains("controlled-Pokemon Speed"));
 
         String limitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
-        assertTrue(limitation.contains("must never supply resolved Speed"));
-        assertTrue(limitation.contains("mounted-pair eligibility"));
-        assertTrue(limitation.contains("Rider Agility Training doubling"));
+        assertTrue(limitation.contains("Trainer explicit Speed"));
+        assertTrue(limitation.contains("Trainer team"));
+        assertTrue(limitation.contains("Tailwind"));
+        assertTrue(limitation.contains("InitiativeEntry"));
         assertFalse(limitation.isBlank());
 
         String trainerContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         assertTrue(trainerContracts.contains("TrainerRuntimeState"));
+        assertTrue(trainerContracts.contains("explicit initiative Speed"));
+        assertTrue(trainerContracts.contains("team identity"));
         assertTrue(trainerContracts.contains("Rider Agility Training"));
         assertTrue(trainerContracts.contains("Hardened Initiative"));
 

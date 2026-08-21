@@ -10,6 +10,8 @@ public record BattleTrainerSnapshot(
         Set<String> trainerFeatures,
         int actionPoints,
         int initiativeModifier,
+        Integer explicitInitiativeSpeed,
+        String teamId,
         long revision
 ) {
     public BattleTrainerSnapshot(
@@ -18,7 +20,7 @@ public record BattleTrainerSnapshot(
             Map<String, Integer> skillRanks,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, Set.of(), 0, 0, revision);
+        this(playerId, trainerClasses, skillRanks, Set.of(), 0, 0, null, "", revision);
     }
 
     public BattleTrainerSnapshot(
@@ -28,10 +30,10 @@ public record BattleTrainerSnapshot(
             Set<String> trainerFeatures,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, trainerFeatures, 0, 0, revision);
+        this(playerId, trainerClasses, skillRanks, trainerFeatures, 0, 0, null, "", revision);
     }
 
-    /** Backwards-compatible battle snapshot constructor using the Python default initiative modifier. */
+    /** Backwards-compatible battle snapshot constructor using the Python default initiative modifier/profile. */
     public BattleTrainerSnapshot(
             String playerId,
             Set<String> trainerClasses,
@@ -40,7 +42,20 @@ public record BattleTrainerSnapshot(
             int actionPoints,
             long revision
     ) {
-        this(playerId, trainerClasses, skillRanks, trainerFeatures, actionPoints, 0, revision);
+        this(playerId, trainerClasses, skillRanks, trainerFeatures, actionPoints, 0, null, "", revision);
+    }
+
+    /** Backwards-compatible constructor used before explicit Trainer initiative Speed/team entered the snapshot. */
+    public BattleTrainerSnapshot(
+            String playerId,
+            Set<String> trainerClasses,
+            Map<String, Integer> skillRanks,
+            Set<String> trainerFeatures,
+            int actionPoints,
+            int initiativeModifier,
+            long revision
+    ) {
+        this(playerId, trainerClasses, skillRanks, trainerFeatures, actionPoints, initiativeModifier, null, "", revision);
     }
 
     public BattleTrainerSnapshot {
@@ -53,6 +68,7 @@ public record BattleTrainerSnapshot(
         if (actionPoints < 0) {
             throw new IllegalArgumentException("actionPoints must be >= 0");
         }
+        teamId = teamId == null ? "" : teamId.strip();
         if (revision < 0) {
             throw new IllegalArgumentException("revision must be >= 0");
         }
@@ -66,6 +82,8 @@ public record BattleTrainerSnapshot(
                 state.trainerFeatures(),
                 state.actionPoints(),
                 state.initiativeModifier(),
+                state.explicitInitiativeSpeed(),
+                state.teamId(),
                 state.revision());
     }
 }

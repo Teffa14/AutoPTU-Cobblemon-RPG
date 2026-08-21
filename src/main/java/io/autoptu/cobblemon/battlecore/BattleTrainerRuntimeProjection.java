@@ -8,7 +8,7 @@ import java.util.Set;
 
 /**
  * Server-owned trainer/controller state prepared for AutoPTU-Java TrainerRuntimeState.
- * Feature ownership, skill ranks, AP and the initiative modifier are frozen from canonical trainer state before battle start.
+ * Feature ownership, skill ranks, AP and initiative inputs are frozen from canonical trainer state before battle start.
  */
 public record BattleTrainerRuntimeProjection(
         String trainerId,
@@ -16,19 +16,19 @@ public record BattleTrainerRuntimeProjection(
         int actionPoints,
         int initiativeModifier,
         Map<String, Integer> skillRanks,
+        Integer explicitInitiativeSpeed,
+        String teamId,
         Set<String> controlledCombatantIds
 ) {
-    /** Backwards-compatible projection using Python defaults for initiative modifier and skill ranks. */
     public BattleTrainerRuntimeProjection(
             String trainerId,
             Set<String> trainerFeatures,
             int actionPoints,
             Set<String> controlledCombatantIds
     ) {
-        this(trainerId, trainerFeatures, actionPoints, 0, Map.of(), controlledCombatantIds);
+        this(trainerId, trainerFeatures, actionPoints, 0, Map.of(), null, "", controlledCombatantIds);
     }
 
-    /** Backwards-compatible projection for callers created before Trainer skill ranks entered runtime state. */
     public BattleTrainerRuntimeProjection(
             String trainerId,
             Set<String> trainerFeatures,
@@ -36,19 +36,27 @@ public record BattleTrainerRuntimeProjection(
             int initiativeModifier,
             Set<String> controlledCombatantIds
     ) {
-        this(trainerId, trainerFeatures, actionPoints, initiativeModifier, Map.of(), controlledCombatantIds);
+        this(trainerId, trainerFeatures, actionPoints, initiativeModifier, Map.of(), null, "", controlledCombatantIds);
+    }
+
+    public BattleTrainerRuntimeProjection(
+            String trainerId,
+            Set<String> trainerFeatures,
+            int actionPoints,
+            int initiativeModifier,
+            Map<String, Integer> skillRanks,
+            Set<String> controlledCombatantIds
+    ) {
+        this(trainerId, trainerFeatures, actionPoints, initiativeModifier, skillRanks, null, "", controlledCombatantIds);
     }
 
     public BattleTrainerRuntimeProjection {
-        if (trainerId == null || trainerId.isBlank()) {
-            throw new IllegalArgumentException("trainerId is required");
-        }
+        if (trainerId == null || trainerId.isBlank()) throw new IllegalArgumentException("trainerId is required");
         trainerId = trainerId.strip();
         trainerFeatures = trainerFeatures == null ? Set.of() : Set.copyOf(trainerFeatures);
-        if (actionPoints < 0) {
-            throw new IllegalArgumentException("actionPoints must be >= 0");
-        }
+        if (actionPoints < 0) throw new IllegalArgumentException("actionPoints must be >= 0");
         skillRanks = copySkillRanks(skillRanks);
+        teamId = teamId == null ? "" : teamId.strip();
         if (controlledCombatantIds == null || controlledCombatantIds.isEmpty()) {
             throw new IllegalArgumentException("controlledCombatantIds are required");
         }
@@ -70,18 +78,12 @@ public record BattleTrainerRuntimeProjection(
         LinkedHashSet<String> normalizedNames = new LinkedHashSet<>();
         for (Map.Entry<String, Integer> entry : source.entrySet()) {
             String skillName = entry.getKey();
-            if (skillName == null || skillName.isBlank()) {
-                throw new IllegalArgumentException("Trainer skill name is required");
-            }
+            if (skillName == null || skillName.isBlank()) throw new IllegalArgumentException("Trainer skill name is required");
             String value = skillName.strip();
             String normalized = value.toLowerCase(Locale.ROOT);
-            if (!normalizedNames.add(normalized)) {
-                throw new IllegalArgumentException("duplicate Trainer skill identity: " + value);
-            }
+            if (!normalizedNames.add(normalized)) throw new IllegalArgumentException("duplicate Trainer skill identity: " + value);
             Integer rank = entry.getValue();
-            if (rank == null) {
-                throw new IllegalArgumentException("Trainer skill rank is required: " + value);
-            }
+            if (rank == null) throw new IllegalArgumentException("Trainer skill rank is required: " + value);
             copy.put(value, rank);
         }
         return Map.copyOf(copy);
