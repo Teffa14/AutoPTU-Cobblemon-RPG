@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitExecutionCompatibilityGuardTest {
     @Test
-    void delayedHitCombatantExecutionUsesBattleOwnedQueueAndRngButLifecycleRemainsPartial() {
+    void delayedHitCombatantExecutionUsesBattleOwnedQueueRngAndTargetBindingButLifecycleRemainsPartial() {
         CurrentUpstreamCompatibilityInspection.Evidence lifecycle =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
@@ -32,19 +32,25 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(lifecycle.limitation().contains("TILE/area delayed hits"));
         assertTrue(lifecycle.limitation().contains("own the delayed queue or mutable RNG"));
 
+        assertTrue(moves.contracts().contains("forwards both targetId and targetPosition unchanged"));
+        assertTrue(moves.contracts().contains("targetId remains COMBATANT targeting"));
+        assertTrue(moves.contracts().contains("aim anchor"));
+        assertTrue(moves.contracts().contains("position-only delayed entry resolves as TILE"));
         assertTrue(moves.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
         assertTrue(moves.contracts().contains("PythonRandom"));
         assertTrue(moves.contracts().contains("HP mutation"));
         assertTrue(moves.contracts().contains("damage-history"));
         assertTrue(moves.contracts().contains("MoveResolvedEvent"));
         assertTrue(moves.contracts().contains("without a second action/frequency spend"));
-        assertTrue(moves.limitation().contains("automatic ROUND_START delayed-hit dispatch has not landed"));
+        assertTrue(moves.limitation().contains("automatic ROUND_START delayed-hit dispatch has not landed on main"));
+        assertTrue(moves.limitation().contains("rewrite target mode because a target position exists"));
+        assertTrue(moves.limitation().contains("replace a canonical targetId with TILE targeting"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
     }
 
     @Test
-    void runtimeAssemblyCannotInjectDelayedHitExecutionResourceOrCombatPreparation() {
+    void runtimeAssemblyCannotInjectDelayedHitExecutionResourceCombatPreparationOrTargetInterpretation() {
         Set<String> components = Arrays.stream(BattleRuntimeAssemblySeed.class.getRecordComponents())
                 .map(RecordComponent::getName)
                 .collect(Collectors.toSet());
@@ -61,6 +67,11 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "delayedHitRng",
                 "pythonRandom",
                 "targetResolver",
+                "delayedTargetResolver",
+                "delayedTargetMode",
+                "targetPositionForcesTile",
+                "delayedTargetRewriter",
+                "targetBindingResolver",
                 "moveActionResolver",
                 "frequencyConsumer",
                 "frequencyRecorder",
