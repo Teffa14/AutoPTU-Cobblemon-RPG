@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -97,6 +98,19 @@ class BattleEntityBoundPresentationStreamTest {
                 new BattleHealthProjectionBatch("other-battle", List.of()),
                 new BattleWorldRelocationBatch("battle-stream", snapshot.arena(), List.of()),
                 bindings));
+    }
+
+    @Test
+    void staysWithinTheExistingSemanticPresentationCompatibilityFeature() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.SEMANTIC_PRESENTATION_COMMANDS);
+        assertFalse(requirement.hasBlockingDependency());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY).support());
     }
 
     private static BattlePresentationCommand command(
