@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("c6b85e619fbc91f21067911987ad056966046b9b",
+        assertEquals("3c82018e8f9f123500688d59cc94eba565593231",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -62,10 +62,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycleContracts.contains("default production rollover"));
         assertTrue(lifecycleContracts.contains("mixed Trainer/Pokemon initiative order"));
         assertTrue(lifecycleContracts.contains("DelayedHitExecutionPolicy"));
-        assertTrue(lifecycleContracts.contains("BattleRuntime.applyDelayedAuthoritativeMove"));
+        assertTrue(lifecycleContracts.contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
         assertTrue(lifecycleContracts.contains("COMBATANT-target"));
-        assertTrue(lifecycleContracts.contains("accuracy"));
-        assertTrue(lifecycleContracts.contains("HP mutation"));
+        assertTrue(lifecycleContracts.contains("evasion"));
+        assertTrue(lifecycleContracts.contains("STAB"));
+        assertTrue(lifecycleContracts.contains("type effectiveness"));
+        assertTrue(lifecycleContracts.contains("damage modifiers"));
+        assertTrue(lifecycleContracts.contains("post-damage hooks"));
+        assertTrue(lifecycleContracts.contains("HP"));
         assertTrue(lifecycleContracts.contains("MoveResolvedEvent"));
         assertTrue(lifecycleContracts.contains("without spending action or move frequency again"));
 
@@ -77,15 +81,17 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycleLimitation.contains("round-start Trainer AP"));
         assertTrue(lifecycleLimitation.contains("broader Python terrain/weather/round effects"));
         assertTrue(lifecycleLimitation.contains("must not trigger delayed-hit maturity"));
+        assertTrue(lifecycleLimitation.contains("legacy delayed-hit combat inputs"));
 
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         assertTrue(moveContracts.contains("DelayedHitExecutionPolicy"));
         assertTrue(moveContracts.contains("DelayedHitResourcePolicy"));
-        assertTrue(moveContracts.contains("BattleRuntime.applyDelayedAuthoritativeMove"));
-        assertTrue(moveContracts.contains("live authoritative COMBATANT-target maturity path"));
+        assertTrue(moveContracts.contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
+        assertTrue(moveContracts.contains("MoveResolutionInput"));
+        assertTrue(moveContracts.contains("Forged legacy AC"));
+        assertTrue(moveContracts.contains("type-effectiveness"));
         assertTrue(moveContracts.contains("PythonRandom"));
-        assertTrue(moveContracts.contains("post-damage hooks"));
         assertTrue(moveContracts.contains("damage history"));
 
         String moveLimitation = CurrentUpstreamCompatibilityInspection.evidence(
@@ -95,6 +101,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moveLimitation.contains("TILE target expansion"));
         assertTrue(moveLimitation.contains("must not execute delayed hits"));
         assertTrue(moveLimitation.contains("consume or refund move frequency/actions"));
+        assertTrue(moveLimitation.contains("MoveResolutionInput-style combat values"));
+
+        String abilityContracts = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
+        assertTrue(abilityContracts.contains("delayed-hit combat preparation"));
+        assertTrue(abilityContracts.contains("authoritative move/damage/post-damage hooks"));
 
         String trainerContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
