@@ -28,6 +28,7 @@ public final class BattlePresentationProjector {
             case "status_skip" -> List.of(projectStatusSkip(event.sequence(), parts));
             case "trainer_feature" -> List.of(projectTrainerFeature(event.sequence(), parts));
             case "rule_effect" -> List.of(projectRuleEffect(event.sequence(), parts));
+            case "field_effect" -> List.of(projectFieldEffect(event.sequence(), parts));
             case "phase" -> List.of(projectLifecycleCue(event.sequence(), parts, "phase", BattlePresentationCommand.Kind.PHASE_CUE));
             case "turn_start" -> List.of(projectTurnStart(event.sequence(), parts));
             case "turn_end" -> List.of(projectLifecycleCue(event.sequence(), parts, "turn_end", BattlePresentationCommand.Kind.TURN_END_CUE));
@@ -109,6 +110,29 @@ public final class BattlePresentationProjector {
                         "effect", required(parts[6], "effect"),
                         "amount", Double.toString(amount),
                         "actorHp", Integer.toString(actorHp)
+                )
+        );
+    }
+
+    private static BattlePresentationCommand projectFieldEffect(long sequence, String[] parts) {
+        requireParts(parts, 5, "field_effect");
+        String fieldKind = required(parts[1], "fieldKind");
+        if (!fieldKind.equals("terrain") && !fieldKind.equals("zone") && !fieldKind.equals("room")) {
+            throw new IllegalArgumentException("fieldKind must be terrain, zone, or room");
+        }
+        String effectName = required(parts[2], "effectName");
+        String effect = required(parts[3], "effect");
+        if (!effect.equals(fieldKind + "_ends")) {
+            throw new IllegalArgumentException("field effect stable key must describe authoritative expiry");
+        }
+        int round = parseNonNegativeInt(parts[4], "round");
+        return command(
+                sequence, 0, BattlePresentationCommand.Kind.FIELD_EFFECT_CUE, fieldKind,
+                data(
+                        "fieldKind", fieldKind,
+                        "effectName", effectName,
+                        "effect", effect,
+                        "round", Integer.toString(round)
                 )
         );
     }
