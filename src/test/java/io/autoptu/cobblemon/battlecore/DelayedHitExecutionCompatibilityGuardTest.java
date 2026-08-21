@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitExecutionCompatibilityGuardTest {
     @Test
-    void delayedHitCallChainAndResourceOwnershipRemainPartialAndCoreOwned() {
+    void delayedHitCombatantExecutionIsLiveButLifecycleRemainsPartialAndCoreOwned() {
         CurrentUpstreamCompatibilityInspection.Evidence lifecycle =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
@@ -23,16 +23,17 @@ class DelayedHitExecutionCompatibilityGuardTest {
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
-        assertTrue(lifecycle.contracts().contains("DelayedHitExecutionPolicy"));
-        assertTrue(lifecycle.contracts().contains("DelayedHitResourcePolicy"));
-        assertTrue(lifecycle.contracts().contains("re-enters ordinary move-action resolution"));
-        assertTrue(lifecycle.contracts().contains("spends no action"));
-        assertTrue(lifecycle.contracts().contains("consumes no frequency"));
-        assertTrue(lifecycle.contracts().contains("records no ordinary move use"));
-        assertTrue(lifecycle.limitation().contains("not yet connected to ROUND_START"));
+        assertTrue(lifecycle.contracts().contains("BattleRuntime.applyDelayedAuthoritativeMove"));
+        assertTrue(lifecycle.contracts().contains("COMBATANT-target"));
+        assertTrue(lifecycle.contracts().contains("HP mutation"));
+        assertTrue(lifecycle.contracts().contains("damage-history"));
+        assertTrue(lifecycle.contracts().contains("MoveResolvedEvent"));
+        assertTrue(lifecycle.contracts().contains("without spending action or move frequency again"));
+        assertTrue(lifecycle.limitation().contains("not yet connected delayed-hit maturity to ROUND_START"));
+        assertTrue(lifecycle.limitation().contains("TILE target expansion"));
         assertTrue(moves.limitation().contains("Minecraft must not execute delayed hits"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
-        assertTrue(moves.limitation().contains("record ordinary move use at maturity"));
+        assertTrue(moves.limitation().contains("decide when they mature"));
     }
 
     @Test
@@ -47,6 +48,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "delayedHitResolver",
                 "delayedHitPolicy",
                 "delayedHitResourcePolicy",
+                "delayedHitMaturityDispatcher",
                 "targetResolver",
                 "moveActionResolver",
                 "frequencyConsumer",
