@@ -7,6 +7,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitPlaybackCompatibilityTest {
     private final BattlePresentationProjector projector = new BattlePresentationProjector();
@@ -36,6 +37,25 @@ class DelayedHitPlaybackCompatibilityTest {
         assertEquals("target", hp.subjectId());
         assertEquals("31", hp.data().get("damage"));
         assertEquals("69", hp.data().get("targetHp"));
+    }
+
+    @Test
+    void currentUpstreamOwnsDelayedQueueRngAndCombatantMaturityExecution() {
+        assertEquals("77877b3940a02c91e694c0907a89dafaa56726c8",
+                CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+
+        String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
+        String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
+        String limitations = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
+
+        assertTrue(lifecycleContracts.contains("BattleDelayedHitState"));
+        assertTrue(lifecycleContracts.contains("DelayedHitLifecycleExecutor"));
+        assertTrue(lifecycleContracts.contains("in insertion order"));
+        assertTrue(moveContracts.contains("without a second action/frequency spend"));
+        assertTrue(limitations.contains("TILE/area delayed targets remain unsupported"));
     }
 
     @Test
