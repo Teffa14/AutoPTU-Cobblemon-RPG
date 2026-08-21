@@ -7,12 +7,12 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Reservation-scoped seed for the server-owned battle environment now carried by
- * AutoPTU-Java BattleRuntimeState.
+ * Reservation-scoped seed for server-owned battle environment and spatial relationship state.
  *
- * Weather, PTU terrain identity, Tailwind team state and grounded state must already
- * be resolved by trusted server/domain code before this boundary. Minecraft world
- * observations, entity pose and client payloads are not accepted as PTU semantics.
+ * Weather, PTU terrain identity, Tailwind team state, grounded state and mounted rider->mount
+ * relationships must already be resolved by trusted server/domain code before this boundary.
+ * Minecraft world observations, entity pose/passenger state and client payloads are not accepted
+ * as PTU semantics.
  */
 public record BattleRuntimeEnvironmentSeed(
         String reservationId,
@@ -20,8 +20,21 @@ public record BattleRuntimeEnvironmentSeed(
         String weather,
         String terrainName,
         Set<String> tailwindTeams,
-        Map<String, Boolean> groundedByCombatant
+        Map<String, Boolean> groundedByCombatant,
+        Map<String, String> mountedPairs
 ) {
+    /** Compatibility constructor for callers without explicit mounted relationship state. */
+    public BattleRuntimeEnvironmentSeed(
+            String reservationId,
+            BattleRuntimePreparationEnvelope runtimePreparation,
+            String weather,
+            String terrainName,
+            Set<String> tailwindTeams,
+            Map<String, Boolean> groundedByCombatant
+    ) {
+        this(reservationId, runtimePreparation, weather, terrainName, tailwindTeams, groundedByCombatant, Map.of());
+    }
+
     public BattleRuntimeEnvironmentSeed {
         if (reservationId == null || reservationId.isBlank()) {
             throw new IllegalArgumentException("reservationId must not be blank");
@@ -47,6 +60,8 @@ public record BattleRuntimeEnvironmentSeed(
         if (!authoritativeTeams.containsAll(tailwindTeams)) {
             throw new IllegalArgumentException("Tailwind may reference only authoritative battle teams");
         }
+
+        mountedPairs = copyMountedPairs(mountedPairs, roster);
     }
 
     private static String normalizeOptional(String value) {
@@ -86,5 +101,37 @@ public record BattleRuntimeEnvironmentSeed(
             }
         }
         return Map.copyOf(copy);
+    }
+
+    private static Map<String, String> copyMountedPairs(Map<String, String> source, Set<String> roster) {
+        LinkedHashMap<String, String> copy = new LinkedHashMap<>();
+        LinkedHashSet<String> assignedMounts = new LinkedHashSet<>();
+        if (source == null) {
+            return Map.of();
+        }
+        for (Map.Entry<String, String> entry : source.entrySet()) {
+            String riderId = normalizeRequired(entry.getKey(), "mounted riderId");
+            String mountId = normalizeRequired(entry.getValue(), "mounted mountId");
+            if (!roster.contains(riderId) || !roster.contains(mountId)) {
+                throw new IllegalArgumentException("mounted pairs may reference only authoritative combatants");
+            }
+            if (riderId.equals(mountId)) {
+                throw new IllegalArgumentException("a combatant cannot mount itself");
+            }
+            if (copy.put(riderId, mountId) != null) {
+                throw new IllegalArgumentException("duplicate mounted riderId");
+            }
+            if (!assignedMounts.add(mountId)) {
+                throw new IllegalArgumentException("a mount may belong to only one rider in the battle snapshot");
+            }
+        }
+        return Map.copyOf(copy);
+    }
+
+    private static String normalizeRequired(String value, String label) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(label + " must not be blank");
+        }
+        return value.strip();
     }
 }
