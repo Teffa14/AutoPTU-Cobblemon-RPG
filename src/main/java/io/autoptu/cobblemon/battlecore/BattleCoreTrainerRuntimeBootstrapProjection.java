@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  * Reservation-scoped trainer state for AutoPTU-Java TrainerRuntimeState plus controller binding.
- * Minecraft/client state cannot override Trainer Feature ownership, AP or combatant controller identity.
+ * Minecraft/client state cannot override Trainer Feature ownership, AP, initiative modifier or combatant controller identity.
  */
 public record BattleCoreTrainerRuntimeBootstrapProjection(
         String reservationId,
@@ -48,6 +48,7 @@ public record BattleCoreTrainerRuntimeBootstrapProjection(
                         snapshot.trainer().playerId(),
                         snapshot.trainer().trainerFeatures(),
                         snapshot.trainer().actionPoints(),
+                        snapshot.trainer().initiativeModifier(),
                         Set.copyOf(controlledCombatants)
                 )
         );
