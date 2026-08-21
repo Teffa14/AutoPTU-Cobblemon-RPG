@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("3c82018e8f9f123500688d59cc94eba565593231",
+        assertEquals("fb91a65dc3bd92f49c7020ec856406df78bfc70a",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -39,69 +39,57 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).support());
 
-        String contracts = CurrentUpstreamCompatibilityInspection.evidence(
+        String initiativeContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
-        assertTrue(contracts.contains("BattleRuntimeState"));
-        assertTrue(contracts.contains("RuntimeInitiativeOrderAssembly.fromState"));
-        assertTrue(contracts.contains("InitiativeRoundRebuilder.authoritative"));
-        assertTrue(contracts.contains("BattleRoundController.advanceInitiativeTurnWithRollover()"));
-        assertTrue(contracts.contains("DelayedHitResourcePolicy"));
-        assertTrue(contracts.contains("BattleRuntime.applyDelayedAuthoritativeMove"));
-        assertTrue(contracts.contains("action and frequency spend"));
+        assertTrue(initiativeContracts.contains("BattleRuntimeState"));
+        assertTrue(initiativeContracts.contains("RuntimeInitiativeOrderAssembly.fromState"));
+        assertTrue(initiativeContracts.contains("InitiativeRoundRebuilder.authoritative"));
+        assertTrue(initiativeContracts.contains("DelayedHitResourcePolicy"));
+        assertTrue(initiativeContracts.contains("action and frequency spend"));
 
-        String limitation = CurrentUpstreamCompatibilityInspection.evidence(
+        String initiativeLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
-        assertTrue(limitation.contains("precomputed rollover order"));
-        assertTrue(limitation.contains("InitiativeRoundRebuilder"));
-        assertTrue(limitation.contains("delayed-hit action/frequency bookkeeping"));
-        assertTrue(limitation.contains("Trainer ID"));
-        assertFalse(limitation.isBlank());
+        assertTrue(initiativeLimitation.contains("precomputed rollover order"));
+        assertTrue(initiativeLimitation.contains("delayed-hit RNG"));
+        assertTrue(initiativeLimitation.contains("delayed-hit queue mutation"));
+        assertTrue(initiativeLimitation.contains("Trainer ID"));
+        assertFalse(initiativeLimitation.isBlank());
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
-        assertTrue(lifecycleContracts.contains("default production rollover"));
-        assertTrue(lifecycleContracts.contains("mixed Trainer/Pokemon initiative order"));
-        assertTrue(lifecycleContracts.contains("DelayedHitExecutionPolicy"));
-        assertTrue(lifecycleContracts.contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
+        assertTrue(lifecycleContracts.contains("BattleRuntimeState now owns BattleDelayedHitState"));
+        assertTrue(lifecycleContracts.contains("Python-compatible battle RNG stream"));
+        assertTrue(lifecycleContracts.contains("DelayedHitLifecycleExecutor"));
         assertTrue(lifecycleContracts.contains("COMBATANT-target"));
-        assertTrue(lifecycleContracts.contains("evasion"));
-        assertTrue(lifecycleContracts.contains("STAB"));
-        assertTrue(lifecycleContracts.contains("type effectiveness"));
-        assertTrue(lifecycleContracts.contains("damage modifiers"));
-        assertTrue(lifecycleContracts.contains("post-damage hooks"));
-        assertTrue(lifecycleContracts.contains("HP"));
-        assertTrue(lifecycleContracts.contains("MoveResolvedEvent"));
-        assertTrue(lifecycleContracts.contains("without spending action or move frequency again"));
+        assertTrue(lifecycleContracts.contains("in insertion order"));
+        assertTrue(lifecycleContracts.contains("read-only delayed-hit snapshot"));
 
         String lifecycleLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
-        assertTrue(lifecycleLimitation.contains("not yet connected delayed-hit maturity to ROUND_START"));
-        assertTrue(lifecycleLimitation.contains("TILE target expansion"));
-        assertTrue(lifecycleLimitation.contains("Trainer-specific action-space"));
-        assertTrue(lifecycleLimitation.contains("round-start Trainer AP"));
-        assertTrue(lifecycleLimitation.contains("broader Python terrain/weather/round effects"));
-        assertTrue(lifecycleLimitation.contains("must not trigger delayed-hit maturity"));
-        assertTrue(lifecycleLimitation.contains("legacy delayed-hit combat inputs"));
+        assertTrue(lifecycleLimitation.contains("does not register delayed-hit execution into ROUND_START"));
+        assertTrue(lifecycleLimitation.contains("TILE/area delayed hits"));
+        assertTrue(lifecycleLimitation.contains("terrain, zone, room"));
+        assertTrue(lifecycleLimitation.contains("Trainer AP/temporary-AP"));
+        assertTrue(lifecycleLimitation.contains("must not own the delayed queue"));
+        assertTrue(lifecycleLimitation.contains("mutable RNG"));
 
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         assertTrue(moveContracts.contains("DelayedHitExecutionPolicy"));
         assertTrue(moveContracts.contains("DelayedHitResourcePolicy"));
+        assertTrue(moveContracts.contains("BattleRuntimeState owns BattleDelayedHitState"));
         assertTrue(moveContracts.contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
-        assertTrue(moveContracts.contains("MoveResolutionInput"));
-        assertTrue(moveContracts.contains("Forged legacy AC"));
-        assertTrue(moveContracts.contains("type-effectiveness"));
         assertTrue(moveContracts.contains("PythonRandom"));
-        assertTrue(moveContracts.contains("damage history"));
+        assertTrue(moveContracts.contains("damage-history"));
+        assertTrue(moveContracts.contains("without a second action/frequency spend"));
 
         String moveLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
-        assertTrue(moveLimitation.contains("bounded live delayed-hit execution"));
-        assertTrue(moveLimitation.contains("ROUND_START scheduling/maturity dispatch"));
-        assertTrue(moveLimitation.contains("TILE target expansion"));
-        assertTrue(moveLimitation.contains("must not execute delayed hits"));
+        assertTrue(moveLimitation.contains("bounded delayed-hit execution"));
+        assertTrue(moveLimitation.contains("TILE/area delayed targets remain unsupported"));
+        assertTrue(moveLimitation.contains("automatic ROUND_START dispatch has not landed"));
+        assertTrue(moveLimitation.contains("supply RNG/combat inputs"));
         assertTrue(moveLimitation.contains("consume or refund move frequency/actions"));
-        assertTrue(moveLimitation.contains("MoveResolutionInput-style combat values"));
 
         String abilityContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
@@ -121,7 +109,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(environmentLimitation.contains("not complete"));
         assertTrue(environmentLimitation.contains("entity passenger state"));
         assertTrue(environmentLimitation.contains("Trick Room"));
-        assertTrue(environmentLimitation.contains("League semantics"));
+        assertTrue(environmentLimitation.contains("League"));
 
         String adapterLimitation = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).limitation();
