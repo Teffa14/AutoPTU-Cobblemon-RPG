@@ -73,7 +73,7 @@ public final class BattlePresentationEntityProjector {
 
     /**
      * Binds only semantic cues whose public event contract defines the command subject as a combatant.
-     * Trainer-owned and future field/global cues intentionally remain outside this method.
+     * Trainer-owned and field/global cues intentionally remain outside this method.
      */
     public List<EntityBoundBattlePresentationCommand> bindCombatantSemanticCues(
             BattlePresentationBatch batch,
@@ -167,7 +167,7 @@ public final class BattlePresentationEntityProjector {
     private static boolean isCombatantSemanticCue(BattlePresentationCommand.Kind kind) {
         return switch (kind) {
             case STATUS_SKIP_CUE, RULE_EFFECT_CUE, PHASE_CUE, TURN_START_CUE, TURN_END_CUE -> true;
-            case MOVE_ANIMATION, HP_PROJECTION, ENTITY_RELOCATION, TRAINER_FEATURE_CUE -> false;
+            case MOVE_ANIMATION, HP_PROJECTION, ENTITY_RELOCATION, TRAINER_FEATURE_CUE, FIELD_EFFECT_CUE -> false;
         };
     }
 }
