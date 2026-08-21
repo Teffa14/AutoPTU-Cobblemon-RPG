@@ -9,7 +9,7 @@ import java.util.Map;
  * UpstreamCompatibilityMatrix support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "cd4941d146d18e34d985a8783ea8f670dfd6eef0";
+    public static final String AUTOPTU_JAVA_SHA = "c36163210105df5a609863cb5583779b2db5f245";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -38,28 +38,28 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState now supplies RuntimeInitiativePokemonCandidateFactory with BattleEnvironmentState, current injuries, current round, temporary effects, canonical Trainer Features, initiative modifier and Trainer skill ranks. HardenedInitiativeResolution derives Hardened and Press On! bonuses from that server-owned state.",
-                        "Minecraft must never supply resolved Speed, InitiativeEntry, sorted initiative, Hardened bonuses, injury counts, Press On! eligibility, Intimidate rank, weather/terrain ability outcomes, Tailwind eligibility or grounded claims during initiative resolution."));
+                        "BattleRuntimeState now supplies RuntimeInitiativePokemonCandidateFactory with BattleEnvironmentState, current injuries, current round, temporary effects, canonical Trainer Features, initiative modifier, Trainer skill ranks and canonical mounted rider->mount relationships. RiderAgilityTrainingResolution derives the doubling decision from server-owned mounted pairs plus Rider/Agility Training ownership.",
+                        "Minecraft must never supply resolved Speed, InitiativeEntry, sorted initiative, Hardened bonuses, injury counts, Press On! eligibility, Intimidate rank, mounted-pair eligibility, Rider Agility Training doubling, weather/terrain ability outcomes, Tailwind eligibility or grounded claims during initiative resolution."));
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Authoritative initiative candidate projection consumes current round, environment state, injury history, temporary effects and Trainer runtime state.",
+                        "Authoritative initiative candidate projection consumes current round, environment state including mounted pairs, injury history, temporary effects and Trainer runtime state.",
                         "Complete round lifecycle remains broader than initiative candidate resolution. Remaining Python terrain/weather progression, round effects, Trainer turns and other lifecycle hooks remain core/domain-owned."));
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleEnvironmentState provides a server-owned runtime seam for weather, PTU terrain identity, Tailwind teams and per-combatant grounded state; initiative-time weather/terrain ability resolution consumes it authoritatively.",
-                        "This is environment state ownership, not complete terrain/weather/hazard/zone/reaction support. Minecraft block observations must not be converted directly into PTU terrain, weather, Tailwind, grounded legality, hazards or reactions by the adapter."));
+                        "BattleEnvironmentState provides a server-owned runtime seam for weather, PTU terrain identity, Tailwind teams, per-combatant grounded state and semantic mounted rider->mount relationships; initiative resolution consumes those values authoritatively.",
+                        "This is environment/spatial relationship state ownership, not complete terrain/weather/hazard/zone/reaction support. Minecraft block observations, entity passenger state and live pose must not be converted directly into PTU terrain, weather, Tailwind, grounded or mounted legality by the adapter."));
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Initiative-time weather/terrain ability resolution and Hardened-related temporary-effect state are read from canonical BattleRuntimeState rather than adapter inputs.",
-                        "These remain bounded initiative paths and do not complete the PTU ability library. Minecraft must not grant abilities or calculate ability-driven initiative modifiers."));
+                        "Initiative-time weather/terrain ability resolution and Rider Agility Training now read canonical BattleRuntimeState environment, Trainer Feature and temporary-effect state rather than adapter inputs.",
+                        "These remain bounded initiative paths and do not complete the PTU ability library. Minecraft must not grant abilities or calculate ability/Feature-driven initiative modifiers."));
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState now owns case-insensitive skill ranks in addition to Feature ownership, AP and initiative modifier. Hardened Initiative reads Press On! ownership and Intimidate rank from the controlling Trainer.",
-                        "Only bounded Trainer Feature/skill consumers are implemented. Minecraft may transport frozen canonical Trainer identities and ranks but must not grant Features, choose skill ranks, execute perks or calculate Hardened/Press On! outcomes."));
+                        "TrainerRuntimeState owns Feature identities, AP, initiative modifier and skill ranks. Rider Agility Training now combines canonical Rider ownership with server-owned mounted relationships; Hardened Initiative reads Press On! ownership and Intimidate rank from the controlling Trainer.",
+                        "Only bounded Trainer Feature/skill consumers are implemented. Minecraft may transport frozen canonical Trainer identities, ranks and mounted relationships but must not grant Features, choose skill ranks, infer mounts from passengers, execute perks or calculate Rider/Hardened outcomes."));
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
