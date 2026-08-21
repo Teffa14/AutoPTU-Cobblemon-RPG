@@ -19,7 +19,7 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
                 "turn_start",
                 "turn_start|3|actor|start|2",
                 Map.of("actorId", "forged", "round", "999", "initiativeIndex", "99")
-        ));
+        )).getFirst();
 
         assertEquals(BattlePresentationCommand.Kind.TURN_START_CUE, command.kind());
         assertEquals("actor", command.subjectId());
