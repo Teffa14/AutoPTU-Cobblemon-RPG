@@ -5,14 +5,25 @@ import java.util.Set;
 
 /**
  * Server-owned trainer/controller state prepared for AutoPTU-Java TrainerRuntimeState.
- * Feature ownership and AP are frozen from canonical trainer state before battle start.
+ * Feature ownership, AP and the initiative modifier are frozen from canonical trainer state before battle start.
  */
 public record BattleTrainerRuntimeProjection(
         String trainerId,
         Set<String> trainerFeatures,
         int actionPoints,
+        int initiativeModifier,
         Set<String> controlledCombatantIds
 ) {
+    /** Backwards-compatible projection using the Python default initiative modifier. */
+    public BattleTrainerRuntimeProjection(
+            String trainerId,
+            Set<String> trainerFeatures,
+            int actionPoints,
+            Set<String> controlledCombatantIds
+    ) {
+        this(trainerId, trainerFeatures, actionPoints, 0, controlledCombatantIds);
+    }
+
     public BattleTrainerRuntimeProjection {
         if (trainerId == null || trainerId.isBlank()) {
             throw new IllegalArgumentException("trainerId is required");
