@@ -33,9 +33,25 @@ class BattleEventPlaybackEnvelopeTest {
                 "status_skip",
                 "trainer_feature",
                 "rule_effect",
+                "field_effect",
                 "phase",
+                "turn_start",
                 "turn_end"
         )));
+    }
+
+    @Test
+    void acceptsAuthoritativeFieldExpiryWithoutInterpretingIt() {
+        BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
+                7,
+                "field_effect",
+                "field_effect|room|wonder room|room_ends|4",
+                Map.of("remaining", "999", "cleanup", "forged")
+        );
+
+        assertEquals("field_effect", event.kind());
+        assertEquals("field_effect|room|wonder room|room_ends|4", event.stableKey());
+        assertEquals("999", event.attributes().get("remaining"));
     }
 
     @Test
