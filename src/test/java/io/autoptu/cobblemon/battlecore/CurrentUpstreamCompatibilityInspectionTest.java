@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc",
+        assertEquals("4c75dc082ae7848bdfa9c4e385e08ffde6760d9e",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -86,9 +86,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
         assertTrue(perks.contains("TrainerFeaturePrerequisiteResolution"));
         assertTrue(perks.contains("class, subclass, level"));
+        assertTrue(perks.contains("TrainerFeatureContextResolution"));
+        assertTrue(perks.contains("once-per-actor-per-round"));
+        assertTrue(perks.contains("PythonRandom"));
         assertTrue(perksLimit.contains("must not grant Features"));
-        assertTrue(perksLimit.contains("decide prerequisites"));
-        assertTrue(perksLimit.contains("Context gates"));
+        assertTrue(perksLimit.contains("decide prerequisites or context gates"));
+        assertTrue(perksLimit.contains("Frequency/cooldowns"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();
@@ -124,8 +127,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("verifies the resulting server position"));
         assertTrue(adapter.contracts().contains("EntityBoundBattleHealthProjection"));
         assertTrue(adapter.contracts().contains("exact live Cobblemon HP mirror"));
+        assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
+        assertTrue(adapter.contracts().contains("ErroredBattleStart"));
+        assertTrue(adapter.contracts().contains("BATTLE_STARTED_POST never fires"));
+        assertTrue(adapter.limitation().contains("AutoPTU reservation creation"));
         assertTrue(adapter.limitation().contains("Zero-HP/faint presentation"));
-        assertTrue(adapter.limitation().contains("battle-trigger interception"));
         assertTrue(adapter.limitation().contains("write-through presentation state"));
     }
 }
