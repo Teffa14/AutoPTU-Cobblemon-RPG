@@ -64,19 +64,7 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             AuthenticatedPlayerContextResolver playerContextResolver,
             PlayerVsWildEncounterAuthorityService authorityService
     ) {
-        this(
-                identityRegistry,
-                playerContextResolver,
-                (playerId, playerPokemonIds, consumableQuantities, arena, participants) ->
-                        authorityService.reserve(
-                                playerId,
-                                playerPokemonIds,
-                                consumableQuantities,
-                                arena,
-                                participants
-                        ).allowed()
-        );
-        Objects.requireNonNull(authorityService, "authorityService");
+        this(identityRegistry, playerContextResolver, reservationHandler(authorityService));
     }
 
     CobblemonPlayerVsWildClaimCoordinator(
@@ -137,6 +125,18 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
                 context.arena(),
                 List.copyOf(canonicalParticipants)
         );
+    }
+
+    private static ReservationHandler reservationHandler(PlayerVsWildEncounterAuthorityService authorityService) {
+        PlayerVsWildEncounterAuthorityService authority = Objects.requireNonNull(authorityService, "authorityService");
+        return (playerId, playerPokemonIds, consumableQuantities, arena, participants) ->
+                authority.reserve(
+                        playerId,
+                        playerPokemonIds,
+                        consumableQuantities,
+                        arena,
+                        participants
+                ).allowed();
     }
 
     private static String requireId(String value, String field) {
