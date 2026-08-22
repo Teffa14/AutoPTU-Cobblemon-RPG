@@ -40,7 +40,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesTargetSelectionAndRoundExpiry() {
-        assertEquals("66d82a5beb767ec8dd32803b5d08afaad3d454aa",
+        assertEquals("f3f9884b1142ff1a99dbf647bcf342ba6768bb39",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
@@ -57,8 +57,9 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(lifecycle.contains("FieldRoundLifecycleHook at order 10"));
         assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
         assertTrue(lifecycle.contains("RoundTemporaryEffectExpiryHook at order 30"));
-        assertTrue(lifecycle.contains("Follow Me then Foresight"));
-        assertTrue(lifecycleLimit.contains("expiry decisions"));
+        assertTrue(lifecycle.contains("Trainer action reset at order 40"));
+        assertTrue(lifecycleLimit.contains("temporary-effect metadata"));
+        assertTrue(lifecycleLimit.contains("temporary AP grants"));
         assertTrue(moves.contains("stale target-id anchors"));
         assertTrue(moves.contains("position-only delayed requests"));
         assertTrue(moves.contains("EffectiveMoveTargetResolver"));
