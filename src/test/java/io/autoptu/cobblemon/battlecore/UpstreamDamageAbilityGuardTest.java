@@ -86,6 +86,7 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
         assertTrue(adapter.adapterPolicy().contains("HP projection"));
         assertTrue(adapter.adapterPolicy().contains("battle-trigger interception"));
-        assertTrue(adapter.adapterPolicy().contains("identity/presentation inputs"));
+        assertTrue(adapter.adapterPolicy().contains("ServerPlayerEntity"));
+        assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
 }
