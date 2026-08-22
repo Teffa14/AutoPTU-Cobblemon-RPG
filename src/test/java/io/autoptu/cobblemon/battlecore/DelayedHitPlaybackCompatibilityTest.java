@@ -40,7 +40,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesAndTargetSelection() {
-        assertEquals("1b4a38e871190844ae296a0fbb5966ea6f3da8bf",
+        assertEquals("f094111f248f3a6bfe78d835e8f4bce115f84ef7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
@@ -49,6 +49,8 @@ class DelayedHitPlaybackCompatibilityTest {
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         String limitations = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
+        String targeting = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).contracts();
 
         assertTrue(lifecycle.contains("BattleDelayedHitState"));
         assertTrue(lifecycle.contains("FieldRoundLifecycleHook at ROUND_START order 10"));
@@ -56,13 +58,15 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(lifecycle.contains("originating action/frequency spend unchanged"));
         assertTrue(moves.contains("current authoritative RuntimeCombatantState.position"));
         assertTrue(moves.contains("falls back to the stored target position"));
-        assertTrue(moves.contains("recomputes affected_tiles"));
+        assertTrue(moves.contains("EffectiveMoveTargetResolver"));
+        assertTrue(moves.contains("affected tiles"));
         assertTrue(moves.contains("footprint overlap"));
         assertTrue(moves.contains("line of sight"));
-        assertTrue(moves.contains("explicit target-id priority"));
-        assertTrue(moves.contains("without a second action/frequency spend"));
+        assertTrue(moves.contains("HP eligibility"));
+        assertTrue(moves.contains("originating action/frequency spend"));
+        assertTrue(targeting.contains("hp <= 0"));
+        assertTrue(targeting.contains("inactive positive-HP"));
         assertTrue(limitations.contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(limitations.contains("known review defect"));
         assertTrue(limitations.contains("consume or refund move frequency/actions"));
     }
 
