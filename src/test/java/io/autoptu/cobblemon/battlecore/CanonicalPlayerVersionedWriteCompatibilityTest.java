@@ -29,8 +29,9 @@ class CanonicalPlayerVersionedWriteCompatibilityTest {
         assertTrue(adapter.contracts().contains("schema-versioned durable single-player persistence"));
         assertTrue(adapter.contracts().contains("atomic replacement"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
-        assertTrue(adapter.contracts().contains("two-process dedicated-server restart verification"));
-        assertTrue(adapter.adapterPolicy().contains("durable Pokemon/item/arena composition"));
+        assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
+        assertTrue(adapter.contracts().contains("CanonicalPlayerEncounterProfile"));
+        assertTrue(adapter.adapterPolicy().contains("independent canonical Pokemon/item aggregate persistence"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("partial-commit recovery"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
