@@ -36,6 +36,13 @@ public final class BattleEncounterRosterReservationService {
     }
 
     public BattleEncounterRosterReservationDecision reserve(List<BattleEncounterParticipantRequest> requests) {
+        return reserve(requests, null);
+    }
+
+    BattleEncounterRosterReservationDecision reserve(
+            List<BattleEncounterParticipantRequest> requests,
+            BattleReservationAuthority reservationAuthority
+    ) {
         if (requests == null || requests.isEmpty()) {
             return BattleEncounterRosterReservationDecision.deny("invalid_participants");
         }
@@ -81,13 +88,12 @@ public final class BattleEncounterRosterReservationService {
                 ));
             }
 
-            String reservationId = reservationIds.get();
-            if (reservationId == null || reservationId.isBlank()) {
-                throw new IllegalStateException("reservation id supplier returned blank id");
-            }
+            BattleReservationAuthority authority = reservationAuthority == null
+                    ? issueReservationAuthority()
+                    : reservationAuthority;
             BattleEncounterRosterReservation reservation = new BattleEncounterRosterReservation(
-                    reservationId,
-                    rngSeeds.getAsLong(),
+                    authority.reservationId(),
+                    authority.rngSeed(),
                     participants
             );
             if (!reservationRepository.tryReserve(reservation)) {
@@ -97,6 +103,14 @@ public final class BattleEncounterRosterReservationService {
         } catch (IllegalArgumentException ex) {
             return BattleEncounterRosterReservationDecision.deny("invalid_encounter:" + ex.getMessage());
         }
+    }
+
+    private BattleReservationAuthority issueReservationAuthority() {
+        String reservationId = reservationIds.get();
+        if (reservationId == null || reservationId.isBlank()) {
+            throw new IllegalStateException("reservation id supplier returned blank id");
+        }
+        return new BattleReservationAuthority(reservationId, rngSeeds.getAsLong());
     }
 
     public BattleEncounterRosterReservationDecision release(String reservationId) {
