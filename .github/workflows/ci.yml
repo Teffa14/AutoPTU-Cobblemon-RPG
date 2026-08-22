@@ -19,7 +19,7 @@ jobs:
           gradle-version: '8.14.3'
       - name: Run authority tests
         run: gradle test --no-daemon
-      - name: Boot Fabric dedicated server
+      - name: Boot Fabric + Cobblemon dedicated server
         shell: bash
         run: |
           set -euo pipefail
@@ -34,8 +34,9 @@ jobs:
           trap cleanup EXIT
 
           ready=0
-          for _ in $(seq 1 120); do
+          for _ in $(seq 1 180); do
             if grep -q 'AutoPTU Fabric server adapter initialized' fabric-adapter/run/logs/latest.log 2>/dev/null \
+              && grep -q 'AutoPTU Cobblemon runtime detected:' fabric-adapter/run/logs/latest.log 2>/dev/null \
               && grep -q 'Done (' fabric-adapter/run/logs/latest.log 2>/dev/null; then
               ready=1
               break
