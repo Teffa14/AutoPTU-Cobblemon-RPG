@@ -27,22 +27,21 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, targeting.support());
-        assertTrue(lifecycle.contracts().contains("BattleDelayedHitState"));
         assertTrue(lifecycle.contracts().contains("DelayedHitRoundLifecycleHook at order 20"));
-        assertTrue(lifecycle.contracts().contains("originating action/frequency spend"));
-        assertTrue(lifecycle.limitation().contains("Position-only TILE delayed execution"));
+        assertTrue(lifecycle.contracts().contains("RoundTemporaryEffectExpiryHook at order 30"));
+        assertTrue(lifecycle.contracts().contains("TemporaryEffectStore.removeFirst"));
+        assertTrue(lifecycle.limitation().contains("currentRound"));
         assertTrue(lifecycle.limitation().contains("own the delayed queue or mutable RNG"));
 
-        assertTrue(moves.contracts().contains("stale combatant targets"));
-        assertTrue(moves.contracts().contains("stored authoritative anchor"));
+        assertTrue(moves.contracts().contains("stale target-id anchors"));
+        assertTrue(moves.contracts().contains("position-only delayed requests"));
         assertTrue(moves.contracts().contains("EffectiveMoveTargetResolver"));
-        assertTrue(moves.contracts().contains("footprint overlap"));
+        assertTrue(moves.contracts().contains("Stored target_position"));
+        assertTrue(moves.contracts().contains("footprints"));
         assertTrue(moves.contracts().contains("line of sight"));
         assertTrue(moves.contracts().contains("HP eligibility"));
-        assertTrue(moves.contracts().contains("empty effective-target set"));
-        assertTrue(moves.contracts().contains("authoritative live position"));
-        assertTrue(moves.limitation().contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(moves.limitation().contains("precompute affected tiles"));
+        assertTrue(moves.contracts().contains("live target IDs"));
+        assertTrue(moves.limitation().contains("must not choose delayed targets"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
 
@@ -69,7 +68,8 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "actionConsumer", "actionMarker", "moveResolutionInput", "moveAc", "evasion",
                 "accuracyStage", "attackValue", "defenseValue", "effectiveDb", "typeMultiplier",
                 "damageModifiers", "postDamageHooks", "stabDamageBase", "staleTargetSelector",
-                "replacementTargetSelector")) {
+                "replacementTargetSelector", "roundTemporaryEffectExpiry", "temporaryEffectExpiryHook",
+                "followMeExpiry", "foresightExpiry", "expiryDecision", "currentRound")) {
             assertFalse(components.contains(forbidden), forbidden + " must remain AutoPTU-Java-owned");
         }
     }
