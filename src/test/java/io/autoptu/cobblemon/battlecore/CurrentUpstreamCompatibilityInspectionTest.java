@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("473067bdd5b22f755014e53235e3b647d662902a",
+        assertEquals("63526aa2dce83d0faa22b364705cd36f590d964b",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("f22cdbb831a2749c12c11a5122827c1e69a3c094",
+        assertEquals("436b09ceb0811b74dc21924995aa82e56e581061",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -94,9 +94,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("TrainerFeatureEffectRegistry"));
         assertTrue(perks.contains("heal/heal_active"));
         assertTrue(perks.contains("raise_cs"));
+        assertTrue(perks.contains("grant_temp_hp"));
         assertTrue(perks.contains("only after the effect reports applied"));
         assertTrue(perksLimit.contains("AP-specific costs"));
         assertTrue(perksLimit.contains("wider Python effect library"));
+        assertTrue(perksLimit.contains("Temporary HP damage absorption"));
         assertTrue(perksLimit.contains("must not grant Features"));
         assertTrue(perksLimit.contains("select or rewrite targets"));
 
@@ -139,11 +141,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("FileVersionedCanonicalStateRepository"));
         assertTrue(adapter.contracts().contains("one CAS winner"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
-        assertTrue(adapter.contracts().contains("world save root"));
-        assertTrue(adapter.contracts().contains("second process"));
+        assertTrue(adapter.contracts().contains("Minecraft save root"));
+        assertTrue(adapter.contracts().contains("CanonicalPlayerEncounterProfile"));
+        assertTrue(adapter.contracts().contains("FileCanonicalPlayerEncounterProfileRepository"));
+        assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerEncounterContextSource"));
+        assertTrue(adapter.contracts().contains("BattleAuthorityService still re-resolves every Pokemon and item"));
         assertTrue(adapter.limitation().contains("successful authenticated graphical client encounter is still pending"));
-        assertTrue(adapter.limitation().contains("Pokemon/item/arena composition"));
-        assertTrue(adapter.limitation().contains("production identity-to-player-context source"));
+        assertTrue(adapter.limitation().contains("not independent Pokemon/item aggregate truth"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("identity/presentation inputs only"));
     }
