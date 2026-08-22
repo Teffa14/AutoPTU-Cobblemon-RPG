@@ -67,7 +67,7 @@ jobs:
 
           (
             cd "$server_dir"
-            java \
+            exec java \
               -Dautoptu.liveRelocationSmoke=true \
               -Dautoptu.liveHealthSmoke=true \
               -Dautoptu.liveBattleInterceptionSmoke=true \
@@ -109,7 +109,7 @@ jobs:
 
           (
             cd "$server_dir"
-            java \
+            exec java \
               -Dautoptu.liveCanonicalStoreRestartSmoke=verify \
               -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke-restart.log 2>&1
           ) &
