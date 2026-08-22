@@ -16,6 +16,6 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.10.2'
+          gradle-version: '8.14.3'
       - name: Run authority tests
         run: gradle test --no-daemon
