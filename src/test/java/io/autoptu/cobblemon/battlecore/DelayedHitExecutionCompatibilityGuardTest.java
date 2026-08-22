@@ -29,7 +29,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, targeting.support());
         assertTrue(lifecycle.contracts().contains("DelayedHitRoundLifecycleHook at order 20"));
         assertTrue(lifecycle.contracts().contains("RoundTemporaryEffectExpiryHook at order 30"));
-        assertTrue(lifecycle.contracts().contains("TemporaryEffectStore.removeFirst"));
+        assertTrue(lifecycle.contracts().contains("Trainer action reset at order 40"));
         assertTrue(lifecycle.limitation().contains("currentRound"));
         assertTrue(lifecycle.limitation().contains("queue/RNG mutation"));
 

@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("66d82a5beb767ec8dd32803b5d08afaad3d454aa",
+        assertEquals("f3f9884b1142ff1a99dbf647bcf342ba6768bb39",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -61,11 +61,34 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycle.contains("FieldRoundLifecycleHook at order 10"));
         assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
         assertTrue(lifecycle.contains("RoundTemporaryEffectExpiryHook at order 30"));
-        assertTrue(lifecycle.contains("Follow Me then Foresight"));
-        assertTrue(lifecycle.contains("TemporaryEffectStore.removeFirst"));
-        assertTrue(lifecycleLimit.contains("Trainer AP/temporary-AP resets"));
+        assertTrue(lifecycle.contains("temporary-AP expiry"));
+        assertTrue(lifecycle.contains("Trainer action reset at order 40"));
+        assertTrue(lifecycle.contains("TemporaryApGrant"));
+        assertTrue(lifecycle.contains("currentRound > expiresRound"));
+        assertTrue(lifecycle.contains("temporary-grant-first AP spending"));
         assertTrue(lifecycleLimit.contains("must not supply currentRound"));
-        assertTrue(lifecycleLimit.contains("expiry decisions"));
+        assertTrue(lifecycleLimit.contains("temporary AP grants"));
+        assertTrue(lifecycleLimit.contains("Trainer action reset"));
+
+        String actionEconomy = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
+        String actionLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
+        assertTrue(actionEconomy.contains("TrainerRuntimeState"));
+        assertTrue(actionEconomy.contains("temporary AP grants"));
+        assertTrue(actionEconomy.contains("resetting Trainer actions"));
+        assertTrue(actionLimit.contains("temporary AP grants/expiry"));
+        assertTrue(actionLimit.contains("Trainer action-reset state"));
+
+        String perks = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
+        String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
+        assertTrue(perks.contains("temporary AP grants"));
+        assertTrue(perks.contains("ActionBudget"));
+        assertTrue(perksLimit.contains("must not grant Features or temporary AP"));
+        assertTrue(perksLimit.contains("choose AP grant expiry/source"));
+        assertTrue(perksLimit.contains("reset Trainer actions"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();
