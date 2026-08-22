@@ -40,7 +40,6 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("recomputes affected_tiles"));
         assertTrue(moves.contracts().contains("footprint overlap"));
         assertTrue(moves.contracts().contains("line of sight"));
-        assertTrue(moves.contracts().contains("target-id priority"));
         assertTrue(moves.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
         assertTrue(moves.contracts().contains("PythonRandom"));
         assertTrue(moves.contracts().contains("HP mutation"));
@@ -48,6 +47,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("MoveResolvedEvent"));
         assertTrue(moves.contracts().contains("without a second action/frequency spend"));
         assertTrue(moves.limitation().contains("TILE/area delayed execution remains unsupported on main"));
+        assertTrue(moves.limitation().contains("known review defect"));
         assertTrue(moves.limitation().contains("freeze a live combatant target to the stored scheduling position"));
         assertTrue(moves.limitation().contains("precompute affected tiles"));
         assertTrue(moves.limitation().contains("footprint overlap"));
