@@ -35,8 +35,10 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("MinecraftServer PlayerManager"));
         assertTrue(adapter.contracts().contains("CanonicalPlayerMutationService"));
         assertTrue(adapter.contracts().contains("VersionedCanonicalStateRepository"));
+        assertTrue(adapter.contracts().contains("FileVersionedCanonicalStateRepository"));
+        assertTrue(adapter.contracts().contains("required atomic replacement"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("durable production canonical-state backend"));
+        assertTrue(adapter.adapterPolicy().contains("cross-aggregate Pokemon/item transactions"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
 
@@ -98,12 +100,15 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(perks.contracts().contains("TrainerFeatureUsageResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureExecutionService.executeAuthoritative"));
         assertTrue(perks.contracts().contains("TrainerFeatureTargetResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureEffectRegistry"));
+        assertTrue(perks.contracts().contains("heal/heal_active"));
+        assertTrue(perks.contracts().contains("raise_cs"));
         assertTrue(perks.contracts().contains("only after an applied effect"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
         assertTrue(perks.adapterPolicy().contains("select or rewrite targets"));
         assertTrue(perks.adapterPolicy().contains("AP-specific costs"));
-        assertTrue(perks.adapterPolicy().contains("stops before effect application"));
+        assertTrue(perks.adapterPolicy().contains("broader Python effect/library dispatcher"));
     }
 
     @Test
@@ -199,7 +204,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("f793666236a19d3c09547e5603a4fa3ec595c899", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("8e5dea0cbafecb19dfa800918f7cbe2fe99fcd20", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("473067bdd5b22f755014e53235e3b647d662902a", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("cb5b4f2562e020aaf88a0df8690759274f28abf5", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
