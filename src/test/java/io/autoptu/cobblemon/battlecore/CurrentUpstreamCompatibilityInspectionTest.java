@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("add15a4f9fcd55eb174d7f8b3a2dc9a4f4aa4655",
+        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -66,7 +66,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycle.contains("DeclaredActionRoundLifecycleHook at order 50"));
         assertTrue(lifecycle.contains("DeclaredActionState"));
         assertTrue(lifecycle.contains("RoundTrainerFeatureLifecyclePolicy"));
-        assertTrue(lifecycleLimit.contains("matches Python's relative ordering"));
+        assertTrue(lifecycleLimit.contains("matches Python's relative cleanup ordering"));
         assertTrue(lifecycleLimit.contains("must not supply currentRound"));
         assertTrue(lifecycleLimit.contains("declared actions"));
         assertTrue(lifecycleLimit.contains("send-out decisions"));
@@ -84,10 +84,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
-        assertTrue(perks.contains("declared-action records"));
         assertTrue(perks.contains("RoundTrainerFeatureLifecyclePolicy"));
-        assertTrue(perksLimit.contains("must not grant Features or temporary AP"));
-        assertTrue(perksLimit.contains("create/clear declared actions"));
+        assertTrue(perks.contains("TrainerFeaturePrerequisiteResolution"));
+        assertTrue(perks.contains("class, subclass, level"));
+        assertTrue(perksLimit.contains("must not select eligible Trainer Features"));
+        assertTrue(perksLimit.contains("decide prerequisites"));
         assertTrue(perksLimit.contains("dispatch round_start Features"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
@@ -119,8 +120,9 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertTrue(adapter.contracts().contains("dedicated-server ModInitializer"));
-        assertTrue(adapter.contracts().contains("CI boots a dedicated Fabric server"));
-        assertTrue(adapter.limitation().contains("Cobblemon runtime/entity lookup"));
-        assertTrue(adapter.limitation().contains("entity-bound presentation operation"));
+        assertTrue(adapter.contracts().contains("Cobblemon 1.7.3"));
+        assertTrue(adapter.contracts().contains("presentation UUID lookup"));
+        assertTrue(adapter.limitation().contains("entity-bound relocation"));
+        assertTrue(adapter.limitation().contains("HP projection"));
     }
 }
