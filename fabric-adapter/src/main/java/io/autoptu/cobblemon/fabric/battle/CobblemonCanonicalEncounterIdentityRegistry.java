@@ -78,6 +78,16 @@ public final class CobblemonCanonicalEncounterIdentityRegistry {
         });
     }
 
+    /** Resolves only the server-owned participant identity for an already registered external actor. */
+    public synchronized Optional<String> resolveParticipantId(
+            CobblemonBattleStartInterceptor.ParticipantKind kind,
+            String externalActorId
+    ) {
+        if (kind == null || externalActorId == null || externalActorId.isBlank()) return Optional.empty();
+        Binding binding = bindings.get(new ExternalParticipantKey(kind, externalActorId.strip()));
+        return binding == null ? Optional.empty() : Optional.of(binding.canonicalParticipantId());
+    }
+
     public synchronized Optional<BattleEncounterParticipantRequest> resolve(
             CobblemonBattleStartInterceptor.ParticipantIdentity external
     ) {

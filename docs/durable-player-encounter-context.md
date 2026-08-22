@@ -1,0 +1,15 @@
+# Durable player encounter context
+
+The authenticated player path now has a durable, server-owned source for the selection inputs needed by a player-versus-wild reservation.
+
+`CanonicalPlayerEncounterProfile` stores a canonical player ID, an ordered canonical Pokemon roster, requested consumable item-instance quantities, an immutable `BattleArenaSnapshot`, and a profile revision. `FileCanonicalPlayerEncounterProfileRepository` stores that profile under the same world-scoped `autoptu/canonical-state` root used by canonical player persistence. Records are schema-versioned, keyed by a SHA-256 derivative of the canonical player ID, written through a forced temporary file plus atomic replacement, and protected by in-process and OS file locks. Revision replacement is compare-and-set and advances exactly once.
+
+The profile is selection state, not asset authority. It does not certify that a Pokemon belongs to the player, that an item exists, that an item quantity is sufficient, or that a held item is usable. `BattleAuthorityService` still re-resolves every selected Pokemon and item through `CanonicalAssetRepository`, checks ownership and quantities, freezes revisions into the battle snapshot, and rejects stale or invalid reservations. The arena supplies only a dimension, origin, elevation and cardinal grid transform. It does not decide terrain, collision, movement, targeting, hazards or forced movement.
+
+`PersistentCanonicalPlayerEncounterContextSource` receives an authenticated Minecraft UUID only after `FabricAuthenticatedPlayerContextResolver` has confirmed that the player is currently connected. It resolves that external UUID through `CobblemonCanonicalEncounterIdentityRegistry` to a server-owned canonical participant ID, requires the canonical player aggregate to exist, and then loads the durable encounter profile. No `ServerPlayerEntity` stat, inventory slot, permission, position, Cobblemon Pokemon value or client packet field is trusted as PTU state.
+
+The existing compatibility feature `AUTHENTICATED_PLAYER_CONTEXT_RESOLUTION` remains the matrix boundary for this slice. Its only upstream dependency is `MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK`, currently PARTIAL. The new persistence does not authorize any missing battle-engine category.
+
+The production restart smoke now seeds both the canonical Trainer aggregate and its encounter profile in the first dedicated-server process. A second JVM opens the same Minecraft world and must recover both records exactly before the existing restart-success marker is emitted.
+
+Still deferred: durable canonical Pokemon and item aggregate stores, cross-aggregate journaling/recovery, arena-edit authorization services, automatic profile mutation from client requests, full authenticated graphical player-versus-wild execution, and `RuntimeCombatantState` materialization. Move effects, abilities, item effects, Trainer Feature execution, terrain semantics, status lifecycle, forced movement, reactions and tactical AI remain owned by AutoPTU-Java and are not approximated here.
