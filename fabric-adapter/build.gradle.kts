@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.SourceSetContainer
+
 plugins {
     id("fabric-loom") version "1.11.8"
 }
@@ -18,6 +20,12 @@ java {
     }
 }
 
+val productionSmokeMods by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:1.21.1")
     mappings("net.fabricmc:yarn:1.21.1+build.3:v2")
@@ -26,10 +34,36 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
     modImplementation("com.cobblemon:fabric:1.7.3+1.21.1")
 
+    productionSmokeMods("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
+    productionSmokeMods("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
+    productionSmokeMods("com.cobblemon:fabric:1.7.3+1.21.1")
+
     implementation(project(":"))
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+// The production Fabric mod must carry the adapter-neutral integration classes it invokes.
+// They contain no Minecraft/Fabric/Cobblemon types and remain owned by the root integration module.
+val rootMain = project(":").extensions.getByType<SourceSetContainer>().named("main")
+tasks.jar {
+    dependsOn(":classes")
+    from(rootMain.map { it.output })
+}
+
+tasks.processResources {
+    inputs.property("version", project.version)
+    filesMatching("fabric.mod.json") {
+        expand(mapOf("version" to project.version))
+    }
+}
+
+tasks.register<Copy>("prepareProductionSmokeMods") {
+    dependsOn("remapJar")
+    into(layout.buildDirectory.dir("production-smoke/mods"))
+    from(productionSmokeMods)
+    from(tasks.named("remapJar"))
 }
 
 tasks.test {
