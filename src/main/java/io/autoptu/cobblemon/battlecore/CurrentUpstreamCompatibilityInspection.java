@@ -8,7 +8,7 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "f094111f248f3a6bfe78d835e8f4bce115f84ef7";
+    public static final String AUTOPTU_JAVA_SHA = "784c74790b9cb1ec1723d89027724bbac885897f";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -49,14 +49,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleDelayedHitState owns the Python-compatible battle RNG stream. FieldRoundLifecycleHook at ROUND_START order 10 executes terrain -> zones -> rooms before DelayedHitRoundLifecycleHook at order 20 and DelayedHitLifecycleExecutor. Matured COMBATANT-target hits emit MoveResolvedEvent with the originating action/frequency spend unchanged and participate in damage-history rotation.",
-                        "Complete lifecycle remains broader. TILE/area delayed hits remain unsupported. Trainer AP/temporary-AP, Air Lock and other Python round behavior remain pending. Minecraft must not advance field durations, inject lifecycle hooks, mature delayed hits, own the delayed queue or mutable RNG, or duplicate action/frequency bookkeeping."));
+                        "BattleDelayedHitState owns the Python-compatible battle RNG stream. FieldRoundLifecycleHook at ROUND_START order 10 executes terrain -> zones -> rooms before DelayedHitRoundLifecycleHook at order 20 and DelayedHitLifecycleExecutor. Matured delayed hits use authoritative target resolution, emit normal move events and retain the originating action/frequency spend.",
+                        "Complete lifecycle remains broader. Position-only TILE delayed execution, Trainer AP/temporary-AP, Air Lock and other Python round behavior remain pending. Minecraft must not advance field durations, inject lifecycle hooks, mature delayed hits, own the delayed queue or mutable RNG, or duplicate action/frequency bookkeeping."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "DelayedHitExecutionPolicy keeps a targetId as COMBATANT targeting at maturity, uses current authoritative RuntimeCombatantState.position while the defender exists, and falls back to the stored target position when the defender is missing without rewriting the move to TILE. EffectiveMoveTargetResolver recomputes affected tiles, footprint overlap, line of sight and HP eligibility from current BattleRuntimeState. DelayedHitResourcePolicy and BattleRuntimeState-owned BattleDelayedHitState preserve the originating action/frequency spend during authoritative ROUND_START execution.",
-                        "This is bounded delayed-hit execution. TILE/area delayed execution remains unsupported on main. Minecraft must not freeze a live combatant target to its scheduling position, precompute affected tiles, filter targets, supply RNG/combat inputs, consume or refund move frequency/actions, rewrite target mode or implement missing-target area selection."));
+                        "DelayedHitBindingResolver now expands stale combatant targets through EffectiveMoveTargetResolver using the stored authoritative anchor. Current battlefield geometry, footprint overlap, line of sight and HP eligibility determine any replacement combatants in stable order; an empty effective-target set consumes the matured entry without inventing a target. Existing combatant targets still follow their authoritative live position.",
+                        "This is bounded delayed-hit execution. Position-only TILE/area delayed execution remains unsupported on main. Minecraft must not choose replacement targets, freeze live combatant geometry, precompute affected tiles, supply RNG/combat inputs, consume or refund move frequency/actions, or rewrite delayed target mode."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
