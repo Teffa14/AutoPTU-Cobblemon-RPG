@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitExecutionCompatibilityGuardTest {
     @Test
-    void delayedHitCombatantExecutionUsesBattleOwnedRoundStartLifecycleResourcesAndTargetBinding() {
+    void delayedHitCombatantExecutionUsesBattleOwnedRoundStartLifecycleResourcesAndLiveTargetGeometry() {
         CurrentUpstreamCompatibilityInspection.Evidence lifecycle =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
@@ -34,10 +34,12 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(lifecycle.limitation().contains("own the delayed queue or mutable RNG"));
         assertTrue(lifecycle.limitation().contains("mature delayed hits"));
 
-        assertTrue(moves.contracts().contains("forwards both targetId and targetPosition unchanged"));
-        assertTrue(moves.contracts().contains("targetId remains COMBATANT targeting"));
-        assertTrue(moves.contracts().contains("aim anchor"));
-        assertTrue(moves.contracts().contains("position-only delayed entry resolves as TILE"));
+        assertTrue(moves.contracts().contains("remains COMBATANT targeting at maturity"));
+        assertTrue(moves.contracts().contains("current authoritative RuntimeCombatantState.position"));
+        assertTrue(moves.contracts().contains("position-only delayed entry remains TILE targeting"));
+        assertTrue(moves.contracts().contains("recomputes affected_tiles"));
+        assertTrue(moves.contracts().contains("footprint overlap"));
+        assertTrue(moves.contracts().contains("line of sight"));
         assertTrue(moves.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
         assertTrue(moves.contracts().contains("PythonRandom"));
         assertTrue(moves.contracts().contains("HP mutation"));
@@ -45,14 +47,17 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("MoveResolvedEvent"));
         assertTrue(moves.contracts().contains("without a second action/frequency spend"));
         assertTrue(moves.limitation().contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(moves.limitation().contains("rewrite target mode because a target position exists"));
-        assertTrue(moves.limitation().contains("replace a canonical targetId with TILE targeting"));
+        assertTrue(moves.limitation().contains("known review defect"));
+        assertTrue(moves.limitation().contains("freeze a live combatant target to the stored scheduling position"));
+        assertTrue(moves.limitation().contains("precompute affected tiles"));
+        assertTrue(moves.limitation().contains("footprint overlap"));
+        assertTrue(moves.limitation().contains("line of sight"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
     }
 
     @Test
-    void runtimeAssemblyCannotInjectDelayedHitLifecycleResourceCombatPreparationOrTargetInterpretation() {
+    void runtimeAssemblyCannotInjectDelayedHitLifecycleResourceCombatPreparationOrTargetGeometry() {
         Set<String> components = Arrays.stream(BattleRuntimeAssemblySeed.class.getRecordComponents())
                 .map(RecordComponent::getName)
                 .collect(Collectors.toSet());
@@ -75,6 +80,11 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "targetPositionForcesTile",
                 "delayedTargetRewriter",
                 "targetBindingResolver",
+                "delayedTargetAnchor",
+                "liveTargetPosition",
+                "affectedTiles",
+                "footprintOverlap",
+                "lineOfSightResult",
                 "moveActionResolver",
                 "frequencyConsumer",
                 "frequencyRecorder",

@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("bffc16b3642738757e3c8eb09fbd9a4921e9beba",
+        assertEquals("ce990c84ad133f9b0b56f774e2a59c8cb0c4d90b",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -82,10 +82,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String moveContracts = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         assertTrue(moveContracts.contains("DelayedHitExecutionPolicy"));
-        assertTrue(moveContracts.contains("forwards both targetId and targetPosition unchanged"));
-        assertTrue(moveContracts.contains("targetId remains COMBATANT targeting"));
-        assertTrue(moveContracts.contains("position retained as the aim anchor"));
-        assertTrue(moveContracts.contains("position-only delayed entry resolves as TILE"));
+        assertTrue(moveContracts.contains("remains COMBATANT targeting at maturity"));
+        assertTrue(moveContracts.contains("current authoritative RuntimeCombatantState.position"));
+        assertTrue(moveContracts.contains("position-only delayed entry remains TILE targeting"));
+        assertTrue(moveContracts.contains("recomputes affected_tiles"));
+        assertTrue(moveContracts.contains("footprint overlap"));
+        assertTrue(moveContracts.contains("line of sight"));
         assertTrue(moveContracts.contains("DelayedHitResourcePolicy"));
         assertTrue(moveContracts.contains("BattleRuntimeState owns BattleDelayedHitState"));
         assertTrue(moveContracts.contains("DelayedHitRoundLifecycleHook automatically during ROUND_START"));
@@ -98,8 +100,9 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
         assertTrue(moveLimitation.contains("bounded delayed-hit execution"));
         assertTrue(moveLimitation.contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(moveLimitation.contains("rewrite target mode because a target position exists"));
-        assertTrue(moveLimitation.contains("replace a canonical targetId with TILE targeting"));
+        assertTrue(moveLimitation.contains("known review defect"));
+        assertTrue(moveLimitation.contains("freeze a live combatant target to the stored scheduling position"));
+        assertTrue(moveLimitation.contains("precompute affected tiles"));
         assertTrue(moveLimitation.contains("supply RNG/combat inputs"));
         assertTrue(moveLimitation.contains("consume or refund move frequency/actions"));
 
