@@ -25,20 +25,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Durable single-player aggregate store with schema-versioned binary records and OS-level write locks.
  *
  * <p>Each player is stored in its own atomically replaced file. Writers for the same player serialize
- * through a stable lock file, so independent repository instances in the same JVM or different JVMs
- * observe one compare-and-set winner for a given revision. The file contents are forced before the
- * atomic rename. This provides process-restart durability for the player aggregate while deliberately
- * making no cross-aggregate transaction claim for Pokemon/items.</p>
+ * through an in-process lock plus a stable OS lock file, so independent repository instances in the
+ * same JVM or different JVMs observe one compare-and-set winner for a given revision. The file
+ * contents are forced before the atomic rename. This provides process-restart durability for the
+ * player aggregate while deliberately making no cross-aggregate transaction claim for Pokemon/items.</p>
  */
 public final class FileVersionedCanonicalStateRepository implements VersionedCanonicalStateRepository {
     static final int SCHEMA_VERSION = 1;
     private static final int MAGIC = 0x41505455; // APTU
     private static final int MAX_COLLECTION_SIZE = 100_000;
+    private static final ConcurrentMap<Path, ReentrantLock> PROCESS_LOCKS = new ConcurrentHashMap<>();
 
     private final Path playersDirectory;
 
@@ -109,6 +113,8 @@ public final class FileVersionedCanonicalStateRepository implements VersionedCan
 
     private <T> T withPlayerLock(String playerId, IoSupplier<T> operation) {
         Path lockPath = lockPath(playerId);
+        ReentrantLock processLock = PROCESS_LOCKS.computeIfAbsent(lockPath, ignored -> new ReentrantLock());
+        processLock.lock();
         try (FileChannel channel = FileChannel.open(
                 lockPath,
                 StandardOpenOption.CREATE,
@@ -117,6 +123,8 @@ public final class FileVersionedCanonicalStateRepository implements VersionedCan
             return operation.get();
         } catch (IOException error) {
             throw new UncheckedIOException("canonical player store operation failed", error);
+        } finally {
+            processLock.unlock();
         }
     }
 
