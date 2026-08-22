@@ -41,7 +41,7 @@ class FileCanonicalPlayerEncounterProfileRepositoryTest {
                 List.of("pokemon-2"),
                 Map.of(),
                 arena(),
-                5L
+                4L
         );
         assertFalse(repository.replaceProfileIfRevision("player-1", 3L, replacement));
         assertEquals(profile(4L), repository.findProfile("player-1").orElseThrow());
