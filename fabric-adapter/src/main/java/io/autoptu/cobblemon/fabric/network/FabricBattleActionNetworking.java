@@ -14,7 +14,19 @@ import java.util.Objects;
  * connection context; no client field can replace it.
  */
 public final class FabricBattleActionNetworking {
+    private static boolean payloadTypeRegistered;
+
     private FabricBattleActionNetworking() {}
+
+    /**
+     * Registers the wire codec during Fabric server initialization. This operation is idempotent so
+     * later service wiring can safely call {@link #register} without registering the payload twice.
+     */
+    public static synchronized void registerPayloadType() {
+        if (payloadTypeRegistered) return;
+        PayloadTypeRegistry.playC2S().register(FabricBattleActionPayload.ID, FabricBattleActionPayload.CODEC);
+        payloadTypeRegistered = true;
+    }
 
     public static void register(
             BattleAuthoritativePreparationSource preparationSource,
@@ -25,7 +37,7 @@ public final class FabricBattleActionNetworking {
         Objects.requireNonNull(legalChoiceSource, "legalChoiceSource");
         Objects.requireNonNull(executor, "executor");
 
-        PayloadTypeRegistry.playC2S().register(FabricBattleActionPayload.ID, FabricBattleActionPayload.CODEC);
+        registerPayloadType();
         boolean registered = ServerPlayNetworking.registerGlobalReceiver(
                 FabricBattleActionPayload.ID,
                 (payload, context) -> BattleServerActionPacketHandler.handle(

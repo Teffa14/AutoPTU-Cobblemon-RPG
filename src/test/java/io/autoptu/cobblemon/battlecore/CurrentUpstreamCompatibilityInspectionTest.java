@@ -8,14 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("f3f9884b1142ff1a99dbf647bcf342ba6768bb39",
+        assertEquals("ad43112b12c0bee204502cdea100683104a881c4",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
-    void recordsVerifiedLegalChoiceAndTargetingInfrastructureWithoutPromotingBroaderSystems() {
+    void recordsVerifiedInfrastructureWithoutPromotingBroaderSystems() {
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).support());
@@ -61,14 +61,15 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycle.contains("FieldRoundLifecycleHook at order 10"));
         assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
         assertTrue(lifecycle.contains("RoundTemporaryEffectExpiryHook at order 30"));
-        assertTrue(lifecycle.contains("temporary-AP expiry"));
         assertTrue(lifecycle.contains("Trainer action reset at order 40"));
-        assertTrue(lifecycle.contains("TemporaryApGrant"));
-        assertTrue(lifecycle.contains("currentRound > expiresRound"));
-        assertTrue(lifecycle.contains("temporary-grant-first AP spending"));
+        assertTrue(lifecycle.contains("RoundTrainerFeatureLifecyclePolicy"));
+        assertTrue(lifecycle.contains("declared-action cleanup"));
+        assertTrue(lifecycle.contains("initial send-out"));
+        assertTrue(lifecycle.contains("round_start Trainer Feature dispatch"));
+        assertTrue(lifecycleLimit.contains("contract only"));
         assertTrue(lifecycleLimit.contains("must not supply currentRound"));
-        assertTrue(lifecycleLimit.contains("temporary AP grants"));
-        assertTrue(lifecycleLimit.contains("Trainer action reset"));
+        assertTrue(lifecycleLimit.contains("declared actions"));
+        assertTrue(lifecycleLimit.contains("send-out decisions"));
 
         String actionEconomy = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).contracts();
@@ -76,7 +77,6 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).limitation();
         assertTrue(actionEconomy.contains("TrainerRuntimeState"));
         assertTrue(actionEconomy.contains("temporary AP grants"));
-        assertTrue(actionEconomy.contains("resetting Trainer actions"));
         assertTrue(actionLimit.contains("temporary AP grants/expiry"));
         assertTrue(actionLimit.contains("Trainer action-reset state"));
 
@@ -84,11 +84,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
-        assertTrue(perks.contains("temporary AP grants"));
-        assertTrue(perks.contains("ActionBudget"));
+        assertTrue(perks.contains("RoundTrainerFeatureLifecyclePolicy"));
+        assertTrue(perks.contains("initial send-out"));
         assertTrue(perksLimit.contains("must not grant Features or temporary AP"));
-        assertTrue(perksLimit.contains("choose AP grant expiry/source"));
-        assertTrue(perksLimit.contains("reset Trainer actions"));
+        assertTrue(perksLimit.contains("clear declared actions"));
+        assertTrue(perksLimit.contains("dispatch round_start Features"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();
@@ -115,8 +115,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moveLimit.contains("must not choose delayed targets"));
         assertTrue(moveLimit.contains("unported move specials"));
 
-        String adapter = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).limitation();
-        assertTrue(adapter.contains("No Fabric/Cobblemon/Craftics runtime"));
+        CurrentUpstreamCompatibilityInspection.Evidence adapter =
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+        assertTrue(adapter.contracts().contains("dedicated-server ModInitializer"));
+        assertTrue(adapter.contracts().contains("CI boots a dedicated Fabric server"));
+        assertTrue(adapter.limitation().contains("no Cobblemon/Craftics runtime"));
+        assertTrue(adapter.limitation().contains("live battle entity playback"));
     }
 }

@@ -5,6 +5,11 @@
   "name": "AutoPTU Cobblemon RPG Fabric Adapter",
   "description": "Server-side Fabric networking adapter for AutoPTU battle intents.",
   "environment": "server",
+  "entrypoints": {
+    "main": [
+      "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter"
+    ]
+  },
   "depends": {
     "fabricloader": ">=0.17.2",
     "fabric-api": "*",

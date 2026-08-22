@@ -19,3 +19,37 @@ jobs:
           gradle-version: '8.14.3'
       - name: Run authority tests
         run: gradle test --no-daemon
+      - name: Boot Fabric dedicated server
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p fabric-adapter/run
+          printf 'eula=true\n' > fabric-adapter/run/eula.txt
+          gradle :fabric-adapter:runServer --no-daemon > fabric-server-smoke.log 2>&1 &
+          server_pid=$!
+          cleanup() {
+            kill "$server_pid" 2>/dev/null || true
+            wait "$server_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ready=0
+          for _ in $(seq 1 120); do
+            if grep -q 'AutoPTU Fabric server adapter initialized' fabric-adapter/run/logs/latest.log 2>/dev/null \
+              && grep -q 'Done (' fabric-adapter/run/logs/latest.log 2>/dev/null; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat fabric-server-smoke.log
+            if [ -f fabric-adapter/run/logs/latest.log ]; then
+              cat fabric-adapter/run/logs/latest.log
+            fi
+            exit 1
+          fi
