@@ -67,7 +67,7 @@ class InitiativeRoundRolloverPlaybackCompatibilityTest {
         assertTrue(initiative.adapterPolicy().contains("choose the next actor"));
         assertTrue(initiative.adapterPolicy().contains("provide client-computed modifiers"));
         assertTrue(lifecycle.contracts().contains("InitiativeOrderAssembly/InitiativeAssemblyInstaller"));
-        assertTrue(lifecycle.adapterPolicy().contains("Java now owns much more of initiative rebuilding inputs and installation"));
+        assertTrue(lifecycle.adapterPolicy().contains("Java owns much of initiative rebuilding"));
         assertTrue(legalActions.contracts().contains("initiative exhaustion"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
     }

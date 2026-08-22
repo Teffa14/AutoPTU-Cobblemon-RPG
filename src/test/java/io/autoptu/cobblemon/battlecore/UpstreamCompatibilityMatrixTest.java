@@ -16,13 +16,23 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void unsupportedMechanicsStayBlockedAtAdapterBoundary() {
+    void unsupportedMechanicsStayBlockedWhileRuntimeTestedAdapterIsOnlyPartial() {
         assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_MOVEMENT_BEHAVIOR));
         assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY));
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+
+        UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
+        assertTrue(adapter.contracts().contains("dedicated-server"));
+        assertTrue(adapter.contracts().contains("PokemonEntity"));
+        assertTrue(adapter.contracts().contains("verifies the resulting server position"));
+        assertTrue(adapter.adapterPolicy().contains("HP projection"));
+        assertTrue(adapter.adapterPolicy().contains("battle-trigger interception"));
+        assertTrue(adapter.adapterPolicy().contains("presentation-only"));
     }
 
     @Test
@@ -77,10 +87,11 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(lifecycle.contracts().contains("TrainerRuntimeState/controller binding"));
         assertTrue(perks.contracts().contains("TrainerRuntimeState"));
         assertTrue(perks.contracts().contains("initiativeModifier"));
-        assertTrue(perks.contracts().contains("CombatStageState/CombatStageHookRegistry"));
+        assertTrue(perks.contracts().contains("TrainerFeaturePrerequisiteResolution"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
         assertTrue(perks.adapterPolicy().contains("initiative modifier"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
+        assertTrue(perks.adapterPolicy().contains("decide prerequisites"));
         assertTrue(perks.adapterPolicy().contains("spend/restore AP"));
     }
 
@@ -143,7 +154,7 @@ class UpstreamCompatibilityMatrixTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
         assertTrue(initiative.contracts().contains("authoritative initiative assembly/installation"));
-        assertTrue(initiative.contracts().contains("TrainerRuntimeState now owns"));
+        assertTrue(initiative.contracts().contains("TrainerRuntimeState owns"));
         assertTrue(initiative.adapterPolicy().contains("choose the next actor"));
         assertTrue(initiative.adapterPolicy().contains("provide client-computed modifiers"));
         assertTrue(lifecycle.contracts().contains("InitiativeOrderAssembly/InitiativeAssemblyInstaller"));
@@ -210,7 +221,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("4e1492a642350e0d657dba8587e358a2f669b59c", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

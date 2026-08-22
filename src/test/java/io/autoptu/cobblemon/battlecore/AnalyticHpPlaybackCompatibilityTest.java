@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnalyticHpPlaybackCompatibilityTest {
     private final BattlePresentationProjector projector = new BattlePresentationProjector();
@@ -47,18 +47,21 @@ class AnalyticHpPlaybackCompatibilityTest {
     }
 
     @Test
-    void liveAnalyticPlaybackKeepsBroadCategoriesPartialAndAdapterBlocked() {
+    void analyticPlaybackKeepsRuleFamiliesPartialWhileLiveAdapterScopeStaysBounded() {
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, actionEconomy.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
-                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.adapterPolicy().contains("HP projection"));
+        assertTrue(adapter.adapterPolicy().contains("remain unverified"));
     }
 }
