@@ -33,8 +33,11 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("canonical identity mapping"));
         assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver"));
         assertTrue(adapter.contracts().contains("MinecraftServer PlayerManager"));
+        assertTrue(adapter.contracts().contains("CanonicalPlayerMutationService"));
+        assertTrue(adapter.contracts().contains("VersionedCanonicalStateRepository"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("identity/presentation inputs"));
+        assertTrue(adapter.adapterPolicy().contains("durable production canonical-state backend"));
+        assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
 
     @Test
@@ -93,13 +96,14 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(perks.contracts().contains("TrainerFeatureFrequencyResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureResourceResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureUsageResolution"));
-        assertTrue(perks.contracts().contains("TrainerFeatureExecutionService"));
-        assertTrue(perks.contracts().contains("only after applied=true"));
+        assertTrue(perks.contracts().contains("TrainerFeatureExecutionService.executeAuthoritative"));
+        assertTrue(perks.contracts().contains("TrainerFeatureTargetResolution"));
+        assertTrue(perks.contracts().contains("only after an applied effect"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
-        assertTrue(perks.adapterPolicy().contains("invoke concrete Feature effects"));
+        assertTrue(perks.adapterPolicy().contains("select or rewrite targets"));
         assertTrue(perks.adapterPolicy().contains("AP-specific costs"));
-        assertTrue(perks.adapterPolicy().contains("Java PR #143"));
+        assertTrue(perks.adapterPolicy().contains("stops before effect application"));
     }
 
     @Test
@@ -195,7 +199,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("e386f3fe9eb83e181be77b1e2869459cdeff78d6", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("f793666236a19d3c09547e5603a4fa3ec595c899", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("8e5dea0cbafecb19dfa800918f7cbe2fe99fcd20", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

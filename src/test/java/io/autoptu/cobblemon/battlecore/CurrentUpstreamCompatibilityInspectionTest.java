@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908",
+        assertEquals("f793666236a19d3c09547e5603a4fa3ec595c899",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("e386f3fe9eb83e181be77b1e2869459cdeff78d6",
+        assertEquals("8e5dea0cbafecb19dfa800918f7cbe2fe99fcd20",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -89,13 +89,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("TrainerFeatureFrequencyResolution"));
         assertTrue(perks.contains("TrainerFeatureResourceResolution"));
         assertTrue(perks.contains("TrainerFeatureUsageResolution"));
-        assertTrue(perks.contains("TrainerFeatureExecutionService"));
+        assertTrue(perks.contains("TrainerFeatureExecutionService.executeAuthoritative"));
+        assertTrue(perks.contains("TrainerFeatureTargetResolution"));
         assertTrue(perks.contains("only after the effect reports applied"));
-        assertTrue(perksLimit.contains("target/effect semantics"));
+        assertTrue(perksLimit.contains("effect semantics"));
         assertTrue(perksLimit.contains("AP-specific costs"));
-        assertTrue(perksLimit.contains("Java PR #143"));
+        assertTrue(perksLimit.contains("target resolution stops before effect application"));
         assertTrue(perksLimit.contains("must not grant Features"));
-        assertTrue(perksLimit.contains("run the effect callback"));
+        assertTrue(perksLimit.contains("select or rewrite targets"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();

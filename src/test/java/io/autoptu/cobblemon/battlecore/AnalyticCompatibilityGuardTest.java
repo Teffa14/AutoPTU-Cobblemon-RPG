@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("e386f3fe9eb83e181be77b1e2869459cdeff78d6", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("f793666236a19d3c09547e5603a4fa3ec595c899", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("8e5dea0cbafecb19dfa800918f7cbe2fe99fcd20", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
@@ -42,7 +42,7 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("identity/presentation inputs"));
+        assertTrue(adapter.adapterPolicy().contains("ServerPlayerEntity"));
         assertTrue(adapter.adapterPolicy().contains("never supply PTU stats, inventory truth, modifiers, legality or outcomes"));
     }
 }
