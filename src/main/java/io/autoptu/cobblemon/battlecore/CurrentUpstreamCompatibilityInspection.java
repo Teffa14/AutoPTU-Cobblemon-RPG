@@ -4,12 +4,11 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * Records the exact upstream heads inspected for this integration slice and the bounded capability
- * deltas that landed after the last broad matrix refresh. It supplements, but never broadens,
- * UpstreamCompatibilityMatrix support classifications.
+ * Records the exact upstream heads inspected for this integration slice and bounded current evidence.
+ * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "ce990c84ad133f9b0b56f774e2a59c8cb0c4d90b";
+    public static final String AUTOPTU_JAVA_SHA = "1b4a38e871190844ae296a0fbb5966ea6f3da8bf";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -21,7 +20,6 @@ public final class CurrentUpstreamCompatibilityInspection {
     }
 
     private static final Map<UpstreamCompatibilityMatrix.Capability, Evidence> EVIDENCE = build();
-
     private CurrentUpstreamCompatibilityInspection() {}
 
     public static Evidence evidence(UpstreamCompatibilityMatrix.Capability capability) {
@@ -35,41 +33,55 @@ public final class CurrentUpstreamCompatibilityInspection {
     private static Map<UpstreamCompatibilityMatrix.Capability, Evidence> build() {
         EnumMap<UpstreamCompatibilityMatrix.Capability, Evidence> result =
                 new EnumMap<>(UpstreamCompatibilityMatrix.Capability.class);
+
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState derives Pokemon candidates, Trainer entries, Trick Room ordering and League ordering internally. InitiativeRoundRebuilder.authoritative composes state-derived assembly with InitiativeAssemblyInstaller during rollover. BattleRoundController.advanceInitiativeTurnWithRollover() is the default production path and selects the authoritative rebuilder internally; the injectable rebuilder overload is deprecated for parity/migration tests. BattleEnvironmentState owns ordering/environment state and TrainerRuntimeState owns server-side Trainer initiative/action inputs. DelayedHitResourcePolicy plus BattleRuntimeState-owned delayed-hit state preserve the originating move declaration's action and frequency spend when a combatant-target delayed hit matures during ROUND_START.",
-                        "Minecraft must never supply Trick Room or League ordering flags, initial action availability, actor kind, Trainer action state, resolved Speed, Trainer team, InitiativeEntry, participant filters, a precomputed rollover order, InitiativeRoundRebuilder, any alternative rollover strategy, delayed-hit RNG, delayed-hit queue mutation or delayed-hit action/frequency bookkeeping. The integration also rejects any Trainer ID that collides with a reserved combatant ID before runtime assembly."));
+                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState and InitiativeRoundRebuilder.authoritative own ordering and rollover. DelayedHitResourcePolicy preserves the originating action and frequency spend during ROUND_START.",
+                        "Minecraft must not provide a precomputed rollover order, delayed-hit RNG, delayed-hit queue mutation, action/frequency bookkeeping, or a Trainer ID that collides with a combatant ID."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "The default production rollover call advances the round, derives and installs the next mixed Trainer/Pokemon initiative order only from BattleRuntimeState, applies initiative temporary-effect cleanup, resets the initiative cursor and opens the next actor turn without an adapter-supplied rebuilder. BattleRuntimeState owns BattleDelayedHitState, including the delayed queue and single Python-compatible battle RNG stream. BuiltinLifecycleHooks registers FieldRoundLifecycleHook at ROUND_START order 10 and DelayedHitRoundLifecycleHook at order 20, so canonical terrain -> zones -> rooms progression completes before due COMBATANT-target delayed hits mature through DelayedHitLifecycleExecutor. Matured hits reuse ordinary authoritative move resolution, mutate HP, emit MoveResolvedEvent, leave the originating action/frequency spend unchanged, remove the due queue entry and participate in later Python-compatible damage-history rotation.",
-                        "Complete lifecycle remains broader than these bounded services. Due TILE/area delayed hits remain unsupported, and Trainer AP/temporary-AP, send-out Features, Air Lock, Arena Trap, Intimidate, Impostor and other Python round-start behavior remain core-owned follow-up work. Minecraft must not advance field durations, remove Wonder Room statuses, own the delayed queue or mutable RNG, inject lifecycle hooks, choose lifecycle ordering, mature delayed hits, or duplicate action/frequency bookkeeping."));
+                        "BattleDelayedHitState owns the Python-compatible battle RNG stream. FieldRoundLifecycleHook at ROUND_START order 10 executes terrain -> zones -> rooms before DelayedHitRoundLifecycleHook at order 20 and DelayedHitLifecycleExecutor. Matured COMBATANT-target hits emit MoveResolvedEvent with the originating action/frequency spend unchanged and participate in damage-history rotation.",
+                        "Complete lifecycle remains broader. TILE/area delayed hits remain unsupported. Trainer AP/temporary-AP, Air Lock and other Python round behavior remain pending. Minecraft must not advance field durations, inject lifecycle hooks, mature delayed hits, own the delayed queue or mutable RNG, or duplicate action/frequency bookkeeping."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "DelayedHitExecutionPolicy freezes target-resolution re-entry and the current delayed target-geometry contract. A delayed entry with a canonical targetId remains COMBATANT targeting at maturity and now binds its aim anchor to that combatant's current authoritative RuntimeCombatantState.position rather than the stored scheduling coordinate. A position-only delayed entry remains TILE targeting. The pinned Python target-resolution contract also recomputes affected_tiles, footprint overlap and line of sight at maturity. DelayedHitResourcePolicy freezes resource ownership, BattleRuntimeState owns BattleDelayedHitState and its RNG, and BuiltinLifecycleHooks invokes DelayedHitRoundLifecycleHook automatically during ROUND_START after field progression. RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState re-derives effective metadata and combat inputs from current BattleRuntimeState before executing the normal PythonRandom, HP mutation, damage-history and MoveResolvedEvent path without a second action/frequency spend.",
-                        "This is bounded delayed-hit execution and target geometry, not complete delayed-move parity or the full move library. TILE/area delayed execution remains unsupported on main even though the Python geometry contract is pinned. The upstream exporter has a known review defect in its target-id-priority detector, so this integration does not use that bit as completeness evidence. Minecraft must not freeze a live combatant target to the stored scheduling position, replace the target's current authoritative position, precompute affected tiles, footprint overlap or line of sight, rewrite target mode, supply RNG/combat inputs, consume or refund move frequency/actions, bypass target binding or invent tile/area semantics."));
+                        "DelayedHitExecutionPolicy keeps a targetId as COMBATANT targeting at maturity, uses current authoritative RuntimeCombatantState.position while the defender exists, and falls back to the stored target position when the defender is missing without rewriting the move to TILE. A position-only delayed entry remains TILE targeting. Target resolution recomputes affected_tiles, footprint overlap and line of sight and preserves explicit target-id priority. DelayedHitResourcePolicy and BattleRuntimeState owns BattleDelayedHitState; DelayedHitRoundLifecycleHook automatically during ROUND_START calls RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState with PythonRandom, HP mutation, damage-history and MoveResolvedEvent without a second action/frequency spend.",
+                        "This is bounded delayed-hit execution. TILE/area delayed execution remains unsupported on main. The earlier exporter had a known review defect, so completeness is based on current code/tests rather than that bit. Minecraft must not freeze a live combatant target to the stored scheduling position, precompute affected tiles, footprint overlap or line of sight, supply RNG/combat inputs, consume or refund move frequency/actions, rewrite target mode, or implement missing-target area selection."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleEnvironmentState owns weather, PTU terrain identity, Tailwind teams, grounded state, mounted relationships, initiative ordering modes and duration-bearing FieldEffectEntry state for terrain, zones and rooms. FieldRoundLifecycleHook executes FieldRoundProgression first in the canonical ROUND_START registry, preserves terrain -> zones -> rooms ordering, mutates the authoritative environment, applies FieldStatusCleanupRequest for Wonder Room and emits FieldEffectEndedEvent semantic playback before delayed-hit maturity runs at the next lifecycle slot.",
-                        "This remains partial field-system support. ROUND_START duration progression and expiry cleanup are authoritative, but full terrain effects, weather progression, hazards, zone mechanics, reactions, field creation, forced movement and complete Python round behavior are still incomplete. Minecraft block observations, entity state and presentation metadata must not create PTU field entries, advance durations, perform Wonder Room cleanup or invent missing field mechanics."));
+                        "BattleEnvironmentState owns duration-bearing FieldEffectEntry state. FieldRoundLifecycleHook executes FieldRoundProgression, updates the authoritative environment, emits FieldEffectEndedEvent and applies FieldStatusCleanupRequest before delayed-hit maturity.",
+                        "This is partial field-system support. Full terrain effects, weather progression, hazards, zones, reactions and forced movement remain incomplete. Minecraft must not create PTU field entries or perform Wonder Room cleanup."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Initiative-time weather/terrain ability resolution and Rider Agility Training read canonical BattleRuntimeState environment, Trainer Feature and temporary-effect state rather than adapter inputs. Matured delayed-hit combat preparation also re-runs current authoritative move/damage/post-damage hooks from runtime state during ROUND_START instead of preserving stale adapter-supplied modifiers.",
-                        "These remain bounded initiative and delayed-hit paths and do not complete the PTU ability library. Minecraft must not grant abilities, calculate ability/Feature-driven initiative modifiers, or supply delayed-hit hook results."));
+                        "Initiative-time ability behavior and delayed-hit combat preparation read authoritative runtime state and rerun authoritative move/damage/post-damage hooks during ROUND_START.",
+                        "The complete PTU ability library is not ported; Minecraft must not grant abilities or supply hook results."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Feature identities, AP, initiative modifier, skill ranks, explicit initiative Speed, team identity and Trainer action buckets. Runtime initiative assembly consumes that profile together with authoritative Pokemon and BattleEnvironmentState ordering modes; Rider Agility Training and Hardened Initiative remain server-owned consumers.",
-                        "Only bounded Trainer Feature/skill/initiative consumers and Trainer initiative-slot execution are implemented. Minecraft may transport frozen canonical Trainer identities and inputs but must not grant Features, choose skill ranks, invent Trainer Speed/team, infer mounts from passengers, choose League ordering, execute perks, construct Trainer-specific action spaces or calculate Trainer/Rider/Hardened outcomes."));
+                        "TrainerRuntimeState owns Features, AP, initiative inputs, explicit initiative Speed and team identity; Rider Agility Training and Hardened Initiative are server-owned consumers.",
+                        "Only bounded Trainer Feature/skill/initiative consumers exist; Minecraft must not grant Features, execute perks or calculate their outcomes."));
+
+        result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
+                new Evidence(
+                        UpstreamCompatibilityMatrix.Support.VERIFIED,
+                        "BattleChoice is the legal decision contract. RuntimeAutobattlerActionSpace.legalChoices derives ShiftChoice and MoveChoice from BattleRuntimeState-owned position, geometry, affiliation, active/HP state, moveset, move-frequency usage, movement profile and ActionBudget, then returns an immutable stable-key-sorted list.",
+                        "A client, AI or Minecraft adapter may select only from the core-produced BattleChoice list. It must not manufacture a ShiftChoice/MoveChoice, grant a move, bypass frequency/action budget, or replace targeting/range/LoS legality. Tactical scoring remains separate and incomplete."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
-                        "Adapter-neutral entity-bound playback, PresentationEntityGateway and a reservation-scoped live-handle registry/backend boundary exist in the integration project. The semantic playback boundary preserves global field_effect expiry before later authoritative delayed move_resolved playback, while move animation and final HP projection remain derived from Java's stable event contract. The runtime environment seed preserves canonical duration-bearing field identities for later Java materialization.",
-                        "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking despite the headless presentation and runtime-seed infrastructure."));
+                        "Adapter-neutral entity-bound playback preserves field_effect and delayed move_resolved playback from the stable event contract; the runtime environment seed remains headless integration infrastructure.",
+                        "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking."));
+
         return Map.copyOf(result);
     }
 }
