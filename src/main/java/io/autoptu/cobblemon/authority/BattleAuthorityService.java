@@ -41,7 +41,7 @@ public final class BattleAuthorityService {
             List<String> pokemonIds,
             Map<String, Integer> consumableQuantities
     ) {
-        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, null);
+        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, null, null);
     }
 
     public BattleSnapshotDecision reserveBattleInArena(
@@ -53,14 +53,31 @@ public final class BattleAuthorityService {
         if (arena == null) {
             return BattleSnapshotDecision.deny("invalid_battle_arena");
         }
-        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, arena);
+        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, arena, null);
+    }
+
+    BattleSnapshotDecision reserveBattleInArena(
+            String playerId,
+            List<String> pokemonIds,
+            Map<String, Integer> consumableQuantities,
+            BattleArenaSnapshot arena,
+            BattleReservationAuthority reservationAuthority
+    ) {
+        if (arena == null) {
+            return BattleSnapshotDecision.deny("invalid_battle_arena");
+        }
+        if (reservationAuthority == null) {
+            return BattleSnapshotDecision.deny("invalid_reservation_authority");
+        }
+        return reserveBattleInternal(playerId, pokemonIds, consumableQuantities, arena, reservationAuthority);
     }
 
     private BattleSnapshotDecision reserveBattleInternal(
             String playerId,
             List<String> pokemonIds,
             Map<String, Integer> consumableQuantities,
-            BattleArenaSnapshot arena
+            BattleArenaSnapshot arena,
+            BattleReservationAuthority reservationAuthority
     ) {
         if (playerId == null || playerId.isBlank() || pokemonIds == null || pokemonIds.isEmpty()) {
             return BattleSnapshotDecision.deny("invalid_request");
@@ -137,24 +154,30 @@ public final class BattleAuthorityService {
                     item.itemInstanceId(), item.ownerPlayerId(), item.templateId(), quantity, item.revision(), false));
         }
 
-        String reservationId = reservationIds.get();
-        if (reservationId == null || reservationId.isBlank()) {
-            throw new IllegalStateException("reservation id supplier returned blank id");
-        }
-
+        BattleReservationAuthority authority = reservationAuthority == null
+                ? issueReservationAuthority()
+                : reservationAuthority;
         BattleAuthoritySnapshot snapshot = new BattleAuthoritySnapshot(
-                reservationId,
+                authority.reservationId(),
                 playerId,
                 BattleTrainerSnapshot.from(player),
                 roster,
                 List.copyOf(items.values()),
-                rngSeeds.getAsLong(),
+                authority.rngSeed(),
                 arena);
 
         if (!snapshotRepository.tryReserveSnapshot(snapshot)) {
             return BattleSnapshotDecision.deny("state_changed_or_assets_reserved");
         }
         return BattleSnapshotDecision.allow(snapshot);
+    }
+
+    private BattleReservationAuthority issueReservationAuthority() {
+        String reservationId = reservationIds.get();
+        if (reservationId == null || reservationId.isBlank()) {
+            throw new IllegalStateException("reservation id supplier returned blank id");
+        }
+        return new BattleReservationAuthority(reservationId, rngSeeds.getAsLong());
     }
 
     public BattleSnapshotDecision releaseBattle(String playerId, String reservationId) {

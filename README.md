@@ -14,7 +14,7 @@ Integration work prioritizes vertical runtime tests. A feature is not considered
 
 For every bounded slice where the environment permits it, CI exercises the smallest real Minecraft/Fabric/Cobblemon behavior and verifies the resulting server state. Headless contract tests remain required for authority boundaries, but they do not replace runtime evidence.
 
-Every CI run now preserves test evidence as a GitHub Actions artifact, including Gradle/JUnit results, complete authority-test output, dedicated-server logs, run metadata and explicit runtime acceptance markers. The evidence upload runs on success and failure and is retained for 14 days. Graphical Minecraft client tests must write MP4/PNG evidence under `test-evidence/visual/`; that directory is already included in the artifact contract. The current production smoke is a `nogui` dedicated server, so its evidence is server logs and markers rather than fabricated video. See `docs/test-evidence.md`.
+Every CI run preserves test evidence as a GitHub Actions artifact, including Gradle/JUnit results, complete authority-test output, dedicated-server logs, run metadata and explicit runtime acceptance markers. The evidence upload runs on success and failure and is retained for 14 days. Graphical Minecraft client tests must write MP4/PNG evidence under `test-evidence/visual/`; that directory is already included in the artifact contract. The current production smoke is a `nogui` dedicated server, so its evidence is server logs and markers rather than fabricated video. See `docs/test-evidence.md`.
 
 Current runtime evidence:
 
@@ -29,20 +29,22 @@ Current runtime evidence:
 - Those live UUIDs are mapped through a server-side identity registry to independently created canonical participant/combatant IDs. The canonical records use fixed PTU fixture values rather than values read from the live Cobblemon entities.
 - The mapped canonical combatants are resolved through the authority repository and atomically reserved on two explicit opposing sides before the interceptor is allowed to cancel Cobblemon's battle.
 
-The Minecraft/Cobblemon adapter category is PARTIAL. Relocation, positive HP mirroring, early public battle-start preemption, participant identity capture, canonical identity mapping and multi-side roster reservation have bounded runtime evidence. Full Trainer/item/arena composition, zero-HP/faint presentation, move animation, semantic cues and complete battle playback remain pending.
+The Minecraft/Cobblemon adapter category remains PARTIAL. Relocation, positive HP mirroring, early public battle-start preemption, participant identity capture, canonical identity mapping and multi-side roster reservation have bounded dedicated-server evidence. Player-versus-wild Trainer/item/arena composition now has contract-test coverage but still needs an authenticated live player runtime. Zero-HP/faint presentation, move animation, semantic cues, runtime materialization and complete battle playback remain pending.
 
 ## Encounter reservation model
 
-The original `BattleAuthoritySnapshot` remains the authoritative single-player Trainer/item reservation path and is not discarded. It requires its Pokémon/items to belong to that player because it protects persistent player assets.
+The original `BattleAuthoritySnapshot` remains the authoritative player Trainer/item reservation path. It protects persistent ownership and freezes Trainer state, owned Pokémon, held/consumable items, an arena snapshot and a server-generated RNG seed.
 
-Multi-side encounters now have a separate owner-neutral combatant layer:
+Multi-side encounters have a separate owner-neutral combatant layer:
 
-- `CanonicalBattlePokemonView` defines the canonical battle fields without treating inventory ownership as affiliation.
+- `CanonicalBattlePokemonView` defines canonical battle fields without treating inventory ownership as affiliation.
 - `CanonicalEncounterPokemonState` represents server-owned wild/NPC combatants without a fake player owner.
 - `BattleCombatantAuthoritySnapshot` freezes participant ID, explicit battle team and participant kind separately from persistence ownership.
-- `BattleEncounterRosterReservationService` resolves canonical IDs and atomically locks both encounter rosters. Battle team IDs are generated server-side from the encounter side and cannot be supplied by Cobblemon or a client.
+- `BattleEncounterRosterReservationService` resolves canonical IDs and atomically locks encounter rosters. Battle team IDs are generated server-side from encounter side and cannot be supplied by Cobblemon or a client.
 
-The live Cobblemon bridge maps external UUIDs only to canonical IDs. It never maps external stats into those records. The production smoke currently uses a wild-versus-wild topology because CI has no authenticated client player; it proves the identity-to-canonical-reservation pipeline, not yet the full player Trainer/item composition.
+`PlayerVsWildEncounterAuthorityService` composes those two authority paths for the bounded player-versus-wild topology. It requires exactly one canonical PLAYER participant and one WILD participant on different sides. The player participant ID and ordered Pokémon roster must exactly match the persistent player reservation. Both reservations receive the same server-issued reservation ID and RNG seed. If the multi-side lock fails after player assets were reserved, the player reservation is released before the denial is returned. See `docs/player-vs-wild-authority-composition.md`.
+
+The live Cobblemon bridge maps external UUIDs only to canonical IDs. It never maps external stats into those records. The production battle interception smoke remains wild-versus-wild because dedicated CI has no authenticated client player. Therefore the new player-versus-wild composition is verified by authority contract tests rather than claimed as live runtime coverage.
 
 ## Near-term vertical test ladder
 
@@ -58,10 +60,14 @@ Completed with production dedicated-server evidence:
 8. Capture side/actor/Pokémon participant identities through an adapter-owned DTO.
 9. Map those opaque UUIDs to independently server-owned canonical participant/combatant IDs and create an atomic two-side canonical roster reservation before cancellation succeeds.
 
+Completed with authority contract tests:
+
+10. Compose the player-owned Trainer/Pokémon/item/arena reservation and the owner-neutral player-versus-wild roster reservation under one server-issued identity and deterministic seed, with exact roster matching and compensation on second-stage lock failure.
+
 Next:
 
-10. Compose the multi-side roster reservation with the existing Trainer/item/arena authority needed for a real player-versus-wild encounter.
-11. Feed the completed reservation into the Java runtime when AutoPTU-Java can authoritatively materialize every required `RuntimeCombatantState` field.
-12. Join both directions into the first minimal vertical battle: Cobblemon encounter -> AutoPTU reservation/core -> semantic events -> live entity presentation.
+11. Connect an authenticated live Cobblemon player encounter to that composition without reading battle stats, moves, abilities, items or outcomes from Cobblemon.
+12. Feed the completed reservation into the Java runtime only when AutoPTU-Java can authoritatively materialize every required `RuntimeCombatantState` field.
+13. Join both directions into the first minimal vertical battle: Cobblemon encounter -> AutoPTU reservation/core -> semantic events -> live entity presentation.
 
 Public Cobblemon APIs/events should be preferred where they provide an early enough hook. Cobblemon 1.7.3 exposes the cancelable `BATTLE_STARTED_PRE` event, and the dedicated-server smoke proves that cancellation prevents the battle from reaching the registry or post-start event. Mixins should therefore be reserved for gaps that public hooks cannot cover. PTU rules must never be implemented inside a Mixin.

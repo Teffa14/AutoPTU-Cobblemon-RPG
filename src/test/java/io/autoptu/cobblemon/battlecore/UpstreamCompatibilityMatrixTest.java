@@ -29,10 +29,12 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
         assertTrue(adapter.contracts().contains("dedicated-server"));
         assertTrue(adapter.contracts().contains("PokemonEntity"));
-        assertTrue(adapter.contracts().contains("verifies the resulting server position"));
+        assertTrue(adapter.contracts().contains("authoritative relocation"));
+        assertTrue(adapter.contracts().contains("canonical identity mapping"));
         assertTrue(adapter.adapterPolicy().contains("HP projection"));
         assertTrue(adapter.adapterPolicy().contains("battle-trigger interception"));
         assertTrue(adapter.adapterPolicy().contains("presentation-only"));
+        assertTrue(adapter.adapterPolicy().contains("contract-tested"));
     }
 
     @Test
@@ -88,11 +90,15 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(perks.contracts().contains("TrainerRuntimeState"));
         assertTrue(perks.contracts().contains("initiativeModifier"));
         assertTrue(perks.contracts().contains("TrainerFeaturePrerequisiteResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureFrequencyResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureResourceResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureUsageResolution"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
         assertTrue(perks.adapterPolicy().contains("initiative modifier"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
         assertTrue(perks.adapterPolicy().contains("decide prerequisites"));
         assertTrue(perks.adapterPolicy().contains("spend/restore AP"));
+        assertTrue(perks.adapterPolicy().contains("usage or cooldowns"));
     }
 
     @Test
@@ -221,7 +227,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("1ac0eab794f2179297c5d32575e9c82746556a9f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("76013feae3db923964c575e8bca80039378d6a2a", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

@@ -8,8 +8,8 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "4c75dc082ae7848bdfa9c4e385e08ffde6760d9e";
-    public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
+    public static final String AUTOPTU_JAVA_SHA = "1ac0eab794f2179297c5d32575e9c82746556a9f";
+    public static final String AUTOPTU_PYTHON_SHA = "76013feae3db923964c575e8bca80039378d6a2a";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
         public Evidence {
@@ -73,8 +73,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. BattleRuntimeState owns opaque declared-action records. RoundTrainerFeatureLifecyclePolicy defines send-out/initiative/Feature ordering. TrainerFeaturePrerequisiteResolution ports Python-parity feature/edge/known-feature discovery plus class, subclass, level and required-feature gates. TrainerFeatureContextResolution now ports actor scope, phase/action/move filters, actor-active, round/damage, once-per-actor-per-round and chance gates with PythonRandom parity from authoritative context observations.",
-                        "Only bounded Trainer Feature discovery, prerequisite, context, skill, initiative, AP and lifecycle contracts exist. Frequency/cooldowns, resource checks, usage mutation, target scopes and broad effect application remain incomplete. Minecraft must not grant Features, decide prerequisites or context gates, choose AP grant expiry/source, create/clear declared actions, dispatch round_start Features, spend/restore AP, supply Feature RNG outcomes or execute perks."));
+                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. TrainerFeaturePrerequisiteResolution and TrainerFeatureContextResolution are Python-parity backed. TrainerFeatureFrequencyResolution covers Daily, Scene, Encounter, EOT, Round, Turn, N/round, N/scene and cooldown availability. TrainerFeatureResourceResolution owns generic resource affordability/consumption. TrainerFeatureUsageResolution now ports Python _mark_feature_use bookkeeping for total/round/actor-round usage, last_round and cooldown mutation after an effect applies.",
+                        "Trainer Features remain partial because target/effect semantics, AP integration and full dispatcher wiring are still outside the ported contract. Minecraft must not grant Features, decide prerequisites/context/frequency/resource gates, mutate usage/cooldowns, spend resources/AP, select targets, apply effects or report a Feature as applied."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
@@ -85,8 +85,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Server-side UUID lookup resolves only live Cobblemon PokemonEntity handles. Runtime smoke coverage spawns real PokemonEntity fixtures, binds opaque presentation UUIDs through PresentationEntityHandleRegistry/RegistryBackedPresentationEntityGateway, applies an authoritative WorldBlockCoordinate relocation and verifies the resulting server position, then separately sends an authoritative positive EntityBoundBattleHealthProjection and verifies the exact live Cobblemon HP mirror. The public cancelable Cobblemon BATTLE_STARTED_PRE hook is now exercised against a real BattleRegistry.startBattle call: the adapter claims only the opaque battle ID, cancels the pre-event, verifies an ErroredBattleStart, verifies the battle never enters BattleRegistry and verifies BATTLE_STARTED_POST never fires.",
-                        "Live adapter support remains partial. AutoPTU reservation creation from intercepted participants, canonical participant mapping, zero-HP/faint presentation, move animation, semantic cues, full entity lifecycle and complete battle playback remain pending. Cobblemon HP and other entity data are write-through presentation state only and must never flow back into PTU authority."));
+                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Live smokes verify server-side PokemonEntity UUID lookup, authoritative relocation and positive HP mirroring. Public BATTLE_STARTED_PRE interception prevents Cobblemon registration/post-start. The identity-only handoff maps opaque actor/Pokemon UUIDs to independently server-owned canonical participant/combatant IDs and atomically reserves opposing canonical rosters. The current player-versus-wild authority composition additionally binds the existing Trainer/item/arena reservation and multi-side roster reservation under one server-issued reservation ID and RNG seed, with exact player-roster matching and compensation if the encounter lock fails.",
+                        "Live adapter support remains partial. The new player-versus-wild composition is contract-tested and has no authenticated graphical player runtime yet. RuntimeCombatantState materialization, zero-HP/faint presentation, move animation, semantic cues, full entity lifecycle and complete battle playback remain pending. Cobblemon identities are lookup keys and presentation handles only; entity stats, HP, moves, abilities, held items, Showdown state and outcomes must never become PTU authority."));
 
         return Map.copyOf(result);
     }

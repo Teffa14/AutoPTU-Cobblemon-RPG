@@ -26,6 +26,8 @@ class IntegrationFeatureCompatibilityTest {
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.BATTLE_ARENA_RESERVATION).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.PLAYER_VS_WILD_AUTHORITY_COMPOSITION).hasBlockingDependency());
+        assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.INITIAL_COMBATANT_PLACEMENT).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.CANONICAL_BASE_MOVEMENT_SNAPSHOT).hasBlockingDependency());
@@ -49,6 +51,24 @@ class IntegrationFeatureCompatibilityTest {
                 IntegrationFeatureCompatibility.Feature.ITEM_BATTLE_EFFECT_PLAYBACK).hasBlockingDependency());
         assertFalse(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.SEMANTIC_PRESENTATION_COMMANDS).hasBlockingDependency());
+    }
+
+    @Test
+    void playerVsWildCompositionConsumesOnlyNarrowPartialAuthorityBoundaries() {
+        IntegrationFeatureCompatibility.Requirement requirement = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.PLAYER_VS_WILD_AUTHORITY_COMPOSITION);
+        assertEquals(EnumSet.of(
+                        UpstreamCompatibilityMatrix.Capability.ITEMS,
+                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
+                        UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK),
+                EnumSet.copyOf(requirement.capabilities()));
+        assertFalse(requirement.hasBlockingDependency());
+        assertTrue(requirement.boundedScope().contains("server-issued reservation ID and RNG seed"));
+        assertTrue(requirement.boundedScope().contains("exact player roster equality"));
+        assertTrue(requirement.boundedScope().contains("compensate the player reservation"));
+        assertTrue(requirement.boundedScope().contains("does not execute item effects"));
+        assertTrue(requirement.boundedScope().contains("Trainer Features"));
+        assertTrue(requirement.boundedScope().contains("damage"));
     }
 
     @Test
@@ -158,6 +178,8 @@ class IntegrationFeatureCompatibilityTest {
         assertTrue(live.boundedScope().contains("entity-bound authoritative relocation"));
         assertTrue(live.boundedScope().contains("HP projection"));
         assertTrue(live.boundedScope().contains("battle-trigger interception"));
+        assertTrue(live.boundedScope().contains("canonical participant/combatant IDs"));
+        assertTrue(live.boundedScope().contains("contract-tested"));
     }
 
     @Test

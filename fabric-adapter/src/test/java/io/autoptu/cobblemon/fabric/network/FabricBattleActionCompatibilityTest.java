@@ -36,6 +36,7 @@ class FabricBattleActionCompatibilityTest {
         assertTrue(liveAdapter.boundedScope().contains("entity-bound authoritative relocation"));
         assertTrue(liveAdapter.boundedScope().contains("HP projection"));
         assertTrue(liveAdapter.boundedScope().contains("battle-trigger interception"));
-        assertTrue(adapterCapability.adapterPolicy().contains("must never supply PTU stats, legality or outcomes"));
+        assertTrue(adapterCapability.adapterPolicy().contains("entity state stays presentation-only"));
+        assertTrue(adapterCapability.adapterPolicy().contains("never supplies PTU stats, legality, inventory truth or outcomes"));
     }
 }

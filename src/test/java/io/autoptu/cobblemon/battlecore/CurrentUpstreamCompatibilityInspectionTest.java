@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("4c75dc082ae7848bdfa9c4e385e08ffde6760d9e",
+        assertEquals("1ac0eab794f2179297c5d32575e9c82746556a9f",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
+        assertEquals("76013feae3db923964c575e8bca80039378d6a2a",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -85,13 +85,15 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
         assertTrue(perks.contains("TrainerFeaturePrerequisiteResolution"));
-        assertTrue(perks.contains("class, subclass, level"));
         assertTrue(perks.contains("TrainerFeatureContextResolution"));
-        assertTrue(perks.contains("once-per-actor-per-round"));
-        assertTrue(perks.contains("PythonRandom"));
+        assertTrue(perks.contains("TrainerFeatureFrequencyResolution"));
+        assertTrue(perks.contains("TrainerFeatureResourceResolution"));
+        assertTrue(perks.contains("TrainerFeatureUsageResolution"));
+        assertTrue(perks.contains("cooldown mutation"));
+        assertTrue(perksLimit.contains("target/effect semantics"));
+        assertTrue(perksLimit.contains("full dispatcher wiring"));
         assertTrue(perksLimit.contains("must not grant Features"));
-        assertTrue(perksLimit.contains("decide prerequisites or context gates"));
-        assertTrue(perksLimit.contains("Frequency/cooldowns"));
+        assertTrue(perksLimit.contains("mutate usage/cooldowns"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();
@@ -122,16 +124,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertTrue(adapter.contracts().contains("Cobblemon 1.7.3"));
-        assertTrue(adapter.contracts().contains("real PokemonEntity"));
-        assertTrue(adapter.contracts().contains("RegistryBackedPresentationEntityGateway"));
-        assertTrue(adapter.contracts().contains("verifies the resulting server position"));
-        assertTrue(adapter.contracts().contains("EntityBoundBattleHealthProjection"));
-        assertTrue(adapter.contracts().contains("exact live Cobblemon HP mirror"));
+        assertTrue(adapter.contracts().contains("PokemonEntity UUID lookup"));
+        assertTrue(adapter.contracts().contains("positive HP mirroring"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
-        assertTrue(adapter.contracts().contains("ErroredBattleStart"));
-        assertTrue(adapter.contracts().contains("BATTLE_STARTED_POST never fires"));
-        assertTrue(adapter.limitation().contains("AutoPTU reservation creation"));
-        assertTrue(adapter.limitation().contains("zero-HP/faint presentation"));
-        assertTrue(adapter.limitation().contains("write-through presentation state"));
+        assertTrue(adapter.contracts().contains("canonical participant/combatant IDs"));
+        assertTrue(adapter.contracts().contains("one server-issued reservation ID and RNG seed"));
+        assertTrue(adapter.limitation().contains("contract-tested"));
+        assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
+        assertTrue(adapter.limitation().contains("Cobblemon identities are lookup keys"));
     }
 }
