@@ -8,6 +8,7 @@ import io.autoptu.cobblemon.battlecore.PresentationEntityHandleRegistry;
 import io.autoptu.cobblemon.battlecore.RegistryBackedPresentationEntityGateway;
 import io.autoptu.cobblemon.battlecore.WorldBlockCoordinate;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
@@ -22,6 +23,8 @@ import org.slf4j.LoggerFactory;
 public final class CobblemonLiveRelocationSmoke {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String ENVIRONMENT_FLAG = "AUTOPTU_LIVE_RELOCATION_SMOKE";
+    private static final int MAX_LOOKUP_TICKS = 20;
+    private static PendingSmoke pending;
 
     private CobblemonLiveRelocationSmoke() {
     }
@@ -30,11 +33,12 @@ public final class CobblemonLiveRelocationSmoke {
         if (!"1".equals(System.getenv(ENVIRONMENT_FLAG))) {
             return;
         }
-        ServerLifecycleEvents.SERVER_STARTED.register(CobblemonLiveRelocationSmoke::run);
+        ServerLifecycleEvents.SERVER_STARTED.register(CobblemonLiveRelocationSmoke::spawnFixture);
+        ServerTickEvents.END_SERVER_TICK.register(CobblemonLiveRelocationSmoke::advance);
         LOGGER.info("AutoPTU live Cobblemon relocation smoke armed");
     }
 
-    static void run(MinecraftServer server) {
+    static void spawnFixture(MinecraftServer server) {
         ServerWorld world = server.getOverworld();
         PokemonEntity spawned = PokemonProperties.Companion
                 .parse("pikachu level=5")
@@ -44,17 +48,37 @@ public final class CobblemonLiveRelocationSmoke {
             throw new IllegalStateException("live relocation smoke could not spawn Cobblemon PokemonEntity");
         }
 
-        String presentationEntityId = spawned.getUuid().toString();
-        PokemonEntity resolved = new CobblemonPokemonEntityLookup()
-                .find(server, presentationEntityId)
-                .orElseThrow(() -> new IllegalStateException("spawned PokemonEntity was not found by presentation UUID"));
-        if (resolved != spawned) {
-            throw new IllegalStateException("presentation UUID lookup returned a different PokemonEntity instance");
+        pending = new PendingSmoke(spawned.getUuid().toString(), 0);
+        LOGGER.info("AutoPTU live Cobblemon relocation smoke spawned fixture: {}", pending.presentationEntityId());
+    }
+
+    static void advance(MinecraftServer server) {
+        PendingSmoke current = pending;
+        if (current == null) {
+            return;
         }
 
+        var resolved = new CobblemonPokemonEntityLookup().find(server, current.presentationEntityId());
+        if (resolved.isEmpty()) {
+            int nextAttempt = current.lookupTicks() + 1;
+            if (nextAttempt >= MAX_LOOKUP_TICKS) {
+                pending = null;
+                throw new IllegalStateException(
+                        "spawned PokemonEntity was not indexed by presentation UUID after "
+                                + MAX_LOOKUP_TICKS + " server ticks");
+            }
+            pending = new PendingSmoke(current.presentationEntityId(), nextAttempt);
+            return;
+        }
+
+        pending = null;
+        relocateAndVerify(resolved.orElseThrow(), current.presentationEntityId());
+    }
+
+    private static void relocateAndVerify(PokemonEntity entity, String presentationEntityId) {
         String reservationId = "live-relocation-smoke";
         PresentationEntityHandleRegistry<PokemonEntity> registry = new PresentationEntityHandleRegistry<>();
-        registry.register(reservationId, presentationEntityId, resolved);
+        registry.register(reservationId, presentationEntityId, entity);
         var gateway = new RegistryBackedPresentationEntityGateway<>(
                 registry,
                 new CobblemonPresentationEntityBackend()
@@ -75,18 +99,18 @@ public final class CobblemonLiveRelocationSmoke {
                 )
         );
 
-        assertCoordinate("x", destination.x() + 0.5D, spawned.getX());
-        assertCoordinate("y", destination.y(), spawned.getY());
-        assertCoordinate("z", destination.z() + 0.5D, spawned.getZ());
+        assertCoordinate("x", destination.x() + 0.5D, entity.getX());
+        assertCoordinate("y", destination.y(), entity.getY());
+        assertCoordinate("z", destination.z() + 0.5D, entity.getZ());
 
         LOGGER.info(
                 "AutoPTU live Cobblemon relocation smoke PASS: entity={} position=({}, {}, {})",
                 presentationEntityId,
-                spawned.getX(),
-                spawned.getY(),
-                spawned.getZ()
+                entity.getX(),
+                entity.getY(),
+                entity.getZ()
         );
-        spawned.discard();
+        entity.discard();
     }
 
     private static void assertCoordinate(String axis, double expected, double actual) {
@@ -94,5 +118,8 @@ public final class CobblemonLiveRelocationSmoke {
             throw new IllegalStateException(
                     "live relocation smoke " + axis + " mismatch: expected " + expected + " but was " + actual);
         }
+    }
+
+    private record PendingSmoke(String presentationEntityId, int lookupTicks) {
     }
 }
