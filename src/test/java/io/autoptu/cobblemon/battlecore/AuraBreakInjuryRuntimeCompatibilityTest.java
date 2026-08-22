@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AuraBreakInjuryRuntimeCompatibilityTest {
     @Test
     void currentAuraBreakContractDoesNotPromoteBroadCategories() {
-        assertEquals("4e1492a642350e0d657dba8587e358a2f669b59c", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
@@ -33,7 +33,7 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
     }
 
     @Test
-    void injuryRuntimePreparationComposesOnlyNonBlockingPreparationFeatures() {
+    void injuryRuntimePreparationComposesOnlyNonblockingPreparationFeatures() {
         IntegrationFeatureCompatibility.Requirement injury = IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.CANONICAL_INJURY_BOOTSTRAP);
         IntegrationFeatureCompatibility.Requirement runtime = IntegrationFeatureCompatibility.requirement(
