@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
+import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
 import io.autoptu.cobblemon.fabric.network.FabricBattleActionNetworking;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
@@ -29,6 +30,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         CobblemonLiveRelocationSmoke.registerIfEnabled();
         CobblemonLiveHealthSmoke.registerIfEnabled();
         CobblemonLiveBattleInterceptionSmoke.registerIfEnabled();
+        FabricAuthenticatedPlayerContextResolverSmoke.registerIfEnabled();
         LOGGER.info("AutoPTU Cobblemon runtime detected: {}", PokemonEntity.class.getName());
         LOGGER.info("AutoPTU Fabric server adapter initialized");
     }
