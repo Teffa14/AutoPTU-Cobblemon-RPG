@@ -21,7 +21,7 @@ jobs:
         run: gradle test --no-daemon
       - name: Prepare production Fabric + Cobblemon smoke mods
         run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
-      - name: Boot production Fabric + Cobblemon dedicated server
+      - name: Boot production Fabric + Cobblemon dedicated server and relocate live Pokemon
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +36,8 @@ jobs:
 
           (
             cd "$server_dir"
-            java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
+            AUTOPTU_LIVE_RELOCATION_SMOKE=1 \
+              java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
           ) &
           server_pid=$!
           cleanup() {
@@ -49,7 +50,8 @@ jobs:
           for _ in $(seq 1 180); do
             if grep -q 'AutoPTU Fabric server adapter initialized' "$server_dir/logs/latest.log" 2>/dev/null \
               && grep -q 'AutoPTU Cobblemon runtime detected:' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'Done (' "$server_dir/logs/latest.log" 2>/dev/null; then
+              && grep -q 'Done (' "$server_dir/logs/latest.log" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon relocation smoke PASS:' "$server_dir/logs/latest.log" 2>/dev/null; then
               ready=1
               break
             fi
