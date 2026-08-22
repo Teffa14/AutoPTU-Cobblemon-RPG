@@ -37,8 +37,11 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("VersionedCanonicalStateRepository"));
         assertTrue(adapter.contracts().contains("FileVersionedCanonicalStateRepository"));
         assertTrue(adapter.contracts().contains("required atomic replacement"));
+        assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
+        assertTrue(adapter.contracts().contains("world save root"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("cross-aggregate Pokemon/item transactions"));
+        assertTrue(adapter.adapterPolicy().contains("durable Pokemon/item/arena composition"));
+        assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
 
@@ -205,6 +208,6 @@ class UpstreamCompatibilityMatrixTest {
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
         assertEquals("473067bdd5b22f755014e53235e3b647d662902a", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("cb5b4f2562e020aaf88a0df8690759274f28abf5", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("f22cdbb831a2749c12c11a5122827c1e69a3c094", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

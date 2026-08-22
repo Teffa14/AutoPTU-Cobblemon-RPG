@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon 2>&1 | tee test-evidence/prepare-production-smoke.log
-      - name: Boot production Fabric + Cobblemon dedicated server
+      - name: Boot production Fabric + Cobblemon dedicated server twice
         shell: bash
         run: |
           set -euo pipefail
@@ -52,32 +52,43 @@ jobs:
             -o "$server_dir/fabric-server-launch.jar" \
             'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
 
+          server_pid=""
+          stop_server() {
+            if [ -n "$server_pid" ]; then
+              kill "$server_pid" 2>/dev/null || true
+              wait "$server_pid" 2>/dev/null || true
+              server_pid=""
+            fi
+          }
+          cleanup() {
+            stop_server
+          }
+          trap cleanup EXIT
+
           (
             cd "$server_dir"
-            java \
+            exec java \
               -Dautoptu.liveRelocationSmoke=true \
               -Dautoptu.liveHealthSmoke=true \
               -Dautoptu.liveBattleInterceptionSmoke=true \
               -Dautoptu.liveAuthenticatedPlayerContextSmoke=true \
-              -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
+              -Dautoptu.liveCanonicalStoreRestartSmoke=seed \
+              -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke-first.log 2>&1
           ) &
           server_pid=$!
-          cleanup() {
-            kill "$server_pid" 2>/dev/null || true
-            wait "$server_pid" 2>/dev/null || true
-          }
-          trap cleanup EXIT
 
-          ready=0
+          first_ready=0
           for _ in $(seq 1 180); do
-            if grep -q 'AutoPTU Fabric server adapter initialized' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'AutoPTU Cobblemon runtime detected:' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'AutoPTU live authenticated player context smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
-              && grep -q 'Done (' "$server_dir/logs/latest.log" 2>/dev/null; then
-              ready=1
+            latest="$server_dir/logs/latest.log"
+            if grep -q 'AutoPTU Fabric server adapter initialized' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU Cobblemon runtime detected:' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon relocation smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon HP projection smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon battle interception smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live authenticated player context smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live canonical player store seed smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'Done (' "$latest" 2>/dev/null; then
+              first_ready=1
               break
             fi
             if ! kill -0 "$server_pid" 2>/dev/null; then
@@ -86,45 +97,89 @@ jobs:
             sleep 1
           done
 
-          if [ "$ready" -ne 1 ]; then
-            cat fabric-server-smoke.log || true
-            if [ -f "$server_dir/logs/latest.log" ]; then
-              cat "$server_dir/logs/latest.log"
-            fi
+          if [ "$first_ready" -ne 1 ]; then
+            cat fabric-server-smoke-first.log || true
+            cat "$server_dir/logs/latest.log" 2>/dev/null || true
             exit 1
           fi
 
-          grep 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/logs/latest.log"
-          grep 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/logs/latest.log"
-          grep 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/logs/latest.log"
-          grep 'AutoPTU live authenticated player context smoke passed' "$server_dir/logs/latest.log"
+          cp "$server_dir/logs/latest.log" "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live canonical player store seed smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          stop_server
+
+          (
+            cd "$server_dir"
+            exec java \
+              -Dautoptu.liveCanonicalStoreRestartSmoke=verify \
+              -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke-restart.log 2>&1
+          ) &
+          server_pid=$!
+
+          second_ready=0
+          for _ in $(seq 1 180); do
+            latest="$server_dir/logs/latest.log"
+            if grep -q 'AutoPTU Fabric server adapter initialized' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU Cobblemon runtime detected:' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live canonical player store restart smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'Done (' "$latest" 2>/dev/null; then
+              second_ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$second_ready" -ne 1 ]; then
+            cat fabric-server-smoke-restart.log || true
+            cat "$server_dir/logs/latest.log" 2>/dev/null || true
+            exit 1
+          fi
+
+          cp "$server_dir/logs/latest.log" "$server_dir/autoptu-second-boot-latest.log"
+          grep 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live authenticated player context smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live canonical player store restart smoke passed' "$server_dir/autoptu-second-boot-latest.log"
       - name: Collect runtime evidence
         if: always()
         shell: bash
         run: |
           set +e
           mkdir -p test-evidence/runtime
-          cp fabric-server-smoke.log test-evidence/runtime/fabric-server-smoke.log 2>/dev/null || true
-          cp fabric-production-smoke/logs/latest.log test-evidence/runtime/minecraft-latest.log 2>/dev/null || true
-          cp fabric-production-smoke/logs/debug.log test-evidence/runtime/minecraft-debug.log 2>/dev/null || true
+          cp fabric-server-smoke-first.log test-evidence/runtime/fabric-server-smoke-first.log 2>/dev/null || true
+          cp fabric-server-smoke-restart.log test-evidence/runtime/fabric-server-smoke-restart.log 2>/dev/null || true
+          cp fabric-production-smoke/autoptu-first-boot-latest.log test-evidence/runtime/minecraft-first-boot-latest.log 2>/dev/null || true
+          cp fabric-production-smoke/autoptu-second-boot-latest.log test-evidence/runtime/minecraft-second-boot-latest.log 2>/dev/null || true
+          cp fabric-production-smoke/logs/debug.log test-evidence/runtime/minecraft-second-boot-debug.log 2>/dev/null || true
 
-          latest="fabric-production-smoke/logs/latest.log"
+          first="fabric-production-smoke/autoptu-first-boot-latest.log"
+          second="fabric-production-smoke/autoptu-second-boot-latest.log"
           manifest="test-evidence/runtime/smoke-markers.txt"
           : > "$manifest"
-          for marker in \
-            'AutoPTU Fabric server adapter initialized' \
-            'AutoPTU Cobblemon runtime detected:' \
-            'AutoPTU live Cobblemon relocation smoke passed' \
-            'AutoPTU live Cobblemon HP projection smoke passed' \
-            'AutoPTU live Cobblemon battle interception smoke passed' \
-            'AutoPTU live authenticated player context smoke passed' \
-            'Done ('; do
-            if [ -f "$latest" ] && grep -F "$marker" "$latest" >> "$manifest"; then
+          record_marker() {
+            file="$1"
+            marker="$2"
+            if [ -f "$file" ] && grep -F "$marker" "$file" >> "$manifest"; then
               true
             else
               echo "MISSING: $marker" >> "$manifest"
             fi
-          done
+          }
+          record_marker "$first" 'AutoPTU Fabric server adapter initialized'
+          record_marker "$first" 'AutoPTU Cobblemon runtime detected:'
+          record_marker "$first" 'AutoPTU live Cobblemon relocation smoke passed'
+          record_marker "$first" 'AutoPTU live Cobblemon HP projection smoke passed'
+          record_marker "$first" 'AutoPTU live Cobblemon battle interception smoke passed'
+          record_marker "$first" 'AutoPTU live authenticated player context smoke passed'
+          record_marker "$first" 'AutoPTU live canonical player store seed smoke passed'
+          record_marker "$first" 'Done ('
+          record_marker "$second" 'AutoPTU Fabric server adapter initialized'
+          record_marker "$second" 'AutoPTU Cobblemon runtime detected:'
+          record_marker "$second" 'AutoPTU live canonical player store restart smoke passed'
+          record_marker "$second" 'Done ('
 
           cat > test-evidence/visual/README.txt <<'EOF'
           Visual evidence belongs here when a test runs with a graphical Minecraft client.
