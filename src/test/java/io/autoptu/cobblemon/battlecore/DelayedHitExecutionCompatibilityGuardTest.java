@@ -31,7 +31,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(lifecycle.contracts().contains("RoundTemporaryEffectExpiryHook at order 30"));
         assertTrue(lifecycle.contracts().contains("TemporaryEffectStore.removeFirst"));
         assertTrue(lifecycle.limitation().contains("currentRound"));
-        assertTrue(lifecycle.limitation().contains("own the delayed queue or mutable RNG"));
+        assertTrue(lifecycle.limitation().contains("queue/RNG mutation"));
 
         assertTrue(moves.contracts().contains("stale target-id anchors"));
         assertTrue(moves.contracts().contains("position-only delayed requests"));
