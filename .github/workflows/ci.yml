@@ -19,13 +19,25 @@ jobs:
           gradle-version: '8.14.3'
       - name: Run authority tests
         run: gradle test --no-daemon
-      - name: Boot Fabric dedicated server
+      - name: Prepare production Fabric + Cobblemon smoke mods
+        run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
+      - name: Boot production Fabric + Cobblemon dedicated server
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p fabric-adapter/run
-          printf 'eula=true\n' > fabric-adapter/run/eula.txt
-          gradle :fabric-adapter:runServer --no-daemon > fabric-server-smoke.log 2>&1 &
+          server_dir="$PWD/fabric-production-smoke"
+          mkdir -p "$server_dir/mods"
+          cp fabric-adapter/build/production-smoke/mods/*.jar "$server_dir/mods/"
+          printf 'eula=true\n' > "$server_dir/eula.txt"
+
+          curl -fsSL \
+            -o "$server_dir/fabric-server-launch.jar" \
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+
+          (
+            cd "$server_dir"
+            java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
+          ) &
           server_pid=$!
           cleanup() {
             kill "$server_pid" 2>/dev/null || true
@@ -34,9 +46,10 @@ jobs:
           trap cleanup EXIT
 
           ready=0
-          for _ in $(seq 1 120); do
-            if grep -q 'AutoPTU Fabric server adapter initialized' fabric-adapter/run/logs/latest.log 2>/dev/null \
-              && grep -q 'Done (' fabric-adapter/run/logs/latest.log 2>/dev/null; then
+          for _ in $(seq 1 180); do
+            if grep -q 'AutoPTU Fabric server adapter initialized' "$server_dir/logs/latest.log" 2>/dev/null \
+              && grep -q 'AutoPTU Cobblemon runtime detected:' "$server_dir/logs/latest.log" 2>/dev/null \
+              && grep -q 'Done (' "$server_dir/logs/latest.log" 2>/dev/null; then
               ready=1
               break
             fi
@@ -47,9 +60,9 @@ jobs:
           done
 
           if [ "$ready" -ne 1 ]; then
-            cat fabric-server-smoke.log
-            if [ -f fabric-adapter/run/logs/latest.log ]; then
-              cat fabric-adapter/run/logs/latest.log
+            cat fabric-server-smoke.log || true
+            if [ -f "$server_dir/logs/latest.log" ]; then
+              cat "$server_dir/logs/latest.log"
             fi
             exit 1
           fi
