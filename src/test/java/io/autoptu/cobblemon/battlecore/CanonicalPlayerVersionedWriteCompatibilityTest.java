@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CanonicalPlayerVersionedWriteCompatibilityTest {
     @Test
-    void versionedCanonicalPlayerWritesDependOnlyOnServerAuthorityAdapterBoundary() {
+    void durableVersionedCanonicalPlayerWritesDependOnlyOnServerAuthorityAdapterBoundary() {
         EnumSet<UpstreamCompatibilityMatrix.Capability> dependencies = EnumSet.of(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK
         );
@@ -25,9 +25,11 @@ class CanonicalPlayerVersionedWriteCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
         assertTrue(adapter.contracts().contains("CanonicalPlayerMutationService"));
         assertTrue(adapter.contracts().contains("VersionedCanonicalStateRepository"));
-        assertTrue(adapter.contracts().contains("compare-and-set"));
-        assertTrue(adapter.adapterPolicy().contains("durable production canonical-state backend"));
-        assertTrue(adapter.adapterPolicy().contains("cross-aggregate Pokemon/item transaction recovery"));
+        assertTrue(adapter.contracts().contains("FileVersionedCanonicalStateRepository"));
+        assertTrue(adapter.contracts().contains("schema-versioned durable single-player persistence"));
+        assertTrue(adapter.contracts().contains("atomic replacement"));
+        assertTrue(adapter.adapterPolicy().contains("cross-aggregate Pokemon/item transactions"));
+        assertTrue(adapter.adapterPolicy().contains("partial-commit recovery"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
 }
