@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("a3ae7d5211c6cb797e68155fd62704025811d7da",
+        assertEquals("add15a4f9fcd55eb174d7f8b3a2dc9a4f4aa4655",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -62,11 +62,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
         assertTrue(lifecycle.contains("RoundTemporaryEffectExpiryHook at order 30"));
         assertTrue(lifecycle.contains("Trainer action reset at order 40"));
+        assertTrue(lifecycle.contains("round-temporary-effect cleanup at order 45"));
+        assertTrue(lifecycle.contains("DeclaredActionRoundLifecycleHook at order 50"));
         assertTrue(lifecycle.contains("DeclaredActionState"));
-        assertTrue(lifecycle.contains("DeclaredActionRoundLifecycleHook"));
         assertTrue(lifecycle.contains("RoundTrainerFeatureLifecyclePolicy"));
-        assertTrue(lifecycleLimit.contains("temporary cleanup first"));
-        assertTrue(lifecycleLimit.contains("draft Java PR #136"));
+        assertTrue(lifecycleLimit.contains("matches Python's relative ordering"));
         assertTrue(lifecycleLimit.contains("must not supply currentRound"));
         assertTrue(lifecycleLimit.contains("declared actions"));
         assertTrue(lifecycleLimit.contains("send-out decisions"));
