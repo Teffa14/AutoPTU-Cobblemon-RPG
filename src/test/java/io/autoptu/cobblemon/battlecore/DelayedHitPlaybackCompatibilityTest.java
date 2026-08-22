@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayedHitPlaybackCompatibilityTest {
@@ -40,7 +39,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesTargetSelectionAndRoundExpiry() {
-        assertEquals("add15a4f9fcd55eb174d7f8b3a2dc9a4f4aa4655",
+        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
@@ -83,7 +82,10 @@ class DelayedHitPlaybackCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
-                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
+        UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.adapterPolicy().contains("move animation"));
+        assertTrue(adapter.adapterPolicy().contains("remain unverified"));
     }
 }
