@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,7 +33,8 @@ import java.util.function.Consumer;
 
 /**
  * Opt-in production-runtime proof that AutoPTU can preempt a real Cobblemon battle start before
- * Cobblemon registers or launches its battle engine.
+ * Cobblemon registers or launches its battle engine, while carrying only opaque participant IDs
+ * across the adapter boundary.
  */
 public final class CobblemonLiveBattleInterceptionSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveBattleInterceptionSmoke";
@@ -120,12 +122,39 @@ public final class CobblemonLiveBattleInterceptionSmoke {
                 throw new IllegalStateException("Cobblemon BATTLE_STARTED_POST fired for a preempted battle");
             }
 
-            LOGGER.info("{}: battle={}", SUCCESS_LOG, signal.cobblemonBattleId());
+            List<CobblemonBattleStartInterceptor.ParticipantIdentity> participants = signal.participants();
+            if (participants.size() != 2) {
+                throw new IllegalStateException("battle interception smoke did not capture both participants");
+            }
+            assertWildParticipant(participants.get(0), 1, firstActor.getUuid(), first.getPokemon().getUuid());
+            assertWildParticipant(participants.get(1), 2, secondActor.getUuid(), second.getPokemon().getUuid());
+
+            LOGGER.info("{}: battle={} participants={}", SUCCESS_LOG, signal.cobblemonBattleId(), participants.size());
         } finally {
             CobblemonBattleStartInterceptor.unsubscribe(preSubscription);
             CobblemonEvents.BATTLE_STARTED_POST.unsubscribe(postSubscription);
             first.discard();
             second.discard();
+        }
+    }
+
+    private static void assertWildParticipant(
+            CobblemonBattleStartInterceptor.ParticipantIdentity participant,
+            int expectedSide,
+            UUID expectedActorId,
+            UUID expectedPokemonId
+    ) {
+        if (participant.side() != expectedSide) {
+            throw new IllegalStateException("intercepted participant side mismatch");
+        }
+        if (participant.kind() != CobblemonBattleStartInterceptor.ParticipantKind.WILD) {
+            throw new IllegalStateException("intercepted participant kind mismatch");
+        }
+        if (!participant.actorId().equals(expectedActorId.toString())) {
+            throw new IllegalStateException("intercepted actor identity mismatch");
+        }
+        if (!participant.pokemonIds().equals(List.of(expectedPokemonId.toString()))) {
+            throw new IllegalStateException("intercepted Pokemon identity mismatch");
         }
     }
 
