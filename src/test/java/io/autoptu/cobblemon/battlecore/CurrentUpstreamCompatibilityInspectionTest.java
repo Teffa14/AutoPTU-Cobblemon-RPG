@@ -131,7 +131,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("ErroredBattleStart"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_POST never fires"));
         assertTrue(adapter.limitation().contains("AutoPTU reservation creation"));
-        assertTrue(adapter.limitation().contains("Zero-HP/faint presentation"));
+        assertTrue(adapter.limitation().contains("zero-HP/faint presentation"));
         assertTrue(adapter.limitation().contains("write-through presentation state"));
     }
 }
