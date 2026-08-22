@@ -36,11 +36,12 @@ class AuthenticatedPlayerContextCompatibilityTest {
         assertTrue(features.contracts().contains("TrainerFeatureEffectRegistry"));
         assertTrue(features.contracts().contains("heal/heal_active"));
         assertTrue(features.contracts().contains("raise_cs"));
+        assertTrue(features.contracts().contains("grant_temp_hp"));
         assertTrue(features.contracts().contains("only after an applied effect"));
         assertTrue(features.adapterPolicy().contains("may not grant Features"));
         assertTrue(features.adapterPolicy().contains("select or rewrite targets"));
         assertTrue(features.adapterPolicy().contains("invoke Feature effects"));
         assertTrue(features.adapterPolicy().contains("AP-specific costs"));
-        assertTrue(features.adapterPolicy().contains("broader Python effect/library dispatcher"));
+        assertTrue(features.adapterPolicy().contains("Temporary HP damage absorption"));
     }
 }
