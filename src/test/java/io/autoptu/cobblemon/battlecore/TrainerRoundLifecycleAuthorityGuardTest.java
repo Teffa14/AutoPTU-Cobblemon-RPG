@@ -48,7 +48,9 @@ class TrainerRoundLifecycleAuthorityGuardTest {
         assertTrue(actionEconomy.contracts().contains("TrainerRuntimeState"));
         assertTrue(actionEconomy.limitation().contains("temporary AP grants/expiry"));
 
-        assertTrue(perks.contracts().contains("temporary AP grants"));
-        assertTrue(perks.limitation().contains("choose AP grant expiry/source"));
+        assertTrue(perks.contracts().contains("TrainerFeatureResourceResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureUsageResolution"));
+        assertTrue(perks.limitation().contains("AP"));
+        assertTrue(perks.limitation().contains("Minecraft must not"));
     }
 }
