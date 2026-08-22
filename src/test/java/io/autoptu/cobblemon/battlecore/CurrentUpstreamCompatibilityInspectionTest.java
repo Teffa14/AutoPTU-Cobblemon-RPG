@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("784c74790b9cb1ec1723d89027724bbac885897f",
+        assertEquals("66d82a5beb767ec8dd32803b5d08afaad3d454aa",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -54,6 +54,19 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(targetingLimit.contains("must not supply effective target lists"));
         assertTrue(targetingLimit.contains("generic active-state filter"));
 
+        String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
+        String lifecycleLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
+        assertTrue(lifecycle.contains("FieldRoundLifecycleHook at order 10"));
+        assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
+        assertTrue(lifecycle.contains("RoundTemporaryEffectExpiryHook at order 30"));
+        assertTrue(lifecycle.contains("Follow Me then Foresight"));
+        assertTrue(lifecycle.contains("TemporaryEffectStore.removeFirst"));
+        assertTrue(lifecycleLimit.contains("Trainer AP/temporary-AP resets"));
+        assertTrue(lifecycleLimit.contains("must not supply currentRound"));
+        assertTrue(lifecycleLimit.contains("expiry decisions"));
+
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();
         String legalLimit = CurrentUpstreamCompatibilityInspection.evidence(
@@ -71,12 +84,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         String moveLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
-        assertTrue(move.contains("stale combatant targets"));
-        assertTrue(move.contains("stored authoritative anchor"));
+        assertTrue(move.contains("stale target-id anchors"));
+        assertTrue(move.contains("position-only delayed requests"));
         assertTrue(move.contains("EffectiveMoveTargetResolver"));
-        assertTrue(move.contains("empty effective-target set"));
-        assertTrue(moveLimit.contains("must not choose replacement targets"));
-        assertTrue(moveLimit.contains("TILE/area delayed execution remains unsupported"));
+        assertTrue(move.contains("aim anchor"));
+        assertTrue(move.contains("live target IDs"));
+        assertTrue(moveLimit.contains("must not choose delayed targets"));
+        assertTrue(moveLimit.contains("unported move specials"));
 
         String adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).limitation();
