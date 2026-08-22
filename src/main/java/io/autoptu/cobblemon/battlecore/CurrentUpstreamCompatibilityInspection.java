@@ -85,8 +85,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Server-side UUID lookup resolves only live Cobblemon PokemonEntity handles. The live relocation smoke spawns a real PokemonEntity, resolves its opaque presentation UUID, binds it through PresentationEntityHandleRegistry/RegistryBackedPresentationEntityGateway, applies an authoritative WorldBlockCoordinate relocation and verifies the resulting server position.",
-                        "Live adapter support is still partial. HP projection, move animation, semantic cues, battle-trigger interception, full entity lifecycle and complete battle playback have not been exercised. Cobblemon entity data remains presentation-only and must never become PTU authority."));
+                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Server-side UUID lookup resolves only live Cobblemon PokemonEntity handles. Runtime smoke coverage now spawns real PokemonEntity fixtures, binds opaque presentation UUIDs through PresentationEntityHandleRegistry/RegistryBackedPresentationEntityGateway, applies an authoritative WorldBlockCoordinate relocation and verifies the resulting server position, then separately sends an authoritative positive EntityBoundBattleHealthProjection through GatewayBackedBattleEntityBoundPresentationConsumer and verifies the exact live Cobblemon HP mirror.",
+                        "Live adapter support remains partial. Zero-HP/faint presentation, move animation, semantic cues, battle-trigger interception, full entity lifecycle and complete battle playback have not been exercised. Cobblemon HP and other entity data are write-through presentation state only and must never flow back into PTU authority."));
 
         return Map.copyOf(result);
     }
