@@ -55,7 +55,6 @@ class BattleCombatantAuthoritySnapshotTest {
                 null,
                 null,
                 null,
-                null,
                 3
         );
 
