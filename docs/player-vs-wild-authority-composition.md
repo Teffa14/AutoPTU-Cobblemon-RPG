@@ -14,6 +14,14 @@ Reservation ordering is deliberate. Player Trainer/Pokémon/items/arena are froz
 
 The resulting `PlayerVsWildBattleReservation` verifies the shared reservation ID, shared RNG seed, player participant identity and exact player roster again before it can exist.
 
+## Cobblemon pre-start claim boundary
+
+`CobblemonPlayerVsWildClaimCoordinator` is the adapter-owned bridge from the identity-only `BATTLE_STARTED_PRE` signal to this composed authority. It accepts only one PLAYER actor and one opposed WILD actor. Before any reservation attempt it requires a server-owned authenticated player context keyed by the external player actor UUID, resolves both actors through `CobblemonCanonicalEncounterIdentityRegistry`, and requires the authenticated canonical player ID and ordered Pokémon roster to match the canonical identity mapping exactly.
+
+The authenticated context supplies canonical player/Pokémon IDs, requested consumable quantities and the server-owned `BattleArenaSnapshot`. None of those values are trusted from the Cobblemon battle object. Production wiring must adapt the coordinator reservation callback to `PlayerVsWildEncounterAuthorityService.reserve(...).allowed()` or an equivalent server-owned façade. Returning false leaves the Cobblemon battle untouched. Returning true is the only path that allows the existing interceptor to cancel Cobblemon.
+
+The coordinator rejects missing authentication, unresolved identities, roster mismatches, NPC/multi-party topologies, same-side PLAYER/WILD pairs and authority denial. It does not fall back to Cobblemon data when canonical state is missing.
+
 This slice does not materialize `RuntimeCombatantState`. It does not read species, level, HP, stats, moves, abilities, held items, Showdown state, Trainer Features, inventory truth or outcomes from Cobblemon. Those values remain canonical server state and may enter AutoPTU-Java only through verified upstream runtime contracts.
 
 It also does not make the two persistence repositories a distributed transaction. The current boundary provides deterministic identity plus reservation-time compensation. A future persistence/versioning slice should provide a single durable encounter transaction or recovery record before crash-safe cross-store semantics are claimed.
