@@ -39,6 +39,7 @@ jobs:
             java \
               -Dautoptu.liveRelocationSmoke=true \
               -Dautoptu.liveHealthSmoke=true \
+              -Dautoptu.liveBattleInterceptionSmoke=true \
               -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
           ) &
           server_pid=$!
@@ -54,6 +55,7 @@ jobs:
               && grep -q 'AutoPTU Cobblemon runtime detected:' "$server_dir/logs/latest.log" 2>/dev/null \
               && grep -q 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
               && grep -q 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
               && grep -q 'Done (' "$server_dir/logs/latest.log" 2>/dev/null; then
               ready=1
               break
@@ -74,3 +76,4 @@ jobs:
 
           grep 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/logs/latest.log"
+          grep 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/logs/latest.log"
