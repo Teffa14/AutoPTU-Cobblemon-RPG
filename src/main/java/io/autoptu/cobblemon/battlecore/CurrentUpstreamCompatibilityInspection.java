@@ -8,7 +8,7 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "add15a4f9fcd55eb174d7f8b3a2dc9a4f4aa4655";
+    public static final String AUTOPTU_JAVA_SHA = "fa307e722c4912b50a4d1e59b7b6a98fc29a55cc";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -50,7 +50,7 @@ public final class CurrentUpstreamCompatibilityInspection {
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
                         "ROUND_START executes FieldRoundLifecycleHook at order 10, DelayedHitRoundLifecycleHook at order 20, RoundTemporaryEffectExpiryHook at order 30, server-owned TemporaryApGrant expiry and Trainer action reset at order 40, Pokemon round-temporary-effect cleanup at order 45, then DeclaredActionRoundLifecycleHook at order 50. BattleRuntimeState owns immutable DeclaredActionState. RoundTrainerFeatureLifecyclePolicy freezes the Python guards around declaration cleanup, initial send-out, initiative and round_start Trainer Feature dispatch.",
-                        "Complete lifecycle remains broader. Java now matches Python's relative ordering by cleaning Pokemon round-temporary effects before declared actions, but initial send-out execution, generic round_start Feature semantics, Air Lock, Arena Trap, Intimidate, Impostor and other Python round behavior remain pending. Minecraft must not supply currentRound, declared actions, cleanup ordering, temporary AP grants, Trainer action reset, send-out decisions, temporary-effect metadata, delayed maturity, queue/RNG mutation or action/frequency bookkeeping."));
+                        "Complete lifecycle remains broader. Java matches Python's relative cleanup ordering, but initial send-out execution, generic round_start Feature semantics, Air Lock, Arena Trap, Intimidate, Impostor and other Python round behavior remain pending. Minecraft must not supply currentRound, declared actions, cleanup ordering, temporary AP grants, Trainer action reset, send-out decisions, temporary-effect metadata, delayed maturity, queue/RNG mutation or action/frequency bookkeeping."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
@@ -73,8 +73,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. BattleRuntimeState owns opaque declared-action records and clears them during ROUND_START after Pokemon round-temporary-effect cleanup; RoundTrainerFeatureLifecyclePolicy defines the surrounding send-out/initiative/Feature ordering contract.",
-                        "Only bounded Trainer Feature/skill/initiative/AP consumers and lifecycle state exist. Declared-action producers/consumers and broad round Feature semantics remain incomplete. Minecraft must not grant Features or temporary AP, choose AP grant expiry/source, create/clear declared actions, decide initial send-out, dispatch round_start Features, reset Trainer actions, spend/restore AP, or execute perks."));
+                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. BattleRuntimeState owns opaque declared-action records. RoundTrainerFeatureLifecyclePolicy defines send-out/initiative/Feature ordering, and TrainerFeaturePrerequisiteResolution now ports Python-parity feature/edge/known-feature discovery plus class, subclass, level and required-feature prerequisite gates.",
+                        "Only bounded Trainer Feature discovery, prerequisite, skill, initiative, AP and lifecycle contracts exist. Context gates, frequency/cooldowns, resources, usage mutation, targets and broad effect application remain incomplete. Minecraft must not grant Features, decide prerequisites, choose AP grant expiry/source, create/clear declared actions, dispatch round_start Features, spend/restore AP, or execute perks."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
@@ -84,9 +84,9 @@ public final class CurrentUpstreamCompatibilityInspection {
 
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
-                        UpstreamCompatibilityMatrix.Support.BLOCKING,
-                        "Fabric 1.21.1 has a real dedicated-server ModInitializer boundary and C2S payload-codec registration. CI boots a dedicated Fabric server and requires both the adapter initialization log and Minecraft server-ready log. Adapter-neutral entity-bound playback and authenticated receiver/service boundaries remain separately tested.",
-                        "The broad category remains blocking until Cobblemon runtime/entity lookup and at least one entity-bound presentation operation are exercised in a real runtime. Fabric startup alone is not proof of Cobblemon HP projection, relocation, animation or PTU rule execution."));
+                        UpstreamCompatibilityMatrix.Support.PARTIAL,
+                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Server-side UUID lookup resolves only live Cobblemon PokemonEntity handles. The live relocation smoke spawns a real PokemonEntity, resolves its opaque presentation UUID, binds it through PresentationEntityHandleRegistry/RegistryBackedPresentationEntityGateway, applies an authoritative WorldBlockCoordinate relocation and verifies the resulting server position.",
+                        "Live adapter support is still partial. HP projection, move animation, semantic cues, battle-trigger interception, full entity lifecycle and complete battle playback have not been exercised. Cobblemon entity data remains presentation-only and must never become PTU authority."));
 
         return Map.copyOf(result);
     }
