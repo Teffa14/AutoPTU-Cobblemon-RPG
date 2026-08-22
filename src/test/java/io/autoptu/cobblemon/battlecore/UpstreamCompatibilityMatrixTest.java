@@ -43,9 +43,11 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPlayerEncounterProfileRepository"));
         assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerEncounterContextSource"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
+        assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
+        assertTrue(adapter.contracts().contains("active reservation"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("selection state only"));
-        assertTrue(adapter.adapterPolicy().contains("independent canonical Pokemon/item aggregate persistence"));
+        assertTrue(adapter.adapterPolicy().contains("Durable Pokemon aggregate persistence"));
+        assertTrue(adapter.adapterPolicy().contains("wiring the item ledger into Fabric world lifecycle"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("BattleAuthorityService must continue to re-resolve ownership and quantities"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
@@ -109,15 +111,17 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(perks.contracts().contains("TrainerFeatureUsageResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureExecutionService.executeAuthoritative"));
         assertTrue(perks.contracts().contains("TrainerFeatureTargetResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureTrainerTargetResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureEffectRegistry"));
         assertTrue(perks.contracts().contains("heal/heal_active"));
         assertTrue(perks.contracts().contains("raise_cs"));
         assertTrue(perks.contracts().contains("grant_temp_hp"));
+        assertTrue(perks.contracts().contains("grant_ap"));
         assertTrue(perks.contracts().contains("only after an applied effect"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
         assertTrue(perks.adapterPolicy().contains("select or rewrite targets"));
-        assertTrue(perks.adapterPolicy().contains("AP-specific costs"));
+        assertTrue(perks.adapterPolicy().contains("wider Python effect library"));
         assertTrue(perks.adapterPolicy().contains("Temporary HP damage absorption"));
     }
 
@@ -208,13 +212,14 @@ class UpstreamCompatibilityMatrixTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, items.support());
         assertTrue(items.contracts().contains("HeldItemState"));
         assertTrue(items.contracts().contains("heldItemsByCombatant"));
-        assertTrue(items.adapterPolicy().contains("item effects"));
+        assertTrue(items.contracts().contains("durable item/reservation store"));
+        assertTrue(items.adapterPolicy().contains("unported item effects"));
         assertTrue(items.adapterPolicy().contains("client/entity equipment"));
     }
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("63526aa2dce83d0faa22b364705cd36f590d964b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("436b09ceb0811b74dc21924995aa82e56e581061", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("bc22b78e0a46bd65b6d5ddc38fcabe0b8368440b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("85dfad45e345d4f77dc5f05b86ea546ef9389d26", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
