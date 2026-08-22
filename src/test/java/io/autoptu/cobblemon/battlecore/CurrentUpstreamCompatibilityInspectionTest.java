@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("63526aa2dce83d0faa22b364705cd36f590d964b",
+        assertEquals("bc22b78e0a46bd65b6d5ddc38fcabe0b8368440b",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("436b09ceb0811b74dc21924995aa82e56e581061",
+        assertEquals("85dfad45e345d4f77dc5f05b86ea546ef9389d26",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -91,12 +91,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("TrainerFeatureUsageResolution"));
         assertTrue(perks.contains("TrainerFeatureExecutionService.executeAuthoritative"));
         assertTrue(perks.contains("TrainerFeatureTargetResolution"));
+        assertTrue(perks.contains("TrainerFeatureTrainerTargetResolution"));
         assertTrue(perks.contains("TrainerFeatureEffectRegistry"));
         assertTrue(perks.contains("heal/heal_active"));
         assertTrue(perks.contains("raise_cs"));
         assertTrue(perks.contains("grant_temp_hp"));
-        assertTrue(perks.contains("only after the effect reports applied"));
-        assertTrue(perksLimit.contains("AP-specific costs"));
+        assertTrue(perks.contains("grant_ap"));
+        assertTrue(perks.contains("effect before resource consumption"));
         assertTrue(perksLimit.contains("wider Python effect library"));
         assertTrue(perksLimit.contains("Temporary HP damage absorption"));
         assertTrue(perksLimit.contains("must not grant Features"));
@@ -146,8 +147,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPlayerEncounterProfileRepository"));
         assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerEncounterContextSource"));
         assertTrue(adapter.contracts().contains("BattleAuthorityService still re-resolves every Pokemon and item"));
+        assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
+        assertTrue(adapter.contracts().contains("active reservation"));
         assertTrue(adapter.limitation().contains("successful authenticated graphical client encounter is still pending"));
-        assertTrue(adapter.limitation().contains("not independent Pokemon/item aggregate truth"));
+        assertTrue(adapter.limitation().contains("Durable Pokemon aggregate truth"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("identity/presentation inputs only"));
     }
