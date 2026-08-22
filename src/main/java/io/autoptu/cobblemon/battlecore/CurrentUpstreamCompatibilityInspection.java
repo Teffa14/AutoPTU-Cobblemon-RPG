@@ -8,7 +8,7 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "f3f9884b1142ff1a99dbf647bcf342ba6768bb39";
+    public static final String AUTOPTU_JAVA_SHA = "ad43112b12c0bee204502cdea100683104a881c4";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -43,14 +43,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState and InitiativeRoundRebuilder.authoritative own ordering and rollover. DelayedHitResourcePolicy preserves the originating action and frequency spend during ROUND_START. TrainerRuntimeState now owns its ActionBudget and temporary AP grants; ROUND_START expires due temporary AP before resetting Trainer actions.",
+                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState and InitiativeRoundRebuilder.authoritative own ordering and rollover. DelayedHitResourcePolicy preserves the originating action and frequency spend during ROUND_START. TrainerRuntimeState owns its ActionBudget and temporary AP grants; ROUND_START expires due temporary AP before resetting Trainer actions.",
                         "Minecraft must not provide a precomputed rollover order, delayed-hit RNG, delayed-hit queue mutation, action/frequency bookkeeping, Trainer action-reset state, temporary AP grants/expiry, or a Trainer ID that collides with a combatant ID."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "ROUND_START executes FieldRoundLifecycleHook at order 10, DelayedHitRoundLifecycleHook at order 20, RoundTemporaryEffectExpiryHook at order 30, then server-owned Trainer temporary-AP expiry and Trainer action reset at order 40. TemporaryApGrant plus TrainerRuntimeState.grantTemporaryAp/expireTemporaryAp/spendAp match the pinned Python semantics, including strict currentRound > expiresRound expiry and temporary-grant-first AP spending.",
-                        "Complete lifecycle remains broader. Send-out effects, Air Lock, Arena Trap, Intimidate, Impostor, remaining temporary-effect/status/ability/perk processing and other Python round behavior remain pending. Minecraft must not supply currentRound, temporary AP grants, AP expiry decisions, Trainer action reset, temporary-effect metadata, lifecycle hooks, delayed maturity, queue/RNG mutation or action/frequency bookkeeping."));
+                        "ROUND_START executes FieldRoundLifecycleHook at order 10, DelayedHitRoundLifecycleHook at order 20, RoundTemporaryEffectExpiryHook at order 30, then server-owned Trainer temporary-AP expiry and Trainer action reset at order 40. RoundTrainerFeatureLifecyclePolicy now freezes the Python ordering contract for declared-action cleanup, round-one initial send-out guards, initiative rebuild before round_start emission and generic round_start Trainer Feature dispatch.",
+                        "Complete lifecycle remains broader. The new Trainer round-feature policy is a contract only; declared-action cleanup, initial send-out execution and generic round_start Feature dispatch are not yet runtime-wired. Air Lock, Arena Trap, Intimidate, Impostor and other Python round behavior remain pending. Minecraft must not supply currentRound, Trainer lifecycle ordering, declared actions, send-out decisions, temporary-effect metadata, delayed maturity, queue/RNG mutation or action/frequency bookkeeping."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
@@ -73,8 +73,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. Temporary AP spending/expiry and round-start Trainer action reset are server-owned; Rider Agility Training and Hardened Initiative remain server-owned consumers.",
-                        "Only bounded Trainer Feature/skill/initiative/AP consumers exist. Minecraft must not grant Features or temporary AP, choose AP grant expiry/source, reset Trainer actions, spend/restore AP, or execute perks."));
+                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. RoundTrainerFeatureLifecyclePolicy freezes ordering/guards for declared-action cleanup, initial send-out and generic round_start Feature dispatch without inventing Feature semantics.",
+                        "Only bounded Trainer Feature/skill/initiative/AP consumers and a new lifecycle ordering contract exist. Minecraft must not grant Features or temporary AP, choose AP grant expiry/source, clear declared actions, decide initial send-out, dispatch round_start Features, reset Trainer actions, spend/restore AP, or execute perks."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
@@ -85,8 +85,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
-                        "Adapter-neutral entity-bound playback plus authenticated request and primitive packet boundaries remain headless integration infrastructure.",
-                        "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking."));
+                        "Fabric 1.21.1 now has a real dedicated-server ModInitializer boundary and C2S payload-codec registration. CI boots a dedicated Fabric server and requires both the adapter initialization log and Minecraft server-ready log. Adapter-neutral entity-bound playback and authenticated receiver/service boundaries remain separately tested.",
+                        "The broad category remains blocking because no Cobblemon/Craftics runtime and no live battle entity playback have executed yet. The verified Fabric startup subset must not be treated as proof of Cobblemon entity lookup, HP projection, relocation, animation or PTU rule execution."));
 
         return Map.copyOf(result);
     }
