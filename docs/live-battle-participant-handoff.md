@@ -32,3 +32,5 @@ Runtime acceptance criteria:
 8. prove `BattleRegistry` never registers the Cobblemon battle;
 9. prove `BATTLE_STARTED_POST` never fires;
 10. verify the stored reservation contains the fixed canonical IDs/level/HP values rather than live Cobblemon battle values.
+
+CI preserves the live server logs and the exact acceptance-marker matches for this smoke in the `integration-test-evidence-<run-id>-<attempt>` workflow artifact. See `test-evidence.md` for retention, failure collection and future MP4/PNG recording rules.
