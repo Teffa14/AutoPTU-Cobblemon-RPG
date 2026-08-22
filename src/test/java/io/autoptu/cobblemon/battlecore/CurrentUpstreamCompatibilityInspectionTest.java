@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("f793666236a19d3c09547e5603a4fa3ec595c899",
+        assertEquals("473067bdd5b22f755014e53235e3b647d662902a",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("8e5dea0cbafecb19dfa800918f7cbe2fe99fcd20",
+        assertEquals("cb5b4f2562e020aaf88a0df8690759274f28abf5",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -91,10 +91,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("TrainerFeatureUsageResolution"));
         assertTrue(perks.contains("TrainerFeatureExecutionService.executeAuthoritative"));
         assertTrue(perks.contains("TrainerFeatureTargetResolution"));
+        assertTrue(perks.contains("TrainerFeatureEffectRegistry"));
+        assertTrue(perks.contains("heal/heal_active"));
+        assertTrue(perks.contains("raise_cs"));
         assertTrue(perks.contains("only after the effect reports applied"));
-        assertTrue(perksLimit.contains("effect semantics"));
         assertTrue(perksLimit.contains("AP-specific costs"));
-        assertTrue(perksLimit.contains("target resolution stops before effect application"));
+        assertTrue(perksLimit.contains("wider Python effect library"));
         assertTrue(perksLimit.contains("must not grant Features"));
         assertTrue(perksLimit.contains("select or rewrite targets"));
 
@@ -134,8 +136,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("one server-issued reservation ID and RNG seed"));
         assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver"));
         assertTrue(adapter.contracts().contains("MinecraftServer PlayerManager"));
-        assertTrue(adapter.contracts().contains("malformed/offline identities fail before canonical lookup"));
+        assertTrue(adapter.contracts().contains("FileVersionedCanonicalStateRepository"));
+        assertTrue(adapter.contracts().contains("one CAS winner"));
         assertTrue(adapter.limitation().contains("successful authenticated graphical client encounter is still pending"));
+        assertTrue(adapter.limitation().contains("Pokemon/item cross-aggregate transaction recovery is pending"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("identity/presentation inputs only"));
     }
