@@ -122,8 +122,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("real PokemonEntity"));
         assertTrue(adapter.contracts().contains("RegistryBackedPresentationEntityGateway"));
         assertTrue(adapter.contracts().contains("verifies the resulting server position"));
-        assertTrue(adapter.limitation().contains("HP projection"));
+        assertTrue(adapter.contracts().contains("EntityBoundBattleHealthProjection"));
+        assertTrue(adapter.contracts().contains("exact live Cobblemon HP mirror"));
+        assertTrue(adapter.limitation().contains("Zero-HP/faint presentation"));
         assertTrue(adapter.limitation().contains("battle-trigger interception"));
-        assertTrue(adapter.limitation().contains("presentation-only"));
+        assertTrue(adapter.limitation().contains("write-through presentation state"));
     }
 }
