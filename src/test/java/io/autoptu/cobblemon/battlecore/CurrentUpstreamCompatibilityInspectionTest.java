@@ -10,7 +10,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("473067bdd5b22f755014e53235e3b647d662902a",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("cb5b4f2562e020aaf88a0df8690759274f28abf5",
+        assertEquals("f22cdbb831a2749c12c11a5122827c1e69a3c094",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -138,8 +138,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("MinecraftServer PlayerManager"));
         assertTrue(adapter.contracts().contains("FileVersionedCanonicalStateRepository"));
         assertTrue(adapter.contracts().contains("one CAS winner"));
+        assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
+        assertTrue(adapter.contracts().contains("world save root"));
+        assertTrue(adapter.contracts().contains("second process"));
         assertTrue(adapter.limitation().contains("successful authenticated graphical client encounter is still pending"));
-        assertTrue(adapter.limitation().contains("Pokemon/item cross-aggregate transaction recovery is pending"));
+        assertTrue(adapter.limitation().contains("Pokemon/item/arena composition"));
+        assertTrue(adapter.limitation().contains("production identity-to-player-context source"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("identity/presentation inputs only"));
     }
