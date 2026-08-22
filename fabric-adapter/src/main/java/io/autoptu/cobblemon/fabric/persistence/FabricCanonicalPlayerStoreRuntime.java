@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.persistence;
 
+import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
@@ -12,15 +13,20 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Owns the durable canonical-player repository for each live Minecraft server instance.
+ * Owns world-scoped canonical player persistence for each live Minecraft server instance.
  *
  * The filesystem location is derived from the server's world save root. Minecraft supplies
- * storage location and lifecycle only; it does not supply canonical Trainer values.
+ * storage location and lifecycle only; it does not supply canonical Trainer, Pokemon, item or
+ * arena values.
  */
 public final class FabricCanonicalPlayerStoreRuntime {
+    private record Stores(
+            FileVersionedCanonicalStateRepository players,
+            FileCanonicalPlayerEncounterProfileRepository encounterProfiles
+    ) {}
+
     private static final AtomicBoolean REGISTERED = new AtomicBoolean();
-    private static final Map<MinecraftServer, FileVersionedCanonicalStateRepository> REPOSITORIES =
-            new IdentityHashMap<>();
+    private static final Map<MinecraftServer, Stores> STORES = new IdentityHashMap<>();
 
     private FabricCanonicalPlayerStoreRuntime() {}
 
@@ -31,14 +37,13 @@ public final class FabricCanonicalPlayerStoreRuntime {
     }
 
     public static FileVersionedCanonicalStateRepository requireRepository(MinecraftServer server) {
-        Objects.requireNonNull(server, "server");
-        synchronized (REPOSITORIES) {
-            FileVersionedCanonicalStateRepository repository = REPOSITORIES.get(server);
-            if (repository == null) {
-                throw new IllegalStateException("canonical player store is unavailable for this server lifecycle");
-            }
-            return repository;
-        }
+        return requireStores(server).players();
+    }
+
+    public static FileCanonicalPlayerEncounterProfileRepository requireEncounterProfileRepository(
+            MinecraftServer server
+    ) {
+        return requireStores(server).encounterProfiles();
     }
 
     static Path storageRoot(MinecraftServer server) {
@@ -51,19 +56,33 @@ public final class FabricCanonicalPlayerStoreRuntime {
         return worldSaveRoot.resolve("autoptu").resolve("canonical-state").normalize();
     }
 
+    private static Stores requireStores(MinecraftServer server) {
+        Objects.requireNonNull(server, "server");
+        synchronized (STORES) {
+            Stores stores = STORES.get(server);
+            if (stores == null) {
+                throw new IllegalStateException("canonical player stores are unavailable for this server lifecycle");
+            }
+            return stores;
+        }
+    }
+
     private static void start(MinecraftServer server) {
         Path root = storageRoot(server);
-        FileVersionedCanonicalStateRepository repository = new FileVersionedCanonicalStateRepository(root);
-        synchronized (REPOSITORIES) {
-            if (REPOSITORIES.putIfAbsent(server, repository) != null) {
-                throw new IllegalStateException("canonical player store already initialized for server");
+        Stores stores = new Stores(
+                new FileVersionedCanonicalStateRepository(root),
+                new FileCanonicalPlayerEncounterProfileRepository(root)
+        );
+        synchronized (STORES) {
+            if (STORES.putIfAbsent(server, stores) != null) {
+                throw new IllegalStateException("canonical player stores already initialized for server");
             }
         }
     }
 
     private static void stop(MinecraftServer server) {
-        synchronized (REPOSITORIES) {
-            REPOSITORIES.remove(server);
+        synchronized (STORES) {
+            STORES.remove(server);
         }
     }
 }
