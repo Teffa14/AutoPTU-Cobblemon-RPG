@@ -3,7 +3,7 @@
   "id": "autoptu_cobblemon_rpg_fabric_adapter",
   "version": "${version}",
   "name": "AutoPTU Cobblemon RPG Fabric Adapter",
-  "description": "Server-side Fabric networking adapter for AutoPTU battle intents.",
+  "description": "Server-side Fabric networking and presentation adapter for AutoPTU battle intents.",
   "environment": "server",
   "entrypoints": {
     "main": [
@@ -13,6 +13,8 @@
   "depends": {
     "fabricloader": ">=0.17.2",
     "fabric-api": "*",
+    "fabric-language-kotlin": ">=1.13.6",
+    "cobblemon": ">=1.7.3",
     "minecraft": "1.21.1",
     "java": ">=21"
   }
