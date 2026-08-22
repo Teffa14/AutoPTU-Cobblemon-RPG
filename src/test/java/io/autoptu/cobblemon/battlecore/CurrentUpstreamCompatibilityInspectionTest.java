@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("f094111f248f3a6bfe78d835e8f4bce115f84ef7",
+        assertEquals("784c74790b9cb1ec1723d89027724bbac885897f",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
@@ -69,10 +69,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
 
         String move = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
-        assertTrue(move.contains("falls back to the stored target position"));
-        assertTrue(move.contains("recomputes affected tiles"));
-        assertTrue(move.contains("HP eligibility"));
-        assertTrue(move.contains("originating action/frequency spend"));
+        String moveLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).limitation();
+        assertTrue(move.contains("stale combatant targets"));
+        assertTrue(move.contains("stored authoritative anchor"));
+        assertTrue(move.contains("EffectiveMoveTargetResolver"));
+        assertTrue(move.contains("empty effective-target set"));
+        assertTrue(moveLimit.contains("must not choose replacement targets"));
+        assertTrue(moveLimit.contains("TILE/area delayed execution remains unsupported"));
 
         String adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).limitation();
