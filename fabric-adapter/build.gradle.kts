@@ -8,6 +8,8 @@ version = "0.1.0-SNAPSHOT"
 repositories {
     mavenCentral()
     maven("https://maven.fabricmc.net/")
+    maven("https://maven.impactdev.net/repository/development/")
+    maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
 }
 
 java {
@@ -21,6 +23,8 @@ dependencies {
     mappings("net.fabricmc:yarn:1.21.1+build.3:v2")
     modImplementation("net.fabricmc:fabric-loader:0.17.2")
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
+    modImplementation("com.cobblemon:fabric:1.7.3+1.21.1")
 
     implementation(project(":"))
 
