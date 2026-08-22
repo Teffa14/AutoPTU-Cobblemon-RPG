@@ -3,13 +3,12 @@ package io.autoptu.cobblemon.battlecore;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("4e1492a642350e0d657dba8587e358a2f669b59c", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("e4bb0ca38b7018710af476ce365d515a387de4e7", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
@@ -35,12 +34,14 @@ class AnalyticCompatibilityGuardTest {
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
 
         assertTrue(actionEconomy.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
-        assertFalse(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
-                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.adapterPolicy().contains("must never supply PTU stats, legality or outcomes"));
     }
 }
