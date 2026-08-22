@@ -8,7 +8,7 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "784c74790b9cb1ec1723d89027724bbac885897f";
+    public static final String AUTOPTU_JAVA_SHA = "66d82a5beb767ec8dd32803b5d08afaad3d454aa";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -49,14 +49,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleDelayedHitState owns the Python-compatible battle RNG stream. FieldRoundLifecycleHook at ROUND_START order 10 executes terrain -> zones -> rooms before DelayedHitRoundLifecycleHook at order 20 and DelayedHitLifecycleExecutor. Matured delayed hits use authoritative target resolution, emit normal move events and retain the originating action/frequency spend.",
-                        "Complete lifecycle remains broader. Position-only TILE delayed execution, Trainer AP/temporary-AP, Air Lock and other Python round behavior remain pending. Minecraft must not advance field durations, inject lifecycle hooks, mature delayed hits, own the delayed queue or mutable RNG, or duplicate action/frequency bookkeeping."));
+                        "ROUND_START now executes FieldRoundLifecycleHook at order 10, DelayedHitRoundLifecycleHook at order 20, then RoundTemporaryEffectExpiryHook at order 30. RoundTemporaryEffectExpiry matches Python Follow Me then Foresight until_round expiry, including missing/invalid preservation and first-live-entry duplicate removal through TemporaryEffectStore.removeFirst().",
+                        "Complete lifecycle remains broader. Trainer AP/temporary-AP resets, selected generic temporary-effect cleanup, send-out effects, Air Lock, Arena Trap, Intimidate, Impostor and other Python round behavior remain pending. Minecraft must not supply currentRound, temporary-effect metadata, expiry decisions, lifecycle hooks, delayed maturity, queue/RNG mutation or action/frequency bookkeeping."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "DelayedHitBindingResolver now expands stale combatant targets through EffectiveMoveTargetResolver using the stored authoritative anchor. Current battlefield geometry, footprint overlap, line of sight and HP eligibility determine any replacement combatants in stable order; an empty effective-target set consumes the matured entry without inventing a target. Existing combatant targets still follow their authoritative live position.",
-                        "This is bounded delayed-hit execution. Position-only TILE/area delayed execution remains unsupported on main. Minecraft must not choose replacement targets, freeze live combatant geometry, precompute affected tiles, supply RNG/combat inputs, consume or refund move frequency/actions, or rewrite delayed target mode."));
+                        "DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. Stored target_position remains an authoritative aim anchor rather than forcing TILE semantics; current geometry, footprints, line of sight and HP eligibility determine affected combatants in stable order, while live target IDs follow their current authoritative position.",
+                        "This is bounded delayed-hit execution, not complete move-special coverage. Minecraft must not choose delayed targets, rewrite target mode, precompute affected tiles, supply RNG/combat inputs, consume or refund move frequency/actions, or execute unported move specials."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
@@ -85,7 +85,7 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
-                        "Adapter-neutral entity-bound playback and server action-request boundaries remain headless integration infrastructure.",
+                        "Adapter-neutral entity-bound playback plus authenticated request and primitive packet boundaries remain headless integration infrastructure.",
                         "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking."));
 
         return Map.copyOf(result);
