@@ -5,10 +5,12 @@ import io.autoptu.cobblemon.authority.BattleParticipantKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Server-side identity bridge from opaque Cobblemon battle UUIDs to canonical encounter IDs.
@@ -51,11 +53,15 @@ public final class CobblemonCanonicalEncounterIdentityRegistry {
         }
 
         LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
+        Set<String> pendingCanonicalCombatantIds = new HashSet<>();
         for (Map.Entry<String, String> entry : canonicalCombatantIdsByExternalPokemonId.entrySet()) {
             String externalPokemonId = requireId(entry.getKey(), "externalPokemonId");
             String canonicalCombatantId = requireId(entry.getValue(), "canonicalCombatantId");
             if (mappings.putIfAbsent(externalPokemonId, canonicalCombatantId) != null) {
                 throw new IllegalArgumentException("duplicate external Pokemon identity");
+            }
+            if (!pendingCanonicalCombatantIds.add(canonicalCombatantId)) {
+                throw new IllegalArgumentException("duplicate canonical combatant identity");
             }
             if (pokemonOwners.containsKey(externalPokemonId)) {
                 throw new IllegalStateException("external Pokemon identity is already registered to another participant");
