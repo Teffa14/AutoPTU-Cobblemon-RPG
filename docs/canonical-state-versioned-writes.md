@@ -1,13 +1,19 @@
 # Canonical state versioned writes
 
-Persistent Trainer/Pokemon/item/progression state is server authority. CanonicalPlayerState already carries a monotonically increasing revision. The integration now exposes an explicit optimistic-concurrency write boundary so stale requests cannot silently overwrite newer canonical state.
+Persistent Trainer/Pokemon/item/progression state is server authority. CanonicalPlayerState carries a monotonically increasing revision. The integration exposes an optimistic-concurrency write boundary so stale requests cannot silently overwrite newer canonical state.
 
-VersionedCanonicalStateRepository extends the existing read boundary with replacePlayerIfRevision. Storage implementations must compare expectedRevision and replace the aggregate atomically. Returning false means the caller lost the write race and must re-read current authority.
+VersionedCanonicalStateRepository defines replacePlayerIfRevision. Storage implementations compare expectedRevision and replace the aggregate atomically. Returning false means the caller lost the write race and must re-read current authority.
 
-CanonicalPlayerMutationService accepts only a server-owned mutation callback. It first reads the current aggregate, verifies the expected revision, runs the domain mutation, then requires the replacement to preserve player identity and advance revision by exactly one. The repository performs the final atomic compare-and-set. A second writer that wins between read and commit produces CONCURRENT_WRITE rather than a lost update.
+CanonicalPlayerMutationService accepts only a server-owned mutation callback. It reads the current aggregate, verifies the expected revision, runs the domain mutation, requires the replacement to preserve player identity and advance revision by exactly one, then delegates the final compare-and-set to storage. A second writer that wins between read and commit produces CONCURRENT_WRITE rather than a lost update.
 
-This contract does not make a Minecraft packet authoritative. Clients may send action intent and a revision as a concurrency hint, but server code must independently validate identity, permissions, inventory, progression requirements and the requested domain action before constructing the mutation callback. Client-supplied CanonicalPlayerState replacements are outside this boundary.
+FileVersionedCanonicalStateRepository is the first durable implementation. It stores one schema-versioned binary aggregate per canonical player under a server-owned root. Player IDs are mapped to SHA-256 file keys rather than trusted as filesystem paths. Record encoding is deterministic for sets and maps. Unsupported schema versions, malformed records, identity mismatches and invalid revision advances fail closed.
 
-This slice defines the persistence/versioning contract but does not choose a durable backend. File, SQL or other stores must implement the atomic compare-and-set semantics before they can be treated as production persistence. Pokemon/item aggregate writes and cross-aggregate transactions remain separate future slices.
+Writes for one player serialize through an in-process lock and a stable operating-system file lock. The implementation writes a temporary file in the same directory, forces the file contents, then requires ATOMIC_MOVE + REPLACE_EXISTING for publication. It does not silently fall back to a non-atomic rename. Independent repository instances therefore have one compare-and-set winner for the same expected revision, and a fresh repository instance can reload the committed aggregate after process restart.
+
+The implementation also exposes createPlayerIfAbsent for server-side bootstrap of a new canonical player. Existing state wins; bootstrap never overwrites an existing aggregate.
+
+A Minecraft packet remains an intent. Clients may send an action request and a revision as a concurrency hint, but server code must independently validate authenticated identity, permissions, inventory, progression requirements and the requested domain operation before it builds the mutation callback. Client-supplied CanonicalPlayerState replacements remain outside this boundary.
+
+The durability claim is intentionally bounded to one CanonicalPlayerState file. Pokemon/item aggregates, cross-aggregate transactions, transaction journals, recovery after a multi-aggregate partial commit, backup/restore policy and migration from future schemas remain separate work. The adapter must not infer PTU rules while those persistence pieces are added.
 
 Compatibility scope: this infrastructure depends only on the Minecraft/Cobblemon/Craftics adapter/server-authority boundary. It does not execute targeting, movement, damage, statuses, moves, abilities, items, Trainer Features, terrain, reactions or tactical AI. Those systems remain limited by their own upstream capability classifications.
