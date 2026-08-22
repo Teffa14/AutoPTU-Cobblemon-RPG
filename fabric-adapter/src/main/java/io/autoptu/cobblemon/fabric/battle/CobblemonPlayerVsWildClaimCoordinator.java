@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.battle;
 import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
 import io.autoptu.cobblemon.authority.BattleEncounterParticipantRequest;
 import io.autoptu.cobblemon.authority.BattleParticipantKind;
+import io.autoptu.cobblemon.authority.PlayerVsWildEncounterAuthorityService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -44,7 +45,7 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
     }
 
     @FunctionalInterface
-    public interface ReservationHandler {
+    interface ReservationHandler {
         boolean tryReserve(
                 String playerId,
                 List<String> playerPokemonIds,
@@ -59,6 +60,26 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
     private final ReservationHandler reservationHandler;
 
     public CobblemonPlayerVsWildClaimCoordinator(
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
+            AuthenticatedPlayerContextResolver playerContextResolver,
+            PlayerVsWildEncounterAuthorityService authorityService
+    ) {
+        this(
+                identityRegistry,
+                playerContextResolver,
+                (playerId, playerPokemonIds, consumableQuantities, arena, participants) ->
+                        authorityService.reserve(
+                                playerId,
+                                playerPokemonIds,
+                                consumableQuantities,
+                                arena,
+                                participants
+                        ).allowed()
+        );
+        Objects.requireNonNull(authorityService, "authorityService");
+    }
+
+    CobblemonPlayerVsWildClaimCoordinator(
             CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
             AuthenticatedPlayerContextResolver playerContextResolver,
             ReservationHandler reservationHandler
