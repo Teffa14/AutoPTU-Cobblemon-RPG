@@ -8,7 +8,7 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "1b4a38e871190844ae296a0fbb5966ea6f3da8bf";
+    public static final String AUTOPTU_JAVA_SHA = "f094111f248f3a6bfe78d835e8f4bce115f84ef7";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -34,6 +34,12 @@ public final class CurrentUpstreamCompatibilityInspection {
         EnumMap<UpstreamCompatibilityMatrix.Capability, Evidence> result =
                 new EnumMap<>(UpstreamCompatibilityMatrix.Capability.class);
 
+        result.put(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
+                new Evidence(
+                        UpstreamCompatibilityMatrix.Support.VERIFIED,
+                        "EffectiveMoveTargetResolver derives affected tiles, current authoritative combatant positions, footprint overlap, line of sight and stable candidate order from BattleRuntimeState. Current HP eligibility excludes hp <= 0 while preserving inactive positive-HP candidates, matching the pinned Python collector contract.",
+                        "Minecraft must not supply effective target lists, live target anchors, footprint overlap, line-of-sight results, HP eligibility filters or a generic active-state filter. Target eligibility remains core-owned."));
+
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
@@ -49,8 +55,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "DelayedHitExecutionPolicy keeps a targetId as COMBATANT targeting at maturity, uses current authoritative RuntimeCombatantState.position while the defender exists, and falls back to the stored target position when the defender is missing without rewriting the move to TILE. A position-only delayed entry remains TILE targeting. Target resolution recomputes affected_tiles, footprint overlap and line of sight and preserves explicit target-id priority. DelayedHitResourcePolicy and BattleRuntimeState owns BattleDelayedHitState; DelayedHitRoundLifecycleHook automatically during ROUND_START calls RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState with PythonRandom, HP mutation, damage-history and MoveResolvedEvent without a second action/frequency spend.",
-                        "This is bounded delayed-hit execution. TILE/area delayed execution remains unsupported on main. The earlier exporter had a known review defect, so completeness is based on current code/tests rather than that bit. Minecraft must not freeze a live combatant target to the stored scheduling position, precompute affected tiles, footprint overlap or line of sight, supply RNG/combat inputs, consume or refund move frequency/actions, rewrite target mode, or implement missing-target area selection."));
+                        "DelayedHitExecutionPolicy keeps a targetId as COMBATANT targeting at maturity, uses current authoritative RuntimeCombatantState.position while the defender exists, and falls back to the stored target position when the defender is missing without rewriting the move to TILE. EffectiveMoveTargetResolver recomputes affected tiles, footprint overlap, line of sight and HP eligibility from current BattleRuntimeState. DelayedHitResourcePolicy and BattleRuntimeState-owned BattleDelayedHitState preserve the originating action/frequency spend during authoritative ROUND_START execution.",
+                        "This is bounded delayed-hit execution. TILE/area delayed execution remains unsupported on main. Minecraft must not freeze a live combatant target to its scheduling position, precompute affected tiles, filter targets, supply RNG/combat inputs, consume or refund move frequency/actions, rewrite target mode or implement missing-target area selection."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
@@ -73,13 +79,13 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleChoice is the legal decision contract. RuntimeAutobattlerActionSpace.legalChoices derives ShiftChoice and MoveChoice from BattleRuntimeState-owned position, geometry, affiliation, active/HP state, moveset, move-frequency usage, movement profile and ActionBudget, then returns an immutable stable-key-sorted list.",
-                        "A client, AI or Minecraft adapter may select only from the core-produced BattleChoice list. It must not manufacture a ShiftChoice/MoveChoice, grant a move, bypass frequency/action budget, or replace targeting/range/LoS legality. Tactical scoring remains separate and incomplete."));
+                        "BattleChoice is the legal decision contract. RuntimeAutobattlerActionSpace.legalChoices derives ShiftChoice and MoveChoice from BattleRuntimeState-owned position, geometry, affiliation, active/HP state, moveset, move-frequency usage, movement profile and ActionBudget, then returns an immutable stable-key-sorted list. Effective target collection remains server-owned through EffectiveMoveTargetResolver.",
+                        "A client, AI or Minecraft adapter may select only from the current core-produced BattleChoice list. It must not manufacture a choice, grant a move, bypass frequency/action budget, replace targeting/range/LoS legality or prefilter effective targets. Tactical scoring remains separate and incomplete."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.BLOCKING,
-                        "Adapter-neutral entity-bound playback preserves field_effect and delayed move_resolved playback from the stable event contract; the runtime environment seed remains headless integration infrastructure.",
+                        "Adapter-neutral entity-bound playback and server action-request boundaries remain headless integration infrastructure.",
                         "No Fabric/Cobblemon/Craftics runtime has executed this boundary yet, so live adapter/playback remains blocking."));
 
         return Map.copyOf(result);
