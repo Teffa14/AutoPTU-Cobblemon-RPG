@@ -20,9 +20,13 @@ class DelayedHitExecutionCompatibilityGuardTest {
         CurrentUpstreamCompatibilityInspection.Evidence moves =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence targeting =
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, targeting.support());
         assertTrue(lifecycle.contracts().contains("BattleDelayedHitState"));
         assertTrue(lifecycle.contracts().contains("DelayedHitRoundLifecycleHook at order 20"));
         assertTrue(lifecycle.contracts().contains("originating action/frequency spend unchanged"));
@@ -32,20 +36,20 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("COMBATANT targeting at maturity"));
         assertTrue(moves.contracts().contains("current authoritative RuntimeCombatantState.position"));
         assertTrue(moves.contracts().contains("falls back to the stored target position"));
-        assertTrue(moves.contracts().contains("position-only delayed entry remains TILE targeting"));
-        assertTrue(moves.contracts().contains("recomputes affected_tiles"));
+        assertTrue(moves.contracts().contains("EffectiveMoveTargetResolver"));
+        assertTrue(moves.contracts().contains("affected tiles"));
         assertTrue(moves.contracts().contains("footprint overlap"));
         assertTrue(moves.contracts().contains("line of sight"));
-        assertTrue(moves.contracts().contains("RuntimeMoveResolution.applyDelayedUsingAuthoritativeCombatState"));
-        assertTrue(moves.contracts().contains("PythonRandom"));
-        assertTrue(moves.contracts().contains("HP mutation"));
-        assertTrue(moves.contracts().contains("MoveResolvedEvent"));
-        assertTrue(moves.contracts().contains("without a second action/frequency spend"));
+        assertTrue(moves.contracts().contains("HP eligibility"));
+        assertTrue(moves.contracts().contains("originating action/frequency spend"));
         assertTrue(moves.limitation().contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(moves.limitation().contains("known review defect"));
         assertTrue(moves.limitation().contains("precompute affected tiles"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
+
+        assertTrue(targeting.contracts().contains("hp <= 0"));
+        assertTrue(targeting.contracts().contains("inactive positive-HP"));
+        assertTrue(targeting.limitation().contains("generic active-state filter"));
     }
 
     @Test
@@ -77,6 +81,9 @@ class DelayedHitExecutionCompatibilityGuardTest {
                 "affectedTiles",
                 "footprintOverlap",
                 "lineOfSightResult",
+                "effectiveTargets",
+                "targetHpEligibility",
+                "activeTargetFilter",
                 "moveActionResolver",
                 "frequencyConsumer",
                 "frequencyRecorder",
