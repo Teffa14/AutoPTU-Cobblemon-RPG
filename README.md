@@ -14,6 +14,8 @@ Integration work prioritizes vertical runtime tests. A feature is not considered
 
 For every bounded slice where the environment permits it, CI exercises the smallest real Minecraft/Fabric/Cobblemon behavior and verifies the resulting server state. Headless contract tests remain required for authority boundaries, but they do not replace runtime evidence.
 
+Every CI run now preserves test evidence as a GitHub Actions artifact, including Gradle/JUnit results, complete authority-test output, dedicated-server logs, run metadata and explicit runtime acceptance markers. The evidence upload runs on success and failure and is retained for 14 days. Graphical Minecraft client tests must write MP4/PNG evidence under `test-evidence/visual/`; that directory is already included in the artifact contract. The current production smoke is a `nogui` dedicated server, so its evidence is server logs and markers rather than fabricated video. See `docs/test-evidence.md`.
+
 Current runtime evidence:
 
 - A production-remapped Fabric 1.21.1 dedicated server boots in CI.
