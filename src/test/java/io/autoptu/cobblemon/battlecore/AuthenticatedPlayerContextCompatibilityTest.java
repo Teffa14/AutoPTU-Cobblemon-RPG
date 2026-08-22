@@ -33,15 +33,17 @@ class AuthenticatedPlayerContextCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, features.support());
         assertTrue(features.contracts().contains("TrainerFeatureExecutionService.executeAuthoritative"));
         assertTrue(features.contracts().contains("TrainerFeatureTargetResolution"));
+        assertTrue(features.contracts().contains("TrainerFeatureTrainerTargetResolution"));
         assertTrue(features.contracts().contains("TrainerFeatureEffectRegistry"));
         assertTrue(features.contracts().contains("heal/heal_active"));
         assertTrue(features.contracts().contains("raise_cs"));
         assertTrue(features.contracts().contains("grant_temp_hp"));
+        assertTrue(features.contracts().contains("grant_ap"));
         assertTrue(features.contracts().contains("only after an applied effect"));
         assertTrue(features.adapterPolicy().contains("may not grant Features"));
         assertTrue(features.adapterPolicy().contains("select or rewrite targets"));
         assertTrue(features.adapterPolicy().contains("invoke Feature effects"));
-        assertTrue(features.adapterPolicy().contains("AP-specific costs"));
+        assertTrue(features.adapterPolicy().contains("wider Python effect library"));
         assertTrue(features.adapterPolicy().contains("Temporary HP damage absorption"));
     }
 }
