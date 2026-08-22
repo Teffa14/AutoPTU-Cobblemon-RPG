@@ -8,7 +8,7 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "fa307e722c4912b50a4d1e59b7b6a98fc29a55cc";
+    public static final String AUTOPTU_JAVA_SHA = "4c75dc082ae7848bdfa9c4e385e08ffde6760d9e";
     public static final String AUTOPTU_PYTHON_SHA = "e4bb0ca38b7018710af476ce365d515a387de4e7";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -73,8 +73,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. BattleRuntimeState owns opaque declared-action records. RoundTrainerFeatureLifecyclePolicy defines send-out/initiative/Feature ordering, and TrainerFeaturePrerequisiteResolution now ports Python-parity feature/edge/known-feature discovery plus class, subclass, level and required-feature prerequisite gates.",
-                        "Only bounded Trainer Feature discovery, prerequisite, skill, initiative, AP and lifecycle contracts exist. Context gates, frequency/cooldowns, resources, usage mutation, targets and broad effect application remain incomplete. Minecraft must not grant Features, decide prerequisites, choose AP grant expiry/source, create/clear declared actions, dispatch round_start Features, spend/restore AP, or execute perks."));
+                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. BattleRuntimeState owns opaque declared-action records. RoundTrainerFeatureLifecyclePolicy defines send-out/initiative/Feature ordering. TrainerFeaturePrerequisiteResolution ports Python-parity feature/edge/known-feature discovery plus class, subclass, level and required-feature gates. TrainerFeatureContextResolution now ports actor scope, phase/action/move filters, actor-active, round/damage, once-per-actor-per-round and chance gates with PythonRandom parity from authoritative context observations.",
+                        "Only bounded Trainer Feature discovery, prerequisite, context, skill, initiative, AP and lifecycle contracts exist. Frequency/cooldowns, resource checks, usage mutation, target scopes and broad effect application remain incomplete. Minecraft must not grant Features, decide prerequisites or context gates, choose AP grant expiry/source, create/clear declared actions, dispatch round_start Features, spend/restore AP, supply Feature RNG outcomes or execute perks."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
@@ -85,8 +85,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Server-side UUID lookup resolves only live Cobblemon PokemonEntity handles. Runtime smoke coverage now spawns real PokemonEntity fixtures, binds opaque presentation UUIDs through PresentationEntityHandleRegistry/RegistryBackedPresentationEntityGateway, applies an authoritative WorldBlockCoordinate relocation and verifies the resulting server position, then separately sends an authoritative positive EntityBoundBattleHealthProjection through GatewayBackedBattleEntityBoundPresentationConsumer and verifies the exact live Cobblemon HP mirror.",
-                        "Live adapter support remains partial. Zero-HP/faint presentation, move animation, semantic cues, battle-trigger interception, full entity lifecycle and complete battle playback have not been exercised. Cobblemon HP and other entity data are write-through presentation state only and must never flow back into PTU authority."));
+                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Server-side UUID lookup resolves only live Cobblemon PokemonEntity handles. Runtime smoke coverage spawns real PokemonEntity fixtures, binds opaque presentation UUIDs through PresentationEntityHandleRegistry/RegistryBackedPresentationEntityGateway, applies an authoritative WorldBlockCoordinate relocation and verifies the resulting server position, then separately sends an authoritative positive EntityBoundBattleHealthProjection and verifies the exact live Cobblemon HP mirror. The public cancelable Cobblemon BATTLE_STARTED_PRE hook is now exercised against a real BattleRegistry.startBattle call: the adapter claims only the opaque battle ID, cancels the pre-event, verifies an ErroredBattleStart, verifies the battle never enters BattleRegistry and verifies BATTLE_STARTED_POST never fires.",
+                        "Live adapter support remains partial. AutoPTU reservation creation from intercepted participants, canonical participant mapping, zero-HP/faint presentation, move animation, semantic cues, full entity lifecycle and complete battle playback remain pending. Cobblemon HP and other entity data are write-through presentation state only and must never flow back into PTU authority."));
 
         return Map.copyOf(result);
     }
