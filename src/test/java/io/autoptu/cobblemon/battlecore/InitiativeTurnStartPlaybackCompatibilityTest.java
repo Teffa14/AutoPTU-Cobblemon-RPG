@@ -101,6 +101,6 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
         assertTrue(lifecycle.adapterPolicy().contains("complete Python start_round parity is still absent"));
         assertTrue(legalActions.contracts().contains("before the next decision window"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
-        assertEquals("4e1492a642350e0d657dba8587e358a2f669b59c", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("fa307e722c4912b50a4d1e59b7b6a98fc29a55cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
     }
 }
