@@ -20,15 +20,28 @@ public final class CobblemonPokemonEntityLookup {
         Objects.requireNonNull(server, "server");
         UUID entityId = presentationUuid(presentationEntityId);
         for (ServerWorld world : server.getWorlds()) {
-            Entity entity = world.getEntity(entityId);
-            if (entity == null) continue;
-            if (!(entity instanceof PokemonEntity pokemonEntity)) {
-                throw new IllegalStateException(
-                        "presentation entity " + entityId + " is not a Cobblemon PokemonEntity");
+            Entity indexed = world.getEntity(entityId);
+            if (indexed != null) {
+                return requirePokemonEntity(entityId, indexed);
             }
-            return Optional.of(pokemonEntity);
+
+            // A newly spawned entity can be present in the world's live entity iterable before
+            // ServerWorld's UUID index exposes it. Keep the lookup server-side and UUID-based while
+            // tolerating that indexing window instead of trusting a caller-supplied entity handle.
+            for (Entity live : world.iterateEntities()) {
+                if (!entityId.equals(live.getUuid())) continue;
+                return requirePokemonEntity(entityId, live);
+            }
         }
         return Optional.empty();
+    }
+
+    private static Optional<PokemonEntity> requirePokemonEntity(UUID entityId, Entity entity) {
+        if (!(entity instanceof PokemonEntity pokemonEntity)) {
+            throw new IllegalStateException(
+                    "presentation entity " + entityId + " is not a Cobblemon PokemonEntity");
+        }
+        return Optional.of(pokemonEntity);
     }
 
     static UUID presentationUuid(String presentationEntityId) {
