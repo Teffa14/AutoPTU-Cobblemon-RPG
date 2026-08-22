@@ -40,7 +40,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesAndTargetSelection() {
-        assertEquals("f094111f248f3a6bfe78d835e8f4bce115f84ef7",
+        assertEquals("784c74790b9cb1ec1723d89027724bbac885897f",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
@@ -55,15 +55,14 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(lifecycle.contains("BattleDelayedHitState"));
         assertTrue(lifecycle.contains("FieldRoundLifecycleHook at ROUND_START order 10"));
         assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
-        assertTrue(lifecycle.contains("originating action/frequency spend unchanged"));
-        assertTrue(moves.contains("current authoritative RuntimeCombatantState.position"));
-        assertTrue(moves.contains("falls back to the stored target position"));
+        assertTrue(lifecycle.contains("originating action/frequency spend"));
+        assertTrue(moves.contains("stale combatant targets"));
+        assertTrue(moves.contains("stored authoritative anchor"));
         assertTrue(moves.contains("EffectiveMoveTargetResolver"));
-        assertTrue(moves.contains("affected tiles"));
         assertTrue(moves.contains("footprint overlap"));
         assertTrue(moves.contains("line of sight"));
         assertTrue(moves.contains("HP eligibility"));
-        assertTrue(moves.contains("originating action/frequency spend"));
+        assertTrue(moves.contains("empty effective-target set"));
         assertTrue(targeting.contains("hp <= 0"));
         assertTrue(targeting.contains("inactive positive-HP"));
         assertTrue(limitations.contains("TILE/area delayed execution remains unsupported on main"));
