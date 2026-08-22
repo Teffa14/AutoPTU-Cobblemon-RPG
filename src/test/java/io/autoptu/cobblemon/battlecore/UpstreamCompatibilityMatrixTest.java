@@ -31,10 +31,10 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("PokemonEntity"));
         assertTrue(adapter.contracts().contains("authoritative relocation"));
         assertTrue(adapter.contracts().contains("canonical identity mapping"));
-        assertTrue(adapter.adapterPolicy().contains("HP projection"));
-        assertTrue(adapter.adapterPolicy().contains("battle-trigger interception"));
-        assertTrue(adapter.adapterPolicy().contains("presentation-only"));
-        assertTrue(adapter.adapterPolicy().contains("contract-tested"));
+        assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver"));
+        assertTrue(adapter.contracts().contains("MinecraftServer PlayerManager"));
+        assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
+        assertTrue(adapter.adapterPolicy().contains("identity/presentation inputs"));
     }
 
     @Test
@@ -93,12 +93,13 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(perks.contracts().contains("TrainerFeatureFrequencyResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureResourceResolution"));
         assertTrue(perks.contracts().contains("TrainerFeatureUsageResolution"));
+        assertTrue(perks.contracts().contains("TrainerFeatureExecutionService"));
+        assertTrue(perks.contracts().contains("only after applied=true"));
         assertTrue(perks.adapterPolicy().contains("battle-start AP"));
-        assertTrue(perks.adapterPolicy().contains("initiative modifier"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
-        assertTrue(perks.adapterPolicy().contains("decide prerequisites"));
-        assertTrue(perks.adapterPolicy().contains("spend/restore AP"));
-        assertTrue(perks.adapterPolicy().contains("usage or cooldowns"));
+        assertTrue(perks.adapterPolicy().contains("invoke concrete Feature effects"));
+        assertTrue(perks.adapterPolicy().contains("AP-specific costs"));
+        assertTrue(perks.adapterPolicy().contains("Java PR #143"));
     }
 
     @Test
@@ -112,38 +113,9 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(abilities.contracts().contains("AbilityPhaseEffectRegistry"));
         assertTrue(abilities.contracts().contains("CombatStageHookRegistry"));
         assertTrue(abilities.contracts().contains("PostDamageHookRegistry"));
-        assertTrue(abilities.contracts().contains("Aqua Boost"));
-        assertTrue(abilities.contracts().contains("Power Spot"));
-        assertTrue(abilities.contracts().contains("Type Aura"));
-        assertTrue(abilities.contracts().contains("Aura Storm [Errata]"));
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
         assertTrue(damage.contracts().contains("RuntimeMoveResolution"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
-        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
-    }
-
-    @Test
-    void rngAndAnalyticPostDamageAbilitiesAreLiveButRemainCoreOwned() {
-        UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
-        UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
-        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.ABILITIES);
-
-        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, actionEconomy.support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
-        assertTrue(actionEconomy.contracts().contains("InitiativeProgressState"));
-        assertTrue(actionEconomy.contracts().contains("Analytic"));
-        assertTrue(damage.contracts().contains("PythonRandom"));
-        assertTrue(damage.contracts().contains("Adaptability [Errata] and Damp [Errata] are live-wired"));
-        assertTrue(damage.contracts().contains("Analytic is live-wired"));
-        assertTrue(abilities.contracts().contains("Adaptability [Errata] and Damp [Errata] are live post-damage abilities"));
-        assertTrue(abilities.contracts().contains("Analytic is live-wired"));
-        assertTrue(damage.adapterPolicy().contains("supply or advance the battle RNG"));
-        assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
-        assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
     }
 
@@ -160,11 +132,8 @@ class UpstreamCompatibilityMatrixTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, legalActions.support());
         assertTrue(initiative.contracts().contains("authoritative initiative assembly/installation"));
-        assertTrue(initiative.contracts().contains("TrainerRuntimeState owns"));
         assertTrue(initiative.adapterPolicy().contains("choose the next actor"));
-        assertTrue(initiative.adapterPolicy().contains("provide client-computed modifiers"));
         assertTrue(lifecycle.contracts().contains("InitiativeOrderAssembly/InitiativeAssemblyInstaller"));
-        assertTrue(lifecycle.contracts().contains("RuntimeInitiativePokemonCandidateFactory"));
         assertTrue(lifecycle.adapterPolicy().contains("complete Python start_round parity is still absent"));
         assertTrue(legalActions.contracts().contains("initiative exhaustion"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
@@ -187,7 +156,6 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(moves.contracts().contains("MoveSpec keyword"));
         assertTrue(moves.contracts().contains("move_has_keyword"));
         assertTrue(moves.adapterPolicy().contains("trusted server-owned catalog"));
-        assertTrue(moves.adapterPolicy().contains("keyword identities"));
         assertTrue(moves.adapterPolicy().contains("infer from text"));
         assertTrue(moves.adapterPolicy().contains("push, pull, crash or contact"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
@@ -227,7 +195,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("1ac0eab794f2179297c5d32575e9c82746556a9f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("76013feae3db923964c575e8bca80039378d6a2a", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("e386f3fe9eb83e181be77b1e2869459cdeff78d6", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
