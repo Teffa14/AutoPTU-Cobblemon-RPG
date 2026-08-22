@@ -26,16 +26,18 @@ class AuthenticatedPlayerContextCompatibilityTest {
     }
 
     @Test
-    void newlyComposedTrainerFeatureTransactionDoesNotBroadenAdapterAuthority() {
+    void newlyExpandedTrainerFeatureContractsDoNotBroadenAdapterAuthority() {
         UpstreamCompatibilityMatrix.Entry features = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, features.support());
-        assertTrue(features.contracts().contains("TrainerFeatureExecutionService"));
-        assertTrue(features.contracts().contains("only after applied=true"));
+        assertTrue(features.contracts().contains("TrainerFeatureExecutionService.executeAuthoritative"));
+        assertTrue(features.contracts().contains("TrainerFeatureTargetResolution"));
+        assertTrue(features.contracts().contains("only after an applied effect"));
         assertTrue(features.adapterPolicy().contains("may not grant Features"));
+        assertTrue(features.adapterPolicy().contains("select or rewrite targets"));
         assertTrue(features.adapterPolicy().contains("invoke concrete Feature effects"));
         assertTrue(features.adapterPolicy().contains("AP-specific costs remain incomplete"));
-        assertTrue(features.adapterPolicy().contains("Java PR #143"));
+        assertTrue(features.adapterPolicy().contains("stops before effect application"));
     }
 }
