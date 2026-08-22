@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("1ac0eab794f2179297c5d32575e9c82746556a9f",
+        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("76013feae3db923964c575e8bca80039378d6a2a",
+        assertEquals("e386f3fe9eb83e181be77b1e2869459cdeff78d6",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -89,11 +89,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("TrainerFeatureFrequencyResolution"));
         assertTrue(perks.contains("TrainerFeatureResourceResolution"));
         assertTrue(perks.contains("TrainerFeatureUsageResolution"));
-        assertTrue(perks.contains("cooldown mutation"));
+        assertTrue(perks.contains("TrainerFeatureExecutionService"));
+        assertTrue(perks.contains("only after the effect reports applied"));
         assertTrue(perksLimit.contains("target/effect semantics"));
-        assertTrue(perksLimit.contains("full dispatcher wiring"));
+        assertTrue(perksLimit.contains("AP-specific costs"));
+        assertTrue(perksLimit.contains("Java PR #143"));
         assertTrue(perksLimit.contains("must not grant Features"));
-        assertTrue(perksLimit.contains("mutate usage/cooldowns"));
+        assertTrue(perksLimit.contains("run the effect callback"));
 
         String legal = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).contracts();
@@ -129,8 +131,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
         assertTrue(adapter.contracts().contains("canonical participant/combatant IDs"));
         assertTrue(adapter.contracts().contains("one server-issued reservation ID and RNG seed"));
-        assertTrue(adapter.limitation().contains("contract-tested"));
+        assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver"));
+        assertTrue(adapter.contracts().contains("MinecraftServer PlayerManager"));
+        assertTrue(adapter.contracts().contains("malformed/offline identities fail before canonical lookup"));
+        assertTrue(adapter.limitation().contains("successful authenticated graphical client encounter is still pending"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
-        assertTrue(adapter.limitation().contains("Cobblemon identities are lookup keys"));
+        assertTrue(adapter.limitation().contains("identity/presentation inputs only"));
     }
 }

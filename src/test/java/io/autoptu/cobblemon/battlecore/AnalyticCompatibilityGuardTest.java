@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("1ac0eab794f2179297c5d32575e9c82746556a9f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("76013feae3db923964c575e8bca80039378d6a2a", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("e386f3fe9eb83e181be77b1e2869459cdeff78d6", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
@@ -42,7 +42,7 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("entity state stays presentation-only"));
-        assertTrue(adapter.adapterPolicy().contains("never supplies PTU stats, legality, inventory truth or outcomes"));
+        assertTrue(adapter.adapterPolicy().contains("identity/presentation inputs"));
+        assertTrue(adapter.adapterPolicy().contains("never supply PTU stats, inventory truth, modifiers, legality or outcomes"));
     }
 }

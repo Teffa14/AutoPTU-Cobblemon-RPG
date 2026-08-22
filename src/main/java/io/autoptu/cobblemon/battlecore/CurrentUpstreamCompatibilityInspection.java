@@ -8,8 +8,8 @@ import java.util.Map;
  * This supplements, but never broadens, the permanent support classifications.
  */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "1ac0eab794f2179297c5d32575e9c82746556a9f";
-    public static final String AUTOPTU_PYTHON_SHA = "76013feae3db923964c575e8bca80039378d6a2a";
+    public static final String AUTOPTU_JAVA_SHA = "063bc4b6179483a0f9825cd3882d9d861d866908";
+    public static final String AUTOPTU_PYTHON_SHA = "e386f3fe9eb83e181be77b1e2869459cdeff78d6";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
         public Evidence {
@@ -73,8 +73,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Features, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. TrainerFeaturePrerequisiteResolution and TrainerFeatureContextResolution are Python-parity backed. TrainerFeatureFrequencyResolution covers Daily, Scene, Encounter, EOT, Round, Turn, N/round, N/scene and cooldown availability. TrainerFeatureResourceResolution owns generic resource affordability/consumption. TrainerFeatureUsageResolution now ports Python _mark_feature_use bookkeeping for total/round/actor-round usage, last_round and cooldown mutation after an effect applies.",
-                        "Trainer Features remain partial because target/effect semantics, AP integration and full dispatcher wiring are still outside the ported contract. Minecraft must not grant Features, decide prerequisites/context/frequency/resource gates, mutate usage/cooldowns, spend resources/AP, select targets, apply effects or report a Feature as applied."));
+                        "TrainerRuntimeState owns Feature identities, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed and team identity. TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are Python-parity backed. Main now also contains TrainerFeatureExecutionService, which composes enabled/trigger, prerequisites, context, frequency, resources, effect application, resource consumption and usage/cooldown bookkeeping in Python dispatcher order, with consumption/bookkeeping committed only after the effect reports applied.",
+                        "Trainer Features remain partial because concrete target/effect semantics and AP-specific costs are still outside the ported main contract. Binding generic resource and usage bookkeeping into authoritative TrainerRuntimeState is still draft work in Java PR #143 and is not counted as main support. Minecraft must not grant Features, decide gates, run the effect callback, mutate usage/cooldowns, spend resources/AP, select targets, apply effects or report a Feature as applied."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
@@ -85,8 +85,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Live smokes verify server-side PokemonEntity UUID lookup, authoritative relocation and positive HP mirroring. Public BATTLE_STARTED_PRE interception prevents Cobblemon registration/post-start. The identity-only handoff maps opaque actor/Pokemon UUIDs to independently server-owned canonical participant/combatant IDs and atomically reserves opposing canonical rosters. The current player-versus-wild authority composition additionally binds the existing Trainer/item/arena reservation and multi-side roster reservation under one server-issued reservation ID and RNG seed, with exact player-roster matching and compensation if the encounter lock fails.",
-                        "Live adapter support remains partial. The new player-versus-wild composition is contract-tested and has no authenticated graphical player runtime yet. RuntimeCombatantState materialization, zero-HP/faint presentation, move animation, semantic cues, full entity lifecycle and complete battle playback remain pending. Cobblemon identities are lookup keys and presentation handles only; entity stats, HP, moves, abilities, held items, Showdown state and outcomes must never become PTU authority."));
+                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Live smokes verify server-side PokemonEntity UUID lookup, authoritative relocation and positive HP mirroring. Public BATTLE_STARTED_PRE interception prevents Cobblemon registration/post-start. The identity-only handoff maps opaque actor/Pokemon UUIDs to independently server-owned canonical participant/combatant IDs and atomically reserves opposing canonical rosters. Player-versus-wild authority composition binds Trainer/item/arena reservation and multi-side roster reservation under one server-issued reservation ID and RNG seed. FabricAuthenticatedPlayerContextResolver now requires the PLAYER actor UUID to resolve through the real MinecraftServer PlayerManager as a currently connected player before a separate canonical PTU context source may be queried; the dedicated-server smoke verifies malformed/offline identities fail before canonical lookup.",
+                        "Live adapter support remains partial. The real PlayerManager fail-closed authentication path has dedicated-server evidence, while a successful authenticated graphical client encounter is still pending. RuntimeCombatantState materialization, zero-HP/faint presentation, move animation, semantic cues, full entity lifecycle and complete battle playback remain pending. ServerPlayerEntity and Cobblemon entity state are identity/presentation inputs only and must never supply PTU stats, inventory truth, modifiers, legality or outcomes."));
 
         return Map.copyOf(result);
     }

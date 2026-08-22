@@ -97,10 +97,10 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
         assertTrue(initiative.adapterPolicy().contains("choose the next actor"));
         assertTrue(initiative.adapterPolicy().contains("provide client-computed modifiers"));
         assertTrue(initiative.adapterPolicy().contains("execute START hooks"));
-        assertTrue(lifecycle.contracts().contains("START dispatcher execution"));
+        assertTrue(lifecycle.contracts().contains("pending status-skip consumption"));
         assertTrue(lifecycle.adapterPolicy().contains("complete Python start_round parity is still absent"));
         assertTrue(legalActions.contracts().contains("before the next decision window"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
-        assertEquals("1ac0eab794f2179297c5d32575e9c82746556a9f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("063bc4b6179483a0f9825cd3882d9d861d866908", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
     }
 }
