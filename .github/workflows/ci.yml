@@ -36,7 +36,7 @@ jobs:
 
           (
             cd "$server_dir"
-            java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
+            java -Dautoptu.liveRelocationSmoke=true -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke.log 2>&1
           ) &
           server_pid=$!
           cleanup() {
@@ -49,6 +49,7 @@ jobs:
           for _ in $(seq 1 180); do
             if grep -q 'AutoPTU Fabric server adapter initialized' "$server_dir/logs/latest.log" 2>/dev/null \
               && grep -q 'AutoPTU Cobblemon runtime detected:' "$server_dir/logs/latest.log" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/logs/latest.log" 2>/dev/null \
               && grep -q 'Done (' "$server_dir/logs/latest.log" 2>/dev/null; then
               ready=1
               break
