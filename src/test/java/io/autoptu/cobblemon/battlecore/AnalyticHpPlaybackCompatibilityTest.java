@@ -62,6 +62,6 @@ class AnalyticHpPlaybackCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
         assertTrue(adapter.adapterPolicy().contains("HP projection"));
-        assertTrue(adapter.adapterPolicy().contains("remain unverified"));
+        assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
 }
