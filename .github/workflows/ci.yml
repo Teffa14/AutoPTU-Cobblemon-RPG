@@ -17,10 +17,28 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
+      - name: Prepare test evidence directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-evidence/runtime test-evidence/visual
+          {
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "sha=${GITHUB_SHA}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "event=${GITHUB_EVENT_NAME}"
+          } > test-evidence/run-metadata.txt
       - name: Run authority tests
-        run: gradle test --no-daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle test --no-daemon 2>&1 | tee test-evidence/gradle-test.log
       - name: Prepare production Fabric + Cobblemon smoke mods
-        run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon 2>&1 | tee test-evidence/prepare-production-smoke.log
       - name: Boot production Fabric + Cobblemon dedicated server
         shell: bash
         run: |
@@ -77,3 +95,49 @@ jobs:
           grep 'AutoPTU live Cobblemon relocation smoke passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/logs/latest.log"
+      - name: Collect runtime evidence
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p test-evidence/runtime
+          cp fabric-server-smoke.log test-evidence/runtime/fabric-server-smoke.log 2>/dev/null || true
+          cp fabric-production-smoke/logs/latest.log test-evidence/runtime/minecraft-latest.log 2>/dev/null || true
+          cp fabric-production-smoke/logs/debug.log test-evidence/runtime/minecraft-debug.log 2>/dev/null || true
+
+          latest="fabric-production-smoke/logs/latest.log"
+          manifest="test-evidence/runtime/smoke-markers.txt"
+          : > "$manifest"
+          for marker in \
+            'AutoPTU Fabric server adapter initialized' \
+            'AutoPTU Cobblemon runtime detected:' \
+            'AutoPTU live Cobblemon relocation smoke passed' \
+            'AutoPTU live Cobblemon HP projection smoke passed' \
+            'AutoPTU live Cobblemon battle interception smoke passed' \
+            'Done ('; do
+            if [ -f "$latest" ] && grep -F "$marker" "$latest" >> "$manifest"; then
+              true
+            else
+              echo "MISSING: $marker" >> "$manifest"
+            fi
+          done
+
+          cat > test-evidence/visual/README.txt <<'EOF'
+          Visual evidence belongs here when a test runs with a graphical Minecraft client.
+          Store MP4 recordings and PNG screenshots in this directory. The CI artifact upload
+          step collects them automatically. Dedicated-server smokes are headless, so they
+          produce runtime logs and marker evidence rather than video.
+          EOF
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            test-evidence/**
+            build/test-results/test/**
+            build/reports/tests/test/**
+            fabric-adapter/build/test-results/test/**
+            fabric-adapter/build/reports/tests/test/**
