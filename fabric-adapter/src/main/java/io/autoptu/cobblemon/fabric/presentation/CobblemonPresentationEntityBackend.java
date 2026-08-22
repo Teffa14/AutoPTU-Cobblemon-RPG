@@ -10,8 +10,9 @@ import java.util.Objects;
 /**
  * Applies presentation-only commands to an already-resolved live Cobblemon PokemonEntity.
  *
- * This class never reads the entity to make PTU decisions. Relocation destinations are already
- * authoritative outputs when they arrive here.
+ * This class never reads the entity to make PTU decisions. Every value applied here is an
+ * already-authoritative presentation output. Cobblemon health is only a write-through mirror and
+ * must never be read back into canonical PTU battle state.
  */
 public final class CobblemonPresentationEntityBackend
         implements PresentationEntityPlatformBackend<PokemonEntity> {
@@ -23,7 +24,21 @@ public final class CobblemonPresentationEntityBackend
 
     @Override
     public void projectDisplayedHealth(PokemonEntity entity, int targetHp, int damage) {
-        throw new UnsupportedOperationException("live HP presentation is not implemented yet");
+        Objects.requireNonNull(entity, "entity");
+        if (targetHp < 0) throw new IllegalArgumentException("targetHp cannot be negative");
+        if (damage < 0) throw new IllegalArgumentException("damage cannot be negative");
+        if (targetHp == 0) {
+            throw new UnsupportedOperationException(
+                    "zero-HP/faint presentation is not implemented yet; Java remains authoritative");
+        }
+
+        entity.getPokemon().setCurrentHealth(targetHp);
+        int projectedHp = entity.getPokemon().getCurrentHealth();
+        if (projectedHp != targetHp) {
+            throw new IllegalStateException(
+                    "Cobblemon cannot exactly mirror authoritative PTU HP " + targetHp
+                            + " for presentation; projected " + projectedHp);
+        }
     }
 
     @Override
