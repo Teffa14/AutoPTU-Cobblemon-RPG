@@ -3,7 +3,6 @@ package io.autoptu.cobblemon.fabric.battle;
 import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
 import io.autoptu.cobblemon.authority.BattleEncounterParticipantRequest;
 import io.autoptu.cobblemon.authority.BattleParticipantKind;
-import io.autoptu.cobblemon.authority.PlayerVsWildBattleReservationDecision;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,7 +45,7 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
 
     @FunctionalInterface
     public interface ReservationHandler {
-        PlayerVsWildBattleReservationDecision reserve(
+        boolean tryReserve(
                 String playerId,
                 List<String> playerPokemonIds,
                 Map<String, Integer> consumableQuantities,
@@ -110,14 +109,13 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
         if (!context.canonicalPlayerId().equals(canonicalPlayer.participantId())) return false;
         if (!context.canonicalPokemonIds().equals(canonicalPlayer.combatantIds())) return false;
 
-        PlayerVsWildBattleReservationDecision decision = reservationHandler.reserve(
+        return reservationHandler.tryReserve(
                 context.canonicalPlayerId(),
                 context.canonicalPokemonIds(),
                 context.consumableQuantities(),
                 context.arena(),
                 List.copyOf(canonicalParticipants)
         );
-        return decision != null && decision.allowed();
     }
 
     private static String requireId(String value, String field) {
