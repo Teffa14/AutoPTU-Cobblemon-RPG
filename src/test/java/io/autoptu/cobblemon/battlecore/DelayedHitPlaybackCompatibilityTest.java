@@ -39,12 +39,14 @@ class DelayedHitPlaybackCompatibilityTest {
     }
 
     @Test
-    void currentUpstreamOwnsDelayedMaturityResourcesAndTargetSelection() {
-        assertEquals("784c74790b9cb1ec1723d89027724bbac885897f",
+    void currentUpstreamOwnsDelayedMaturityResourcesTargetSelectionAndRoundExpiry() {
+        assertEquals("66d82a5beb767ec8dd32803b5d08afaad3d454aa",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
+        String lifecycleLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
         String moves = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).contracts();
         String limitations = CurrentUpstreamCompatibilityInspection.evidence(
@@ -52,20 +54,21 @@ class DelayedHitPlaybackCompatibilityTest {
         String targeting = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).contracts();
 
-        assertTrue(lifecycle.contains("BattleDelayedHitState"));
-        assertTrue(lifecycle.contains("FieldRoundLifecycleHook at ROUND_START order 10"));
+        assertTrue(lifecycle.contains("FieldRoundLifecycleHook at order 10"));
         assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
-        assertTrue(lifecycle.contains("originating action/frequency spend"));
-        assertTrue(moves.contains("stale combatant targets"));
-        assertTrue(moves.contains("stored authoritative anchor"));
+        assertTrue(lifecycle.contains("RoundTemporaryEffectExpiryHook at order 30"));
+        assertTrue(lifecycle.contains("Follow Me then Foresight"));
+        assertTrue(lifecycleLimit.contains("expiry decisions"));
+        assertTrue(moves.contains("stale target-id anchors"));
+        assertTrue(moves.contains("position-only delayed requests"));
         assertTrue(moves.contains("EffectiveMoveTargetResolver"));
-        assertTrue(moves.contains("footprint overlap"));
+        assertTrue(moves.contains("footprints"));
         assertTrue(moves.contains("line of sight"));
         assertTrue(moves.contains("HP eligibility"));
-        assertTrue(moves.contains("empty effective-target set"));
+        assertTrue(moves.contains("aim anchor"));
         assertTrue(targeting.contains("hp <= 0"));
         assertTrue(targeting.contains("inactive positive-HP"));
-        assertTrue(limitations.contains("TILE/area delayed execution remains unsupported on main"));
+        assertTrue(limitations.contains("must not choose delayed targets"));
         assertTrue(limitations.contains("consume or refund move frequency/actions"));
     }
 
