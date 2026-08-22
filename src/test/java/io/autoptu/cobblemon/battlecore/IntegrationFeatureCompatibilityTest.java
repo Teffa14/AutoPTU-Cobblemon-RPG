@@ -144,13 +144,20 @@ class IntegrationFeatureCompatibilityTest {
     }
 
     @Test
-    void unsupportedRuleFamiliesRemainExplicitlyBlocked() {
+    void unsupportedRuleFamiliesRemainExplicitlyBlockedWhileLiveAdapterIsBoundedPartial() {
         assertTrue(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.FORCED_MOVEMENT_PLAYBACK).hasBlockingDependency());
         assertTrue(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.AUTOBATTLER_TACTICAL_POLICY).hasBlockingDependency());
-        assertTrue(IntegrationFeatureCompatibility.requirement(
-                IntegrationFeatureCompatibility.Feature.LIVE_MINECRAFT_BATTLE_ADAPTER).hasBlockingDependency());
+
+        IntegrationFeatureCompatibility.Requirement live = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.LIVE_MINECRAFT_BATTLE_ADAPTER);
+        assertFalse(live.hasBlockingDependency());
+        assertEquals(EnumSet.of(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK),
+                EnumSet.copyOf(live.capabilities()));
+        assertTrue(live.boundedScope().contains("entity-bound authoritative relocation"));
+        assertTrue(live.boundedScope().contains("HP projection"));
+        assertTrue(live.boundedScope().contains("battle-trigger interception"));
     }
 
     @Test
@@ -164,5 +171,8 @@ class IntegrationFeatureCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 UpstreamCompatibilityMatrix.entry(
                         UpstreamCompatibilityMatrix.Capability.ITEMS).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                UpstreamCompatibilityMatrix.entry(
+                        UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).support());
     }
 }
