@@ -40,8 +40,8 @@ class DelayedHitPlaybackCompatibilityTest {
     }
 
     @Test
-    void currentUpstreamOwnsRoundStartDelayedMaturityQueueRngResourcesAndTargetBinding() {
-        assertEquals("bffc16b3642738757e3c8eb09fbd9a4921e9beba",
+    void currentUpstreamOwnsRoundStartDelayedMaturityQueueRngResourcesAndLiveTargetGeometry() {
+        assertEquals("ce990c84ad133f9b0b56f774e2a59c8cb0c4d90b",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycleContracts = CurrentUpstreamCompatibilityInspection.evidence(
@@ -65,13 +65,17 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(lifecycleLimitations.contains("must not"));
         assertTrue(lifecycleLimitations.contains("mature delayed hits"));
 
-        assertTrue(moveContracts.contains("targetId remains COMBATANT targeting"));
-        assertTrue(moveContracts.contains("aim anchor"));
-        assertTrue(moveContracts.contains("position-only delayed entry resolves as TILE"));
+        assertTrue(moveContracts.contains("remains COMBATANT targeting at maturity"));
+        assertTrue(moveContracts.contains("current authoritative RuntimeCombatantState.position"));
+        assertTrue(moveContracts.contains("position-only delayed entry remains TILE targeting"));
+        assertTrue(moveContracts.contains("recomputes affected_tiles"));
+        assertTrue(moveContracts.contains("footprint overlap"));
+        assertTrue(moveContracts.contains("line of sight"));
         assertTrue(moveContracts.contains("DelayedHitRoundLifecycleHook automatically during ROUND_START"));
         assertTrue(moveContracts.contains("without a second action/frequency spend"));
         assertTrue(limitations.contains("TILE/area delayed execution remains unsupported on main"));
-        assertTrue(limitations.contains("rewrite target mode because a target position exists"));
+        assertTrue(limitations.contains("known review defect"));
+        assertTrue(limitations.contains("freeze a live combatant target to the stored scheduling position"));
         assertTrue(limitations.contains("consume or refund move frequency/actions"));
     }
 
