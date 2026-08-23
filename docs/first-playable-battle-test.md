@@ -42,6 +42,14 @@ The current playable harness uses fixed server-owned combat inputs because gener
 
 The visible lunge is animation only. It is not a PTU Shift, forced movement, push, pull, knockback or interception decision. The entity returns to the same presentation anchor after the cue.
 
+## Compatibility matrix entry
+
+This playable vertical is pinned to read-only AutoPTU-Java `967b16237c6ea93a939bd4acbbe67da979885a60` and Python AutoPTU `9df36aeae4bcbef49fd5edb658b51d68bd45fa71` for this validation run.
+
+It consumes `CORE_CALCULATIONS_AND_COMBAT_STATS` VERIFIED for the bounded arithmetic/stat contracts, `ACTION_ECONOMY_AND_INITIATIVE` VERIFIED for `ActionBudget` consumption, `FULL_STATEFUL_DAMAGE_PIPELINE` PARTIAL only through the currently verified direct `BattleRuntime.applyAuthoritativeMove` path, and `MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK` PARTIAL for live entity presentation. The demo does not consume either BLOCKING category.
+
+The inspected Java head also adds Mirror Armor reflection through the generic combat-stage prevention hook path. That remains representative ability support only. `ABILITIES` stays PARTIAL and Mirror Armor is disabled in this demo rather than reproduced in Fabric.
+
 ## Deliberately disabled for this milestone
 
 This test does not execute statuses, abilities, held-item effects, Trainer Features, terrain, weather, hazards, reactions, forced movement, tactical AI scoring, XP, loot, capture, campaign progression or durable battle outcomes. It also does not claim that the full stateful damage pipeline or lifecycle is complete.
