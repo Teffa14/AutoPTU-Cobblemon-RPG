@@ -39,7 +39,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesTargetSelectionAndRoundExpiry() {
-        assertEquals("45feae6161c9b92ccb008a60d9b6e16dcbc0c377",
+        assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
@@ -85,7 +85,7 @@ class DelayedHitPlaybackCompatibilityTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("move animation"));
         assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
+        assertTrue(adapter.adapterPolicy().contains("RuntimeCombatantState materialization"));
     }
 }
