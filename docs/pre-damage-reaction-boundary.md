@@ -2,40 +2,40 @@
 
 Inspected read-only upstream heads:
 
-- AutoPTU-Java: `9819146364b67da51d039c5d380c8a4aa3c378c5`
-- AutoPTU Python: `8d7de9f70d301e136672b66f460f9233a463cc7a`
+- AutoPTU-Java: `28f141be5471e23f660fb2cda09bab02244ee62e`
+- AutoPTU Python: `01a9b1c70af504b77f5b8441f7283d5957987190`
 - AutoPTU-Java Telepathy parity oracle pin: `16d228efa63aabecb67fa788959a359aac7f8f03`
 
 ## Verified upstream primitives
 
-AutoPTU-Java has a generic `PreDamageReactionHookRegistry` contract. `BuiltinPreDamageReactionHooks` registers Telepathy against canonical `BattleRuntimeState`, authoritative ability identity/suppression, team identity, the server-owned out-of-turn decision gate, threatened tiles and `ReactionMovementApplication.escapeThreatenedArea`.
+AutoPTU-Java owns a generic `PreDamageReactionHookRegistry`. `BuiltinPreDamageReactionHooks` registers the parity-backed Telepathy hook against canonical `BattleRuntimeState`, authoritative ability identity/suppression, team identity, the server-owned out-of-turn decision gate, threatened tiles and `ReactionMovementApplication.escapeThreatenedArea`.
 
-A successful Telepathy reaction emits an authoritative ability `RuleEffectEvent` and cancels the current pre-damage result. The reaction movement itself is applied through the core-owned movement primitive rather than through Minecraft.
+AutoPTU-Java `28f141be5471e23f660fb2cda09bab02244ee62e` now invokes that registry from the ordinary authoritative move-resolution path. It constructs the reaction context from canonical runtime state, resolves ordinary damage first, applies PRE-damage reactions before post-result damage hooks and final HP mutation, and emits the resulting semantic events. A cancelled reaction result prevents the later HP/damage-history mutation while still consuming the ordinary move resource in core.
 
-The current Python oracle still executes Telepathy as a `pre_damage_interrupt`: an allied defender inside the affected area may shift to a legal safe tile; only a successful escape cancels hit, damage and type effectiveness.
-
-AutoPTU-Java `9819146364b67da51d039c5d380c8a4aa3c378c5` additionally freezes the Python ordering contract around this phase. PRE-damage reactions run only after an ordinary hit result, after ordinary move resolution, before post-result hooks, before attacker item damage bonuses and before final HP mutation. The oracle also fixes interrupt suppression/Unseen Fist and shield placement relative to the PRE-damage and post-result phases.
-
-## Blocking gap
-
-That new ordering evidence is a contract fixture, not Java runtime wiring. The inspected Java ordinary move-resolution path still does not invoke the generic PRE-damage reaction registry or construct the affected area for it.
-
-Therefore this repository must not claim ordinary live Telepathy execution yet. Minecraft must not use the frozen Python ordering contract as permission to execute the missing Java phase itself.
+The current Python oracle at `01a9b1c70af504b77f5b8441f7283d5957987190` still executes Telepathy as a `pre_damage_interrupt`: an allied defender in the affected area may take a legal shift to a safe tile; only a successful escape cancels hit, damage and type effectiveness. Minecraft does not reproduce that rule.
 
 ## Adapter rule
 
-Minecraft/Cobblemon/Craftics may project a semantic reaction movement or ability event only after AutoPTU-Java has emitted it as an authoritative result. The adapter may translate grid coordinates to world coordinates and animate/render the event.
+Minecraft/Cobblemon/Craftics may consume and project the semantic reaction movement and rule-effect events emitted by AutoPTU-Java. The adapter may translate authoritative grid coordinates to world coordinates and animate/render the result.
 
-The adapter must not evaluate Telepathy ownership, suppression, Mold Breaker, team eligibility, threatened-area membership, decision gating, safe-tile selection, movement legality, action-economy effects, hit cancellation, damage cancellation, type-effectiveness cancellation, shield ordering, item-bonus ordering or HP mutation ordering.
+The adapter must not evaluate Telepathy ownership, suppression, Mold Breaker, team eligibility, affected-area membership, decision gating, safe-tile selection, movement legality, action-economy effects, hit cancellation, damage cancellation, type-effectiveness cancellation, shield ordering, item-bonus ordering or HP mutation ordering. Those remain core responsibilities.
 
-This intentionally keeps COMPLETE_MOVEMENT_BEHAVIOR blocking, FULL_STATEFUL_DAMAGE_PIPELINE partial, TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS partial and ABILITIES partial. The presence of parity-backed reaction primitives and pipeline-order evidence does not promote any whole category.
+This promotion verifies the ordinary PRE-damage runtime seam. It does not promote whole upstream categories to complete. COMPLETE_MOVEMENT_BEHAVIOR remains partial because the wider forced-movement/reaction family is incomplete. FULL_STATEFUL_DAMAGE_PIPELINE remains partial because verified PRE-damage ordering does not establish every ability/item/status/terrain modifier. TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS remains partial. ABILITIES remains partial because Telepathy is representative, not complete.
 
 ## Compatibility dependencies
 
-This bounded guard depends on CORE_TARGETING for authoritative affected-area semantics, CORE_MOVEMENT_LEGALITY for legal reaction movement, COMPLETE_MOVEMENT_BEHAVIOR for the wider reaction/forced-movement family, ACTION_ECONOMY_AND_INITIATIVE for out-of-turn action semantics, FULL_STATEFUL_DAMAGE_PIPELINE for hit/damage/shield/item/HP ordering, TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS for reaction ordering, ABILITIES for Telepathy legality and MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK for projection only.
+This bounded slice depends on CORE_TARGETING for authoritative affected-area semantics, CORE_MOVEMENT_LEGALITY for legal reaction movement, COMPLETE_MOVEMENT_BEHAVIOR for the wider reaction/forced-movement family, ACTION_ECONOMY_AND_INITIATIVE for out-of-turn semantics, FULL_STATEFUL_DAMAGE_PIPELINE for hit/damage/post-hook/HP ordering, TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS for reaction phase semantics, ABILITIES for Telepathy legality and MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK for projection.
 
-Verified for this slice: the generic PRE-damage registry contract, authoritative reaction-escape movement primitive, Telepathy parity hook and Python phase ordering fixture. Partial: abilities, stateful damage pipeline, reaction family and adapter playback. Blocking: ordinary Java move-resolution invocation of the PRE-damage registry and affected-area construction for that live path.
+Verified for this slice: generic PRE-damage registry contract; canonical threatened-area context; authoritative reaction-escape movement primitive; parity-backed Telepathy hook; Python ordering oracle; ordinary Java runtime registry invocation; cancellation before post-damage hooks and HP/history mutation; semantic event emission.
 
-## Next safe promotion
+Partial for this slice: abilities as a category; complete movement behavior; full stateful damage; the wider reactions/terrain/weather/hazard family; Minecraft playback beyond existing generic semantic-event projection.
 
-When AutoPTU-Java inserts the generic PRE-damage reaction registry into the ordinary authoritative Java move-resolution path and tests affected-area construction plus live hook ordering, this repository can add an adapter contract fixture that consumes the resulting semantic movement/event sequence without implementing Telepathy-specific rules.
+Blocking for broader promotion: additional reaction hooks and move/ability families are not established as complete; forced movement is still separately gated; Minecraft still requires concrete playback fixtures for authoritative reaction movement sequences before claiming polished in-game presentation.
+
+## Intentionally deferred
+
+Minecraft does not run the reaction registry and does not special-case Telepathy. It does not calculate affected tiles, select a safe square, spend reaction resources, suppress abilities, cancel damage or reorder downstream hooks. The adapter consumes authoritative state/events only.
+
+## Next bounded slice
+
+Add a concrete adapter contract fixture for an authoritative PRE-damage reaction event sequence: stable combatant identity, grid-to-world movement projection, rule-effect playback ordering and immutable post-action snapshot reconciliation. Keep the fixture semantic and generic so later abilities can reuse it without Minecraft-owned PTU rules.
