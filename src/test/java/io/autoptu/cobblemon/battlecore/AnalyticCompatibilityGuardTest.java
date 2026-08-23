@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("dbc1bfb14c0e0036c1cc3301d35355d36611bf4b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("8108e0d2b876414a5e62c2021801a3692cda05b8", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("0d1cc8f3bd791485ed52f7b5e9cd63c0965ad944", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
