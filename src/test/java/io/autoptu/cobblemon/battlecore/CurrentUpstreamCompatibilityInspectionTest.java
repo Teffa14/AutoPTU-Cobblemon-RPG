@@ -9,7 +9,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("0db989a259f84d04e7fdcb161bb986bc6ef69275", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("2c98c2201a65a370bbe4999616c2c737d407a32e", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -40,7 +40,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
         String abilityLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).limitation();
-        assertTrue(abilities.contains("draft upstream contract"));
+        assertTrue(abilities.contains("draft PR #152"));
         assertTrue(abilityLimit.contains("not yet runtime-authoritative"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
@@ -57,6 +57,8 @@ class CurrentUpstreamCompatibilityInspectionTest {
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+        assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
+        assertTrue(adapter.contracts().contains("minecraft-player:<uuid>"));
         assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerEncounterContextSource.fromWorldRuntime"));
         assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver.persistentWorld"));
         assertTrue(adapter.contracts().contains("CobblemonPlayerVsWildClaimCoordinator.persistentWorld"));
@@ -65,6 +67,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("active item reservation"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
+        assertTrue(adapter.limitation().contains("encounter-profile and Pokemon identity provisioning"));
         assertTrue(adapter.limitation().contains("Cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("never supply PTU stats"));
