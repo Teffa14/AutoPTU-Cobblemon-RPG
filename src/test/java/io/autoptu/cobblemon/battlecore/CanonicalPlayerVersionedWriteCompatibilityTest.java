@@ -34,7 +34,7 @@ class CanonicalPlayerVersionedWriteCompatibilityTest {
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("active Minecraft world save root and lifecycle"));
-        assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
+        assertTrue(adapter.adapterPolicy().contains("Cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("partial-commit recovery"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
