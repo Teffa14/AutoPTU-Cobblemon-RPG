@@ -40,42 +40,33 @@ public final class CobblemonCanonicalEncounterIdentityRegistry {
             String canonicalParticipantId,
             Map<String, String> canonicalCombatantIdsByExternalPokemonId
     ) {
-        if (kind == null) throw new IllegalArgumentException("kind is required");
-        String actorId = requireId(externalActorId, "externalActorId");
-        String participantId = requireId(canonicalParticipantId, "canonicalParticipantId");
-        if (canonicalCombatantIdsByExternalPokemonId == null || canonicalCombatantIdsByExternalPokemonId.isEmpty()) {
-            throw new IllegalArgumentException("Pokemon identity mappings are required");
-        }
-
-        ExternalParticipantKey key = new ExternalParticipantKey(kind, actorId);
+        ExternalParticipantKey key = participantKey(kind, externalActorId);
         if (bindings.containsKey(key)) {
             throw new IllegalStateException("external participant is already registered");
         }
+        install(key, canonicalParticipantId, canonicalCombatantIdsByExternalPokemonId, false);
+    }
 
-        LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
-        Set<String> pendingCanonicalCombatantIds = new HashSet<>();
-        for (Map.Entry<String, String> entry : canonicalCombatantIdsByExternalPokemonId.entrySet()) {
-            String externalPokemonId = requireId(entry.getKey(), "externalPokemonId");
-            String canonicalCombatantId = requireId(entry.getValue(), "canonicalCombatantId");
-            if (mappings.putIfAbsent(externalPokemonId, canonicalCombatantId) != null) {
-                throw new IllegalArgumentException("duplicate external Pokemon identity");
-            }
-            if (!pendingCanonicalCombatantIds.add(canonicalCombatantId)) {
-                throw new IllegalArgumentException("duplicate canonical combatant identity");
-            }
-            if (pokemonOwners.containsKey(externalPokemonId)) {
-                throw new IllegalStateException("external Pokemon identity is already registered to another participant");
-            }
-            if (canonicalCombatantOwners.containsKey(canonicalCombatantId)) {
-                throw new IllegalStateException("canonical combatant identity is already mapped to another participant");
-            }
+    /**
+     * Refreshes the identity-only Pokemon mapping for an already known external participant.
+     *
+     * The participant's canonical identity cannot change. This supports party changes between
+     * encounters while retaining alias protection across other actors. No Pokemon values other than
+     * opaque external identity and canonical combatant identity are stored here.
+     */
+    public synchronized void registerOrReplace(
+            CobblemonBattleStartInterceptor.ParticipantKind kind,
+            String externalActorId,
+            String canonicalParticipantId,
+            Map<String, String> canonicalCombatantIdsByExternalPokemonId
+    ) {
+        ExternalParticipantKey key = participantKey(kind, externalActorId);
+        Binding existing = bindings.get(key);
+        String participantId = requireId(canonicalParticipantId, "canonicalParticipantId");
+        if (existing != null && !existing.canonicalParticipantId().equals(participantId)) {
+            throw new IllegalStateException("canonical participant identity cannot be replaced");
         }
-
-        bindings.put(key, new Binding(participantId, mappings));
-        mappings.forEach((externalPokemonId, canonicalCombatantId) -> {
-            pokemonOwners.put(externalPokemonId, key);
-            canonicalCombatantOwners.put(canonicalCombatantId, key);
-        });
+        install(key, participantId, canonicalCombatantIdsByExternalPokemonId, true);
     }
 
     /** Resolves only the server-owned participant identity for an already registered external actor. */
@@ -117,6 +108,73 @@ public final class CobblemonCanonicalEncounterIdentityRegistry {
 
     public synchronized int registeredParticipantCount() {
         return bindings.size();
+    }
+
+    private void install(
+            ExternalParticipantKey key,
+            String canonicalParticipantId,
+            Map<String, String> canonicalCombatantIdsByExternalPokemonId,
+            boolean replacing
+    ) {
+        String participantId = requireId(canonicalParticipantId, "canonicalParticipantId");
+        LinkedHashMap<String, String> mappings = normalizeMappings(canonicalCombatantIdsByExternalPokemonId);
+
+        for (Map.Entry<String, String> entry : mappings.entrySet()) {
+            ExternalParticipantKey externalOwner = pokemonOwners.get(entry.getKey());
+            if (externalOwner != null && !externalOwner.equals(key)) {
+                throw new IllegalStateException("external Pokemon identity is already registered to another participant");
+            }
+            ExternalParticipantKey canonicalOwner = canonicalCombatantOwners.get(entry.getValue());
+            if (canonicalOwner != null && !canonicalOwner.equals(key)) {
+                throw new IllegalStateException("canonical combatant identity is already mapped to another participant");
+            }
+        }
+
+        Binding existing = bindings.get(key);
+        if (existing != null && !replacing) {
+            throw new IllegalStateException("external participant is already registered");
+        }
+        if (existing != null) {
+            existing.combatantIdsByPokemonId().forEach((externalPokemonId, canonicalCombatantId) -> {
+                pokemonOwners.remove(externalPokemonId, key);
+                canonicalCombatantOwners.remove(canonicalCombatantId, key);
+            });
+        }
+
+        bindings.put(key, new Binding(participantId, mappings));
+        mappings.forEach((externalPokemonId, canonicalCombatantId) -> {
+            pokemonOwners.put(externalPokemonId, key);
+            canonicalCombatantOwners.put(canonicalCombatantId, key);
+        });
+    }
+
+    private static LinkedHashMap<String, String> normalizeMappings(
+            Map<String, String> canonicalCombatantIdsByExternalPokemonId
+    ) {
+        if (canonicalCombatantIdsByExternalPokemonId == null || canonicalCombatantIdsByExternalPokemonId.isEmpty()) {
+            throw new IllegalArgumentException("Pokemon identity mappings are required");
+        }
+        LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
+        Set<String> pendingCanonicalCombatantIds = new HashSet<>();
+        for (Map.Entry<String, String> entry : canonicalCombatantIdsByExternalPokemonId.entrySet()) {
+            String externalPokemonId = requireId(entry.getKey(), "externalPokemonId");
+            String canonicalCombatantId = requireId(entry.getValue(), "canonicalCombatantId");
+            if (mappings.putIfAbsent(externalPokemonId, canonicalCombatantId) != null) {
+                throw new IllegalArgumentException("duplicate external Pokemon identity");
+            }
+            if (!pendingCanonicalCombatantIds.add(canonicalCombatantId)) {
+                throw new IllegalArgumentException("duplicate canonical combatant identity");
+            }
+        }
+        return mappings;
+    }
+
+    private static ExternalParticipantKey participantKey(
+            CobblemonBattleStartInterceptor.ParticipantKind kind,
+            String externalActorId
+    ) {
+        if (kind == null) throw new IllegalArgumentException("kind is required");
+        return new ExternalParticipantKey(kind, requireId(externalActorId, "externalActorId"));
     }
 
     private static BattleParticipantKind authorityKind(CobblemonBattleStartInterceptor.ParticipantKind kind) {
