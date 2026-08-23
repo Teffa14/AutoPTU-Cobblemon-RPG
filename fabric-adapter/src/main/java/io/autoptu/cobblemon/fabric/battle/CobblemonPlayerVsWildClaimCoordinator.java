@@ -126,6 +126,28 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
         );
     }
 
+    /**
+     * Production composition for a WILD encounter whose canonical blueprint and opaque actor
+     * correlation were registered by trusted server logic before BATTLE_STARTED_PRE.
+     *
+     * The preparation service and the authority service must share the same provisioning repository
+     * so the roster resolved here is the canonical WILD state resolved again during reservation.
+     */
+    public static CobblemonPlayerVsWildClaimCoordinator persistentWorld(
+            MinecraftServer server,
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
+            ServerOwnedWildEncounterPreparationService wildPreparationService,
+            PlayerVsWildEncounterAuthorityService authorityService
+    ) {
+        Objects.requireNonNull(wildPreparationService, "wildPreparationService");
+        return persistentWorld(
+                server,
+                identityRegistry,
+                PreparingCanonicalWildRosterSource.fromWorldRuntime(server, wildPreparationService),
+                authorityService
+        );
+    }
+
     CobblemonPlayerVsWildClaimCoordinator(
             CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
             AuthenticatedPlayerContextResolver playerContextResolver,
