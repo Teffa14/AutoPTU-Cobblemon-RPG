@@ -1,19 +1,21 @@
 package io.autoptu.cobblemon.battlecore;
 
 /**
- * Compatibility guard for the bounded upstream forced-movement instruction parser.
- *
- * AutoPTU-Java can currently identify Push/Pull intent and distance from canonical
- * move metadata. It does not yet resolve or execute spatial forced movement.
+ * Compatibility guard for bounded upstream movement contracts that are not yet sufficient
+ * to authorize Minecraft-side spatial playback.
  */
 public final class ForcedMovementInstructionCompatibility {
-    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "7de79dcd30b241d439724050fb24ee893a7c5c63";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "99ba07ea47b8896d96bd37f6c06cffb8695f69bb";
+    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "3ede4a8493738ddc70b2f0eb3959973488f78db9";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "ff069a928f936f4a1dca54597ef3f85348ea4b0b";
     public static final String JAVA_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private ForcedMovementInstructionCompatibility() {}
 
     public static boolean instructionDetectionIsAvailable() {
+        return true;
+    }
+
+    public static boolean reactionEscapeDestinationSelectionIsAvailable() {
         return true;
     }
 
@@ -24,8 +26,9 @@ public final class ForcedMovementInstructionCompatibility {
     }
 
     public static String adapterPolicy() {
-        return "Consume only future authoritative forced-movement state/events. "
-                + "Do not parse move text, choose push/pull direction, resolve distance into a path, "
-                + "decide collision/interception/reactions, or relocate entities from the instruction alone.";
+        return "Consume only authoritative movement state/events produced by AutoPTU-Java. "
+                + "Do not parse move text, choose push/pull direction, resolve instruction distance into a path, "
+                + "recompute reaction escape destinations, decide collision/interception/reaction ordering, "
+                + "or relocate entities from partial movement primitives alone.";
     }
 }
