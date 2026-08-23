@@ -7,8 +7,9 @@ import org.junit.jupiter.api.Test;
 
 final class ForcedMovementInstructionCompatibilityTest {
     @Test
-    void parserAvailabilityDoesNotPromoteForcedMovementPlayback() {
+    void partialMovementContractsDoNotPromoteForcedMovementPlayback() {
         assertTrue(ForcedMovementInstructionCompatibility.instructionDetectionIsAvailable());
+        assertTrue(ForcedMovementInstructionCompatibility.reactionEscapeDestinationSelectionIsAvailable());
         assertFalse(ForcedMovementInstructionCompatibility.forcedMovementPlaybackIsAllowed());
         assertTrue(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.FORCED_MOVEMENT_PLAYBACK
@@ -19,7 +20,8 @@ final class ForcedMovementInstructionCompatibilityTest {
     void adapterPolicyKeepsSpatialRulesUpstream() {
         String policy = ForcedMovementInstructionCompatibility.adapterPolicy();
         assertTrue(policy.contains("Do not parse move text"));
-        assertTrue(policy.contains("collision/interception/reactions"));
-        assertTrue(policy.contains("instruction alone"));
+        assertTrue(policy.contains("recompute reaction escape destinations"));
+        assertTrue(policy.contains("collision/interception/reaction ordering"));
+        assertTrue(policy.contains("partial movement primitives alone"));
     }
 }
