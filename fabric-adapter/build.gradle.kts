@@ -69,10 +69,9 @@ dependencies {
 
     implementation(project(":"))
 
-    // AutoPTU-Java stays read-only. The exact inspected commit is fetched as source, compiled with
-    // javac and nested into the remapped Fabric jar. No upstream checkout is ever modified.
+    // AutoPTU-Java stays read-only. The exact inspected commit is fetched as source and compiled
+    // with javac. Its classes are copied into this mod jar below before Loom remaps the artifact.
     implementation(pinnedAutoPtuJava)
-    include(pinnedAutoPtuJava)
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -85,12 +84,16 @@ tasks.named("remapJar") {
     dependsOn(preparePinnedAutoPtuJava)
 }
 
-// The production Fabric mod must carry the adapter-neutral integration classes it invokes.
-// They contain no Minecraft/Fabric/Cobblemon types and remain owned by the root integration module.
+// The production Fabric mod carries both the adapter-neutral integration classes and the exact
+// compiled AutoPTU-Java pin. io.autoptu.core has no Minecraft mappings, so these classes remain
+// unchanged by Loom while the Fabric/Cobblemon-facing classes are remapped normally.
 val rootMain = project(":").extensions.getByType<SourceSetContainer>().named("main")
 tasks.jar {
-    dependsOn(":classes")
+    dependsOn(":classes", preparePinnedAutoPtuJava)
     from(rootMain.map { it.output })
+    from({ zipTree(autoPtuJavaJar.get().asFile) }) {
+        exclude("META-INF/MANIFEST.MF")
+    }
 }
 
 tasks.processResources {
