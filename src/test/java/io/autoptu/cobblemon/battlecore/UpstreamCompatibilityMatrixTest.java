@@ -25,13 +25,13 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapter.contracts().contains("preprovisioned server-owned canonical participant/roster"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.adapterPolicy().contains("RPG/encounter generator"));
         assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
     }
@@ -57,6 +57,7 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         assertTrue(statuses.contracts().contains("runtime target-owned ability prevention"));
         assertTrue(statuses.adapterPolicy().contains("complete status ticking"));
+        assertTrue(statuses.adapterPolicy().contains("Draft upstream PR #154"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
 
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
@@ -111,6 +112,6 @@ class UpstreamCompatibilityMatrixTest {
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
         assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("743b0ff76c63d8ab2131fbf8de4e2e2430b9eea4", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("c3e67a718fca2d92ecc8316cfa98f757977f7986", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

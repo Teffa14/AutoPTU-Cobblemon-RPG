@@ -9,7 +9,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("743b0ff76c63d8ab2131fbf8de4e2e2430b9eea4", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("c3e67a718fca2d92ecc8316cfa98f757977f7986", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -34,6 +34,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(statuses.contains("StatusAbilityPreventionResolver"));
         assertTrue(statuses.contains("RuntimeCombatantState ability suppression"));
         assertTrue(statusLimit.contains("complete status ticking"));
+        assertTrue(statusLimit.contains("Draft upstream PR #154"));
         assertTrue(statusLimit.contains("must not interpret or execute"));
 
         String abilities = CurrentUpstreamCompatibilityInspection.evidence(
@@ -43,6 +44,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(abilities.contains("Merged upstream PR #153"));
         assertTrue(abilities.contains("RuntimeCombatantState owns abilitiesSuppressed"));
         assertTrue(abilityLimit.contains("Own Tempo"));
+        assertTrue(abilityLimit.contains("Color Change"));
         assertTrue(abilityLimit.contains("ignore_defensive_abilities"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
@@ -54,17 +56,20 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("grant_ap"));
         assertTrue(perks.contains("apply_status"));
         assertTrue(perks.contains("remove_status"));
+        assertTrue(perks.contains("c3e67a71"));
         assertTrue(perksLimit.contains("wider Python effect library"));
         assertTrue(perksLimit.contains("must not grant Features"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapter.contracts().contains("preprovisioned server-owned CanonicalWildRoster"));
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
+        assertTrue(adapter.contracts().contains("CanonicalEncounterPokemonState"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.limitation().contains("blueprint source"));
+        assertTrue(adapter.limitation().contains("deterministic provisioning seed"));
         assertTrue(adapter.limitation().contains("cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("never PTU stats"));
