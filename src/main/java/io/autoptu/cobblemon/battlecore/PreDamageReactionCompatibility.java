@@ -3,15 +3,16 @@ package io.autoptu.cobblemon.battlecore;
 /**
  * Compatibility guard for the upstream generic PRE-damage reaction seam.
  *
- * <p>AutoPTU-Java now exposes a generic pre-damage hook registry, an authoritative
- * reaction-escape movement application, and a parity-backed Telepathy hook. The
- * inspected direct move-resolution entrypoint does not yet invoke that registry,
- * so Minecraft must not trigger Telepathy, calculate threatened areas, choose a
- * reaction destination, or cancel hit/damage itself.</p>
+ * <p>AutoPTU-Java exposes a generic pre-damage hook registry, authoritative
+ * reaction-escape movement, a parity-backed Telepathy hook, and a frozen Python
+ * oracle for PRE-damage ordering. The inspected Java ordinary move-resolution
+ * entrypoint still does not invoke that registry, so Minecraft must not trigger
+ * Telepathy, calculate threatened areas, choose a reaction destination, or cancel
+ * hit/damage itself.</p>
  */
 public final class PreDamageReactionCompatibility {
-    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "ebfdf7b29da5cdde9b7df7bd6d193ae03f5203f7";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "2ec841a4bab8ce7de0698afaf37e0169ae61a277";
+    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "9819146364b67da51d039c5d380c8a4aa3c378c5";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "8d7de9f70d301e136672b66f460f9233a463cc7a";
     public static final String JAVA_TELEPATHY_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private PreDamageReactionCompatibility() {}
@@ -25,6 +26,10 @@ public final class PreDamageReactionCompatibility {
     }
 
     public static boolean telepathyHookIsParityBacked() {
+        return true;
+    }
+
+    public static boolean preDamagePipelineOrderingIsParityBacked() {
         return true;
     }
 
@@ -47,7 +52,9 @@ public final class PreDamageReactionCompatibility {
         return "Render only reaction movement and rule-effect events already emitted by AutoPTU-Java. "
                 + "Do not invoke the pre-damage registry from Minecraft, construct threatened tiles, "
                 + "decide Telepathy eligibility, choose the escape destination, mutate action economy, "
-                + "or cancel hit, damage or type effectiveness. Wait until the authoritative ordinary "
-                + "move-resolution path owns hook ordering and affected-area construction.";
+                + "or cancel hit, damage or type effectiveness. The Python oracle now freezes ordering "
+                + "relative to ordinary resolution, shields, post-result hooks, item bonuses and HP mutation, "
+                + "but Minecraft must wait until the authoritative Java ordinary move-resolution path owns "
+                + "registry invocation and affected-area construction.";
     }
 }
