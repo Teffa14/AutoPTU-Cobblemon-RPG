@@ -9,7 +9,7 @@ class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
         assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("743b0ff76c63d8ab2131fbf8de4e2e2430b9eea4", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("c3e67a718fca2d92ecc8316cfa98f757977f7986", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
@@ -42,7 +42,7 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.adapterPolicy().contains("trusted RPG/encounter generator"));
         assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
     }
 }
