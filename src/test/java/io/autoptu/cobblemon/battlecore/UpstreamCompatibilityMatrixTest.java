@@ -33,7 +33,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
         assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
         assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
-        assertTrue(adapter.adapterPolicy().contains("Cross-aggregate transactions"));
+        assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
     }
 
     @Test
