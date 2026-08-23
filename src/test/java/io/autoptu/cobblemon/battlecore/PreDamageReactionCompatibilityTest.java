@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 
 final class PreDamageReactionCompatibilityTest {
     @Test
-    void availableUpstreamReactionPrimitivesDoNotEnableMinecraftRuleExecution() {
+    void authoritativeRuntimePromotionStillKeepsMinecraftProjectionOnly() {
         assertTrue(PreDamageReactionCompatibility.genericPreDamageReactionRegistryIsAvailable());
         assertTrue(PreDamageReactionCompatibility.authoritativeReactionEscapeMovementIsAvailable());
         assertTrue(PreDamageReactionCompatibility.authoritativeThreatenedAreaContextIsAvailable());
         assertTrue(PreDamageReactionCompatibility.telepathyHookIsParityBacked());
         assertTrue(PreDamageReactionCompatibility.preDamagePipelineOrderingIsParityBacked());
-        assertFalse(PreDamageReactionCompatibility.ordinaryMoveResolutionInvokesPreDamageReactions());
+        assertTrue(PreDamageReactionCompatibility.ordinaryMoveResolutionInvokesPreDamageReactions());
         assertFalse(PreDamageReactionCompatibility.minecraftMayExecutePreDamageReactionRules());
     }
 
@@ -22,11 +22,11 @@ final class PreDamageReactionCompatibilityTest {
         assertTrue(PreDamageReactionCompatibility.minecraftMayRenderAuthoritativeReactionEvents());
         String policy = PreDamageReactionCompatibility.adapterPolicy();
         assertTrue(policy.contains("already emitted by AutoPTU-Java"));
+        assertTrue(policy.contains("owns PRE-damage registry invocation"));
         assertTrue(policy.contains("derives threatened tiles from canonical BattleRuntimeState"));
-        assertTrue(policy.contains("Do not invoke the pre-damage registry from Minecraft"));
+        assertTrue(policy.contains("must not invoke the reaction registry"));
         assertTrue(policy.contains("construct or override threatened tiles"));
-        assertTrue(policy.contains("cancel hit, damage or type effectiveness"));
-        assertTrue(policy.contains("ordinary resolution, shields, post-result hooks, item bonuses and HP mutation"));
-        assertTrue(policy.contains("authoritative Java ordinary move-resolution path owns registry invocation"));
+        assertTrue(policy.contains("cancel hit, damage or type effectiveness itself"));
+        assertTrue(policy.contains("does not imply complete abilities"));
     }
 }
