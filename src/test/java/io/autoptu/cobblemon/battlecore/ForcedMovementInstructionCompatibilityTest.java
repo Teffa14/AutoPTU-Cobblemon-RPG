@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 
 final class ForcedMovementInstructionCompatibilityTest {
     @Test
-    void partialMovementContractsDoNotPromoteForcedMovementPlayback() {
+    void authoritativeReactionMovementDoesNotPromoteGenericForcedMovementPlayback() {
         assertTrue(ForcedMovementInstructionCompatibility.instructionDetectionIsAvailable());
         assertTrue(ForcedMovementInstructionCompatibility.reactionEscapeDestinationSelectionIsAvailable());
+        assertTrue(ForcedMovementInstructionCompatibility.reactionMovementApplicationIsAuthoritative());
+        assertTrue(ForcedMovementInstructionCompatibility.reactionMovementEmitsSemanticShiftEvent());
         assertFalse(ForcedMovementInstructionCompatibility.forcedMovementPlaybackIsAllowed());
         assertTrue(IntegrationFeatureCompatibility.requirement(
                 IntegrationFeatureCompatibility.Feature.FORCED_MOVEMENT_PLAYBACK
@@ -17,11 +19,11 @@ final class ForcedMovementInstructionCompatibilityTest {
     }
 
     @Test
-    void adapterPolicyKeepsSpatialRulesUpstream() {
+    void adapterPolicyConsumesSemanticReactionMovementButKeepsGenericSpatialRulesUpstream() {
         String policy = ForcedMovementInstructionCompatibility.adapterPolicy();
+        assertTrue(policy.contains("ShiftResolvedEvent"));
         assertTrue(policy.contains("Do not parse move text"));
-        assertTrue(policy.contains("recompute reaction escape destinations"));
         assertTrue(policy.contains("collision/interception/reaction ordering"));
-        assertTrue(policy.contains("partial movement primitives alone"));
+        assertTrue(policy.contains("partial generic forced-movement instructions"));
     }
 }
