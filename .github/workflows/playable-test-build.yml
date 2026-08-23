@@ -1,0 +1,52 @@
+name: Playable Test Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-playable-mod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Build remapped playable Fabric mod
+        run: gradle :fabric-adapter:remapJar --no-daemon
+      - name: Prepare download bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p playable-download
+          find fabric-adapter/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-dev.jar' ! -name '*-sources.jar' -exec cp {} playable-download/AutoPTU-Cobblemon-RPG-playable-test.jar \;
+          test -f playable-download/AutoPTU-Cobblemon-RPG-playable-test.jar
+          cat > playable-download/INSTALL.txt <<'EOF'
+          AutoPTU Cobblemon playable test
+
+          Minecraft: 1.21.1
+          Java: 21
+          Fabric Loader: 0.17.2
+          Fabric API: 0.116.11+1.21.1
+          Fabric Language Kotlin: 1.13.6+kotlin.2.2.20
+          Cobblemon: 1.7.3+1.21.1
+
+          Put AutoPTU-Cobblemon-RPG-playable-test.jar in the same mods folder.
+          Join a world/server and run one of:
+            /autoptu testbattle bulbasaur
+            /autoptu testbattle charmander
+            /autoptu testbattle squirtle
+          EOF
+      - name: Upload playable mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoptu-playable-test-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: error
+          path: playable-download/**
