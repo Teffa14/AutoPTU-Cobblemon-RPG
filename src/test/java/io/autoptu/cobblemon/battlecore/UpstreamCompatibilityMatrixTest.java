@@ -25,14 +25,16 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterPreparationService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("RPG/encounter generator"));
-        assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("world/campaign RPG generator"));
+        assertTrue(adapter.adapterPolicy().contains("neither the source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
     }
 
@@ -56,8 +58,9 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         assertTrue(statuses.contracts().contains("runtime target-owned ability prevention"));
+        assertTrue(statuses.contracts().contains("Merged upstream PR #154"));
         assertTrue(statuses.adapterPolicy().contains("complete status ticking"));
-        assertTrue(statuses.adapterPolicy().contains("Draft upstream PR #154"));
+        assertTrue(statuses.adapterPolicy().contains("contract-only"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
 
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
@@ -111,7 +114,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("c3e67a718fca2d92ecc8316cfa98f757977f7986", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("46b8873df5839cca1b57106a16248c457d93f5fe", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("91270f54b237e177fef46a875f5599e114db97e3", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
