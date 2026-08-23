@@ -45,28 +45,40 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(statusLimit.contains("Complete status ticking"));
         assertTrue(statusLimit.contains("must not interpret or execute"));
 
+        String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).contracts();
+        String lifecycleLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE).limitation();
+        assertTrue(lifecycle.contains("DelayedHitRoundLifecycleHook at order 20"));
+        assertTrue(lifecycle.contains("Trainer action reset at order 40"));
+        assertTrue(lifecycleLimit.contains("currentRound"));
+        assertTrue(lifecycleLimit.contains("queue/RNG mutation"));
+
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
-        assertTrue(perks.contains("TrainerRuntimeState"));
-        assertTrue(perks.contains("heal"));
+        assertTrue(perks.contains("TrainerFeatureExecutionService.executeAuthoritative"));
+        assertTrue(perks.contains("heal/heal_active"));
         assertTrue(perks.contains("raise_cs"));
-        assertTrue(perks.contains("AP-grant"));
+        assertTrue(perks.contains("grant_temp_hp"));
+        assertTrue(perks.contains("grant_ap"));
         assertTrue(perks.contains("effect before resource consumption"));
         assertTrue(perksLimit.contains("wider Python effect library"));
+        assertTrue(perksLimit.contains("Temporary HP damage absorption"));
         assertTrue(perksLimit.contains("must not grant Features"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter =
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
-        assertTrue(adapter.contracts().contains("Fabric/Cobblemon"));
-        assertTrue(adapter.contracts().contains("durable item reservations"));
-        assertTrue(adapter.contracts().contains("complete CanonicalPokemonState persistence"));
+        assertTrue(adapter.contracts().contains("Cobblemon 1.7.3"));
+        assertTrue(adapter.contracts().contains("PokemonEntity UUID lookup"));
+        assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
+        assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("ordered stacked-status metadata"));
-        assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("Fabric lifecycle wiring for Pokemon/items"));
+        assertTrue(adapter.limitation().contains("successful authenticated graphical client encounter"));
+        assertTrue(adapter.limitation().contains("Wiring durable Pokemon/item stores"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
-        assertTrue(adapter.limitation().contains("never supplies PTU truth"));
+        assertTrue(adapter.limitation().contains("never supply PTU stats"));
     }
 }
