@@ -25,12 +25,15 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
+        assertTrue(adapter.contracts().contains("minecraft-player:<uuid>"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("active reservation"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
+        assertTrue(adapter.adapterPolicy().contains("encounter-profile and Pokemon identity provisioning"));
         assertTrue(adapter.adapterPolicy().contains("Cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("BattleAuthorityService must continue to re-resolve ownership and quantities"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
@@ -104,6 +107,6 @@ class UpstreamCompatibilityMatrixTest {
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
         assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("0d1cc8f3bd791485ed52f7b5e9cd63c0965ad944", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("2c98c2201a65a370bbe4999616c2c737d407a32e", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
