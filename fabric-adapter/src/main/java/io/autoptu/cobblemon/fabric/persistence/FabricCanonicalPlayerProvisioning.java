@@ -51,7 +51,8 @@ public final class FabricCanonicalPlayerProvisioning {
                 .orElseThrow(() -> new IllegalStateException("canonical player provisioning did not persist state"));
     }
 
-    static String canonicalPlayerId(UUID authenticatedUuid) {
+    /** Stable server-owned participant identity derived only from an authenticated Minecraft UUID. */
+    public static String canonicalPlayerId(UUID authenticatedUuid) {
         if (authenticatedUuid == null) throw new IllegalArgumentException("authenticatedUuid is required");
         return CANONICAL_PLAYER_PREFIX + authenticatedUuid;
     }
