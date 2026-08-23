@@ -9,7 +9,7 @@ class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
         assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("0d1cc8f3bd791485ed52f7b5e9cd63c0965ad944", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("2c98c2201a65a370bbe4999616c2c737d407a32e", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
