@@ -28,12 +28,14 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
         assertTrue(adapter.contracts().contains("World-scoped durable player/profile/Pokemon/item stores"));
         assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
+        assertTrue(adapter.contracts().contains("identity-only WILD encounter correlation registry"));
+        assertTrue(adapter.contracts().contains("Claim-time WILD roster resolution"));
         assertTrue(adapter.contracts().contains("status_block"));
         assertTrue(adapter.contracts().contains("combat_stage_block"));
-        assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
+        assertTrue(adapter.adapterPolicy().contains("logged-in graphical player encounter is still pending"));
         assertTrue(adapter.adapterPolicy().contains("WILD blueprint registry"));
         assertTrue(adapter.adapterPolicy().contains("not durable across restart"));
-        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
+        assertTrue(adapter.adapterPolicy().contains("no canonical encounter ID or PTU values may be derived from Cobblemon"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transaction recovery"));
     }
 
@@ -118,6 +120,6 @@ class UpstreamCompatibilityMatrixTest {
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
         assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("9df36aeae4bcbef49fd5edb658b51d68bd45fa71", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
