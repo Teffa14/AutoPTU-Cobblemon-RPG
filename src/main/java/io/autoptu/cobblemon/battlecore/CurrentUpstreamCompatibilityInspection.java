@@ -3,13 +3,10 @@ package io.autoptu.cobblemon.battlecore;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Records the exact upstream heads inspected for this integration slice and bounded current evidence.
- * This supplements, but never broadens, the permanent support classifications.
- */
+/** Records the exact upstream heads inspected for this integration slice and bounded current evidence. */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "dbc1bfb14c0e0036c1cc3301d35355d36611bf4b";
-    public static final String AUTOPTU_PYTHON_SHA = "8108e0d2b876414a5e62c2021801a3692cda05b8";
+    public static final String AUTOPTU_JAVA_SHA = "cdb229db787ac93f28745f796c1d9944546676cc";
+    public static final String AUTOPTU_PYTHON_SHA = "0d1cc8f3bd791485ed52f7b5e9cd63c0965ad944";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
         public Evidence {
@@ -31,69 +28,47 @@ public final class CurrentUpstreamCompatibilityInspection {
     public static Map<UpstreamCompatibilityMatrix.Capability, Evidence> evidence() { return EVIDENCE; }
 
     private static Map<UpstreamCompatibilityMatrix.Capability, Evidence> build() {
-        EnumMap<UpstreamCompatibilityMatrix.Capability, Evidence> result =
-                new EnumMap<>(UpstreamCompatibilityMatrix.Capability.class);
-
-        result.put(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "EffectiveMoveTargetResolver derives affected tiles, current authoritative combatant positions, footprint overlap, line of sight and stable candidate order from BattleRuntimeState. Current HP eligibility excludes hp <= 0 while preserving inactive positive-HP candidates, matching the inspected Python collector contract.",
-                        "Minecraft must not supply effective target lists, live target anchors, footprint overlap, line-of-sight results, HP eligibility filters or a generic active-state filter. Target eligibility remains core-owned."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState supplies canonical initiative inputs. RuntimeInitiativeOrderAssembly.fromState and InitiativeRoundRebuilder.authoritative own ordering and rollover. DelayedHitResourcePolicy preserves the originating action and frequency spend during ROUND_START. TrainerRuntimeState owns its ActionBudget and temporary AP grants; ROUND_START expires due temporary AP before resetting Trainer actions.",
-                        "Minecraft must not provide a precomputed rollover order, delayed-hit RNG, delayed-hit queue mutation, action/frequency bookkeeping, Trainer action-reset state, temporary AP grants/expiry, or a Trainer ID that collides with a combatant ID."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "ROUND_START executes FieldRoundLifecycleHook at order 10, DelayedHitRoundLifecycleHook at order 20, RoundTemporaryEffectExpiryHook at order 30, server-owned TemporaryApGrant expiry and Trainer action reset at order 40, Pokemon round-temporary-effect cleanup at order 45, then DeclaredActionRoundLifecycleHook at order 50. BattleRuntimeState owns immutable DeclaredActionState. RoundTrainerFeatureLifecyclePolicy freezes the Python guards around declaration cleanup, initial send-out, initiative and round_start Trainer Feature dispatch.",
-                        "Complete lifecycle remains broader. Java matches Python's relative cleanup ordering, but initial send-out execution, generic round_start Feature semantics, Air Lock, Arena Trap, Intimidate, Impostor and other Python round behavior remain pending. Minecraft must not supply currentRound, declared actions, cleanup ordering, temporary AP grants, Trainer action reset, send-out decisions, temporary-effect metadata, delayed maturity, queue/RNG mutation or action/frequency bookkeeping."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "StatusStateStore now preserves ordered stacked StatusEntry values, including repeated normalized names when a rule explicitly stacks them. Name-based views remain unique. Upstream parity tests freeze append, first-match replacement, remove-one, remove-all and clear storage behavior against the Python list representation.",
-                        "This verifies representation/storage semantics only. Complete status ticking, expiry, cures, immunities, source-sensitive behavior and remaining interactions are still partial. Minecraft may persist and transport authoritative status entries but must not interpret or execute missing status rules."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. Stored target_position remains an authoritative aim anchor rather than forcing TILE semantics; current geometry, footprints, line of sight and HP eligibility determine affected combatants in stable order, while live target IDs follow their current authoritative position.",
-                        "This is bounded delayed-hit execution, not complete move-special coverage. Minecraft must not choose delayed targets, rewrite target mode, precompute affected tiles, supply RNG/combat inputs, consume or refund move frequency/actions, or execute unported move specials."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "BattleEnvironmentState owns duration-bearing FieldEffectEntry state. FieldRoundLifecycleHook executes FieldRoundProgression, updates the authoritative environment, emits FieldEffectEndedEvent and applies FieldStatusCleanupRequest before delayed-hit maturity.",
-                        "This is partial field-system support. Full terrain effects, weather progression, hazards, zones, reactions and forced movement remain incomplete. Minecraft must not create PTU field entries or perform Wonder Room cleanup."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Initiative-time ability behavior and delayed-hit combat preparation read authoritative runtime state and rerun authoritative move/damage/post-damage hooks during ROUND_START.",
-                        "The complete PTU ability library is not ported; Minecraft must not grant abilities or supply hook results."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState owns Feature identities, base AP, temporary AP grants, ActionBudget, initiative inputs, explicit initiative Speed, team identity, generic Feature resources and usage/cooldown bookkeeping. TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are Python-parity backed. TrainerFeatureExecutionService.executeAuthoritative commits generic bookkeeping to TrainerRuntimeState only after the effect reports applied. TrainerFeatureTargetResolution provides Python-parity generic Pokemon target scopes and TrainerFeatureTrainerTargetResolution provides parity-backed trainer-target scopes. TrainerFeatureEffectRegistry includes heal/heal_active, raise_cs, grant_temp_hp and grant_ap families against authoritative runtime state. The inspected Python oracle still applies the effect before resource consumption and usage/cooldown bookkeeping.",
-                        "Trainer Features remain partial. The current families do not cover the wider Python effect library, every trigger/lifecycle binding, full Feature catalog or all AP/resource semantics. Temporary HP damage absorption still belongs to the incomplete stateful damage pipeline. Minecraft must not grant Features, decide gates, select or rewrite targets, execute Feature effects, mutate usage/cooldowns, spend resources/AP or report a Feature as applied."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleChoice is the legal decision contract. RuntimeAutobattlerActionSpace.legalChoices derives ShiftChoice and MoveChoice from BattleRuntimeState-owned position, geometry, affiliation, active/HP state, moveset, move-frequency usage, movement profile and ActionBudget, then returns an immutable stable-key-sorted list. Effective target collection remains server-owned through EffectiveMoveTargetResolver.",
-                        "A client, AI or Minecraft adapter may select only from the current core-produced BattleChoice list. It must not manufacture a choice, grant a move, bypass frequency/action budget, replace targeting/range/LoS legality or prefilter effective targets. Tactical scoring remains separate and incomplete."));
-
-        result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
-                new Evidence(
-                        UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric 1.21.1 and Cobblemon 1.7.3 boot together in a production-remapped dedicated-server CI runtime. Live smokes verify server-side PokemonEntity UUID lookup, authoritative relocation and positive HP mirroring. Public BATTLE_STARTED_PRE interception prevents Cobblemon registration/post-start. The identity-only handoff maps opaque actor/Pokemon UUIDs to independently server-owned canonical participant/combatant IDs and atomically reserves opposing canonical rosters. Player-versus-wild authority composition binds Trainer/item/arena reservation and multi-side roster reservation under one server-issued reservation ID and RNG seed. FabricAuthenticatedPlayerContextResolver requires the PLAYER actor UUID to resolve through the real MinecraftServer PlayerManager before a separate canonical PTU context source may be queried. CanonicalPlayerMutationService adds revision-guarded server-owned writes. FileVersionedCanonicalStateRepository supplies schema-versioned durable single-player storage with deterministic file identity, one CAS winner across repository instances and required atomic replacement. FabricCanonicalPlayerStoreRuntime binds world-scoped canonical storage to the real Minecraft save root and Fabric lifecycle. CanonicalPlayerEncounterProfile plus FileCanonicalPlayerEncounterProfileRepository persist a server-owned roster/consumable/arena selection with revision CAS, while PersistentCanonicalPlayerEncounterContextSource resolves the authenticated external UUID through the canonical identity registry and requires the canonical player record before exposing reservation inputs. BattleAuthorityService still re-resolves every Pokemon and item and verifies ownership and quantities before reservation. FileCanonicalItemReservationRepository persists canonical item identity/ownership/template/quantity/revision together with one active reservation and commits or releases that reservation through one atomically replaced item file across repository restart. FileCanonicalPokemonRepository now persists complete CanonicalPokemonState aggregates with revision CAS, process/OS locking, required atomic replacement and lossless ordered stacked-status metadata across repository restart.",
-                        "Live adapter support remains partial. The successful authenticated graphical client encounter is still pending. Wiring durable Pokemon/item stores into Fabric world lifecycle, cross-aggregate transaction recovery and reservation reconciliation/expiry remain pending. RuntimeCombatantState materialization, zero-HP/faint presentation, move animation, semantic cues, full entity lifecycle and complete battle playback remain pending. ServerPlayerEntity and Cobblemon entity state are identity/presentation inputs only and never supply PTU stats, inventory truth, modifiers, legality or outcomes."));
-
+        EnumMap<UpstreamCompatibilityMatrix.Capability, Evidence> result = new EnumMap<>(UpstreamCompatibilityMatrix.Capability.class);
+        result.put(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING, new Evidence(
+                UpstreamCompatibilityMatrix.Support.VERIFIED,
+                "EffectiveMoveTargetResolver derives affected tiles, authoritative positions, footprint overlap, line of sight and stable target order from BattleRuntimeState.",
+                "Minecraft must not supply effective targets, footprint overlap, line-of-sight results or HP eligibility filters."));
+        result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE, new Evidence(
+                UpstreamCompatibilityMatrix.Support.VERIFIED,
+                "BattleRuntimeState owns initiative inputs, action budgets and deterministic rollover; delayed-hit resource bookkeeping and Trainer temporary AP remain core-owned.",
+                "Minecraft must not provide initiative order, queue/RNG mutation, action/frequency bookkeeping or Trainer AP mutation."));
+        result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "ROUND_START has ordered field, delayed-hit, temporary-effect, Trainer action reset and declared-action cleanup hooks.",
+                "Complete lifecycle parity remains broader; Minecraft must not advance currentRound or run lifecycle hooks."));
+        result.put(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "StatusStateStore preserves ordered stacked StatusEntry values and repeated normalized names. Current Java main also ports TrainerFeatureEffectRegistry apply_status/remove_status against the Python list/status oracle.",
+                "Representation and selected Feature status mutations are verified, while complete status ticking, expiry, cures, immunities and interactions remain partial. Minecraft must not interpret or execute missing rules."));
+        result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "Delayed-hit binding reuses authoritative effective-target resolution and current geometry.",
+                "This is bounded delayed-hit support, not complete move-special coverage."));
+        result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "BattleEnvironmentState and duration-bearing field entries have bounded authoritative progression.",
+                "Full terrain, weather, hazards, zones, reactions and forced movement remain incomplete."));
+        result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "Selected phase, initiative, damage and post-damage ability behavior is authoritative and parity-backed.",
+                "The complete ability library is not ported; Minecraft must not execute missing hooks."));
+        result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "TrainerFeatureExecutionService keeps effect-before-resource/bookkeeping order. Current main includes heal/heal_active, raise_cs, grant_temp_hp, grant_ap, apply_status and remove_status handlers with authoritative target/state resolution.",
+                "Trainer Features remain partial because the wider Python effect library, full catalog and lifecycle/resource semantics are incomplete; Minecraft must not grant Features, select targets, execute effects or spend resources."));
+        result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE, new Evidence(
+                UpstreamCompatibilityMatrix.Support.VERIFIED,
+                "RuntimeAutobattlerActionSpace produces immutable server-owned legal BattleChoice values from current runtime state.",
+                "AI and clients may select only from current core-produced choices; tactical scoring remains separate."));
+        result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK, new Evidence(
+                UpstreamCompatibilityMatrix.Support.PARTIAL,
+                "Fabric 1.21.1 + Cobblemon 1.7.3 production-remapped CI verifies identity-only interception, authoritative relocation/HP projection and world-scoped persistence. FabricCanonicalPlayerStoreRuntime now opens FileVersionedCanonicalStateRepository, FileCanonicalPlayerEncounterProfileRepository, FileCanonicalPokemonRepository and FileCanonicalItemReservationRepository under one world root, with the item repository resolving Pokemon only through the durable canonical Pokemon store. The two-process restart smoke requires Trainer, encounter profile, Pokemon aggregate, item quantity and an active item reservation to survive reopening the same world.",
+                "The authenticated graphical client encounter, cross-aggregate transaction recovery, reservation reconciliation/expiry, RuntimeCombatantState materialization, faint presentation and complete playback remain pending. Minecraft/Cobblemon state never supplies PTU stats, inventory truth, modifiers, legality or outcomes."));
         return Map.copyOf(result);
     }
 }
