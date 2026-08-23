@@ -1,8 +1,11 @@
 package io.autoptu.cobblemon.fabric.persistence;
 
 import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
+import io.autoptu.cobblemon.authority.CanonicalItemInstance;
 import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
 import io.autoptu.cobblemon.authority.CanonicalPlayerState;
+import io.autoptu.cobblemon.authority.CanonicalPokemonState;
+import io.autoptu.cobblemon.authority.ItemReservation;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
@@ -14,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Two-boot production-runtime proof for world-scoped canonical player persistence.
+ * Two-boot production-runtime proof for world-scoped canonical persistence.
  *
  * CI runs one dedicated server in seed mode, stops it, then boots the same world in verify mode.
  * The fixtures are canonical server-owned test data; no Minecraft or Cobblemon state is imported.
@@ -26,6 +29,10 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String PLAYER_ID = "integration-restart-player";
+    private static final String POKEMON_ID = "restart-pokemon-1";
+    private static final String ITEM_ID = "restart-item-1";
+    private static final String RESERVATION_ID = "restart-item-reservation";
+
     private static final CanonicalPlayerState FIXTURE = new CanonicalPlayerState(
             PLAYER_ID,
             Set.of("Ace Trainer", "Commander"),
@@ -38,11 +45,36 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
             "team-restart-smoke",
             7
     );
+    private static final CanonicalPokemonState POKEMON_FIXTURE = new CanonicalPokemonState(
+            POKEMON_ID,
+            PLAYER_ID,
+            "pikachu",
+            23,
+            Set.of("tracker"),
+            Set.of("poisoned"),
+            ITEM_ID,
+            5
+    );
+    private static final CanonicalItemInstance ITEM_FIXTURE = new CanonicalItemInstance(
+            ITEM_ID,
+            PLAYER_ID,
+            "potion",
+            3,
+            11
+    );
+    private static final ItemReservation ITEM_RESERVATION = new ItemReservation(
+            RESERVATION_ID,
+            PLAYER_ID,
+            ITEM_ID,
+            "potion",
+            2,
+            11
+    );
     private static final CanonicalPlayerEncounterProfile ENCOUNTER_FIXTURE =
             new CanonicalPlayerEncounterProfile(
                     PLAYER_ID,
-                    List.of("restart-pokemon-1", "restart-pokemon-2"),
-                    Map.of("restart-item-1", 2),
+                    List.of(POKEMON_ID),
+                    Map.of(ITEM_ID, 2),
                     new BattleArenaSnapshot("minecraft:overworld", 12, 64, -8, 1, 0, 0, 1),
                     3
             );
@@ -61,6 +93,9 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
     private static void run(MinecraftServer server, String mode) {
         var repository = FabricCanonicalPlayerStoreRuntime.requireRepository(server);
         var encounterProfiles = FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(server);
+        var pokemon = FabricCanonicalPlayerStoreRuntime.requirePokemonRepository(server);
+        var assets = FabricCanonicalPlayerStoreRuntime.requireAssetRepository(server);
+
         if (mode.equals("seed")) {
             if (!repository.createPlayerIfAbsent(FIXTURE)) {
                 throw new IllegalStateException("canonical restart smoke fixture already exists before seed boot");
@@ -68,16 +103,17 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
             if (!encounterProfiles.createProfileIfAbsent(ENCOUNTER_FIXTURE)) {
                 throw new IllegalStateException("canonical encounter profile already exists before seed boot");
             }
-            CanonicalPlayerState persisted = repository.findPlayer(PLAYER_ID).orElseThrow(
-                    () -> new IllegalStateException("canonical restart smoke fixture was not persisted"));
-            CanonicalPlayerEncounterProfile persistedEncounter = encounterProfiles.findProfile(PLAYER_ID).orElseThrow(
-                    () -> new IllegalStateException("canonical encounter profile was not persisted"));
-            if (!FIXTURE.equals(persisted)) {
-                throw new IllegalStateException("canonical restart smoke seed did not round-trip exact state");
+            if (!pokemon.createPokemonIfAbsent(POKEMON_FIXTURE)) {
+                throw new IllegalStateException("canonical Pokemon fixture already exists before seed boot");
             }
-            if (!ENCOUNTER_FIXTURE.equals(persistedEncounter)) {
-                throw new IllegalStateException("canonical encounter profile did not round-trip exact state");
+            if (!assets.createItemIfAbsent(ITEM_FIXTURE)) {
+                throw new IllegalStateException("canonical item fixture already exists before seed boot");
             }
+            if (!assets.tryReserveItem(ITEM_RESERVATION)) {
+                throw new IllegalStateException("canonical item reservation was not persisted during seed boot");
+            }
+
+            requireExactSeedState(repository, encounterProfiles, pokemon, assets);
             LOGGER.info(SEED_SUCCESS_LOG);
             return;
         }
@@ -86,12 +122,51 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
                 () -> new IllegalStateException("canonical restart smoke fixture missing after server restart"));
         CanonicalPlayerEncounterProfile persistedEncounter = encounterProfiles.findProfile(PLAYER_ID).orElseThrow(
                 () -> new IllegalStateException("canonical encounter profile missing after server restart"));
+        CanonicalPokemonState persistedPokemon = pokemon.findPokemon(POKEMON_ID).orElseThrow(
+                () -> new IllegalStateException("canonical Pokemon missing after server restart"));
+        CanonicalItemInstance persistedItem = assets.findItem(ITEM_ID).orElseThrow(
+                () -> new IllegalStateException("canonical item missing after server restart"));
+        ItemReservation persistedReservation = assets.findReservation(RESERVATION_ID).orElseThrow(
+                () -> new IllegalStateException("canonical item reservation missing after server restart"));
+
         if (!FIXTURE.equals(persisted)) {
             throw new IllegalStateException("canonical restart smoke state changed across server restart");
         }
         if (!ENCOUNTER_FIXTURE.equals(persistedEncounter)) {
             throw new IllegalStateException("canonical encounter profile changed across server restart");
         }
+        if (!POKEMON_FIXTURE.equals(persistedPokemon)) {
+            throw new IllegalStateException("canonical Pokemon changed across server restart");
+        }
+        if (!ITEM_FIXTURE.equals(persistedItem)) {
+            throw new IllegalStateException("canonical item changed across server restart");
+        }
+        if (!ITEM_RESERVATION.equals(persistedReservation)) {
+            throw new IllegalStateException("canonical item reservation changed across server restart");
+        }
         LOGGER.info(RESTART_SUCCESS_LOG);
+    }
+
+    private static void requireExactSeedState(
+            io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository repository,
+            io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository encounterProfiles,
+            io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository pokemon,
+            io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository assets
+    ) {
+        if (!FIXTURE.equals(repository.findPlayer(PLAYER_ID).orElseThrow())) {
+            throw new IllegalStateException("canonical restart smoke seed did not round-trip exact Trainer state");
+        }
+        if (!ENCOUNTER_FIXTURE.equals(encounterProfiles.findProfile(PLAYER_ID).orElseThrow())) {
+            throw new IllegalStateException("canonical encounter profile did not round-trip exact state");
+        }
+        if (!POKEMON_FIXTURE.equals(pokemon.findPokemon(POKEMON_ID).orElseThrow())) {
+            throw new IllegalStateException("canonical Pokemon did not round-trip exact state");
+        }
+        if (!ITEM_FIXTURE.equals(assets.findItem(ITEM_ID).orElseThrow())) {
+            throw new IllegalStateException("canonical item did not round-trip exact state");
+        }
+        if (!ITEM_RESERVATION.equals(assets.findReservation(RESERVATION_ID).orElseThrow())) {
+            throw new IllegalStateException("canonical item reservation did not round-trip exact state");
+        }
     }
 }
