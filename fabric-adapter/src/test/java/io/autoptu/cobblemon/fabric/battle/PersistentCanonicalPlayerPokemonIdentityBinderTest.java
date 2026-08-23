@@ -34,7 +34,7 @@ class PersistentCanonicalPlayerPokemonIdentityBinderTest {
 
     @Test
     void bindsOnlyOpaqueExternalPokemonIdsToOwnedDurableCanonicalRoster() {
-        Stores stores = seed(List.of("pokemon-1"), PLAYER_ID);
+        Stores stores = seed(tempDir.resolve("valid"), List.of("pokemon-1"), PLAYER_ID);
         CobblemonCanonicalEncounterIdentityRegistry registry = new CobblemonCanonicalEncounterIdentityRegistry();
         PersistentCanonicalPlayerPokemonIdentityBinder binder = binder(true, registry, stores);
 
@@ -52,21 +52,21 @@ class PersistentCanonicalPlayerPokemonIdentityBinderTest {
 
     @Test
     void rejectsOfflineMalformedRosterMismatchAndForeignOwnership() {
-        Stores stores = seed(List.of("pokemon-1"), PLAYER_ID);
+        Stores stores = seed(tempDir.resolve("owned"), List.of("pokemon-1"), PLAYER_ID);
         CobblemonCanonicalEncounterIdentityRegistry registry = new CobblemonCanonicalEncounterIdentityRegistry();
 
         assertFalse(binder(false, registry, stores).bind(PLAYER_UUID.toString(), List.of(EXTERNAL_ONE)));
         assertFalse(binder(true, registry, stores).bind("not-a-uuid", List.of(EXTERNAL_ONE)));
         assertFalse(binder(true, registry, stores).bind(PLAYER_UUID.toString(), List.of(EXTERNAL_ONE, EXTERNAL_TWO)));
 
-        Stores foreign = seed(List.of("pokemon-foreign"), "another-player");
+        Stores foreign = seed(tempDir.resolve("foreign"), List.of("pokemon-foreign"), "another-player");
         assertFalse(binder(true, new CobblemonCanonicalEncounterIdentityRegistry(), foreign)
                 .bind(PLAYER_UUID.toString(), List.of(EXTERNAL_ONE)));
     }
 
     @Test
     void refreshesSamePlayerBindingWhenDurableRosterChanges() {
-        Stores stores = seed(List.of("pokemon-1"), PLAYER_ID);
+        Stores stores = seed(tempDir.resolve("refresh"), List.of("pokemon-1"), PLAYER_ID);
         CobblemonCanonicalEncounterIdentityRegistry registry = new CobblemonCanonicalEncounterIdentityRegistry();
         PersistentCanonicalPlayerPokemonIdentityBinder binder = binder(true, registry, stores);
         assertTrue(binder.bind(PLAYER_UUID.toString(), List.of(EXTERNAL_ONE)));
@@ -106,10 +106,10 @@ class PersistentCanonicalPlayerPokemonIdentityBinderTest {
         );
     }
 
-    private Stores seed(List<String> roster, String pokemonOwner) {
-        FileVersionedCanonicalStateRepository players = new FileVersionedCanonicalStateRepository(tempDir);
-        FileCanonicalPlayerEncounterProfileRepository profiles = new FileCanonicalPlayerEncounterProfileRepository(tempDir);
-        FileCanonicalPokemonRepository pokemon = new FileCanonicalPokemonRepository(tempDir);
+    private static Stores seed(Path root, List<String> roster, String pokemonOwner) {
+        FileVersionedCanonicalStateRepository players = new FileVersionedCanonicalStateRepository(root);
+        FileCanonicalPlayerEncounterProfileRepository profiles = new FileCanonicalPlayerEncounterProfileRepository(root);
+        FileCanonicalPokemonRepository pokemon = new FileCanonicalPokemonRepository(root);
         players.createPlayerIfAbsent(player());
         for (String pokemonId : roster) pokemon.createPokemonIfAbsent(pokemon(pokemonId, pokemonOwner));
         profiles.createProfileIfAbsent(new CanonicalPlayerEncounterProfile(
