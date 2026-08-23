@@ -37,6 +37,17 @@ public final class FabricAuthenticatedPlayerContextResolver
         this(serverLookup(server), canonicalContextSource);
     }
 
+    /** Production resolver backed by the canonical stores belonging to this server's world. */
+    public static FabricAuthenticatedPlayerContextResolver persistentWorld(
+            MinecraftServer server,
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry
+    ) {
+        return new FabricAuthenticatedPlayerContextResolver(
+                server,
+                PersistentCanonicalPlayerEncounterContextSource.fromWorldRuntime(server, identityRegistry)
+        );
+    }
+
     FabricAuthenticatedPlayerContextResolver(
             OnlinePlayerLookup onlinePlayerLookup,
             CanonicalPlayerEncounterContextSource canonicalContextSource
