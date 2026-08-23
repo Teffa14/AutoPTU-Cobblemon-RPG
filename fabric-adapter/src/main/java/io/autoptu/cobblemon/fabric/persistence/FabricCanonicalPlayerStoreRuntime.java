@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
+import io.autoptu.cobblemon.fabric.battle.WorldScopedCanonicalWildEncounterBlueprintRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
@@ -15,18 +16,20 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Owns world-scoped canonical persistence for each live Minecraft server instance.
+ * Owns world-scoped canonical state for each live Minecraft server instance.
  *
  * The filesystem location is derived from the server's world save root. Minecraft supplies
- * storage location and lifecycle only; it does not supply canonical Trainer, Pokemon, item or
- * arena values.
+ * storage location and lifecycle only; it does not supply canonical Trainer, Pokemon, item,
+ * arena or WILD encounter values. The WILD blueprint registry is intentionally lifecycle-scoped
+ * in memory; durable encounter recovery remains a separate future contract.
  */
 public final class FabricCanonicalPlayerStoreRuntime {
     private record Stores(
             FileVersionedCanonicalStateRepository players,
             FileCanonicalPlayerEncounterProfileRepository encounterProfiles,
             FileCanonicalPokemonRepository pokemon,
-            FileCanonicalItemReservationRepository assets
+            FileCanonicalItemReservationRepository assets,
+            WorldScopedCanonicalWildEncounterBlueprintRegistry wildEncounterBlueprints
     ) {}
 
     private static final AtomicBoolean REGISTERED = new AtomicBoolean();
@@ -58,6 +61,12 @@ public final class FabricCanonicalPlayerStoreRuntime {
         return requireStores(server).assets();
     }
 
+    public static WorldScopedCanonicalWildEncounterBlueprintRegistry requireWildEncounterBlueprintRegistry(
+            MinecraftServer server
+    ) {
+        return requireStores(server).wildEncounterBlueprints();
+    }
+
     static Path storageRoot(MinecraftServer server) {
         Objects.requireNonNull(server, "server");
         return storageRoot(server.getSavePath(WorldSavePath.ROOT));
@@ -86,7 +95,8 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 new FileVersionedCanonicalStateRepository(root),
                 new FileCanonicalPlayerEncounterProfileRepository(root),
                 pokemon,
-                new FileCanonicalItemReservationRepository(root, pokemon::findPokemon)
+                new FileCanonicalItemReservationRepository(root, pokemon::findPokemon),
+                new WorldScopedCanonicalWildEncounterBlueprintRegistry()
         );
         synchronized (STORES) {
             if (STORES.putIfAbsent(server, stores) != null) {

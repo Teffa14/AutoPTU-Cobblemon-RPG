@@ -85,10 +85,11 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(adapter.contracts().contains("positive HP projection"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
         assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
+        assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
-        assertTrue(adapter.adapterPolicy().contains("world/campaign RPG generator"));
-        assertTrue(adapter.adapterPolicy().contains("neither the source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
         assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
 }

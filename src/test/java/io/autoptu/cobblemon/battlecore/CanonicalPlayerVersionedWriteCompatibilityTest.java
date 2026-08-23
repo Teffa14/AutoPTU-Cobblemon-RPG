@@ -29,11 +29,12 @@ class CanonicalPlayerVersionedWriteCompatibilityTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("two-process restart smoke"));
         assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
+        assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("partial-commit recovery"));
-        assertTrue(adapter.adapterPolicy().contains("world/campaign RPG generator"));
-        assertTrue(adapter.adapterPolicy().contains("neither the source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
     }
 }

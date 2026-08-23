@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("46b8873df5839cca1b57106a16248c457d93f5fe", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("91270f54b237e177fef46a875f5599e114db97e3", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("5eef0c0e8364a4f4a4f8bdb811107895e4cdbe7d", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -33,9 +33,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).limitation();
         assertTrue(statuses.contains("StatusAbilityPreventionResolver"));
         assertTrue(statuses.contains("RuntimeCombatantState ability suppression"));
-        assertTrue(statuses.contains("Merged PR #154"));
+        assertTrue(statuses.contains("Merged PR #155"));
+        assertTrue(statuses.contains("Infiltrator bypass"));
         assertTrue(statusLimit.contains("complete status ticking"));
-        assertTrue(statusLimit.contains("contract-only"));
+        assertTrue(statusLimit.contains("charge consumption/removal"));
         assertTrue(statusLimit.contains("must not interpret or execute"));
 
         String abilities = CurrentUpstreamCompatibilityInspection.evidence(
@@ -44,10 +45,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).limitation();
         assertTrue(abilities.contains("Merged upstream PR #153"));
         assertTrue(abilities.contains("RuntimeCombatantState owns abilitiesSuppressed"));
-        assertTrue(abilities.contains("Merged PR #154"));
+        assertTrue(abilities.contains("Merged PR #155"));
         assertTrue(abilityLimit.contains("Own Tempo"));
-        assertTrue(abilityLimit.contains("Color Change"));
-        assertTrue(abilityLimit.contains("ignore_defensive_abilities"));
+        assertTrue(abilityLimit.contains("charge consumption/removal"));
+        assertTrue(abilityLimit.contains("complete PTU ability library"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
@@ -58,13 +59,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("grant_ap"));
         assertTrue(perks.contains("apply_status"));
         assertTrue(perks.contains("remove_status"));
-        assertTrue(perks.contains("91270f54"));
+        assertTrue(perks.contains("cd2d31ab"));
         assertTrue(perksLimit.contains("wider Python effect library"));
         assertTrue(perksLimit.contains("must not grant Features"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
+        assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterPreparationService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
@@ -72,7 +74,8 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("world/campaign RPG generator"));
+        assertTrue(adapter.limitation().contains("populate the world-scoped blueprint registry"));
+        assertTrue(adapter.limitation().contains("not durable across restart"));
         assertTrue(adapter.limitation().contains("deterministic provisioning seed"));
         assertTrue(adapter.limitation().contains("cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
