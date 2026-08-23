@@ -7,11 +7,15 @@ plugins {
 group = "io.autoptu"
 version = "0.1.0-SNAPSHOT"
 
+val autoPtuJavaSha = "967b16237c6ea93a939bd4acbbe67da979885a60"
+val autoPtuJavaDependency = "com.github.Teffa14:AutoPTU-Java:$autoPtuJavaSha"
+
 repositories {
     mavenCentral()
     maven("https://maven.fabricmc.net/")
     maven("https://maven.impactdev.net/repository/development/")
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
+    maven("https://jitpack.io")
 }
 
 java {
@@ -39,6 +43,11 @@ dependencies {
     productionSmokeMods("com.cobblemon:fabric:1.7.3+1.21.1")
 
     implementation(project(":"))
+
+    // AutoPTU-Java stays read-only. The playable vertical pins one inspected upstream commit and
+    // embeds that compiled library in the Fabric mod so battle accuracy/damage/HP remain core-owned.
+    implementation(autoPtuJavaDependency)
+    include(autoPtuJavaDependency)
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
