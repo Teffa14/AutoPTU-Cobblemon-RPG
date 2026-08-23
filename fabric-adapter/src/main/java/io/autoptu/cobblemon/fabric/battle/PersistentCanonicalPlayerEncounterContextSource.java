@@ -3,6 +3,8 @@ package io.autoptu.cobblemon.fabric.battle;
 import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
 import io.autoptu.cobblemon.authority.CanonicalStateRepository;
 import io.autoptu.cobblemon.authority.VersionedCanonicalPlayerEncounterProfileRepository;
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +31,23 @@ public final class PersistentCanonicalPlayerEncounterContextSource
         this.identityRegistry = Objects.requireNonNull(identityRegistry, "identityRegistry");
         this.playerRepository = Objects.requireNonNull(playerRepository, "playerRepository");
         this.profileRepository = Objects.requireNonNull(profileRepository, "profileRepository");
+    }
+
+    /**
+     * Production composition for a live Fabric server. Both repositories come from the world-scoped
+     * canonical persistence runtime; Minecraft supplies lifecycle/storage location only.
+     */
+    public static PersistentCanonicalPlayerEncounterContextSource fromWorldRuntime(
+            MinecraftServer server,
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry
+    ) {
+        Objects.requireNonNull(server, "server");
+        Objects.requireNonNull(identityRegistry, "identityRegistry");
+        return new PersistentCanonicalPlayerEncounterContextSource(
+                identityRegistry,
+                FabricCanonicalPlayerStoreRuntime.requireRepository(server),
+                FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(server)
+        );
     }
 
     @Override
