@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("9df36aeae4bcbef49fd5edb658b51d68bd45fa71", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("967b16237c6ea93a939bd4acbbe67da979885a60", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("8cf78e737a85f3b57e786154cf0f5781c840624a", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -22,6 +22,8 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 CurrentUpstreamCompatibilityInspection.evidence(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
@@ -42,12 +44,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
         String abilityLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).limitation();
-        assertTrue(abilities.contains("Flower Veil"));
+        assertTrue(abilities.contains("Mirror Armor"));
         assertTrue(abilities.contains("CombatStagePreventionHookRegistry"));
-        assertTrue(abilities.contains("combat_stage_block"));
-        assertTrue(abilityLimit.contains("PR #158"));
-        assertTrue(abilityLimit.contains("draft"));
-        assertTrue(abilityLimit.contains("Minecraft must not decide"));
+        assertTrue(abilities.contains("CombatStageMutationService"));
+        assertTrue(abilities.contains("effect=reflect"));
+        assertTrue(abilities.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(abilityLimit.contains("not complete ability support"));
+        assertTrue(abilityLimit.contains("recursive-hook suppression"));
+        assertTrue(abilityLimit.contains("Minecraft must not decide reflection eligibility"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
@@ -58,7 +62,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("grant_ap"));
         assertTrue(perks.contains("apply_status"));
         assertTrue(perks.contains("remove_status"));
-        assertTrue(perks.contains("9df36aea"));
+        assertTrue(perks.contains("8cf78e73"));
         assertTrue(perksLimit.contains("wider Python effect library"));
         assertTrue(perksLimit.contains("must not grant Features"));
 
@@ -67,11 +71,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("world-scoped create-only registry"));
         assertTrue(adapter.contracts().contains("opaque Cobblemon identity correlation"));
         assertTrue(adapter.contracts().contains("lazy CanonicalWildRosterSource"));
-        assertTrue(adapter.contracts().contains("combat_stage_block"));
+        assertTrue(adapter.contracts().contains("Mirror Armor reflect"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
         assertTrue(adapter.limitation().contains("trusted projection code must register"));
         assertTrue(adapter.limitation().contains("canonical encounter ID or PTU values from Cobblemon"));
         assertTrue(adapter.limitation().contains("registries remain lifecycle-scoped"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
+        assertTrue(adapter.limitation().contains("Mirror Armor legality"));
     }
 }
