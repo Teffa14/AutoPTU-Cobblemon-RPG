@@ -10,6 +10,7 @@ final class PreDamageReactionCompatibilityTest {
     void availableUpstreamReactionPrimitivesDoNotEnableMinecraftRuleExecution() {
         assertTrue(PreDamageReactionCompatibility.genericPreDamageReactionRegistryIsAvailable());
         assertTrue(PreDamageReactionCompatibility.authoritativeReactionEscapeMovementIsAvailable());
+        assertTrue(PreDamageReactionCompatibility.authoritativeThreatenedAreaContextIsAvailable());
         assertTrue(PreDamageReactionCompatibility.telepathyHookIsParityBacked());
         assertTrue(PreDamageReactionCompatibility.preDamagePipelineOrderingIsParityBacked());
         assertFalse(PreDamageReactionCompatibility.ordinaryMoveResolutionInvokesPreDamageReactions());
@@ -21,10 +22,11 @@ final class PreDamageReactionCompatibilityTest {
         assertTrue(PreDamageReactionCompatibility.minecraftMayRenderAuthoritativeReactionEvents());
         String policy = PreDamageReactionCompatibility.adapterPolicy();
         assertTrue(policy.contains("already emitted by AutoPTU-Java"));
+        assertTrue(policy.contains("derives threatened tiles from canonical BattleRuntimeState"));
         assertTrue(policy.contains("Do not invoke the pre-damage registry from Minecraft"));
-        assertTrue(policy.contains("construct threatened tiles"));
+        assertTrue(policy.contains("construct or override threatened tiles"));
         assertTrue(policy.contains("cancel hit, damage or type effectiveness"));
         assertTrue(policy.contains("ordinary resolution, shields, post-result hooks, item bonuses and HP mutation"));
-        assertTrue(policy.contains("authoritative Java ordinary move-resolution path"));
+        assertTrue(policy.contains("authoritative Java ordinary move-resolution path owns registry invocation"));
     }
 }
