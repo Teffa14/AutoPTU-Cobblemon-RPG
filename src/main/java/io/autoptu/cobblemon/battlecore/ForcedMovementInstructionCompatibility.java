@@ -8,7 +8,7 @@ package io.autoptu.cobblemon.battlecore;
  */
 public final class ForcedMovementInstructionCompatibility {
     public static final String INSPECTED_AUTOPTU_JAVA_SHA = "7de79dcd30b241d439724050fb24ee893a7c5c63";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "1c673eb676fdeca71ee55e1de8a90b8f7d2cbcf3";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "99ba07ea47b8896d96bd37f6c06cffb8695f69bb";
     public static final String JAVA_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private ForcedMovementInstructionCompatibility() {}
