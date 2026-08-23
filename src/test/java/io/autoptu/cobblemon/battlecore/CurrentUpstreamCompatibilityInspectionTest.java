@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("2c98c2201a65a370bbe4999616c2c737d407a32e", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("e5439ac27a77cc41300435ed352cf4baf41f1269", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("ce82de564a09b4b66abebda356eca46a9723af4d", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -33,6 +33,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).limitation();
         assertTrue(statuses.contains("ordered stacked StatusEntry"));
         assertTrue(statuses.contains("apply_status/remove_status"));
+        assertTrue(statuses.contains("StatusAbilityPreventionResolver"));
         assertTrue(statusLimit.contains("Complete status ticking"));
         assertTrue(statusLimit.contains("must not interpret or execute"));
 
@@ -40,8 +41,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
         String abilityLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).limitation();
-        assertTrue(abilities.contains("draft PR #152"));
-        assertTrue(abilityLimit.contains("not yet runtime-authoritative"));
+        assertTrue(abilities.contains("Merged upstream PR #152"));
+        assertTrue(abilities.contains("StatusAbilityPreventionResolver"));
+        assertTrue(abilityLimit.contains("not yet wired into live status application"));
+        assertTrue(abilityLimit.contains("ignore_defensive_abilities"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
@@ -62,12 +65,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerEncounterContextSource.fromWorldRuntime"));
         assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver.persistentWorld"));
         assertTrue(adapter.contracts().contains("CobblemonPlayerVsWildClaimCoordinator.persistentWorld"));
+        assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerPokemonIdentityBinder"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("active item reservation"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("encounter-profile and Pokemon identity provisioning"));
+        assertTrue(adapter.limitation().contains("Encounter-profile creation and wild Pokemon canonical identity provisioning"));
         assertTrue(adapter.limitation().contains("Cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("never supply PTU stats"));

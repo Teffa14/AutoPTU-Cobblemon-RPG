@@ -46,6 +46,11 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
     }
 
     @FunctionalInterface
+    interface PlayerIdentityBinder {
+        boolean bind(String externalPlayerActorId, List<String> externalPokemonIds);
+    }
+
+    @FunctionalInterface
     interface ReservationHandler {
         boolean tryReserve(
                 String playerId,
@@ -57,6 +62,7 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
     }
 
     private final CobblemonCanonicalEncounterIdentityRegistry identityRegistry;
+    private final PlayerIdentityBinder playerIdentityBinder;
     private final AuthenticatedPlayerContextResolver playerContextResolver;
     private final ReservationHandler reservationHandler;
 
@@ -65,23 +71,26 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             AuthenticatedPlayerContextResolver playerContextResolver,
             PlayerVsWildEncounterAuthorityService authorityService
     ) {
-        this(identityRegistry, playerContextResolver, reservationHandler(authorityService));
+        this(identityRegistry, null, playerContextResolver, reservationHandler(authorityService));
     }
 
     /**
      * Production composition for a live Fabric world. Authentication comes from Minecraft's
-     * PlayerManager and encounter selections come from the world-scoped canonical stores.
+     * PlayerManager, the player/Pokemon identity mapping is rebuilt from durable canonical state,
+     * and encounter selections come from the world-scoped canonical stores.
      */
     public static CobblemonPlayerVsWildClaimCoordinator persistentWorld(
             MinecraftServer server,
             CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
             PlayerVsWildEncounterAuthorityService authorityService
     ) {
+        Objects.requireNonNull(server, "server");
         Objects.requireNonNull(identityRegistry, "identityRegistry");
         return new CobblemonPlayerVsWildClaimCoordinator(
                 identityRegistry,
+                PersistentCanonicalPlayerPokemonIdentityBinder.fromWorldRuntime(server, identityRegistry)::bind,
                 FabricAuthenticatedPlayerContextResolver.persistentWorld(server, identityRegistry),
-                authorityService
+                reservationHandler(authorityService)
         );
     }
 
@@ -90,7 +99,17 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             AuthenticatedPlayerContextResolver playerContextResolver,
             ReservationHandler reservationHandler
     ) {
+        this(identityRegistry, null, playerContextResolver, reservationHandler);
+    }
+
+    CobblemonPlayerVsWildClaimCoordinator(
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
+            PlayerIdentityBinder playerIdentityBinder,
+            AuthenticatedPlayerContextResolver playerContextResolver,
+            ReservationHandler reservationHandler
+    ) {
         this.identityRegistry = Objects.requireNonNull(identityRegistry, "identityRegistry");
+        this.playerIdentityBinder = playerIdentityBinder;
         this.playerContextResolver = Objects.requireNonNull(playerContextResolver, "playerContextResolver");
         this.reservationHandler = Objects.requireNonNull(reservationHandler, "reservationHandler");
     }
@@ -113,6 +132,11 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             }
         }
         if (externalPlayer == null || externalWild == null || externalPlayer.side() == externalWild.side()) {
+            return false;
+        }
+
+        if (playerIdentityBinder != null
+                && !playerIdentityBinder.bind(externalPlayer.actorId(), externalPlayer.pokemonIds())) {
             return false;
         }
 

@@ -28,12 +28,13 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
         assertTrue(adapter.contracts().contains("minecraft-player:<uuid>"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
+        assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerPokemonIdentityBinder"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("active reservation"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("encounter-profile and Pokemon identity provisioning"));
+        assertTrue(adapter.adapterPolicy().contains("Encounter-profile creation and wild Pokemon canonical identity provisioning"));
         assertTrue(adapter.adapterPolicy().contains("Cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("BattleAuthorityService must continue to re-resolve ownership and quantities"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
@@ -105,8 +106,19 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
+    void abilityPreventionContractRemainsDeclarativeAndPartial() {
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertTrue(abilities.contracts().contains("StatusAbilityPreventionResolver"));
+        assertTrue(abilities.adapterPolicy().contains("not yet wired into live status application"));
+        assertTrue(abilities.adapterPolicy().contains("ignore_defensive_abilities"));
+        assertTrue(abilities.adapterPolicy().contains("must not execute ability hooks"));
+    }
+
+    @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("2c98c2201a65a370bbe4999616c2c737d407a32e", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("e5439ac27a77cc41300435ed352cf4baf41f1269", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("ce82de564a09b4b66abebda356eca46a9723af4d", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
