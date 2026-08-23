@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
 import io.autoptu.cobblemon.authority.BattleEncounterParticipantRequest;
 import io.autoptu.cobblemon.authority.BattleParticipantKind;
 import io.autoptu.cobblemon.authority.PlayerVsWildEncounterAuthorityService;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -65,6 +66,23 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             PlayerVsWildEncounterAuthorityService authorityService
     ) {
         this(identityRegistry, playerContextResolver, reservationHandler(authorityService));
+    }
+
+    /**
+     * Production composition for a live Fabric world. Authentication comes from Minecraft's
+     * PlayerManager and encounter selections come from the world-scoped canonical stores.
+     */
+    public static CobblemonPlayerVsWildClaimCoordinator persistentWorld(
+            MinecraftServer server,
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
+            PlayerVsWildEncounterAuthorityService authorityService
+    ) {
+        Objects.requireNonNull(identityRegistry, "identityRegistry");
+        return new CobblemonPlayerVsWildClaimCoordinator(
+                identityRegistry,
+                FabricAuthenticatedPlayerContextResolver.persistentWorld(server, identityRegistry),
+                authorityService
+        );
     }
 
     CobblemonPlayerVsWildClaimCoordinator(
