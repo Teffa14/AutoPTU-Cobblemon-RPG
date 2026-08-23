@@ -33,24 +33,9 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
         BattlePlaybackBatch playback = new BattlePlaybackBatch(
                 "reservation-turn-start",
                 List.of(
-                        new BattleEventPlaybackEnvelope(
-                                1,
-                                "turn_start",
-                                "turn_start|3|actor|start|0",
-                                Map.of("actorId", "forged")
-                        ),
-                        new BattleEventPlaybackEnvelope(
-                                2,
-                                "rule_effect",
-                                "rule_effect|status|flinch|actor|||start|0.0|0",
-                                Map.of("effect", "forged")
-                        ),
-                        new BattleEventPlaybackEnvelope(
-                                3,
-                                "status_skip",
-                                "status_skip|actor|Flinch|standard|start",
-                                Map.of("status", "forged")
-                        )
+                        new BattleEventPlaybackEnvelope(1, "turn_start", "turn_start|3|actor|start|0", Map.of("actorId", "forged")),
+                        new BattleEventPlaybackEnvelope(2, "rule_effect", "rule_effect|status|flinch|actor|||start|0.0|0", Map.of("effect", "forged")),
+                        new BattleEventPlaybackEnvelope(3, "status_skip", "status_skip|actor|Flinch|standard|start", Map.of("status", "forged"))
                 )
         );
 
@@ -60,8 +45,7 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
                         BattlePresentationCommand.Kind.RULE_EFFECT_CUE,
                         BattlePresentationCommand.Kind.STATUS_SKIP_CUE),
                 presentation.commands().stream().map(BattlePresentationCommand::kind).toList());
-        assertEquals(List.of(1L, 2L, 3L), presentation.commands().stream()
-                .map(BattlePresentationCommand::sequence).toList());
+        assertEquals(List.of(1L, 2L, 3L), presentation.commands().stream().map(BattlePresentationCommand::sequence).toList());
     }
 
     @Test
@@ -80,14 +64,11 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
     @Test
     void compatibilityKeepsTurnSelectionAndStartEffectsCoreOwnedWhileLifecycleStaysPartial() {
         UpstreamCompatibilityMatrix.Entry initiative = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE
-        );
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
         UpstreamCompatibilityMatrix.Entry lifecycle = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE
-        );
+                UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE);
         UpstreamCompatibilityMatrix.Entry legalActions = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE
-        );
+                UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED, initiative.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, lifecycle.support());
@@ -101,6 +82,6 @@ class InitiativeTurnStartPlaybackCompatibilityTest {
         assertTrue(lifecycle.adapterPolicy().contains("complete Python start_round parity is still absent"));
         assertTrue(legalActions.contracts().contains("before the next decision window"));
         assertTrue(legalActions.adapterPolicy().contains("must not supply initiative order"));
-        assertEquals("46b8873df5839cca1b57106a16248c457d93f5fe", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("5eef0c0e8364a4f4a4f8bdb811107895e4cdbe7d", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
     }
 }
