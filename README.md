@@ -36,19 +36,19 @@ The Minecraft/Cobblemon/Craftics category remains PARTIAL. A successful authenti
 
 `FabricAuthenticatedPlayerContextResolver` verifies that the external PLAYER UUID belongs to a currently connected server player before a canonical context source can run. `PersistentCanonicalPlayerEncounterContextSource` reads that context from world-scoped durable state. `PersistentCanonicalPlayerPokemonIdentityBinder` validates the canonical player/profile/Pokémon ownership path before pairing opaque Cobblemon Pokémon UUIDs with canonical Pokémon IDs.
 
-For WILD actors, `ServerOwnedWildEncounterProvisioningService` prepares canonical participant/combatant identities and `CanonicalEncounterPokemonState` values from trusted server-owned RPG encounter blueprints before Cobblemon starts the battle. The service also derives a deterministic encounter-generation seed from the canonical encounter ID. The opaque Cobblemon WILD actor UUID remains correlation data only and does not influence canonical Pokémon IDs or PTU values.
+For WILD actors, trusted RPG/campaign logic first registers a complete canonical blueprint in `WorldScopedCanonicalWildEncounterBlueprintRegistry`, which is owned by the active Fabric world lifecycle and implements `CanonicalWildEncounterBlueprintSource`. Registration is create-only by canonical encounter ID so a later presentation correlation cannot replace PTU values. `ServerOwnedWildEncounterPreparationService` resolves that trusted blueprint before the opaque WILD actor UUID is attached, then `ServerOwnedWildEncounterProvisioningService` prepares canonical participant/combatant identities and `CanonicalEncounterPokemonState` values. The provisioner also derives a deterministic encounter-generation seed from the canonical encounter ID. Cobblemon identity remains correlation data only and does not influence canonical Pokémon IDs or PTU values.
 
 `ServerOwnedWildEncounterIdentityBinder` later pairs the ordered opaque WILD Pokémon UUIDs from `BATTLE_STARTED_PRE` with the already-provisioned canonical roster. Exact cardinality and registry alias checks are required. Missing provisioning fails closed and leaves Cobblemon untouched.
 
-The provisioning seed is intentionally separate from the later shared battle-reservation RNG seed. Composing those deterministic boundaries is a future slice and must not be inferred by the adapter.
+The WILD blueprint registry is intentionally lifecycle-scoped rather than restart-durable. Durable WILD recovery requires a separate journaling/reconciliation contract. The provisioning seed is also intentionally separate from the later shared battle-reservation RNG seed. Neither boundary is inferred by the adapter.
 
 ## Persistent authority
 
-`FabricCanonicalPlayerStoreRuntime` binds canonical state to `<world>/autoptu/canonical-state`. The runtime currently exposes durable player, encounter-profile, Pokémon and item/reservation repositories. File repositories use schema versions, revision checks, OS/process locking, forced writes and atomic replacement where required by their contracts.
+`FabricCanonicalPlayerStoreRuntime` binds canonical state to `<world>/autoptu/canonical-state`. The runtime exposes durable player, encounter-profile, Pokémon and item/reservation repositories plus the live world's in-memory canonical WILD blueprint registry. File repositories use schema versions, revision checks, OS/process locking, forced writes and atomic replacement where required by their contracts.
 
 Persistent selection is never treated as permission. `BattleAuthorityService` re-resolves canonical ownership, revisions and item quantities when a reservation is attempted.
 
-Cross-aggregate transactions, journaling, partial-commit recovery, reservation expiry/reconciliation and durable WILD encounter provisioning remain pending.
+Cross-aggregate transactions, journaling, partial-commit recovery, reservation expiry/reconciliation and durable WILD encounter recovery remain pending.
 
 ## Compatibility policy
 
@@ -62,8 +62,8 @@ The generic hook/registry architecture in AutoPTU-Java remains the intended path
 
 Completed with dedicated-server evidence: live Cobblemon entity projection, battle-start preemption, identity capture/mapping, canonical opposing-roster reservation, Fabric PLAYER authentication boundary, world-scoped canonical persistence and restart recovery.
 
-Completed with contract/integration fixtures: player-versus-wild authority composition, persistent authenticated player context, canonical PLAYER Pokémon identity binding, preprovisioned WILD identity binding, and server-owned WILD encounter provisioning that creates canonical state without trusting `PokemonEntity` values.
+Completed with contract/integration fixtures: player-versus-wild authority composition, persistent authenticated player context, canonical PLAYER Pokémon identity binding, preprovisioned WILD identity binding, server-owned WILD encounter provisioning, trusted blueprint resolution, and a world-lifecycle-scoped create-only registry that supplies those blueprints without trusting `PokemonEntity` values.
 
-Next steps are to connect a trusted RPG/encounter generator to the WILD blueprint source, compose the provisioned WILD repository with the production player repository path, then run the complete PLAYER-vs-WILD pre-start flow with an authenticated graphical Minecraft client. That run must capture MP4 plus authoritative logs: login -> wild encounter -> `BATTLE_STARTED_PRE` -> authenticated PLAYER -> durable canonical context -> WILD provisioning/binding -> canonical reservation -> Cobblemon preemption.
+Next steps are to connect trusted RPG/encounter generation to populate the active world's WILD blueprint registry before the Cobblemon trigger, compose that preparation with the production player repository path, then run the complete PLAYER-vs-WILD pre-start flow with an authenticated graphical Minecraft client. That run must capture MP4 plus authoritative logs: login -> wild encounter -> `BATTLE_STARTED_PRE` -> authenticated PLAYER -> durable canonical context -> WILD preparation/binding -> canonical reservation -> Cobblemon preemption.
 
 Runtime combatant materialization follows only when every required `RuntimeCombatantState` input can be supplied authoritatively. Missing PTU rules stay in AutoPTU-Java rather than being recreated in the Minecraft adapter.
