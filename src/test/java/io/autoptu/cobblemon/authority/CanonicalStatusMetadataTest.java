@@ -47,11 +47,26 @@ class CanonicalStatusMetadataTest {
     }
 
     @Test
-    void rejectsNameDriftDuplicateStatusesAndNonScalarPayloads() {
-        assertThrows(IllegalArgumentException.class, () -> new CanonicalStatusState(List.of(
-                new CanonicalStatusEntry("flinch"),
-                new CanonicalStatusEntry("FLINCH")
-        )));
+    void preservesOrderedStackedStatusesWhileLegacyNameViewRemainsUnique() {
+        CanonicalStatusState stacked = new CanonicalStatusState(List.of(
+                new CanonicalStatusEntry("flinch", Map.of("source", "move:a")),
+                new CanonicalStatusEntry("Burned"),
+                new CanonicalStatusEntry("FLINCH", Map.of("source", "trainer_feature:b"))
+        ));
+        CanonicalPokemonState canonical = new CanonicalPokemonState(
+                "pkmn-1", "player-1", "pikachu", 20,
+                Set.of(), Set.of("flinch", "burned"), stacked,
+                null, null, null, null, null, null, null, 1L);
+
+        assertEquals(List.of("flinch", "burned", "flinch"),
+                canonical.statusState().entries().stream().map(CanonicalStatusEntry::name).toList());
+        assertEquals(Set.of("flinch", "burned"), canonical.statuses());
+        assertEquals("move:a", canonical.statusState().entries().get(0).payload().get("source"));
+        assertEquals("trainer_feature:b", canonical.statusState().entries().get(2).payload().get("source"));
+    }
+
+    @Test
+    void rejectsNameDriftAndNonScalarPayloads() {
         assertThrows(IllegalArgumentException.class, () -> new CanonicalStatusEntry("flinch", Map.of("nested", List.of(1))));
         CanonicalStatusState flinch = new CanonicalStatusState(List.of(new CanonicalStatusEntry("flinch")));
         assertThrows(IllegalArgumentException.class, () -> new CanonicalPokemonState(

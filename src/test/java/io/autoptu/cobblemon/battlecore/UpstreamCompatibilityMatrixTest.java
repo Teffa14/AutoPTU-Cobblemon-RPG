@@ -45,9 +45,11 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("active reservation"));
+        assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
+        assertTrue(adapter.contracts().contains("stacked-status metadata"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("Durable Pokemon aggregate persistence"));
-        assertTrue(adapter.adapterPolicy().contains("wiring the item ledger into Fabric world lifecycle"));
+        assertTrue(adapter.adapterPolicy().contains("Wiring the durable Pokemon aggregate"));
+        assertTrue(adapter.adapterPolicy().contains("item ledger into Fabric world lifecycle"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
         assertTrue(adapter.adapterPolicy().contains("BattleAuthorityService must continue to re-resolve ownership and quantities"));
         assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
@@ -77,6 +79,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(lifecycle.contracts().contains("StatusStateStore"));
         assertTrue(lifecycle.contracts().contains("Flinch"));
         assertTrue(statuses.contracts().contains("StatusEntry/StatusStateStore"));
+        assertTrue(statuses.contracts().contains("stacked duplicate storage"));
         assertTrue(statuses.contracts().contains("StatusApplicationHookRegistry"));
         assertTrue(statuses.adapterPolicy().contains("Status application/prevention"));
         assertTrue(statuses.adapterPolicy().contains("do not implement missing"));
@@ -219,7 +222,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("bc22b78e0a46bd65b6d5ddc38fcabe0b8368440b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("85dfad45e345d4f77dc5f05b86ea546ef9389d26", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("dbc1bfb14c0e0036c1cc3301d35355d36611bf4b", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("8108e0d2b876414a5e62c2021801a3692cda05b8", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
