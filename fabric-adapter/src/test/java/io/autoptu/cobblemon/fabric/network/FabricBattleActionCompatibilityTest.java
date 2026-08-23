@@ -37,9 +37,11 @@ class FabricBattleActionCompatibilityTest {
         assertTrue(liveAdapter.boundedScope().contains("HP projection"));
         assertTrue(liveAdapter.boundedScope().contains("battle-trigger interception"));
         assertTrue(liveAdapter.boundedScope().contains("server-owned WILD encounter provisioning"));
+        assertTrue(adapterCapability.contracts().contains("CanonicalWildEncounterBlueprintSource"));
+        assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterPreparationService"));
         assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
         assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
-        assertTrue(adapterCapability.adapterPolicy().contains("trusted RPG/encounter generator"));
-        assertTrue(adapterCapability.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapterCapability.adapterPolicy().contains("world/campaign RPG generator"));
+        assertTrue(adapterCapability.adapterPolicy().contains("neither the source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
     }
 }
