@@ -3,8 +3,8 @@
   "id": "autoptu_cobblemon_rpg_fabric_adapter",
   "version": "${version}",
   "name": "AutoPTU Cobblemon RPG Fabric Adapter",
-  "description": "Server-side Fabric networking and presentation adapter for AutoPTU battle intents.",
-  "environment": "server",
+  "description": "Server-authoritative Fabric networking and Cobblemon presentation adapter for AutoPTU.",
+  "environment": "*",
   "entrypoints": {
     "main": [
       "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter"
