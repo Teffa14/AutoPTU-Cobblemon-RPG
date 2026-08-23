@@ -32,11 +32,13 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("Claim-time WILD roster resolution"));
         assertTrue(adapter.contracts().contains("status_block"));
         assertTrue(adapter.contracts().contains("combat_stage_block"));
+        assertTrue(adapter.contracts().contains("Mirror Armor reflect"));
         assertTrue(adapter.adapterPolicy().contains("logged-in graphical player encounter is still pending"));
         assertTrue(adapter.adapterPolicy().contains("WILD blueprint registry"));
         assertTrue(adapter.adapterPolicy().contains("not durable across restart"));
         assertTrue(adapter.adapterPolicy().contains("no canonical encounter ID or PTU values may be derived from Cobblemon"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transaction recovery"));
+        assertTrue(adapter.adapterPolicy().contains("Mirror Armor presentation may consume only"));
     }
 
     @Test
@@ -71,10 +73,11 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
         assertTrue(abilities.contracts().contains("CombatStagePreventionHookRegistry"));
         assertTrue(abilities.contracts().contains("Flower Veil"));
-        assertTrue(abilities.contracts().contains("combat_stage_block"));
-        assertTrue(abilities.adapterPolicy().contains("Big Pecks"));
-        assertTrue(abilities.adapterPolicy().contains("Hyper Cutter"));
-        assertTrue(abilities.adapterPolicy().contains("must not calculate range"));
+        assertTrue(abilities.contracts().contains("Mirror Armor"));
+        assertTrue(abilities.contracts().contains("effect=reflect"));
+        assertTrue(abilities.contracts().contains("CombatStageMutationService"));
+        assertTrue(abilities.adapterPolicy().contains("must not decide external-drop eligibility"));
+        assertTrue(abilities.adapterPolicy().contains("recursive-hook suppression"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
 
@@ -88,6 +91,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(perks.contracts().contains("grant_ap"));
         assertTrue(perks.contracts().contains("apply_status"));
         assertTrue(perks.contracts().contains("remove_status"));
+        assertTrue(perks.adapterPolicy().contains("8cf78e73"));
         assertTrue(perks.adapterPolicy().contains("wider Python effect library"));
         assertTrue(perks.adapterPolicy().contains("may not grant Features"));
     }
@@ -119,7 +123,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("9df36aeae4bcbef49fd5edb658b51d68bd45fa71", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("967b16237c6ea93a939bd4acbbe67da979885a60", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("8cf78e737a85f3b57e786154cf0f5781c840624a", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }

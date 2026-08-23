@@ -117,9 +117,40 @@ class AbilityRuleEffectPlaybackCompatibilityTest {
     }
 
     @Test
-    void simpleCombatStageReactionUsesGenericRuleEffectPlaybackWithoutAdapterStageMutation() {
+    void mirrorArmorReflectUsesGenericRuleEffectPlaybackWithoutAdapterReflectionLogic() {
         BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
                 45,
+                "rule_effect",
+                "rule_effect|ability|Mirror Armor|mirror-target|attacker|growl|reflect|-1.0|31",
+                Map.of(
+                        "ignoredRequestedDelta", "-1",
+                        "ignoredReflectedStat", "ATK",
+                        "ignoredRecursiveSuppression", "ability.mirror-armor.pre-apply"
+                )
+        );
+
+        List<BattlePresentationCommand> commands = new BattlePresentationProjector().project(event);
+
+        assertEquals(1, commands.size());
+        BattlePresentationCommand command = commands.getFirst();
+        assertEquals(BattlePresentationCommand.Kind.RULE_EFFECT_CUE, command.kind());
+        assertEquals("mirror-target", command.subjectId());
+        assertEquals("ability", command.data().get("sourceKind"));
+        assertEquals("Mirror Armor", command.data().get("sourceName"));
+        assertEquals("attacker", command.data().get("targetId"));
+        assertEquals("growl", command.data().get("moveId"));
+        assertEquals("reflect", command.data().get("effect"));
+        assertEquals("-1.0", command.data().get("amount"));
+        assertEquals("31", command.data().get("actorHp"));
+        assertFalse(command.data().containsKey("ignoredRequestedDelta"));
+        assertFalse(command.data().containsKey("ignoredReflectedStat"));
+        assertFalse(command.data().containsKey("ignoredRecursiveSuppression"));
+    }
+
+    @Test
+    void simpleCombatStageReactionUsesGenericRuleEffectPlaybackWithoutAdapterStageMutation() {
+        BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
+                46,
                 "rule_effect",
                 "rule_effect|ability|simple|target|target|growl|simple|-1.0|20",
                 Map.of("requestedStageDelta", "-1", "appliedStageDelta", "-1")
