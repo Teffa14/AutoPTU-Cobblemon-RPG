@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("e5439ac27a77cc41300435ed352cf4baf41f1269", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("ce82de564a09b4b66abebda356eca46a9723af4d", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("743b0ff76c63d8ab2131fbf8de4e2e2430b9eea4", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
@@ -42,7 +42,7 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("ServerPlayerEntity"));
-        assertTrue(adapter.adapterPolicy().contains("never supply PTU stats, inventory truth, modifiers, legality or outcomes"));
+        assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
     }
 }

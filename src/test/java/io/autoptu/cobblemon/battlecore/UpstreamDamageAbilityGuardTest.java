@@ -84,9 +84,9 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(adapter.contracts().contains("authoritative relocation"));
         assertTrue(adapter.contracts().contains("positive HP projection"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
-        assertTrue(adapter.adapterPolicy().contains("HP projection"));
-        assertTrue(adapter.adapterPolicy().contains("battle-trigger interception"));
-        assertTrue(adapter.adapterPolicy().contains("ServerPlayerEntity"));
-        assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
+        assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
 }
