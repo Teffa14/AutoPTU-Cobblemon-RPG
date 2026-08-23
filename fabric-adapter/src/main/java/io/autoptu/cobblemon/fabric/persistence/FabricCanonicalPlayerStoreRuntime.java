@@ -1,6 +1,8 @@
 package io.autoptu.cobblemon.fabric.persistence;
 
+import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
@@ -13,7 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Owns world-scoped canonical player persistence for each live Minecraft server instance.
+ * Owns world-scoped canonical persistence for each live Minecraft server instance.
  *
  * The filesystem location is derived from the server's world save root. Minecraft supplies
  * storage location and lifecycle only; it does not supply canonical Trainer, Pokemon, item or
@@ -22,7 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class FabricCanonicalPlayerStoreRuntime {
     private record Stores(
             FileVersionedCanonicalStateRepository players,
-            FileCanonicalPlayerEncounterProfileRepository encounterProfiles
+            FileCanonicalPlayerEncounterProfileRepository encounterProfiles,
+            FileCanonicalPokemonRepository pokemon,
+            FileCanonicalItemReservationRepository assets
     ) {}
 
     private static final AtomicBoolean REGISTERED = new AtomicBoolean();
@@ -46,6 +50,14 @@ public final class FabricCanonicalPlayerStoreRuntime {
         return requireStores(server).encounterProfiles();
     }
 
+    public static FileCanonicalPokemonRepository requirePokemonRepository(MinecraftServer server) {
+        return requireStores(server).pokemon();
+    }
+
+    public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) {
+        return requireStores(server).assets();
+    }
+
     static Path storageRoot(MinecraftServer server) {
         Objects.requireNonNull(server, "server");
         return storageRoot(server.getSavePath(WorldSavePath.ROOT));
@@ -61,7 +73,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         synchronized (STORES) {
             Stores stores = STORES.get(server);
             if (stores == null) {
-                throw new IllegalStateException("canonical player stores are unavailable for this server lifecycle");
+                throw new IllegalStateException("canonical stores are unavailable for this server lifecycle");
             }
             return stores;
         }
@@ -69,13 +81,16 @@ public final class FabricCanonicalPlayerStoreRuntime {
 
     private static void start(MinecraftServer server) {
         Path root = storageRoot(server);
+        FileCanonicalPokemonRepository pokemon = new FileCanonicalPokemonRepository(root);
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root),
-                new FileCanonicalPlayerEncounterProfileRepository(root)
+                new FileCanonicalPlayerEncounterProfileRepository(root),
+                pokemon,
+                new FileCanonicalItemReservationRepository(root, pokemon::findPokemon)
         );
         synchronized (STORES) {
             if (STORES.putIfAbsent(server, stores) != null) {
-                throw new IllegalStateException("canonical player stores already initialized for server");
+                throw new IllegalStateException("canonical stores already initialized for server");
             }
         }
     }
