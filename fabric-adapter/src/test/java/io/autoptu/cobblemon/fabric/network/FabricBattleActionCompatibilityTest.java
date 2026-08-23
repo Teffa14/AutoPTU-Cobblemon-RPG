@@ -37,12 +37,11 @@ class FabricBattleActionCompatibilityTest {
         assertTrue(liveAdapter.boundedScope().contains("HP projection"));
         assertTrue(liveAdapter.boundedScope().contains("battle-trigger interception"));
         assertTrue(liveAdapter.boundedScope().contains("server-owned WILD encounter provisioning"));
-        assertTrue(adapterCapability.contracts().contains("CanonicalWildEncounterBlueprintSource"));
-        assertTrue(adapterCapability.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
-        assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterPreparationService"));
-        assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
-        assertTrue(adapterCapability.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
-        assertTrue(adapterCapability.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapterCapability.contracts().contains("create-only WILD blueprint registry"));
+        assertTrue(adapterCapability.contracts().contains("WILD publication and preparation"));
+        assertTrue(adapterCapability.contracts().contains("opaque Cobblemon correlation"));
+        assertTrue(adapterCapability.contracts().contains("combat_stage_block"));
+        assertTrue(adapterCapability.adapterPolicy().contains("WILD blueprint registry"));
+        assertTrue(adapterCapability.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
     }
 }
