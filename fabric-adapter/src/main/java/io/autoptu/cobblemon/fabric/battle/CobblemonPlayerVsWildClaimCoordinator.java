@@ -51,6 +51,11 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
     }
 
     @FunctionalInterface
+    interface WildIdentityBinder {
+        boolean bind(String cobblemonBattleId, CobblemonBattleStartInterceptor.ParticipantIdentity externalWild);
+    }
+
+    @FunctionalInterface
     interface ReservationHandler {
         boolean tryReserve(
                 String playerId,
@@ -63,6 +68,7 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
 
     private final CobblemonCanonicalEncounterIdentityRegistry identityRegistry;
     private final PlayerIdentityBinder playerIdentityBinder;
+    private final WildIdentityBinder wildIdentityBinder;
     private final AuthenticatedPlayerContextResolver playerContextResolver;
     private final ReservationHandler reservationHandler;
 
@@ -71,13 +77,12 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             AuthenticatedPlayerContextResolver playerContextResolver,
             PlayerVsWildEncounterAuthorityService authorityService
     ) {
-        this(identityRegistry, null, playerContextResolver, reservationHandler(authorityService));
+        this(identityRegistry, null, null, playerContextResolver, reservationHandler(authorityService));
     }
 
     /**
-     * Production composition for a live Fabric world. Authentication comes from Minecraft's
-     * PlayerManager, the player/Pokemon identity mapping is rebuilt from durable canonical state,
-     * and encounter selections come from the world-scoped canonical stores.
+     * Production composition for a live Fabric world when WILD identities were already registered
+     * by a server-owned encounter provisioning service.
      */
     public static CobblemonPlayerVsWildClaimCoordinator persistentWorld(
             MinecraftServer server,
@@ -89,6 +94,33 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
         return new CobblemonPlayerVsWildClaimCoordinator(
                 identityRegistry,
                 PersistentCanonicalPlayerPokemonIdentityBinder.fromWorldRuntime(server, identityRegistry)::bind,
+                null,
+                FabricAuthenticatedPlayerContextResolver.persistentWorld(server, identityRegistry),
+                reservationHandler(authorityService)
+        );
+    }
+
+    /**
+     * Production composition that also binds a preprovisioned server-owned WILD roster at claim time.
+     * The roster source returns canonical identities only; it must never derive PTU values from the
+     * live Cobblemon entity or battle object.
+     */
+    public static CobblemonPlayerVsWildClaimCoordinator persistentWorld(
+            MinecraftServer server,
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
+            ServerOwnedWildEncounterIdentityBinder.CanonicalWildRosterSource wildRosterSource,
+            PlayerVsWildEncounterAuthorityService authorityService
+    ) {
+        Objects.requireNonNull(server, "server");
+        Objects.requireNonNull(identityRegistry, "identityRegistry");
+        ServerOwnedWildEncounterIdentityBinder wildBinder = new ServerOwnedWildEncounterIdentityBinder(
+                identityRegistry,
+                Objects.requireNonNull(wildRosterSource, "wildRosterSource")
+        );
+        return new CobblemonPlayerVsWildClaimCoordinator(
+                identityRegistry,
+                PersistentCanonicalPlayerPokemonIdentityBinder.fromWorldRuntime(server, identityRegistry)::bind,
+                wildBinder::bind,
                 FabricAuthenticatedPlayerContextResolver.persistentWorld(server, identityRegistry),
                 reservationHandler(authorityService)
         );
@@ -99,7 +131,7 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             AuthenticatedPlayerContextResolver playerContextResolver,
             ReservationHandler reservationHandler
     ) {
-        this(identityRegistry, null, playerContextResolver, reservationHandler);
+        this(identityRegistry, null, null, playerContextResolver, reservationHandler);
     }
 
     CobblemonPlayerVsWildClaimCoordinator(
@@ -108,8 +140,19 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
             AuthenticatedPlayerContextResolver playerContextResolver,
             ReservationHandler reservationHandler
     ) {
+        this(identityRegistry, playerIdentityBinder, null, playerContextResolver, reservationHandler);
+    }
+
+    CobblemonPlayerVsWildClaimCoordinator(
+            CobblemonCanonicalEncounterIdentityRegistry identityRegistry,
+            PlayerIdentityBinder playerIdentityBinder,
+            WildIdentityBinder wildIdentityBinder,
+            AuthenticatedPlayerContextResolver playerContextResolver,
+            ReservationHandler reservationHandler
+    ) {
         this.identityRegistry = Objects.requireNonNull(identityRegistry, "identityRegistry");
         this.playerIdentityBinder = playerIdentityBinder;
+        this.wildIdentityBinder = wildIdentityBinder;
         this.playerContextResolver = Objects.requireNonNull(playerContextResolver, "playerContextResolver");
         this.reservationHandler = Objects.requireNonNull(reservationHandler, "reservationHandler");
     }
@@ -137,6 +180,9 @@ public final class CobblemonPlayerVsWildClaimCoordinator implements CobblemonBat
 
         if (playerIdentityBinder != null
                 && !playerIdentityBinder.bind(externalPlayer.actorId(), externalPlayer.pokemonIds())) {
+            return false;
+        }
+        if (wildIdentityBinder != null && !wildIdentityBinder.bind(signal.cobblemonBattleId(), externalWild)) {
             return false;
         }
 
