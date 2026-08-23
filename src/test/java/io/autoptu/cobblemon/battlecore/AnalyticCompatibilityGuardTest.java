@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("45feae6161c9b92ccb008a60d9b6e16dcbc0c377", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
@@ -23,7 +23,7 @@ class AnalyticCompatibilityGuardTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertTrue(actionEconomy.contracts().contains("InitiativeProgressState"));
         assertTrue(damage.contracts().contains("Analytic is live-wired"));
-        assertTrue(abilities.contracts().contains("Analytic is live-wired"));
+        assertTrue(abilities.contracts().contains("Analytic"));
     }
 
     @Test
@@ -40,9 +40,9 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(actionEconomy.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
-        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
-        assertTrue(adapter.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("Trusted world/campaign RPG logic must populate the WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
     }
 }

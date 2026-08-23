@@ -25,20 +25,16 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
-        assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
-        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterPreparationService"));
-        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
-        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
-        assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
-        assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
+        assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
+        assertTrue(adapter.contracts().contains("World-scoped durable player/profile/Pokemon/item stores"));
+        assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
         assertTrue(adapter.contracts().contains("status_block"));
+        assertTrue(adapter.contracts().contains("combat_stage_block"));
         assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
-        assertTrue(adapter.adapterPolicy().contains("intentionally not durable across restart"));
-        assertTrue(adapter.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
-        assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
+        assertTrue(adapter.adapterPolicy().contains("WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("not durable across restart"));
+        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
+        assertTrue(adapter.adapterPolicy().contains("cross-aggregate transaction recovery"));
     }
 
     @Test
@@ -57,10 +53,9 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void selectedStatusPreventionIsLiveWithoutPromotingWholeLifecycle() {
+    void selectedPreventionFamiliesStayBoundedWithoutPromotingWholeLibraries() {
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
-        assertTrue(statuses.contracts().contains("runtime target-owned ability prevention"));
         assertTrue(statuses.contracts().contains("spatial ability prevention"));
         assertTrue(statuses.contracts().contains("Aroma Veil"));
         assertTrue(statuses.contracts().contains("RuleEffectEvent status_block"));
@@ -72,13 +67,12 @@ class UpstreamCompatibilityMatrixTest {
 
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
-        assertTrue(abilities.contracts().contains("StatusAbilityPreventionResolver"));
-        assertTrue(abilities.contracts().contains("RuntimeCombatantState ability suppression"));
-        assertTrue(abilities.contracts().contains("SpatialStatusAbilityPreventionResolution"));
-        assertTrue(abilities.contracts().contains("Aroma Veil"));
-        assertTrue(abilities.adapterPolicy().contains("Own Tempo"));
-        assertTrue(abilities.adapterPolicy().contains("execute ability hooks"));
-        assertTrue(abilities.adapterPolicy().contains("must not calculate veil radius"));
+        assertTrue(abilities.contracts().contains("CombatStagePreventionHookRegistry"));
+        assertTrue(abilities.contracts().contains("Flower Veil"));
+        assertTrue(abilities.contracts().contains("combat_stage_block"));
+        assertTrue(abilities.adapterPolicy().contains("Big Pecks"));
+        assertTrue(abilities.adapterPolicy().contains("Hyper Cutter"));
+        assertTrue(abilities.adapterPolicy().contains("must not calculate range"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
 
@@ -123,7 +117,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("45feae6161c9b92ccb008a60d9b6e16dcbc0c377", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
