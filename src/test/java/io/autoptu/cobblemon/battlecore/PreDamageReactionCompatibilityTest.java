@@ -11,6 +11,7 @@ final class PreDamageReactionCompatibilityTest {
         assertTrue(PreDamageReactionCompatibility.genericPreDamageReactionRegistryIsAvailable());
         assertTrue(PreDamageReactionCompatibility.authoritativeReactionEscapeMovementIsAvailable());
         assertTrue(PreDamageReactionCompatibility.telepathyHookIsParityBacked());
+        assertTrue(PreDamageReactionCompatibility.preDamagePipelineOrderingIsParityBacked());
         assertFalse(PreDamageReactionCompatibility.ordinaryMoveResolutionInvokesPreDamageReactions());
         assertFalse(PreDamageReactionCompatibility.minecraftMayExecutePreDamageReactionRules());
     }
@@ -23,6 +24,7 @@ final class PreDamageReactionCompatibilityTest {
         assertTrue(policy.contains("Do not invoke the pre-damage registry from Minecraft"));
         assertTrue(policy.contains("construct threatened tiles"));
         assertTrue(policy.contains("cancel hit, damage or type effectiveness"));
-        assertTrue(policy.contains("hook ordering and affected-area construction"));
+        assertTrue(policy.contains("ordinary resolution, shields, post-result hooks, item bonuses and HP mutation"));
+        assertTrue(policy.contains("authoritative Java ordinary move-resolution path"));
     }
 }
