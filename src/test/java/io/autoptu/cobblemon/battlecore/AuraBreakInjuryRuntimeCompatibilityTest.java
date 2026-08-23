@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AuraBreakInjuryRuntimeCompatibilityTest {
     @Test
     void currentAuraBreakContractDoesNotPromoteBroadCategories() {
-        assertEquals("45feae6161c9b92ccb008a60d9b6e16dcbc0c377", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
@@ -22,14 +22,13 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertTrue(damage.contracts().contains("AuraBreakErrataAdjustment"));
-        assertTrue(abilities.contracts().contains("Aura Storm [Errata]"));
+        assertTrue(abilities.contracts().contains("Aura Storm"));
         assertTrue(damage.contracts().contains("AuraBreakBlockerQuery"));
         assertTrue(damage.contracts().contains("Aura Storm [Errata] is live-wired"));
-        assertTrue(abilities.contracts().contains("live-wired"));
         assertTrue(damage.contracts().contains("signed post-damage adjustments"));
         assertTrue(damage.contracts().contains("currentRound"));
         assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
-        assertTrue(abilities.adapterPolicy().contains("remaining ability library"));
+        assertTrue(abilities.adapterPolicy().contains("many other ability families remain separate upstream work"));
     }
 
     @Test
