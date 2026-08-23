@@ -56,9 +56,39 @@ class AbilityRuleEffectPlaybackCompatibilityTest {
     }
 
     @Test
-    void simpleCombatStageReactionUsesGenericRuleEffectPlaybackWithoutAdapterStageMutation() {
+    void spatialVeilStatusBlockPreservesAuthoritativeSourceAndTargetWithoutAdapterRuleLogic() {
         BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
                 43,
+                "rule_effect",
+                "rule_effect|ability|Aroma Veil|veil-source|target|confuse-ray|status_block|0.0|20",
+                Map.of("ignoredAdapterHint", "radius-3")
+        );
+
+        List<BattlePresentationCommand> commands = new BattlePresentationProjector().project(event);
+
+        assertEquals(1, commands.size());
+        BattlePresentationCommand command = commands.getFirst();
+        assertEquals(BattlePresentationCommand.Kind.RULE_EFFECT_CUE, command.kind());
+        assertEquals("veil-source", command.subjectId());
+        assertEquals("ability", command.data().get("sourceKind"));
+        assertEquals("Aroma Veil", command.data().get("sourceName"));
+        assertEquals("target", command.data().get("targetId"));
+        assertEquals("confuse-ray", command.data().get("moveId"));
+        assertEquals("status_block", command.data().get("effect"));
+        assertEquals("0.0", command.data().get("amount"));
+        assertEquals("20", command.data().get("actorHp"));
+        assertFalse(command.data().containsKey("ignoredAdapterHint"));
+
+        IntegrationFeatureCompatibility.Requirement abilityPlayback = IntegrationFeatureCompatibility.requirement(
+                IntegrationFeatureCompatibility.Feature.ABILITY_EFFECT_PLAYBACK);
+        assertTrue(abilityPlayback.capabilities().contains(UpstreamCompatibilityMatrix.Capability.ABILITIES));
+        assertFalse(abilityPlayback.hasBlockingDependency());
+    }
+
+    @Test
+    void simpleCombatStageReactionUsesGenericRuleEffectPlaybackWithoutAdapterStageMutation() {
+        BattleEventPlaybackEnvelope event = new BattleEventPlaybackEnvelope(
+                44,
                 "rule_effect",
                 "rule_effect|ability|simple|target|target|growl|simple|-1.0|20",
                 Map.of("requestedStageDelta", "-1", "appliedStageDelta", "-1")

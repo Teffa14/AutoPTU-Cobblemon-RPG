@@ -33,6 +33,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
+        assertTrue(adapter.contracts().contains("status_block"));
         assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
         assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
         assertTrue(adapter.adapterPolicy().contains("intentionally not durable across restart"));
@@ -60,19 +61,24 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         assertTrue(statuses.contracts().contains("runtime target-owned ability prevention"));
-        assertTrue(statuses.contracts().contains("merged PR #155"));
+        assertTrue(statuses.contracts().contains("spatial ability prevention"));
+        assertTrue(statuses.contracts().contains("Aroma Veil"));
+        assertTrue(statuses.contracts().contains("RuleEffectEvent status_block"));
         assertTrue(statuses.contracts().contains("Infiltrator bypass"));
         assertTrue(statuses.adapterPolicy().contains("complete status ticking"));
         assertTrue(statuses.adapterPolicy().contains("charge consumption/removal"));
+        assertTrue(statuses.adapterPolicy().contains("must never evaluate spatial radius"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
 
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
         assertTrue(abilities.contracts().contains("StatusAbilityPreventionResolver"));
         assertTrue(abilities.contracts().contains("RuntimeCombatantState ability suppression"));
-        assertTrue(abilities.contracts().contains("Merged PR #155"));
+        assertTrue(abilities.contracts().contains("SpatialStatusAbilityPreventionResolution"));
+        assertTrue(abilities.contracts().contains("Aroma Veil"));
         assertTrue(abilities.adapterPolicy().contains("Own Tempo"));
-        assertTrue(abilities.adapterPolicy().contains("must not execute ability hooks"));
+        assertTrue(abilities.adapterPolicy().contains("execute ability hooks"));
+        assertTrue(abilities.adapterPolicy().contains("must not calculate veil radius"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
 
@@ -117,7 +123,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("5eef0c0e8364a4f4a4f8bdb811107895e4cdbe7d", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("45feae6161c9b92ccb008a60d9b6e16dcbc0c377", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
         assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
