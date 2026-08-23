@@ -47,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Statuses, abilities, items, terrain, Trainer Features, forced movement and rewards are disabled.
  */
 public final class PlayableBattleTestRuntime {
-    private static final int DEMO_HP = 10;
+    private static final int DEMO_HP = 30;
     private static final int TURN_DELAY_TICKS = 30;
     private static final int LUNGE_TICKS = 8;
     private static final int CLEANUP_TICKS = 80;
@@ -157,8 +157,9 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static MoveResolutionInput demoMoveInput() {
-        // These are server-owned scenario inputs to the upstream resolver. Rolls, crit state, damage
-        // arithmetic, action consumption and HP mutation remain inside AutoPTU-Java.
+        // These are server-owned scenario inputs to the upstream resolver. DB 4 is a real supported
+        // PTU table entry; attack/defense are chosen so every landed hit advances the visible demo.
+        // Rolls, crit state, damage arithmetic, action consumption and HP mutation remain in Java.
         return new MoveResolutionInput(
                 2,
                 0,
@@ -167,9 +168,9 @@ public final class PlayableBattleTestRuntime {
                 false,
                 false,
                 false,
-                1,
-                5,
+                4,
                 10,
+                5,
                 false,
                 1.0,
                 List.of()
