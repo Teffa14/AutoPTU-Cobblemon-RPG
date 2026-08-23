@@ -28,7 +28,7 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
-        assertTrue(adapter.contracts().contains("active reservation"));
+        assertTrue(adapter.contracts().contains("active item reservation"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
