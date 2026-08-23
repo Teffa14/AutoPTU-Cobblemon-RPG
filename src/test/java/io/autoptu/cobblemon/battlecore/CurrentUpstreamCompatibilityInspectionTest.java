@@ -55,7 +55,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("active item reservation"));
         assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("cross-aggregate transaction recovery"));
+        assertTrue(adapter.limitation().contains("Cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("never supply PTU stats"));
     }
