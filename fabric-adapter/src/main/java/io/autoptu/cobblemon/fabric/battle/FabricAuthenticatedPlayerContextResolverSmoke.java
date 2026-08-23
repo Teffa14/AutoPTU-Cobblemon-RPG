@@ -5,17 +5,15 @@ import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Headless production-runtime proof for the Minecraft authentication boundary.
+ * Headless production-runtime proof for the Minecraft authentication and world-persistence boundary.
  *
  * Dedicated-server CI has no authenticated client. This smoke therefore proves the fail-closed
- * side of the real MinecraftServer player lookup: an offline UUID must not reach canonical PTU
- * state resolution. The successful authenticated path remains covered by the resolver contract
- * test until CI owns a graphical/logged-in client fixture.
+ * side of the real MinecraftServer player lookup while constructing the same persistent world-backed
+ * context source used by the production player-versus-wild composition. The successful authenticated
+ * path remains covered by resolver/context contract tests until CI owns a logged-in client fixture.
  */
 public final class FabricAuthenticatedPlayerContextResolverSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveAuthenticatedPlayerContextSmoke";
@@ -32,23 +30,16 @@ public final class FabricAuthenticatedPlayerContextResolverSmoke {
     }
 
     private static void run(MinecraftServer server) {
-        AtomicInteger canonicalLookups = new AtomicInteger();
-        FabricAuthenticatedPlayerContextResolver resolver = new FabricAuthenticatedPlayerContextResolver(
-                server,
-                uuid -> {
-                    canonicalLookups.incrementAndGet();
-                    return Optional.empty();
-                }
-        );
+        CobblemonCanonicalEncounterIdentityRegistry identities =
+                new CobblemonCanonicalEncounterIdentityRegistry();
+        FabricAuthenticatedPlayerContextResolver resolver =
+                FabricAuthenticatedPlayerContextResolver.persistentWorld(server, identities);
 
         if (server.getPlayerManager().getPlayer(OFFLINE_FIXTURE_UUID) != null) {
             throw new IllegalStateException("authenticated-player smoke fixture unexpectedly matches an online player");
         }
         if (resolver.resolve(OFFLINE_FIXTURE_UUID.toString()).isPresent()) {
             throw new IllegalStateException("offline player UUID resolved an authenticated encounter context");
-        }
-        if (canonicalLookups.get() != 0) {
-            throw new IllegalStateException("offline player UUID reached canonical PTU context resolution");
         }
         if (resolver.resolve("not-a-player-uuid").isPresent()) {
             throw new IllegalStateException("malformed player identity resolved an authenticated encounter context");
