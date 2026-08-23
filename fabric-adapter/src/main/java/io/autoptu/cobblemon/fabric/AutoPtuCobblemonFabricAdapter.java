@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
+import io.autoptu.cobblemon.fabric.demo.PlayableBattleTestRuntime;
 import io.autoptu.cobblemon.fabric.network.FabricBattleActionNetworking;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
@@ -34,6 +35,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         if (!FabricLoader.getInstance().isModLoaded("cobblemon")) {
             throw new IllegalStateException("Cobblemon runtime is required by the AutoPTU adapter");
         }
+        PlayableBattleTestRuntime.register();
         CobblemonLiveRelocationSmoke.registerIfEnabled();
         CobblemonLiveHealthSmoke.registerIfEnabled();
         CobblemonLiveBattleInterceptionSmoke.registerIfEnabled();
