@@ -36,8 +36,10 @@ class FabricBattleActionCompatibilityTest {
         assertTrue(liveAdapter.boundedScope().contains("entity-bound authoritative relocation"));
         assertTrue(liveAdapter.boundedScope().contains("HP projection"));
         assertTrue(liveAdapter.boundedScope().contains("battle-trigger interception"));
+        assertTrue(liveAdapter.boundedScope().contains("server-owned WILD encounter provisioning"));
         assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapterCapability.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapterCapability.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
+        assertTrue(adapterCapability.adapterPolicy().contains("trusted RPG/encounter generator"));
         assertTrue(adapterCapability.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
     }
 }
