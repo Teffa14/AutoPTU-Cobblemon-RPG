@@ -3,17 +3,15 @@ package io.autoptu.cobblemon.battlecore;
 /**
  * Compatibility guard for the upstream generic PRE-damage reaction seam.
  *
- * <p>AutoPTU-Java exposes a generic pre-damage hook registry, authoritative
- * reaction-escape movement, a parity-backed Telepathy hook, frozen Python
- * ordering, and an authoritative runtime context factory that derives threatened
- * tiles from canonical BattleRuntimeState. The inspected Java ordinary
- * move-resolution entrypoint still does not invoke that registry, so Minecraft
- * must not trigger Telepathy, calculate threatened areas, choose a reaction
- * destination, or cancel hit/damage itself.</p>
+ * <p>AutoPTU-Java now owns the generic PRE-damage registry invocation for
+ * ordinary authoritative move resolution, derives the reaction context from
+ * canonical BattleRuntimeState, applies reaction movement in core, and emits
+ * semantic events. Minecraft remains projection-only: it must not re-evaluate
+ * Telepathy or any other PTU reaction rule.</p>
  */
 public final class PreDamageReactionCompatibility {
-    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "7a657fcca6d986a1010af65faa9dc2208eaa94a6";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "576d2922e04b065308eeda19f4d65f6b01219c80";
+    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "28f141be5471e23f660fb2cda09bab02244ee62e";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "01a9b1c70af504b77f5b8441f7283d5957987190";
     public static final String JAVA_TELEPATHY_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private PreDamageReactionCompatibility() {}
@@ -39,7 +37,7 @@ public final class PreDamageReactionCompatibility {
     }
 
     public static boolean ordinaryMoveResolutionInvokesPreDamageReactions() {
-        return false;
+        return true;
     }
 
     public static boolean minecraftMayExecutePreDamageReactionRules() {
@@ -47,20 +45,22 @@ public final class PreDamageReactionCompatibility {
     }
 
     public static boolean minecraftMayRenderAuthoritativeReactionEvents() {
-        return UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
+        return ordinaryMoveResolutionInvokesPreDamageReactions()
+                && UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES)
                 && UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
     }
 
     public static String adapterPolicy() {
-        return "Render only reaction movement and rule-effect events already emitted by AutoPTU-Java. "
-                + "AutoPTU-Java now derives threatened tiles from canonical BattleRuntimeState through its "
-                + "runtime pre-damage reaction context factory. Do not invoke the pre-damage registry from "
-                + "Minecraft, construct or override threatened tiles, decide Telepathy eligibility, choose "
-                + "the escape destination, mutate action economy, or cancel hit, damage or type effectiveness. "
-                + "The Python oracle freezes ordering relative to ordinary resolution, shields, post-result "
-                + "hooks, item bonuses and HP mutation, but Minecraft must wait until the authoritative Java "
-                + "ordinary move-resolution path owns registry invocation.";
+        return "Consume only reaction movement and rule-effect events already emitted by AutoPTU-Java. "
+                + "AutoPTU-Java owns PRE-damage registry invocation, derives threatened tiles from canonical "
+                + "BattleRuntimeState, applies reaction escape movement, and cancels or adjusts the authoritative "
+                + "move result before later damage stages. Minecraft may translate authoritative coordinates and "
+                + "render playback, but must not invoke the reaction registry, construct or override threatened "
+                + "tiles, decide Telepathy eligibility, choose escape destinations, mutate action economy, or "
+                + "cancel hit, damage or type effectiveness itself. This promotion verifies the ordinary runtime "
+                + "seam; it does not imply complete abilities, reactions, forced movement, terrain, status, item, "
+                + "or stateful-damage coverage upstream.";
     }
 }
