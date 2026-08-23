@@ -65,7 +65,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
         assertTrue(adapter.limitation().contains("trusted server-owned encounter service"));
-        assertTrue(adapter.limitation().contains("Cross-aggregate transaction recovery"));
+        assertTrue(adapter.limitation().contains("cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
         assertTrue(adapter.limitation().contains("never PTU stats"));
     }
