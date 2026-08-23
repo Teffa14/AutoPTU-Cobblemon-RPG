@@ -2,16 +2,16 @@
 
 Inspected upstream heads:
 
-- AutoPTU-Java: `7de79dcd30b241d439724050fb24ee893a7c5c63`
-- Current AutoPTU Python main inspected read-only: `99ba07ea47b8896d96bd37f6c06cffb8695f69bb`
-- Python oracle pin used by the Java forced-movement parity workflow: `16d228efa63aabecb67fa788959a359aac7f8f03`
+- AutoPTU-Java: `3ede4a8493738ddc70b2f0eb3959973488f78db9`
+- Current AutoPTU Python main inspected read-only: `ff069a928f936f4a1dca54597ef3f85348ea4b0b`
+- Python oracle pin used by the Java forced/reaction movement parity workflows: `16d228efa63aabecb67fa788959a359aac7f8f03`
 
-AutoPTU-Java now has a parity-backed `ForcedMovementInstruction` / `ForcedMovementInstructionResolution` contract that identifies `PUSH` or `PULL` plus a positive distance from canonical move metadata. The inspected current Python main still exposes the same `forced_movement_instruction` behavior.
+AutoPTU-Java currently exposes two bounded movement primitives relevant to this boundary. `ForcedMovementInstruction` / `ForcedMovementInstructionResolution` identifies PUSH or PULL intent plus a positive distance from canonical move metadata. `ReactionEscapeMovementResolution` chooses the farthest safe destination from already-authoritative reachable and threatened tile inputs, matching the pinned Python Perception/Telepathy hooks. Current Python main still performs those reaction shifts from `movement.legal_shift_tiles` and `targeting.affected_tiles` before mutating the defender position and emitting ability events.
 
-The Fabric production artifact is pinned to the same inspected AutoPTU-Java commit. Instruction-detection availability therefore reflects what is actually bundled rather than a newer unshipped core contract.
+The Fabric production artifact is pinned to the same inspected AutoPTU-Java commit, so the compatibility record describes code that is actually bundled.
 
-This does not resolve spatial forced movement. No authoritative path, direction, collision handling, interception, reaction ordering, knockback interaction, terrain interaction or final relocation is produced by this contract.
+Neither primitive is a complete spatial forced-movement engine. The instruction contract does not supply direction, path, collision handling, interception, terrain interaction or final relocation. The reaction escape resolver consumes reachable/threatened candidates but does not itself own the full ability trigger pipeline, reaction ordering, generic forced movement, push/pull/knockback interaction or Minecraft projection.
 
 The permanent compatibility matrix therefore remains unchanged for `COMPLETE_MOVEMENT_BEHAVIOR`: it is blocking. `IntegrationFeatureCompatibility.Feature.FORCED_MOVEMENT_PLAYBACK` continues to inherit that blocking dependency.
 
-Minecraft must not parse move text itself or convert the instruction into entity motion. The adapter will wait for upstream authoritative movement resolution and consume generic semantic events/state when that contract exists. This keeps PTU legality in AutoPTU-Java and prevents the Fabric/Cobblemon layer from manufacturing push/pull rules.
+Minecraft must not parse move text, choose push/pull direction, recompute reaction escape destinations, infer legal paths, resolve collision/interception/reaction ordering or relocate entities from partial movement primitives. The adapter will consume generic authoritative movement events/state only after AutoPTU-Java owns the complete legality/result contract.
