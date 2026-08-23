@@ -30,7 +30,9 @@ The selected Pokémon fights a server-spawned Pikachu automatically.
 
 ## Expected visible result
 
-Two real Cobblemon Pokémon appear near the player. Each has a visible `HP x/10` nameplate. Turns alternate automatically. The attacker lunges toward the target as a presentation cue and returns to its presentation anchor. AutoPTU-Java performs the accuracy roll, damage resolution, action consumption and HP mutation. Misses are possible. On a hit, the target's displayed Cobblemon HP and nameplate mirror the authoritative result.
+Two real Cobblemon Pokémon appear near the player. Each has a visible `HP x/30` nameplate. Turns alternate automatically. The attacker lunges toward the target as a presentation cue and returns to its presentation anchor. AutoPTU-Java performs the accuracy roll, damage resolution, action consumption and HP mutation. Misses are possible. On a hit, the target's displayed Cobblemon HP and nameplate mirror the authoritative result.
+
+The pinned deterministic demo has also been exercised directly against the embedded core: its current sequence resolves 14 damage, 12 damage and 16 damage, ending the battle on the third landed attack. This check exists only to ensure the first manual build cannot stall because of zero-damage fixture inputs.
 
 When authoritative target HP reaches zero, the player receives a `BATTLE OVER` message containing the winner and loser. The entities remain briefly so the KO state can be seen, then the test cleans them up.
 
