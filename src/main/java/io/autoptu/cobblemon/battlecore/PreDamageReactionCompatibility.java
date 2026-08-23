@@ -11,7 +11,7 @@ package io.autoptu.cobblemon.battlecore;
  */
 public final class PreDamageReactionCompatibility {
     public static final String INSPECTED_AUTOPTU_JAVA_SHA = "28f141be5471e23f660fb2cda09bab02244ee62e";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "01a9b1c70af504b77f5b8441f7283d5957987190";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "894f66771ca3f0d3c331f86c3ab888cdc38dd6f9";
     public static final String JAVA_TELEPATHY_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private PreDamageReactionCompatibility() {}
@@ -40,12 +40,17 @@ public final class PreDamageReactionCompatibility {
         return true;
     }
 
+    public static boolean semanticReactionPlaybackFixtureIsAvailable() {
+        return true;
+    }
+
     public static boolean minecraftMayExecutePreDamageReactionRules() {
         return false;
     }
 
     public static boolean minecraftMayRenderAuthoritativeReactionEvents() {
         return ordinaryMoveResolutionInvokesPreDamageReactions()
+                && semanticReactionPlaybackFixtureIsAvailable()
                 && UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES)
                 && UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(
@@ -59,8 +64,10 @@ public final class PreDamageReactionCompatibility {
                 + "move result before later damage stages. Minecraft may translate authoritative coordinates and "
                 + "render playback, but must not invoke the reaction registry, construct or override threatened "
                 + "tiles, decide Telepathy eligibility, choose escape destinations, mutate action economy, or "
-                + "cancel hit, damage or type effectiveness itself. This promotion verifies the ordinary runtime "
-                + "seam; it does not imply complete abilities, reactions, forced movement, terrain, status, item, "
-                + "or stateful-damage coverage upstream.";
+                + "cancel hit, damage or type effectiveness itself. The semantic playback fixture verifies stable "
+                + "combatant identity, authoritative event ordering, grid-to-world translation and immutable "
+                + "projection inputs only. This promotion verifies the ordinary runtime seam; it does not imply "
+                + "complete abilities, reactions, forced movement, terrain, status, item, AoE execution or "
+                + "stateful-damage coverage upstream.";
     }
 }
