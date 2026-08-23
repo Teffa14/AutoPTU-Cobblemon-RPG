@@ -20,7 +20,7 @@ class CanonicalPlayerVersionedWriteCompatibilityTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.contracts().contains("world-scoped durable player/profile/Pokemon/item stores"));
+        assertTrue(adapter.contracts().contains("World-scoped durable player/profile/Pokemon/item stores"));
         assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
         assertTrue(adapter.contracts().contains("WILD publication and preparation"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transaction recovery"));
