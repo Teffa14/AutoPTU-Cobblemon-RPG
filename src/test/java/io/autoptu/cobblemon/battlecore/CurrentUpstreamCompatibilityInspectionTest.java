@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("5eef0c0e8364a4f4a4f8bdb811107895e4cdbe7d", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("45feae6161c9b92ccb008a60d9b6e16dcbc0c377", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -34,10 +34,11 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(statuses.contains("StatusAbilityPreventionResolver"));
         assertTrue(statuses.contains("RuntimeCombatantState ability suppression"));
         assertTrue(statuses.contains("Merged PR #155"));
-        assertTrue(statuses.contains("Infiltrator bypass"));
+        assertTrue(statuses.contains("Merged PR #156"));
+        assertTrue(statuses.contains("status_block"));
         assertTrue(statusLimit.contains("complete status ticking"));
         assertTrue(statusLimit.contains("charge consumption/removal"));
-        assertTrue(statusLimit.contains("must not interpret or execute"));
+        assertTrue(statusLimit.contains("must not evaluate radius"));
 
         String abilities = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
@@ -46,8 +47,9 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(abilities.contains("Merged upstream PR #153"));
         assertTrue(abilities.contains("RuntimeCombatantState owns abilitiesSuppressed"));
         assertTrue(abilities.contains("Merged PR #155"));
+        assertTrue(abilities.contains("Merged PR #156"));
         assertTrue(abilityLimit.contains("Own Tempo"));
-        assertTrue(abilityLimit.contains("charge consumption/removal"));
+        assertTrue(abilityLimit.contains("Draft PR #157"));
         assertTrue(abilityLimit.contains("complete PTU ability library"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
@@ -67,6 +69,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
         assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterBlueprintPublisher"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterPreparationService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
@@ -74,7 +77,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("populate the world-scoped blueprint registry"));
+        assertTrue(adapter.limitation().contains("Concrete campaign/RPG generation policy"));
         assertTrue(adapter.limitation().contains("not durable across restart"));
         assertTrue(adapter.limitation().contains("deterministic provisioning seed"));
         assertTrue(adapter.limitation().contains("cross-aggregate transaction recovery"));
