@@ -26,7 +26,7 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
-        assertTrue(adapter.contracts().contains("world-scoped durable player/profile/Pokemon/item stores"));
+        assertTrue(adapter.contracts().contains("World-scoped durable player/profile/Pokemon/item stores"));
         assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
         assertTrue(adapter.contracts().contains("status_block"));
         assertTrue(adapter.contracts().contains("combat_stage_block"));
