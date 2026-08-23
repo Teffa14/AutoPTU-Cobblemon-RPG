@@ -12,7 +12,7 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
     @Test
     void currentAuraBreakContractDoesNotPromoteBroadCategories() {
         assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("9df36aeae4bcbef49fd5edb658b51d68bd45fa71", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry damage = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
@@ -28,7 +28,8 @@ class AuraBreakInjuryRuntimeCompatibilityTest {
         assertTrue(damage.contracts().contains("signed post-damage adjustments"));
         assertTrue(damage.contracts().contains("currentRound"));
         assertTrue(damage.adapterPolicy().contains("aura_break_errata"));
-        assertTrue(abilities.adapterPolicy().contains("many other ability families remain separate upstream work"));
+        assertTrue(abilities.adapterPolicy().contains("PR #158"));
+        assertTrue(abilities.adapterPolicy().contains("still draft"));
     }
 
     @Test

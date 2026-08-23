@@ -22,8 +22,8 @@ class CanonicalPlayerVersionedWriteCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
         assertTrue(adapter.contracts().contains("World-scoped durable player/profile/Pokemon/item stores"));
         assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
-        assertTrue(adapter.contracts().contains("WILD publication and preparation"));
+        assertTrue(adapter.contracts().contains("Claim-time WILD roster resolution"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transaction recovery"));
-        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
+        assertTrue(adapter.adapterPolicy().contains("no canonical encounter ID or PTU values may be derived from Cobblemon"));
     }
 }

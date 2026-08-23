@@ -9,7 +9,7 @@ class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
         assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("9df36aeae4bcbef49fd5edb658b51d68bd45fa71", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
@@ -43,6 +43,6 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(abilities.adapterPolicy().contains("independently alter"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
         assertTrue(adapter.adapterPolicy().contains("Trusted world/campaign RPG logic must populate the WILD blueprint registry"));
-        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
+        assertTrue(adapter.adapterPolicy().contains("no canonical encounter ID or PTU values may be derived from Cobblemon"));
     }
 }

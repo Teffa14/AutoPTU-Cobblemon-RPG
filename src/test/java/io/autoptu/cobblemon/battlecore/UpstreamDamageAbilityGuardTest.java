@@ -86,8 +86,9 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(adapter.contracts().contains("positive HP projection"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
         assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
+        assertTrue(adapter.contracts().contains("identity-only WILD encounter correlation registry"));
         assertTrue(adapter.adapterPolicy().contains("WILD blueprint registry"));
-        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
+        assertTrue(adapter.adapterPolicy().contains("no canonical encounter ID or PTU values may be derived from Cobblemon"));
         assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
 }

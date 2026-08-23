@@ -9,7 +9,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("554b97e44fca9736f98704f8db3b1a661c63e93f", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("9df36aeae4bcbef49fd5edb658b51d68bd45fa71", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -45,8 +45,8 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(abilities.contains("Flower Veil"));
         assertTrue(abilities.contains("CombatStagePreventionHookRegistry"));
         assertTrue(abilities.contains("combat_stage_block"));
-        assertTrue(abilityLimit.contains("Big Pecks"));
-        assertTrue(abilityLimit.contains("Hyper Cutter"));
+        assertTrue(abilityLimit.contains("PR #158"));
+        assertTrue(abilityLimit.contains("draft"));
         assertTrue(abilityLimit.contains("Minecraft must not decide"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
@@ -58,18 +58,20 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(perks.contains("grant_ap"));
         assertTrue(perks.contains("apply_status"));
         assertTrue(perks.contains("remove_status"));
-        assertTrue(perks.contains("cd2d31ab"));
+        assertTrue(perks.contains("9df36aea"));
         assertTrue(perksLimit.contains("wider Python effect library"));
         assertTrue(perksLimit.contains("must not grant Features"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertTrue(adapter.contracts().contains("world-scoped create-only registry"));
+        assertTrue(adapter.contracts().contains("opaque Cobblemon identity correlation"));
+        assertTrue(adapter.contracts().contains("lazy CanonicalWildRosterSource"));
         assertTrue(adapter.contracts().contains("combat_stage_block"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("Concrete campaign/RPG generation policy"));
-        assertTrue(adapter.limitation().contains("WILD registry remains lifecycle-scoped"));
+        assertTrue(adapter.limitation().contains("trusted projection code must register"));
+        assertTrue(adapter.limitation().contains("canonical encounter ID or PTU values from Cobblemon"));
+        assertTrue(adapter.limitation().contains("registries remain lifecycle-scoped"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
-        assertTrue(adapter.limitation().contains("Minecraft may present combat_stage_block only"));
     }
 }
