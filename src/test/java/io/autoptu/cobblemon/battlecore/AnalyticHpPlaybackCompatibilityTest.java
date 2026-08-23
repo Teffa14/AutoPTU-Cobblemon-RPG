@@ -61,7 +61,7 @@ class AnalyticHpPlaybackCompatibilityTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("HP projection"));
+        assertTrue(adapter.contracts().contains("positive HP projection"));
         assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
 }
