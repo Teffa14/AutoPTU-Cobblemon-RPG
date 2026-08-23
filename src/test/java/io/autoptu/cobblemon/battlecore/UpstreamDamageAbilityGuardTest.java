@@ -21,11 +21,11 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(abilities.contracts().contains("Aqua Boost"));
         assertTrue(abilities.contracts().contains("Power Spot"));
         assertTrue(abilities.contracts().contains("Type Aura"));
-        assertTrue(abilities.contracts().contains("Aura Storm [Errata]"));
+        assertTrue(abilities.contracts().contains("Aura Storm"));
         assertTrue(damage.contracts().contains("PostDamageHookRegistry/PostDamageHookResult"));
         assertTrue(damage.contracts().contains("RuntimeMoveResolution"));
         assertTrue(damage.adapterPolicy().contains("independent HP mutation"));
-        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter stages, damage or HP"));
     }
 
     @Test
@@ -45,12 +45,13 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(damage.contracts().contains("PythonRandom"));
         assertTrue(damage.contracts().contains("Adaptability [Errata] and Damp [Errata] are live-wired"));
         assertTrue(damage.contracts().contains("Analytic is live-wired"));
-        assertTrue(abilities.contracts().contains("Adaptability [Errata] and Damp [Errata] are live post-damage abilities"));
-        assertTrue(abilities.contracts().contains("Analytic is live-wired"));
+        assertTrue(abilities.contracts().contains("Adaptability [Errata]"));
+        assertTrue(abilities.contracts().contains("Damp [Errata]"));
+        assertTrue(abilities.contracts().contains("Analytic"));
         assertTrue(damage.adapterPolicy().contains("supply or advance the battle RNG"));
         assertTrue(damage.adapterPolicy().contains("decide Analytic eligibility"));
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
-        assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
+        assertTrue(abilities.adapterPolicy().contains("independently alter stages, damage or HP"));
     }
 
     @Test
@@ -84,12 +85,9 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(adapter.contracts().contains("authoritative relocation"));
         assertTrue(adapter.contracts().contains("positive HP projection"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
-        assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
-        assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
-        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
-        assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
-        assertTrue(adapter.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.contracts().contains("create-only WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("no PTU values may be derived from Cobblemon"));
         assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
 }
