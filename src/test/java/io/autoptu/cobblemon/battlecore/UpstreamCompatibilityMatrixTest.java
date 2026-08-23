@@ -25,19 +25,15 @@ class UpstreamCompatibilityMatrixTest {
         UpstreamCompatibilityMatrix.Entry adapter = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
+        assertTrue(adapter.contracts().contains("preprovisioned server-owned canonical participant/roster"));
         assertTrue(adapter.contracts().contains("FabricCanonicalPlayerProvisioning"));
-        assertTrue(adapter.contracts().contains("minecraft-player:<uuid>"));
-        assertTrue(adapter.contracts().contains("FabricCanonicalPlayerStoreRuntime"));
-        assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerPokemonIdentityBinder"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
-        assertTrue(adapter.contracts().contains("active reservation"));
-        assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
-        assertTrue(adapter.adapterPolicy().contains("successful logged-in graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("Encounter-profile creation and wild Pokemon canonical identity provisioning"));
+        assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
+        assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
         assertTrue(adapter.adapterPolicy().contains("Cross-aggregate transactions"));
-        assertTrue(adapter.adapterPolicy().contains("BattleAuthorityService must continue to re-resolve ownership and quantities"));
-        assertTrue(adapter.adapterPolicy().contains("client replacement aggregates"));
     }
 
     @Test
@@ -56,14 +52,21 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void structuredStatusRuntimeBindingDoesNotPromoteWholeLifecycleOrStatusLibrary() {
+    void selectedStatusAbilityPreventionIsLiveWithoutPromotingWholeLifecycle() {
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
-        assertTrue(statuses.contracts().contains("stacked duplicate storage"));
-        assertTrue(statuses.contracts().contains("apply_status/remove_status"));
-        assertTrue(statuses.contracts().contains("StatusApplicationHookRegistry"));
-        assertTrue(statuses.adapterPolicy().contains("do not implement missing"));
+        assertTrue(statuses.contracts().contains("runtime target-owned ability prevention"));
+        assertTrue(statuses.adapterPolicy().contains("complete status ticking"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
+
+        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        assertTrue(abilities.contracts().contains("StatusAbilityPreventionResolver"));
+        assertTrue(abilities.contracts().contains("RuntimeCombatantState ability suppression"));
+        assertTrue(abilities.adapterPolicy().contains("Own Tempo"));
+        assertTrue(abilities.adapterPolicy().contains("ignore_defensive_abilities"));
+        assertTrue(abilities.adapterPolicy().contains("must not execute ability hooks"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
 
     @Test
@@ -106,19 +109,8 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void abilityPreventionContractRemainsDeclarativeAndPartial() {
-        UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
-                UpstreamCompatibilityMatrix.Capability.ABILITIES);
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
-        assertTrue(abilities.contracts().contains("StatusAbilityPreventionResolver"));
-        assertTrue(abilities.adapterPolicy().contains("not yet wired into live status application"));
-        assertTrue(abilities.adapterPolicy().contains("ignore_defensive_abilities"));
-        assertTrue(abilities.adapterPolicy().contains("must not execute ability hooks"));
-    }
-
-    @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("e5439ac27a77cc41300435ed352cf4baf41f1269", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("ce82de564a09b4b66abebda356eca46a9723af4d", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("743b0ff76c63d8ab2131fbf8de4e2e2430b9eea4", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
