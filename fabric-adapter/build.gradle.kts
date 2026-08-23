@@ -7,7 +7,7 @@ plugins {
 group = "io.autoptu"
 version = "0.1.0-SNAPSHOT"
 
-val autoPtuJavaSha = "967b16237c6ea93a939bd4acbbe67da979885a60"
+val autoPtuJavaSha = "7de79dcd30b241d439724050fb24ee893a7c5c63"
 val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
 val autoPtuJavaJar = layout.buildDirectory.file("pinned-autoptu-java/$autoPtuJavaSha/autoptu-java-core.jar")
 
