@@ -19,7 +19,17 @@ public final class CobblemonPresentationEntityBackend
 
     @Override
     public void animateMove(PokemonEntity attacker, PokemonEntity target, String moveId) {
-        throw new UnsupportedOperationException("live move animation is not implemented yet");
+        Objects.requireNonNull(attacker, "attacker");
+        Objects.requireNonNull(target, "target");
+        if (moveId == null || moveId.isBlank()) throw new IllegalArgumentException("moveId is required");
+
+        // Presentation-only lunge. Runtime/grid position is unchanged; callers return the entity to
+        // its authoritative presentation anchor after the cue. No range or movement legality is
+        // inferred from this visual displacement.
+        double nextX = attacker.getX() + (target.getX() - attacker.getX()) * 0.45D;
+        double nextY = attacker.getY();
+        double nextZ = attacker.getZ() + (target.getZ() - attacker.getZ()) * 0.45D;
+        attacker.requestTeleport(nextX, nextY, nextZ);
     }
 
     @Override
@@ -27,10 +37,6 @@ public final class CobblemonPresentationEntityBackend
         Objects.requireNonNull(entity, "entity");
         if (targetHp < 0) throw new IllegalArgumentException("targetHp cannot be negative");
         if (damage < 0) throw new IllegalArgumentException("damage cannot be negative");
-        if (targetHp == 0) {
-            throw new UnsupportedOperationException(
-                    "zero-HP/faint presentation is not implemented yet; Java remains authoritative");
-        }
 
         entity.getPokemon().setCurrentHealth(targetHp);
         int projectedHp = entity.getPokemon().getCurrentHealth();
