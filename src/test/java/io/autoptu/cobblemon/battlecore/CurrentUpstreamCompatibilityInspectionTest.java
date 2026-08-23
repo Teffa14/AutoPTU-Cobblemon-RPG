@@ -9,7 +9,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("cdb229db787ac93f28745f796c1d9944546676cc", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("0d1cc8f3bd791485ed52f7b5e9cd63c0965ad944", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("0db989a259f84d04e7fdcb161bb986bc6ef69275", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -36,6 +36,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(statusLimit.contains("Complete status ticking"));
         assertTrue(statusLimit.contains("must not interpret or execute"));
 
+        String abilities = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
+        String abilityLimit = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES).limitation();
+        assertTrue(abilities.contains("draft upstream contract"));
+        assertTrue(abilityLimit.contains("not yet runtime-authoritative"));
+
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
@@ -50,6 +57,9 @@ class CurrentUpstreamCompatibilityInspectionTest {
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+        assertTrue(adapter.contracts().contains("PersistentCanonicalPlayerEncounterContextSource.fromWorldRuntime"));
+        assertTrue(adapter.contracts().contains("FabricAuthenticatedPlayerContextResolver.persistentWorld"));
+        assertTrue(adapter.contracts().contains("CobblemonPlayerVsWildClaimCoordinator.persistentWorld"));
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("active item reservation"));
