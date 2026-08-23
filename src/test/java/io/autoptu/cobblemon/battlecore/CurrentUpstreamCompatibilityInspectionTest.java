@@ -33,14 +33,14 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).limitation();
         assertTrue(statuses.contains("ordered stacked StatusEntry"));
         assertTrue(statuses.contains("apply_status/remove_status"));
-        assertTrue(statusLimit.contains("complete status ticking"));
+        assertTrue(statusLimit.contains("Complete status ticking"));
         assertTrue(statusLimit.contains("must not interpret or execute"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
-        assertTrue(perks.contains("effect-before-resource"));
+        assertTrue(perks.contains("only after the effect reports applied"));
         assertTrue(perks.contains("grant_temp_hp"));
         assertTrue(perks.contains("grant_ap"));
         assertTrue(perks.contains("apply_status"));
@@ -53,10 +53,10 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.contracts().contains("active item reservation"));
-        assertTrue(adapter.contracts().contains("two-process restart smoke"));
+        assertTrue(adapter.contracts().contains("two-process dedicated-server restart smoke"));
         assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
         assertTrue(adapter.limitation().contains("cross-aggregate transaction recovery"));
         assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
-        assertTrue(adapter.limitation().contains("never supplies PTU stats"));
+        assertTrue(adapter.limitation().contains("never supply PTU stats"));
     }
 }
