@@ -85,7 +85,8 @@ class UpstreamDamageAbilityGuardTest {
         assertTrue(adapter.contracts().contains("positive HP projection"));
         assertTrue(adapter.contracts().contains("BATTLE_STARTED_PRE"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
-        assertTrue(adapter.adapterPolicy().contains("trusted server-owned encounter service"));
+        assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
+        assertTrue(adapter.adapterPolicy().contains("trusted RPG/encounter generator"));
         assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
         assertTrue(adapter.adapterPolicy().contains("complete battle playback remain pending"));
     }
