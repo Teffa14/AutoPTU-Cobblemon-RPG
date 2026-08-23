@@ -8,14 +8,14 @@ group = "io.autoptu"
 version = "0.1.0-SNAPSHOT"
 
 val autoPtuJavaSha = "967b16237c6ea93a939bd4acbbe67da979885a60"
-val autoPtuJavaDependency = "com.github.Teffa14:AutoPTU-Java:$autoPtuJavaSha"
+val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
+val autoPtuJavaJar = layout.buildDirectory.file("pinned-autoptu-java/$autoPtuJavaSha/autoptu-java-core.jar")
 
 repositories {
     mavenCentral()
     maven("https://maven.fabricmc.net/")
     maven("https://maven.impactdev.net/repository/development/")
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
-    maven("https://jitpack.io")
 }
 
 java {
@@ -23,6 +23,31 @@ java {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
+
+val preparePinnedAutoPtuJava by tasks.registering(Exec::class) {
+    outputs.file(autoPtuJavaJar)
+    doFirst {
+        delete(autoPtuJavaWorkDir)
+    }
+    val workDirPath = autoPtuJavaWorkDir.get().asFile.absolutePath
+    val jarPath = autoPtuJavaJar.get().asFile.absolutePath
+    commandLine(
+        "bash", "-c", """
+        set -euo pipefail
+        mkdir -p '$workDirPath/repo' '$workDirPath/classes'
+        git -C '$workDirPath/repo' init -q
+        git -C '$workDirPath/repo' remote add origin https://github.com/Teffa14/AutoPTU-Java.git
+        git -C '$workDirPath/repo' fetch -q --depth=1 origin '$autoPtuJavaSha'
+        git -C '$workDirPath/repo' checkout -q --detach FETCH_HEAD
+        find '$workDirPath/repo/src/main/java' -type f -name '*.java' -print0 \
+          | sort -z \
+          | xargs -0 javac --release 21 -d '$workDirPath/classes'
+        jar --create --file '$jarPath' -C '$workDirPath/classes' .
+        """.trimIndent()
+    )
+}
+
+val pinnedAutoPtuJava = files(autoPtuJavaJar)
 
 val productionSmokeMods by configurations.creating {
     isCanBeConsumed = false
@@ -44,13 +69,20 @@ dependencies {
 
     implementation(project(":"))
 
-    // AutoPTU-Java stays read-only. The playable vertical pins one inspected upstream commit and
-    // embeds that compiled library in the Fabric mod so battle accuracy/damage/HP remain core-owned.
-    implementation(autoPtuJavaDependency)
-    include(autoPtuJavaDependency)
+    // AutoPTU-Java stays read-only. The exact inspected commit is fetched as source, compiled with
+    // javac and nested into the remapped Fabric jar. No upstream checkout is ever modified.
+    implementation(pinnedAutoPtuJava)
+    include(pinnedAutoPtuJava)
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+tasks.named("compileJava") {
+    dependsOn(preparePinnedAutoPtuJava)
+}
+tasks.named("remapJar") {
+    dependsOn(preparePinnedAutoPtuJava)
 }
 
 // The production Fabric mod must carry the adapter-neutral integration classes it invokes.
