@@ -3,10 +3,12 @@
 Inspected upstream heads:
 
 - AutoPTU-Java: `7de79dcd30b241d439724050fb24ee893a7c5c63`
-- Current AutoPTU Python main inspected read-only: `1c673eb676fdeca71ee55e1de8a90b8f7d2cbcf3`
+- Current AutoPTU Python main inspected read-only: `99ba07ea47b8896d96bd37f6c06cffb8695f69bb`
 - Python oracle pin used by the Java forced-movement parity workflow: `16d228efa63aabecb67fa788959a359aac7f8f03`
 
-AutoPTU-Java now has a parity-backed `ForcedMovementInstruction` / `ForcedMovementInstructionResolution` contract that identifies `PUSH` or `PULL` plus a positive distance from canonical move metadata. The current Python main exposes the same `forced_movement_instruction` behavior.
+AutoPTU-Java now has a parity-backed `ForcedMovementInstruction` / `ForcedMovementInstructionResolution` contract that identifies `PUSH` or `PULL` plus a positive distance from canonical move metadata. The inspected current Python main still exposes the same `forced_movement_instruction` behavior.
+
+The Fabric production artifact is pinned to the same inspected AutoPTU-Java commit. Instruction-detection availability therefore reflects what is actually bundled rather than a newer unshipped core contract.
 
 This does not resolve spatial forced movement. No authoritative path, direction, collision handling, interception, reaction ordering, knockback interaction, terrain interaction or final relocation is produced by this contract.
 
