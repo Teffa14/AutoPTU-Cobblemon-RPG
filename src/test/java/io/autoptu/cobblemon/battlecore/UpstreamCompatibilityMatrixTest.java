@@ -26,6 +26,7 @@ class UpstreamCompatibilityMatrixTest {
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
         assertTrue(adapter.contracts().contains("CanonicalWildEncounterBlueprintSource"));
+        assertTrue(adapter.contracts().contains("WorldScopedCanonicalWildEncounterBlueprintRegistry"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterPreparationService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterProvisioningService"));
         assertTrue(adapter.contracts().contains("ServerOwnedWildEncounterIdentityBinder"));
@@ -33,8 +34,9 @@ class UpstreamCompatibilityMatrixTest {
         assertTrue(adapter.contracts().contains("FileCanonicalPokemonRepository"));
         assertTrue(adapter.contracts().contains("FileCanonicalItemReservationRepository"));
         assertTrue(adapter.adapterPolicy().contains("graphical player encounter is still pending"));
-        assertTrue(adapter.adapterPolicy().contains("world/campaign RPG generator"));
-        assertTrue(adapter.adapterPolicy().contains("neither the source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("populate the world-scoped WILD blueprint registry"));
+        assertTrue(adapter.adapterPolicy().contains("intentionally not durable across restart"));
+        assertTrue(adapter.adapterPolicy().contains("neither the registry, source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
         assertTrue(adapter.adapterPolicy().contains("cross-aggregate transactions"));
     }
 
@@ -54,21 +56,22 @@ class UpstreamCompatibilityMatrixTest {
     }
 
     @Test
-    void selectedStatusAbilityPreventionIsLiveWithoutPromotingWholeLifecycle() {
+    void selectedStatusPreventionIsLiveWithoutPromotingWholeLifecycle() {
         UpstreamCompatibilityMatrix.Entry statuses = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         assertTrue(statuses.contracts().contains("runtime target-owned ability prevention"));
-        assertTrue(statuses.contracts().contains("Merged upstream PR #154"));
+        assertTrue(statuses.contracts().contains("merged PR #155"));
+        assertTrue(statuses.contracts().contains("Infiltrator bypass"));
         assertTrue(statuses.adapterPolicy().contains("complete status ticking"));
-        assertTrue(statuses.adapterPolicy().contains("contract-only"));
+        assertTrue(statuses.adapterPolicy().contains("charge consumption/removal"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
 
         UpstreamCompatibilityMatrix.Entry abilities = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES);
         assertTrue(abilities.contracts().contains("StatusAbilityPreventionResolver"));
         assertTrue(abilities.contracts().contains("RuntimeCombatantState ability suppression"));
+        assertTrue(abilities.contracts().contains("Merged PR #155"));
         assertTrue(abilities.adapterPolicy().contains("Own Tempo"));
-        assertTrue(abilities.adapterPolicy().contains("ignore_defensive_abilities"));
         assertTrue(abilities.adapterPolicy().contains("must not execute ability hooks"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
     }
@@ -114,7 +117,7 @@ class UpstreamCompatibilityMatrixTest {
 
     @Test
     void matrixPinsTheUpstreamsThatWereActuallyInspected() {
-        assertEquals("46b8873df5839cca1b57106a16248c457d93f5fe", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("91270f54b237e177fef46a875f5599e114db97e3", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("5eef0c0e8364a4f4a4f8bdb811107895e4cdbe7d", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("cd2d31ab9438713629ad3fc65939e8cc622b5a1f", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
     }
 }
