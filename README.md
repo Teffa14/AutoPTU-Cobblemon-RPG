@@ -10,6 +10,12 @@ AutoPTU-Java owns battle legality, calculations, lifecycle and outcomes. Minecra
 
 Out-of-combat Trainer, Pokémon, item and progression state is also server-authoritative. Persistent player/profile/Pokémon/item state is stored below the active world save. Clients and platform entities may supply authenticated identity or presentation correlation only.
 
+## First playable battle test
+
+The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a short lunge, displayed HP/nameplates and the final winner/loser message.
+
+This first vertical uses fixed server-owned combat inputs rather than pretending that general `RuntimeCombatantState` materialization is complete. It does not run statuses, abilities, items, Trainer Features, terrain, forced movement, tactical scoring, rewards or campaign commits. The lunge is presentation only and is not PTU movement legality. See `docs/first-playable-battle-test.md` for the exact install/test procedure and limitations.
+
 ## Runtime validation policy
 
 Integration work prioritizes vertical runtime tests. DTO/unit coverage remains required, but a feature is not considered live merely because it compiles.
@@ -28,7 +34,7 @@ Current dedicated-server evidence includes:
 - World-scoped durable Trainer, encounter profile, Pokémon and item/reservation repositories.
 - Two-process restart smoke that reopens the same Minecraft world and verifies Trainer/profile/Pokémon/item state and an active item reservation from fresh repository instances.
 
-The Minecraft/Cobblemon/Craftics category remains PARTIAL. A successful authenticated graphical PLAYER-vs-WILD runtime, zero-HP/faint presentation, complete semantic playback and full entity lifecycle remain pending.
+The Minecraft/Cobblemon/Craftics category remains PARTIAL. The manual battle test is a bounded graphical playback harness, not yet the normal authenticated PLAYER-vs-WILD campaign path. Complete semantic playback and full entity lifecycle remain pending.
 
 ## Player-versus-wild authority path
 
@@ -64,6 +70,6 @@ Completed with dedicated-server evidence: live Cobblemon entity projection, batt
 
 Completed with contract/integration fixtures: player-versus-wild authority composition, persistent authenticated player context, canonical PLAYER Pokémon identity binding, preprovisioned WILD identity binding, server-owned WILD encounter provisioning, trusted blueprint resolution, and a world-lifecycle-scoped create-only registry that supplies those blueprints without trusting `PokemonEntity` values.
 
-Next steps are to connect trusted RPG/encounter generation to populate the active world's WILD blueprint registry before the Cobblemon trigger, compose that preparation with the production player repository path, then run the complete PLAYER-vs-WILD pre-start flow with an authenticated graphical Minecraft client. That run must capture MP4 plus authoritative logs: login -> wild encounter -> `BATTLE_STARTED_PRE` -> authenticated PLAYER -> durable canonical context -> WILD preparation/binding -> canonical reservation -> Cobblemon preemption.
+The first manual graphical battle harness is the next validation rung: choose a bounded server-owned Pokémon scenario, spawn two live Cobblemon entities, invoke the pinned AutoPTU-Java authoritative move runtime, project attack motion/HP, and visibly terminate with a winner/loser. After that succeeds on a real client, the same playback pieces can be moved behind the normal authenticated PLAYER-vs-WILD reservation path rather than the test command.
 
-Runtime combatant materialization follows only when every required `RuntimeCombatantState` input can be supplied authoritatively. Missing PTU rules stay in AutoPTU-Java rather than being recreated in the Minecraft adapter.
+General runtime combatant materialization follows only when every required `RuntimeCombatantState` input can be supplied authoritatively. Missing PTU rules stay in AutoPTU-Java rather than being recreated in the Minecraft adapter.
