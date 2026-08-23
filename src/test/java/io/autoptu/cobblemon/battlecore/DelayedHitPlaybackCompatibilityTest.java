@@ -39,7 +39,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesTargetSelectionAndRoundExpiry() {
-        assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305",
+        assertEquals("46b8873df5839cca1b57106a16248c457d93f5fe",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(

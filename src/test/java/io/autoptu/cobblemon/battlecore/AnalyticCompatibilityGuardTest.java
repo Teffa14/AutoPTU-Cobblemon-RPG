@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnalyticCompatibilityGuardTest {
     @Test
     void pinsCurrentLiveAnalyticContractWithoutPromotingBroadSupport() {
-        assertEquals("5d9e5069fa0c68432825a48be25fff6ba245d305", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
-        assertEquals("c3e67a718fca2d92ecc8316cfa98f757977f7986", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
+        assertEquals("46b8873df5839cca1b57106a16248c457d93f5fe", UpstreamCompatibilityMatrix.AUTOPTU_JAVA_SHA);
+        assertEquals("91270f54b237e177fef46a875f5599e114db97e3", UpstreamCompatibilityMatrix.AUTOPTU_PYTHON_SHA);
 
         UpstreamCompatibilityMatrix.Entry actionEconomy = UpstreamCompatibilityMatrix.entry(
                 UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
@@ -42,7 +42,7 @@ class AnalyticCompatibilityGuardTest {
         assertTrue(damage.adapterPolicy().contains("add its +5 damage"));
         assertTrue(abilities.adapterPolicy().contains("independently alter damage/HP"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
-        assertTrue(adapter.adapterPolicy().contains("trusted RPG/encounter generator"));
-        assertTrue(adapter.adapterPolicy().contains("never derives species, level, HP, stats, moves, abilities"));
+        assertTrue(adapter.adapterPolicy().contains("world/campaign RPG generator"));
+        assertTrue(adapter.adapterPolicy().contains("neither the source contract nor provisioner derives species, level, HP, stats, moves, abilities"));
     }
 }
