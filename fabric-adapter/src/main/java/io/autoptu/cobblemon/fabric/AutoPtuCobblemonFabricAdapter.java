@@ -9,6 +9,7 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
+import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -37,6 +38,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         }
         PlayableBattleTestRuntime.register();
         CobblemonLiveRelocationSmoke.registerIfEnabled();
+        CobblemonLiveReactionPlaybackSmoke.registerIfEnabled();
         CobblemonLiveHealthSmoke.registerIfEnabled();
         CobblemonLiveBattleInterceptionSmoke.registerIfEnabled();
         FabricAuthenticatedPlayerContextResolverSmoke.registerIfEnabled();
