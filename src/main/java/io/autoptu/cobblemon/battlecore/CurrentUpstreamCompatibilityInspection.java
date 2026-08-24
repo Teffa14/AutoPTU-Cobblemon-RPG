@@ -6,7 +6,7 @@ import java.util.Map;
 /** Records exact read-only upstream heads and bounded evidence for the current integration slice. */
 public final class CurrentUpstreamCompatibilityInspection {
     public static final String AUTOPTU_JAVA_SHA = "7be3c4d3a4edc3324a5953fa371c033a8acabab5";
-    public static final String AUTOPTU_PYTHON_SHA = "a3ff5cc71adb080973522abd604b0248b4447e06";
+    public static final String AUTOPTU_PYTHON_SHA = "7f1e46580cedb629cbf802135b7b1b2f290d286b";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
         public Evidence {
@@ -106,7 +106,7 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState plus TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are parity-backed for bounded families. AutoPTU Python main a3ff5cc was inspected read-only; its newest changes are Career loan-return preview behavior and do not promote Trainer Feature coverage.",
+                        "TrainerRuntimeState plus TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are parity-backed for bounded families. AutoPTU Python main 7f1e465 was inspected read-only; its newest commits are Career progression/presentation changes and do not promote Trainer Feature or battle-oracle coverage.",
                         "Trainer Features remain partial. Minecraft must not grant Features, decide gates, mutate AP/resources or execute missing effects."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
