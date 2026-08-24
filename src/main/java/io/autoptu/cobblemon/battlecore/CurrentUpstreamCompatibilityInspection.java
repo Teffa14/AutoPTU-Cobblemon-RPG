@@ -5,7 +5,7 @@ import java.util.Map;
 
 /** Records exact read-only upstream heads and bounded evidence for the current integration slice. */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee";
+    public static final String AUTOPTU_JAVA_SHA = "f23f5aebe51f50d8aa32449878f13e5f4c644f1f";
     public static final String AUTOPTU_PYTHON_SHA = "03321a2eba42437180fddf5c4b2570c50ba429a6";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -34,8 +34,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "EffectiveMoveTargetResolver and RuntimeAreaMoveTargeting derive and revalidate authoritative targets, footprints, range, area anchors, line of sight, HP eligibility and stable target order from BattleRuntimeState.",
-                        "Minecraft must not supply effective target lists, target anchors, footprint overlap, line-of-sight results or target eligibility."));
+                        "EffectiveMoveTargetResolver and RuntimeAreaMoveTargeting derive and revalidate authoritative targets, footprints, range, area anchors, line of sight, HP eligibility including hp <= 0 exclusion, inactive positive-HP candidate preservation, and stable target order from BattleRuntimeState.",
+                        "Minecraft must not supply effective target lists, target anchors, footprint overlap, line-of-sight results, HP eligibility filters or a generic active-state filter."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
                 new Evidence(
@@ -58,14 +58,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState, ActionBudget, RuntimeInitiativeOrderAssembly and InitiativeRoundRebuilder own initiative and declaration resources. PRE-damage follow-up execution reuses the authoritative runtime without spending ordinary action economy or move frequency twice; Sway's STANDARD spend remains hook-owned.",
-                        "Minecraft must not spend/refund actions, validate frequency, grant AP, rebuild initiative or duplicate reaction resource consumption."));
+                        "BattleRuntimeState, TrainerRuntimeState, ActionBudget, RuntimeInitiativeOrderAssembly and InitiativeRoundRebuilder own initiative and declaration resources. TemporaryApGrant state and temporary AP grants/expiry are core-owned. PRE-damage follow-up execution reuses the authoritative runtime without spending ordinary action economy or move frequency twice; Sway's STANDARD spend remains hook-owned.",
+                        "Minecraft must not spend/refund actions, validate frequency, grant temporary AP, perform temporary AP grants/expiry, rebuild initiative or duplicate reaction resource consumption."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Ordered ROUND_START hooks, temporary-effect expiry, Trainer action reset, Pokemon round cleanup and declared-action lifecycle are present; reaction readiness/usage state is stored in authoritative runtime state.",
-                        "Complete Python lifecycle parity remains broader. Minecraft must not manufacture round transitions, expiry, send-out decisions or missing lifecycle effects."));
+                        "ROUND_START executes FieldRoundLifecycleHook at order 10, DelayedHitRoundLifecycleHook at order 20, RoundTemporaryEffectExpiryHook at order 30, server-owned TemporaryApGrant expiry and Trainer action reset at order 40, Pokemon round-temporary-effect cleanup at order 45, then DeclaredActionRoundLifecycleHook at order 50. Reaction readiness/usage state is stored in authoritative runtime state.",
+                        "Complete Python lifecycle parity remains broader. Minecraft must not supply currentRound, temporary-effect metadata, temporary AP grants, Trainer action reset, queue/RNG mutation, manufacture round transitions, expiry, send-out decisions or missing lifecycle effects."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
                 new Evidence(
@@ -76,8 +76,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "StatusStateStore preserves canonical status entries and selected prevention/application behavior is authoritative. Shell Shield now authoritatively applies Withdrawn and a DEF combat-stage mutation through the generic PRE-damage seam.",
-                        "Complete ticking, expiry, cures, immunities and source-sensitive interactions remain partial; Shell Shield does not promote the whole status category."));
+                        "StatusStateStore preserves canonical status entries and selected prevention/application behavior is authoritative. Shell Shield authoritatively applies Withdrawn and a DEF combat-stage mutation through the generic PRE-damage seam. Java main f23f5ae freezes the Python Status-move zero-damage execution contract: hit follows ordinary accuracy, crit is false, damage and damage_roll are zero.",
+                        "Complete ticking, expiry, cures, immunities, source-sensitive interactions and generic move-special status application remain partial. The frozen Status execution policy is not a live Status effect executor, and open Java PR #182 must not be treated as merged authority."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
@@ -88,8 +88,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Authoritative MoveSpec metadata, move-frequency enforcement, delayed-hit support, area targeting and the generic PRE-damage follow-up move execution seam are present for verified contracts.",
-                        "Unported move specials remain core-owned. The adapter must not infer push, pull, crash, contact or other move semantics from text or presentation metadata."));
+                        "Authoritative MoveSpec metadata, move-frequency enforcement, delayed-hit support, area targeting and the generic PRE-damage follow-up move execution seam are present for verified contracts. DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. Stored target_position remains an authoritative aim anchor; current geometry, footprints, line of sight and HP eligibility determine affected combatants, while live target IDs follow current authoritative positions. Java main freezes the generic Status move execution policy, but live zero-damage Status execution remains in open PR #182.",
+                        "Unported move specials remain core-owned. Minecraft must not choose delayed targets, supply RNG/combat inputs, consume or refund move frequency/actions, or infer push, pull, crash, contact, status effects or other move semantics from text or presentation metadata."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
@@ -106,7 +106,7 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState plus prerequisite/context/frequency/resource/usage resolution and bounded effect families are parity-backed. AutoPTU Python main 03321a2 was inspected read-only; its newest changes are Career sponsor-market behavior and do not promote Trainer Feature coverage.",
+                        "TrainerRuntimeState plus TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are parity-backed for bounded families. AutoPTU Python main 03321a2 was inspected read-only; its newest changes are Career sponsor-market behavior and do not promote Trainer Feature coverage.",
                         "Trainer Features remain partial. Minecraft must not grant Features, decide gates, mutate AP/resources or execute missing effects."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
@@ -125,7 +125,7 @@ public final class CurrentUpstreamCompatibilityInspection {
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
                         "Fabric/Cobblemon dedicated-server smoke coverage, authenticated identity, canonical reservations, live entity projection and generic semantic-event playback are present. The adapter can project authoritative PRE-damage cues and supported relocation without mechanic-specific legality branches.",
-                        "Authenticated graphical campaign battle playback, complete RuntimeCombatantState materialization and full entity lifecycle remain pending. Minecraft must remain projection-only."));
+                        "Authenticated graphical campaign battle playback, complete RuntimeCombatantState materialization and full entity lifecycle remain pending. Minecraft must remain projection-only and must not execute the open Status-move runtime contract until Java authority is merged and verified."));
 
         return Map.copyOf(result);
     }
