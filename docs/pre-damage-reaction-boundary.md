@@ -2,44 +2,42 @@
 
 Inspected read-only upstream heads:
 
-- AutoPTU-Java: `28f141be5471e23f660fb2cda09bab02244ee62e`
-- AutoPTU Python: `894f66771ca3f0d3c331f86c3ab888cdc38dd6f9`
-- AutoPTU-Java Telepathy parity oracle pin: `16d228efa63aabecb67fa788959a359aac7f8f03`
+- AutoPTU-Java: `ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee`
+- AutoPTU Python: `65702f3816162c804a926c228d54d405f3236a97`
+- AutoPTU-Java PRE-damage parity oracle pin: `16d228efa63aabecb67fa788959a359aac7f8f03`
 
 ## Verified upstream primitives
 
-AutoPTU-Java owns a generic `PreDamageReactionHookRegistry`. `BuiltinPreDamageReactionHooks` registers the parity-backed Telepathy hook against canonical `BattleRuntimeState`, authoritative ability identity/suppression, team identity, the server-owned out-of-turn decision gate, threatened tiles and `ReactionMovementApplication.escapeThreatenedArea`.
+AutoPTU-Java owns the generic PRE-damage reaction registry and authoritative invocation path. Current main carries Telepathy, Perception, Perception [Errata], Parry, Sway, and Shell Shield through that seam. Reaction context, ability identity/suppression, out-of-turn decisions, target classification, supported reaction movement, temporary-effect bookkeeping, action economy, combat-stage/status mutation, cancellation, semantic events, and ordinary move resource ownership remain core-owned.
 
-AutoPTU-Java `28f141be5471e23f660fb2cda09bab02244ee62e` invokes that registry from the ordinary authoritative move-resolution path. It constructs reaction context from canonical runtime state, resolves ordinary damage first, applies PRE-damage reactions before post-result damage hooks and final HP mutation, and emits semantic events. A cancelled reaction result prevents later HP/damage-history mutation while ordinary move resources remain core-owned.
+AutoPTU-Java `b6701fcc4e1b0a469bed7e41c4125c47e768ff03` merged the runtime-owned synchronous PRE-damage follow-up execution boundary. `RuntimeMoveResolutionWithFollowUps` installs the core executor and re-enters authoritative move resolution with the original move and RNG while redirected attacker/target identity comes from the reaction hook. The frozen policy keeps PRE-damage reactions enabled during nested resolution and does not spend ordinary action economy or move frequency a second time.
 
-The current Python oracle at `894f66771ca3f0d3c331f86c3ab888cdc38dd6f9` still executes Telepathy as a `pre_damage_interrupt`: an allied defender in the affected area may take a legal shift to a safe tile; only a successful escape cancels hit, damage and type effectiveness. Minecraft does not reproduce that rule.
+The merged live Sway regression proves end-to-end redirected move execution through that authoritative runtime. Sway still owns the STANDARD spend, `sway_used` and `sway_redirect` bookkeeping, recursion protection, adjacent push selection, nested result, guard cleanup and cancellation of the original hit. Minecraft supplies none of those decisions.
 
-AutoPTU-Java PR #168 is still draft-only upstream work. It revalidates legal TILE anchors and expands authoritative area targets, but explicitly does not execute multi-target damage yet. The adapter therefore does not promote AoE execution or assume that Telepathy is live for ordinary TILE/AoE damage resolution.
+The current Python oracle at inspected main matches the same sequence: reject recursive redirects, require damaging melee and available STANDARD, decide before spending, record usage and redirect guard, resolve the attacker into its own move, clear the guard, choose the first legal adjacent push square from authoritative grid state, emit push, then cancel the original hit/damage/type multiplier.
+
+AutoPTU-Java `ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee` additionally ports Shell Shield through the same generic PRE-damage registry. Its readiness, Withdrawn status, DEF stage mutation and semantic ability event are stateful core behavior and do not create a Minecraft-side special case.
 
 ## Adapter rule
 
-Minecraft/Cobblemon/Craftics may consume and project semantic reaction movement and rule-effect events emitted by AutoPTU-Java. The adapter may translate authoritative grid coordinates to world coordinates and animate/render the result.
+Minecraft/Cobblemon/Craftics may consume and project semantic events and authoritative state returned by AutoPTU-Java. It may translate canonical grid coordinates to world coordinates and render ordered playback.
 
-The adapter must not evaluate Telepathy ownership, suppression, Mold Breaker, team eligibility, affected-area membership, decision gating, safe-tile selection, movement legality, action-economy effects, hit cancellation, damage cancellation, type-effectiveness cancellation, shield ordering, item-bonus ordering or HP mutation ordering. Those remain core responsibilities.
-
-The adapter contract fixture now verifies a generic ordered reaction sequence: `RULE_EFFECT_CUE` followed by authoritative `ENTITY_RELOCATION`, stable combatant identity, frozen-reservation binding, grid-to-world translation and immutable playback/snapshot inputs. The fixture is semantic; it does not contain Telepathy legality or movement rules.
-
-This promotion does not make whole upstream categories complete. COMPLETE_MOVEMENT_BEHAVIOR remains blocking in the executable matrix because the wider forced-movement/interception family is incomplete. FULL_STATEFUL_DAMAGE_PIPELINE, TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS and ABILITIES remain partial. Minecraft/Cobblemon/Craftics playback also remains partial until the semantic sequence is exercised through the live Fabric entity backend in a real encounter.
+Minecraft must not invoke the PRE-damage registry or follow-up executor, construct threatened tiles, classify attacks, evaluate reaction eligibility, consume readiness or usage state, create Sway guards, select escape or push destinations, recursively resolve moves, spend STANDARD, apply combat stages/statuses, mutate HP/history, cancel hit/damage/type effectiveness, or manufacture forced-movement legality.
 
 ## Compatibility dependencies
 
-This bounded slice depends on CORE_TARGETING for authoritative affected-area semantics, CORE_MOVEMENT_LEGALITY for legal reaction movement, COMPLETE_MOVEMENT_BEHAVIOR for the wider reaction/forced-movement family, ACTION_ECONOMY_AND_INITIATIVE for out-of-turn semantics, FULL_STATEFUL_DAMAGE_PIPELINE for hit/damage/post-hook/HP ordering, TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS for reaction phase semantics, ABILITIES for Telepathy legality and MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK for projection.
+This slice depends on CORE_TARGETING, CORE_MOVEMENT_LEGALITY, COMPLETE_MOVEMENT_BEHAVIOR, ACTION_ECONOMY_AND_INITIATIVE, FULL_TURN_ROUND_LIFECYCLE, FULL_STATEFUL_DAMAGE_PIPELINE, COMPLETE_STATUS_LIFECYCLE, TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS, MOVE_SPECIFIC_BEHAVIOR, ABILITIES, and MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK.
 
-Verified for this slice: generic PRE-damage registry contract; canonical threatened-area context; authoritative reaction-escape primitive for the verified hook; parity-backed Telepathy oracle; Python ordering behavior; ordinary Java runtime registry invocation; cancellation ordering before post-damage hooks and HP/history mutation; semantic rule-effect and relocation projection; stable combatant identity; frozen arena transform; immutable adapter inputs.
+Verified for this slice: generic PRE-damage registry invocation; authoritative effective target kind; supported reaction movement for merged hooks; parity-backed Telepathy, Perception, Perception [Errata], Parry, Sway and Shell Shield hooks; generic runtime-owned follow-up seam; synchronous live follow-up wiring; authoritative adjacent Sway push primitive; frozen follow-up execution policy; current Python Sway behavior; server-owned Shell Shield status/stage mutation; semantic projection boundary; stable combatant identity; immutable adapter inputs.
 
-Partial for this slice: abilities as a category; full stateful damage; wider reactions/terrain/weather/hazards; Minecraft live presentation; AoE/TILE execution.
+Partial: complete movement behavior; full turn/round lifecycle; full stateful damage; complete status lifecycle; terrain/weather/hazards/zones/reactions; move-specific behavior; abilities; items; Trainer Features; AI tactical scoring/policy; Minecraft/Cobblemon/Craftics playback.
 
-Blocking for broader promotion: complete forced movement/interception remains unported upstream; AI tactical scoring remains unported; Java PR #168 does not yet provide multi-target damage execution; additional reaction and ability families are not complete.
+Blocking for broader category promotion: general push/pull/knockback/interception coverage; complete ability/reaction families; full stateful modifier coverage across abilities/items/terrain; complete status ticking/cure semantics; AI tactical policy; broader live Minecraft entity playback coverage.
 
 ## Intentionally deferred
 
-Minecraft does not run the reaction registry and does not special-case Telepathy. It does not calculate affected tiles, select a safe square, spend reaction resources, suppress abilities, cancel damage, execute AoE targets or reorder downstream hooks. It consumes authoritative state/events only.
+Minecraft does not special-case Sway, Shell Shield, or any other PRE-damage ability. The adapter will not invoke hooks, supply its own executor, choose push squares, replay redirected moves, spend actions, apply statuses/stages, or cancel attacks. Those remain PTU-engine responsibilities.
 
 ## Next bounded slice
 
-Carry the same generic reaction sequence through the entity-bound presentation stream and Fabric relocation backend using a mock/live-compatible entity fixture. Verify that the stable combatant ID resolves to the bound Cobblemon entity and that authoritative relocation ordering is preserved without introducing ability-specific branches.
+Prove generic playback ordering for the authoritative Sway sequence through the live-compatible entity presentation boundary: redirect semantic cue, nested authoritative result, push relocation, and original-hit cancellation. Keep the fixture semantic and identity-based so no Sway legality or movement rule is duplicated in Minecraft.

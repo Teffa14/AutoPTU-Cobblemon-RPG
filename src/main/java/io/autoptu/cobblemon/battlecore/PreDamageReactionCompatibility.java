@@ -3,50 +3,44 @@ package io.autoptu.cobblemon.battlecore;
 /**
  * Compatibility guard for the upstream generic PRE-damage reaction seam.
  *
- * <p>AutoPTU-Java now owns the generic PRE-damage registry invocation for
- * ordinary authoritative move resolution, derives the reaction context from
- * canonical BattleRuntimeState, applies reaction movement in core, and emits
- * semantic events. Minecraft remains projection-only: it must not re-evaluate
- * Telepathy or any other PTU reaction rule.</p>
+ * <p>AutoPTU-Java owns reaction legality, state mutation, nested move execution and semantic events.
+ * Minecraft remains projection-only and must not re-evaluate PTU reaction rules.</p>
  */
 public final class PreDamageReactionCompatibility {
-    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "defabdc87b1f366508cc00b80215689de2a528bd";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "6369b246d84eed173417dfaf01399f1286565ab5";
-    public static final String JAVA_TELEPATHY_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
+    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "65702f3816162c804a926c228d54d405f3236a97";
+    public static final String JAVA_PRE_DAMAGE_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private PreDamageReactionCompatibility() {}
 
-    public static boolean genericPreDamageReactionRegistryIsAvailable() {
-        return true;
+    public static boolean genericPreDamageReactionRegistryIsAvailable() { return true; }
+    public static boolean genericPreDamageFollowUpMoveSeamIsAvailable() { return true; }
+    public static boolean preDamageFollowUpExecutionPolicyIsFrozen() { return true; }
+    public static boolean authoritativeReactionEscapeMovementIsAvailable() { return true; }
+    public static boolean authoritativeAdjacentReactionPushPrimitiveIsAvailable() { return true; }
+    public static boolean authoritativeThreatenedAreaContextIsAvailable() { return true; }
+    public static boolean authoritativeEffectiveTargetKindIsAvailable() { return true; }
+    public static boolean telepathyHookIsParityBacked() { return true; }
+    public static boolean perceptionHookIsParityBacked() { return true; }
+    public static boolean perceptionErrataHookIsParityBacked() { return true; }
+    public static boolean parryHookIsParityBacked() { return true; }
+    public static boolean shellShieldHookIsParityBacked() { return true; }
+    public static boolean swayOracleContractIsFrozen() { return true; }
+    public static boolean swayHookIsParityBacked() { return true; }
+    public static boolean swayLiveRuntimeFollowUpWiringIsAvailable() { return true; }
+    public static boolean swayAuthoritativeExecutionIsAvailable() {
+        return swayHookIsParityBacked()
+                && authoritativeAdjacentReactionPushPrimitiveIsAvailable()
+                && preDamageFollowUpExecutionPolicyIsFrozen()
+                && swayLiveRuntimeFollowUpWiringIsAvailable();
     }
-
-    public static boolean authoritativeReactionEscapeMovementIsAvailable() {
-        return true;
-    }
-
-    public static boolean authoritativeThreatenedAreaContextIsAvailable() {
-        return true;
-    }
-
-    public static boolean telepathyHookIsParityBacked() {
-        return true;
-    }
-
-    public static boolean preDamagePipelineOrderingIsParityBacked() {
-        return true;
-    }
-
-    public static boolean ordinaryMoveResolutionInvokesPreDamageReactions() {
-        return true;
-    }
-
-    public static boolean semanticReactionPlaybackFixtureIsAvailable() {
-        return true;
-    }
-
-    public static boolean minecraftMayExecutePreDamageReactionRules() {
-        return false;
-    }
+    public static boolean perceptionReadyAndRoundScopedUsageAreCoreOwned() { return true; }
+    public static boolean parryReadyAndRoundScopedUsageAreCoreOwned() { return true; }
+    public static boolean swayUsageGuardAndStandardSpendAreCoreOwned() { return true; }
+    public static boolean preDamagePipelineOrderingIsParityBacked() { return true; }
+    public static boolean ordinaryMoveResolutionInvokesPreDamageReactions() { return true; }
+    public static boolean semanticReactionPlaybackFixtureIsAvailable() { return true; }
+    public static boolean minecraftMayExecutePreDamageReactionRules() { return false; }
 
     public static boolean minecraftMayRenderAuthoritativeReactionEvents() {
         return ordinaryMoveResolutionInvokesPreDamageReactions()
@@ -58,16 +52,23 @@ public final class PreDamageReactionCompatibility {
     }
 
     public static String adapterPolicy() {
-        return "Consume only reaction movement and rule-effect events already emitted by AutoPTU-Java. "
-                + "AutoPTU-Java owns PRE-damage registry invocation, derives threatened tiles from canonical "
-                + "BattleRuntimeState, applies reaction escape movement, and cancels or adjusts the authoritative "
-                + "move result before later damage stages. Minecraft may translate authoritative coordinates and "
-                + "render playback, but must not invoke the reaction registry, construct or override threatened "
-                + "tiles, decide Telepathy eligibility, choose escape destinations, mutate action economy, or "
-                + "cancel hit, damage or type effectiveness itself. The semantic playback fixture verifies stable "
-                + "combatant identity, authoritative event ordering, grid-to-world translation and immutable "
-                + "projection inputs only. This promotion verifies the ordinary runtime seam; it does not imply "
-                + "complete abilities, reactions, forced movement, terrain, status, item, AoE execution or "
-                + "stateful-damage coverage upstream.";
+        return "Consume only semantic reaction events and authoritative state already produced by AutoPTU-Java. "
+                + "AutoPTU-Java owns PRE-damage registry invocation, threatened tiles, effective target kind, "
+                + "readiness and usage bookkeeping, optional out-of-turn decisions, supported reaction movement, "
+                + "nested follow-up move execution, action economy, HP/history mutation and hit/damage cancellation. "
+                + "Current Java main contains the runtime-owned synchronous PRE-damage follow-up execution scope and "
+                + "RuntimeMoveResolutionWithFollowUps boundary. Its live Sway regression proves redirected attacker/target "
+                + "resolution through the authoritative runtime while reusing the original move and RNG, without spending "
+                + "ordinary action economy or move frequency twice. The Sway hook remains responsible for STANDARD spend, "
+                + "sway_used and sway_redirect bookkeeping, authoritative adjacent push selection, recursion protection and "
+                + "original-hit cancellation. Current main also adds parity-backed Shell Shield through the same generic "
+                + "PRE-damage registry; this does not broaden the adapter into ability-specific rule execution. Minecraft "
+                + "may translate authoritative coordinates and render ordered semantic playback, but must not invoke the "
+                + "reaction registry or follow-up executor, construct threatened tiles, classify a move, evaluate Sway or "
+                + "Shell Shield eligibility, consume readiness, create usage guards, choose escape or push destinations, "
+                + "recursively resolve a move, spend STANDARD, mutate combat stages/status/HP, or cancel a hit itself. "
+                + "This promotes Sway end-to-end authoritative execution availability only. It does not imply complete "
+                + "abilities, reactions, forced movement, terrain, status, items, Trainer Features, move-specific behavior, "
+                + "full stateful damage parity or complete Minecraft playback.";
     }
 }
