@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("4f16e07862008b8fb00ee405a9cbc160ae8fbcec", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("928c31a7b72243434536fdf05731ced421403f08", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("edf8db216ab88a10b896f2bb144cf5d08de49d8e", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("0d56ea7b5a2b99a96f7ac4ca40b405e0ffbf83b8", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -49,11 +49,12 @@ class CurrentUpstreamCompatibilityInspectionTest {
         String abilities = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
         assertTrue(abilities.contains("PRE-damage reaction pipeline"));
+        assertTrue(abilities.contains("Telepathy"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
         assertTrue(perks.contains("TrainerFeatureResourceResolution"));
-        assertTrue(perks.contains("928c31a7"));
+        assertTrue(perks.contains("0d56ea7b"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
