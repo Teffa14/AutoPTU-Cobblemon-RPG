@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("f23f5aebe51f50d8aa32449878f13e5f4c644f1f", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("03321a2eba42437180fddf5c4b2570c50ba429a6", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("1f9b721ef2f5e2e1dcc2c6d70a93b13875e5f0db", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("a3ff5cc71adb080973522abd604b0248b4447e06", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -48,23 +48,48 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
         assertTrue(statuses.contracts().contains("Withdrawn"));
-        assertTrue(statuses.limitation().contains("does not promote the whole status category"));
+        assertTrue(statuses.limitation().contains("remain partial"));
     }
 
     @Test
-    void frozenStatusExecutionContractDoesNotPromoteOpenRuntimeWork() {
+    void mergedStatusRuntimeIsPromotedWithoutInventingStatusEffects() {
         CurrentUpstreamCompatibilityInspection.Evidence statuses = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
         CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
-        assertTrue(statuses.contracts().contains("hit follows ordinary accuracy"));
-        assertTrue(statuses.contracts().contains("damage and damage_roll are zero"));
-        assertTrue(statuses.limitation().contains("open Java PR #182"));
-        assertTrue(moves.contracts().contains("open PR #182"));
-        assertTrue(moves.limitation().contains("status effects"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(statuses.contracts().contains("StatusMoveRuntimeResolution"));
+        assertTrue(statuses.contracts().contains("crit is false"));
+        assertTrue(statuses.contracts().contains("damage is zero"));
+        assertTrue(statuses.contracts().contains("action/frequency resources are spent once"));
+        assertTrue(statuses.limitation().contains("does not itself apply any status"));
+        assertTrue(moves.contracts().contains("MoveResolvedEvent"));
+        assertTrue(moves.contracts().contains("damage=0"));
+        assertTrue(moves.limitation().contains("status application"));
+        assertTrue(adapter.contracts().contains("zero-damage Status MoveResolvedEvent playback"));
+        assertTrue(adapter.limitation().contains("must not derive effects"));
+    }
+
+    @Test
+    void statusRuntimeStillDependsOnCoreTargetingActionEconomyAndLegalChoices() {
+        CurrentUpstreamCompatibilityInspection.Evidence targeting = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING);
+        CurrentUpstreamCompatibilityInspection.Evidence actions = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE);
+        CurrentUpstreamCompatibilityInspection.Evidence legalActions = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE);
+
+        assertTrue(targeting.contracts().contains("StatusMoveRuntimeResolution"));
+        assertTrue(targeting.contracts().contains("MoveChoiceRevalidation"));
+        assertTrue(actions.contracts().contains("StatusMoveRuntimeResolution"));
+        assertTrue(actions.contracts().contains("exactly once"));
+        assertTrue(legalActions.contracts().contains("legal combatant-target MoveChoice"));
+        assertTrue(legalActions.contracts().contains("MoveChoiceRevalidation"));
     }
 
     @Test
@@ -82,7 +107,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(perks.contracts().contains("03321a2"));
-        assertTrue(perks.contracts().contains("Career sponsor-market"));
+        assertTrue(perks.contracts().contains("a3ff5cc"));
+        assertTrue(perks.contracts().contains("Career loan-return"));
     }
 }
