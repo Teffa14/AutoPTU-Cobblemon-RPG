@@ -5,7 +5,7 @@ import java.util.Map;
 
 /** Records exact read-only upstream heads and bounded evidence for the current integration slice. */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "1f9b721ef2f5e2e1dcc2c6d70a93b13875e5f0db";
+    public static final String AUTOPTU_JAVA_SHA = "7be3c4d3a4edc3324a5953fa371c033a8acabab5";
     public static final String AUTOPTU_PYTHON_SHA = "a3ff5cc71adb080973522abd604b0248b4447e06";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
@@ -88,14 +88,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Authoritative MoveSpec metadata, move-frequency enforcement, delayed-hit support, area targeting, PRE-damage follow-up execution and merged combatant-target zero-damage Status execution are present for their verified contracts. DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. Stored target_position remains an authoritative aim anchor rather than forcing TILE semantics; current geometry, footprints, line of sight and HP eligibility determine affected combatants in stable order, while live target IDs follow their current authoritative position. StatusMoveRuntimeResolution emits MoveResolvedEvent with authoritative hit/miss, crit=false, damage=0 and unchanged target HP.",
-                        "Unported move specials remain core-owned. Minecraft must not choose delayed targets, supply RNG/combat inputs, consume or refund move frequency/actions, or infer push, pull, crash, contact, status application, stat changes or other move semantics from text or presentation metadata."));
+                        "Authoritative MoveSpec metadata, move-frequency enforcement, delayed-hit support, area targeting, PRE-damage follow-up execution and merged combatant-target zero-damage Status execution are present for their verified contracts. MoveSpecialHookRegistry now freezes Python-compatible generic move-special dispatch: unknown phases default to POST_DAMAGE, POST_DAMAGE runs move-specific handlers before global handlers, other phases run global before specific, move names normalize by trim/lowercase, and Shield Dust skips non-Status POST_DAMAGE dispatch while allowing Status dispatch. MoveSpecialResultState preserves the shared mutable result mapping across handlers while MoveSpecialHookContext.hit remains the dispatch-start snapshot. DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. Stored target_position remains an authoritative aim anchor rather than forcing TILE semantics; current geometry, footprints, line of sight and HP eligibility determine affected combatants in stable order, while live target IDs follow their current authoritative position. StatusMoveRuntimeResolution emits MoveResolvedEvent with authoritative hit/miss, crit=false, damage=0 and unchanged target HP.",
+                        "The registry is an authoritative extension seam, not complete move-special coverage. Unported handlers remain core-owned. Minecraft must not register substitute PTU mechanics, mutate move-special result state, choose delayed targets, supply RNG/combat inputs, consume or refund move frequency/actions, or infer push, pull, crash, contact, status application, stat changes or other move semantics from text or presentation metadata."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Generic hook families cover selected combat-stage, status, post-damage and PRE-damage behavior. Current Java main carries parity-backed Telepathy, Perception, Perception [Errata], Parry, Sway and Shell Shield; Sway has live authoritative nested follow-up execution and Shell Shield mutates status/stage state in core.",
-                        "Representative ability families do not establish full parity. Minecraft may render generic semantic events only and must not evaluate ability legality, suppression, resource state, movement choice or effects."));
+                        "Generic hook families cover selected combat-stage, status, post-damage and PRE-damage behavior. Current Java main carries parity-backed Telepathy, Perception, Perception [Errata], Parry, Sway and Shell Shield; Sway has live authoritative nested follow-up execution and Shell Shield mutates status/stage state in core. The generic move-special registry is suitable infrastructure for future ability-mediated move-special interactions without moving PTU rules into Minecraft.",
+                        "Representative ability families and a generic registry do not establish full parity. Minecraft may render generic semantic events only and must not evaluate ability legality, suppression, registry dispatch, result mutation, resource state, movement choice or effects."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.ITEMS,
                 new Evidence(
@@ -124,8 +124,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric/Cobblemon dedicated-server smoke coverage, authenticated identity, canonical reservations, live entity projection and generic semantic-event playback are present. The adapter may now project authoritative zero-damage Status MoveResolvedEvent playback because Java owns the declaration legality, accuracy result and resource spend.",
-                        "Authenticated graphical campaign battle playback, complete RuntimeCombatantState materialization and full entity lifecycle remain pending. Status or move-special effects remain deferred until upstream emits authoritative generic effect/state events; Minecraft must not derive effects from move names, descriptions or damage=0."));
+                        "Fabric/Cobblemon dedicated-server smoke coverage, authenticated identity, canonical reservations, live entity projection and generic semantic-event playback are present. The adapter may project authoritative zero-damage Status MoveResolvedEvent playback because Java owns the declaration legality, accuracy result and resource spend. The generic move-special registry remains inside the authoritative battle core; adapter integration should consume resulting BattleEvents and canonical state rather than mirror registry handlers.",
+                        "Authenticated graphical campaign battle playback, complete RuntimeCombatantState materialization and full entity lifecycle remain pending. Status or move-special effects remain deferred until upstream emits authoritative generic effect/state events; Minecraft must not derive effects from move names, descriptions, damage=0, handler ordering or mutable result contents."));
 
         return Map.copyOf(result);
     }
