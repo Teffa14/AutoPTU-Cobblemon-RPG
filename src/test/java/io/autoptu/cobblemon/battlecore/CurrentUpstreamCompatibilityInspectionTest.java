@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("a2ccd31a50c9ce4e86e7dc5401e8be80fe619cae", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("fc9fdcdc2812a2b85f87f4f86e2d421a7575a3da", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("2207b04fdf0b9c13fbbb0f6357008db976bdf2f7", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("9e644edec3235586276fadae6a94a1250a783b05", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -93,17 +93,19 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moves.contracts().contains("MoveSpecialResultState"));
         assertTrue(moves.contracts().contains("shared mutable result mapping"));
         assertTrue(moves.contracts().contains("dispatch-start snapshot"));
-        assertTrue(moves.limitation().contains("not complete move-special runtime coverage"));
+        assertTrue(moves.limitation().contains("complete move-special coverage"));
         assertTrue(moves.limitation().contains("must not register substitute PTU mechanics"));
         assertTrue(abilities.limitation().contains("must not evaluate ability legality"));
         assertTrue(abilities.limitation().contains("registry dispatch"));
-        assertTrue(adapter.contracts().contains("consume resulting BattleEvents and canonical state"));
+        assertTrue(adapter.contracts().contains("consumes semantic output"));
         assertTrue(adapter.limitation().contains("handler ordering"));
         assertTrue(adapter.limitation().contains("mutable result contents"));
     }
 
     @Test
-    void frozenMoveSpecialExecutionOrderDoesNotPromoteUnmergedRuntimeBridge() {
+    void mergedPreDamageMoveSpecialBridgePromotesOnlyItsVerifiedPhaseBoundary() {
+        CurrentUpstreamCompatibilityInspection.Evidence damage = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
         CurrentUpstreamCompatibilityInspection.Evidence abilities = CurrentUpstreamCompatibilityInspection.evidence(
@@ -111,18 +113,25 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
 
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
-        assertTrue(moves.contracts().contains("a2ccd31"));
+        assertTrue(damage.contracts().contains("MoveSpecialPreDamageResolution"));
+        assertTrue(damage.contracts().contains("hit, crit, damage and type_multiplier"));
+        assertTrue(damage.limitation().contains("only one bounded phase seam"));
+        assertTrue(moves.contracts().contains("2207b04"));
+        assertTrue(moves.contracts().contains("runtime-facing PRE_DAMAGE bridge"));
+        assertTrue(moves.contracts().contains("immutable BattleEvents"));
+        assertTrue(moves.contracts().contains("immutable result snapshot"));
         assertTrue(moves.contracts().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(moves.contracts().contains("743ef231a164727cee549d39d4c2b7a898c64cd7c4365931b71008267bdeff53"));
         assertTrue(moves.contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(moves.limitation().contains("PR #186"));
-        assertTrue(moves.limitation().contains("not merged"));
-        assertTrue(moves.limitation().contains("must not treat the frozen call-site order as executable move-special authority"));
+        assertTrue(moves.limitation().contains("does not imply POST_DAMAGE/END_ACTION runtime parity"));
         assertTrue(moves.limitation().contains("dispatch move-special phases"));
-        assertTrue(abilities.contracts().contains("PRE_DAMAGE/POST_DAMAGE/END_ACTION execution-order contract"));
-        assertTrue(adapter.contracts().contains("rather than mirror registry handlers or phase call sites"));
-        assertTrue(adapter.limitation().contains("call-site phase order"));
+        assertTrue(abilities.contracts().contains("merged PRE_DAMAGE move-special bridge"));
+        assertTrue(abilities.limitation().contains("do not establish full parity"));
+        assertTrue(adapter.contracts().contains("MoveSpecialPreDamageResolution"));
+        assertTrue(adapter.contracts().contains("rather than mirroring registry handlers or PRE_DAMAGE phase execution"));
+        assertTrue(adapter.limitation().contains("POST_DAMAGE/END_ACTION"));
     }
 
     @Test
@@ -157,7 +166,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(perks.contracts().contains("fc9fdcd"));
-        assertTrue(perks.contracts().contains("Career leaderboard/club-transition"));
+        assertTrue(perks.contracts().contains("9e644ed"));
+        assertTrue(perks.contracts().contains("Career active-roster persistence recovery"));
     }
 }
