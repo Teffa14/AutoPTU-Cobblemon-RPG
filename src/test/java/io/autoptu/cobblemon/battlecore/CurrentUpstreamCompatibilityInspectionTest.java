@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("f23f5aebe51f50d8aa32449878f13e5f4c644f1f", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("03321a2eba42437180fddf5c4b2570c50ba429a6", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -49,6 +49,22 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
         assertTrue(statuses.contracts().contains("Withdrawn"));
         assertTrue(statuses.limitation().contains("does not promote the whole status category"));
+    }
+
+    @Test
+    void frozenStatusExecutionContractDoesNotPromoteOpenRuntimeWork() {
+        CurrentUpstreamCompatibilityInspection.Evidence statuses = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE);
+        CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, statuses.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
+        assertTrue(statuses.contracts().contains("hit follows ordinary accuracy"));
+        assertTrue(statuses.contracts().contains("damage and damage_roll are zero"));
+        assertTrue(statuses.limitation().contains("open Java PR #182"));
+        assertTrue(moves.contracts().contains("open PR #182"));
+        assertTrue(moves.limitation().contains("status effects"));
     }
 
     @Test
