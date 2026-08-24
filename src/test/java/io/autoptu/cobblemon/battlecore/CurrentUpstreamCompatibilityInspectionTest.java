@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("2207b04fdf0b9c13fbbb0f6357008db976bdf2f7", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("9e644edec3235586276fadae6a94a1250a783b05", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("5f0df19c14e1e2a9b2bfc64522cf704b483e564e", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("1cc0e5e449e0ad1745abf0d432892fd90998ef1c", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -97,13 +97,13 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moves.limitation().contains("must not register substitute PTU mechanics"));
         assertTrue(abilities.limitation().contains("must not evaluate ability legality"));
         assertTrue(abilities.limitation().contains("registry dispatch"));
-        assertTrue(adapter.contracts().contains("consumes semantic output"));
+        assertTrue(adapter.contracts().contains("downstream projection"));
         assertTrue(adapter.limitation().contains("handler ordering"));
         assertTrue(adapter.limitation().contains("mutable result contents"));
     }
 
     @Test
-    void mergedPreDamageMoveSpecialBridgePromotesOnlyItsVerifiedPhaseBoundary() {
+    void livePreDamageMoveSpecialExecutionPromotesOnlyItsVerifiedPhaseBoundary() {
         CurrentUpstreamCompatibilityInspection.Evidence damage = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
         CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
@@ -115,22 +115,22 @@ class CurrentUpstreamCompatibilityInspectionTest {
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
-        assertTrue(damage.contracts().contains("MoveSpecialPreDamageResolution"));
-        assertTrue(damage.contracts().contains("hit, crit, damage and type_multiplier"));
-        assertTrue(damage.limitation().contains("only one bounded phase seam"));
-        assertTrue(moves.contracts().contains("2207b04"));
-        assertTrue(moves.contracts().contains("runtime-facing PRE_DAMAGE bridge"));
-        assertTrue(moves.contracts().contains("immutable BattleEvents"));
-        assertTrue(moves.contracts().contains("immutable result snapshot"));
+        assertTrue(damage.contracts().contains("5f0df19"));
+        assertTrue(damage.contracts().contains("before defender PRE-damage reactions"));
+        assertTrue(damage.contracts().contains("final HP/history mutation"));
+        assertTrue(damage.limitation().contains("Only PRE_DAMAGE move-special execution is live"));
+        assertTrue(damage.limitation().contains("POST_DAMAGE and END_ACTION parity remain incomplete"));
+        assertTrue(moves.contracts().contains("5f0df19"));
+        assertTrue(moves.contracts().contains("executes MoveSpecialPreDamageResolution inside BattleRuntime"));
         assertTrue(moves.contracts().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(moves.contracts().contains("743ef231a164727cee549d39d4c2b7a898c64cd7c4365931b71008267bdeff53"));
         assertTrue(moves.contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(moves.limitation().contains("does not imply POST_DAMAGE/END_ACTION runtime parity"));
+        assertTrue(moves.limitation().contains("PR #188"));
+        assertTrue(moves.limitation().contains("does not wire POST_DAMAGE into BattleRuntime"));
         assertTrue(moves.limitation().contains("dispatch move-special phases"));
-        assertTrue(abilities.contracts().contains("merged PRE_DAMAGE move-special bridge"));
+        assertTrue(abilities.contracts().contains("executed in the authoritative BattleRuntime"));
         assertTrue(abilities.limitation().contains("do not establish full parity"));
-        assertTrue(adapter.contracts().contains("MoveSpecialPreDamageResolution"));
-        assertTrue(adapter.contracts().contains("rather than mirroring registry handlers or PRE_DAMAGE phase execution"));
+        assertTrue(adapter.contracts().contains("wholly inside AutoPTU-Java BattleRuntime"));
         assertTrue(adapter.limitation().contains("POST_DAMAGE/END_ACTION"));
     }
 
@@ -166,7 +166,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(perks.contracts().contains("9e644ed"));
-        assertTrue(perks.contracts().contains("Career active-roster persistence recovery"));
+        assertTrue(perks.contracts().contains("1cc0e5e"));
+        assertTrue(perks.contracts().contains("Career active-roster and season-progress persistence"));
     }
 }
