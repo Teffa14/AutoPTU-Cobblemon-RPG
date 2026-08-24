@@ -9,7 +9,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("14662fb67778e71f2d55fc7a74c43dd9a8b06fa1", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("cd4668a1b0e7c995bc12f3768f7b04cfa0f1c896", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("0b9da120608343e286e93fa38daa8ecaaf4b5893", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -45,15 +45,19 @@ class CurrentUpstreamCompatibilityInspectionTest {
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).contracts();
         assertTrue(targeting.contains("RuntimeAreaMoveTargeting"));
         assertTrue(targeting.contains("TILE choices"));
+        assertTrue(targeting.contains("hp <= 0"));
+        assertTrue(targeting.contains("inactive positive-HP"));
 
         String abilities = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
         assertTrue(abilities.contains("PRE-damage reaction pipeline"));
 
-        String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
-        assertTrue(perksLimit.contains("cd4668a1"));
-        assertTrue(perksLimit.contains("Career/deploy"));
+        String perks = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
+        assertTrue(perks.contains("TrainerFeatureResourceResolution"));
+        assertTrue(perks.contains("TrainerFeatureUsageResolution"));
+        assertTrue(perks.contains("0b9da120"));
+        assertTrue(perks.contains("Career/deploy"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
