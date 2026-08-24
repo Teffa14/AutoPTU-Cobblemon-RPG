@@ -77,7 +77,7 @@ public final class CurrentUpstreamCompatibilityInspection {
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
                         "StatusStateStore preserves canonical status entries and selected prevention/application behavior is authoritative. Shell Shield authoritatively applies Withdrawn and a DEF combat-stage mutation through the generic PRE-damage seam. Java main f23f5ae freezes the Python Status-move zero-damage execution contract: hit follows ordinary accuracy, crit is false, damage and damage_roll are zero.",
-                        "Complete ticking, expiry, cures, immunities, source-sensitive interactions and generic move-special status application remain partial. The frozen Status execution policy is not a live Status effect executor, and open Java PR #182 must not be treated as merged authority."));
+                        "Complete ticking, expiry, cures, immunities, source-sensitive interactions and generic move-special status application remain partial. Shell Shield does not promote the whole status category. The frozen Status execution policy is not a live Status effect executor, and open Java PR #182 must not be treated as merged authority."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
