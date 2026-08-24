@@ -9,7 +9,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
         assertEquals("7be3c4d3a4edc3324a5953fa371c033a8acabab5", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("a3ff5cc71adb080973522abd604b0248b4447e06", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("7f1e46580cedb629cbf802135b7b1b2f290d286b", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -134,7 +134,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(perks.contracts().contains("a3ff5cc"));
-        assertTrue(perks.contracts().contains("Career loan-return"));
+        assertTrue(perks.contracts().contains("7f1e465"));
+        assertTrue(perks.contracts().contains("Career progression/presentation"));
     }
 }
