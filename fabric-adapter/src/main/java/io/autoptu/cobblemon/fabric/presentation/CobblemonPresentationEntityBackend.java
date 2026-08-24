@@ -61,6 +61,12 @@ public final class CobblemonPresentationEntityBackend
 
     @Override
     public void showCue(PokemonEntity entity, BattlePresentationCommand command) {
-        throw new UnsupportedOperationException("live semantic cues are not implemented yet");
+        Objects.requireNonNull(entity, "entity");
+        Objects.requireNonNull(command, "command");
+
+        // Semantic cues are authoritative rendering inputs. Until a concrete visual renderer is
+        // attached, accepting the cue is intentionally side-effect free. This keeps the Fabric
+        // entity stream ordered without interpreting ability, item, status, terrain, reaction or
+        // Trainer Feature semantics inside Minecraft.
     }
 }
