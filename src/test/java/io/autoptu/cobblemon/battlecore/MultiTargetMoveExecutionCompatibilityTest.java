@@ -18,9 +18,9 @@ final class MultiTargetMoveExecutionCompatibilityTest {
 
     @Test
     void pinsMergedRuntimeAndCurrentReadOnlyPythonInspection() {
-        assertEquals("4f16e07862008b8fb00ee405a9cbc160ae8fbcec",
+        assertEquals("edf8db216ab88a10b896f2bb144cf5d08de49d8e",
                 MultiTargetMoveExecutionCompatibility.INSPECTED_AUTOPTU_JAVA_SHA);
-        assertEquals("928c31a7b72243434536fdf05731ced421403f08",
+        assertEquals("0d56ea7b5a2b99a96f7ac4ca40b405e0ffbf83b8",
                 MultiTargetMoveExecutionCompatibility.INSPECTED_AUTOPTU_PYTHON_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 MultiTargetMoveExecutionCompatibility.PYTHON_ORACLE_PIN_SHA);
@@ -52,6 +52,7 @@ final class MultiTargetMoveExecutionCompatibilityTest {
         assertTrue(policy.contains("must not loop targets to execute PTU effects"));
         assertTrue(policy.contains("roll accuracy or damage"));
         assertTrue(policy.contains("mutate HP/history"));
+        assertTrue(policy.contains("Telepathy"));
         assertTrue(policy.contains("forced-movement semantics remain disabled"));
     }
 }
