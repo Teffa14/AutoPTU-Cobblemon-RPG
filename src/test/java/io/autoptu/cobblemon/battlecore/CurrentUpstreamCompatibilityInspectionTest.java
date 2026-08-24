@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("1f9b721ef2f5e2e1dcc2c6d70a93b13875e5f0db", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("7be3c4d3a4edc3324a5953fa371c033a8acabab5", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
         assertEquals("a3ff5cc71adb080973522abd604b0248b4447e06", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
@@ -73,6 +73,33 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moves.limitation().contains("status application"));
         assertTrue(adapter.contracts().contains("zero-damage Status MoveResolvedEvent playback"));
         assertTrue(adapter.limitation().contains("must not derive effects"));
+    }
+
+    @Test
+    void genericMoveSpecialRegistryIsPromotedOnlyAsAnAuthoritativeSeam() {
+        CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence abilities = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(moves.contracts().contains("MoveSpecialHookRegistry"));
+        assertTrue(moves.contracts().contains("POST_DAMAGE runs move-specific handlers before global handlers"));
+        assertTrue(moves.contracts().contains("other phases run global before specific"));
+        assertTrue(moves.contracts().contains("MoveSpecialResultState"));
+        assertTrue(moves.contracts().contains("shared mutable result mapping"));
+        assertTrue(moves.contracts().contains("dispatch-start snapshot"));
+        assertTrue(moves.limitation().contains("not complete move-special coverage"));
+        assertTrue(moves.limitation().contains("must not register substitute PTU mechanics"));
+        assertTrue(abilities.limitation().contains("must not evaluate ability legality"));
+        assertTrue(abilities.limitation().contains("registry dispatch"));
+        assertTrue(adapter.contracts().contains("consume resulting BattleEvents and canonical state"));
+        assertTrue(adapter.limitation().contains("handler ordering"));
+        assertTrue(adapter.limitation().contains("mutable result contents"));
     }
 
     @Test
