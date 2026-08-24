@@ -10,8 +10,8 @@ package io.autoptu.cobblemon.battlecore;
  * Telepathy or any other PTU reaction rule.</p>
  */
 public final class PreDamageReactionCompatibility {
-    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "28f141be5471e23f660fb2cda09bab02244ee62e";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "894f66771ca3f0d3c331f86c3ab888cdc38dd6f9";
+    public static final String INSPECTED_AUTOPTU_JAVA_SHA = "defabdc87b1f366508cc00b80215689de2a528bd";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "6369b246d84eed173417dfaf01399f1286565ab5";
     public static final String JAVA_TELEPATHY_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private PreDamageReactionCompatibility() {}
