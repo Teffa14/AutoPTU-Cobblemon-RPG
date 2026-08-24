@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 final class PreDamageReactionCompatibilityTest {
     @Test
     void inspectedUpstreamsMatchCurrentReadOnlyHeads() {
-        assertEquals("ab29df99b0ac884805cb90d115818ad92c62a35d",
+        assertEquals("ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee",
                 PreDamageReactionCompatibility.INSPECTED_AUTOPTU_JAVA_SHA);
         assertEquals("65702f3816162c804a926c228d54d405f3236a97",
                 PreDamageReactionCompatibility.INSPECTED_AUTOPTU_PYTHON_SHA);
@@ -18,68 +18,51 @@ final class PreDamageReactionCompatibilityTest {
     }
 
     @Test
-    void authoritativeRuntimePromotionStillKeepsMinecraftProjectionOnly() {
+    void mergedFollowUpRuntimePromotesSwayWhileMinecraftRemainsProjectionOnly() {
         assertTrue(PreDamageReactionCompatibility.genericPreDamageReactionRegistryIsAvailable());
         assertTrue(PreDamageReactionCompatibility.genericPreDamageFollowUpMoveSeamIsAvailable());
         assertTrue(PreDamageReactionCompatibility.preDamageFollowUpExecutionPolicyIsFrozen());
-        assertTrue(PreDamageReactionCompatibility.authoritativeReactionEscapeMovementIsAvailable());
         assertTrue(PreDamageReactionCompatibility.authoritativeAdjacentReactionPushPrimitiveIsAvailable());
-        assertTrue(PreDamageReactionCompatibility.authoritativeThreatenedAreaContextIsAvailable());
-        assertTrue(PreDamageReactionCompatibility.authoritativeEffectiveTargetKindIsAvailable());
-        assertTrue(PreDamageReactionCompatibility.telepathyHookIsParityBacked());
-        assertTrue(PreDamageReactionCompatibility.perceptionHookIsParityBacked());
-        assertTrue(PreDamageReactionCompatibility.perceptionErrataHookIsParityBacked());
-        assertTrue(PreDamageReactionCompatibility.parryHookIsParityBacked());
         assertTrue(PreDamageReactionCompatibility.swayOracleContractIsFrozen());
         assertTrue(PreDamageReactionCompatibility.swayHookIsParityBacked());
-        assertFalse(PreDamageReactionCompatibility.swayLiveRuntimeFollowUpWiringIsAvailable());
-        assertFalse(PreDamageReactionCompatibility.swayAuthoritativeExecutionIsAvailable());
-        assertTrue(PreDamageReactionCompatibility.perceptionReadyAndRoundScopedUsageAreCoreOwned());
-        assertTrue(PreDamageReactionCompatibility.parryReadyAndRoundScopedUsageAreCoreOwned());
+        assertTrue(PreDamageReactionCompatibility.swayLiveRuntimeFollowUpWiringIsAvailable());
+        assertTrue(PreDamageReactionCompatibility.swayAuthoritativeExecutionIsAvailable());
         assertTrue(PreDamageReactionCompatibility.swayUsageGuardAndStandardSpendAreCoreOwned());
-        assertTrue(PreDamageReactionCompatibility.preDamagePipelineOrderingIsParityBacked());
-        assertTrue(PreDamageReactionCompatibility.ordinaryMoveResolutionInvokesPreDamageReactions());
         assertFalse(PreDamageReactionCompatibility.minecraftMayExecutePreDamageReactionRules());
     }
 
     @Test
-    void frozenFollowUpPolicyDoesNotPromoteUnmergedRuntimeWiring() {
-        assertTrue(PreDamageReactionCompatibility.genericPreDamageFollowUpMoveSeamIsAvailable());
-        assertTrue(PreDamageReactionCompatibility.preDamageFollowUpExecutionPolicyIsFrozen());
-        assertTrue(PreDamageReactionCompatibility.swayHookIsParityBacked());
-        assertTrue(PreDamageReactionCompatibility.authoritativeAdjacentReactionPushPrimitiveIsAvailable());
-        assertFalse(PreDamageReactionCompatibility.swayLiveRuntimeFollowUpWiringIsAvailable());
-        assertFalse(PreDamageReactionCompatibility.swayAuthoritativeExecutionIsAvailable());
+    void newlyMergedShellShieldRemainsGenericCoreOwnedReactionBehavior() {
+        assertTrue(PreDamageReactionCompatibility.shellShieldHookIsParityBacked());
         String policy = PreDamageReactionCompatibility.adapterPolicy();
-        assertTrue(policy.contains("frozen PRE-damage follow-up execution policy"));
-        assertTrue(policy.contains("RuntimePreDamageReactionContextFactory"));
-        assertTrue(policy.contains("without a live follow-up executor"));
-        assertTrue(policy.contains("unmerged draft PR #179"));
-        assertTrue(policy.contains("remains blocked end-to-end at the adapter boundary"));
-        assertTrue(policy.contains("must not invoke the registry or follow-up executor"));
+        assertTrue(policy.contains("parity-backed Shell Shield"));
+        assertTrue(policy.contains("same generic PRE-damage registry"));
+        assertTrue(policy.contains("must not invoke the reaction registry or follow-up executor"));
+        assertTrue(policy.contains("evaluate Sway or Shell Shield eligibility"));
+        assertTrue(policy.contains("mutate combat stages/status/HP"));
     }
 
     @Test
-    void reactionStateTargetingAndDecisionsRemainAuthoritativeCoreResponsibilities() {
+    void reactionStateTargetingAndNestedExecutionRemainAuthoritativeCoreResponsibilities() {
         String policy = PreDamageReactionCompatibility.adapterPolicy();
         assertTrue(policy.contains("effective target kind"));
-        assertTrue(policy.contains("Perception and Parry readiness/round-scoped usage"));
+        assertTrue(policy.contains("readiness and usage bookkeeping"));
         assertTrue(policy.contains("optional out-of-turn decisions"));
-        assertTrue(policy.contains("classify a move as melee/ranged/area"));
-        assertTrue(policy.contains("sway_used or sway_redirect"));
-        assertTrue(policy.contains("choose escape or push destinations"));
-        assertTrue(policy.contains("recursively re-resolve a move"));
-        assertTrue(policy.contains("spend STANDARD"));
-        assertTrue(policy.contains("cancel hit, damage or type effectiveness itself"));
+        assertTrue(policy.contains("nested follow-up move execution"));
+        assertTrue(policy.contains("RuntimeMoveResolutionWithFollowUps"));
+        assertTrue(policy.contains("STANDARD spend"));
+        assertTrue(policy.contains("sway_used and sway_redirect"));
+        assertTrue(policy.contains("authoritative adjacent push selection"));
+        assertTrue(policy.contains("recursion protection"));
+        assertTrue(policy.contains("original-hit cancellation"));
     }
 
     @Test
     void adapterMayOnlyRenderEventsThatAlreadyComeFromAuthoritativeCore() {
         assertTrue(PreDamageReactionCompatibility.minecraftMayRenderAuthoritativeReactionEvents());
         String policy = PreDamageReactionCompatibility.adapterPolicy();
-        assertTrue(policy.contains("already emitted by AutoPTU-Java"));
-        assertTrue(policy.contains("Perception, Perception [Errata], Parry and Telepathy"));
-        assertTrue(policy.contains("does not promote Sway"));
+        assertTrue(policy.contains("already produced by AutoPTU-Java"));
+        assertTrue(policy.contains("promotes Sway end-to-end authoritative execution availability only"));
         assertTrue(policy.contains("does not imply complete abilities"));
     }
 }
