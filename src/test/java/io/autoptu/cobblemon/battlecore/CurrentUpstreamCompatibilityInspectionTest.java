@@ -8,8 +8,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("967b16237c6ea93a939bd4acbbe67da979885a60", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("8cf78e737a85f3b57e786154cf0f5781c840624a", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("edf8db216ab88a10b896f2bb144cf5d08de49d8e", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("0d56ea7b5a2b99a96f7ac4ca40b405e0ffbf83b8", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+    }
+
+    @Test
+    void recordsMergedMultiTargetRuntimeWithoutPromotingTheWholeDamageCategory() {
+        CurrentUpstreamCompatibilityInspection.Evidence damage = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
+        assertTrue(damage.contracts().contains("applyAreaUsingAuthoritativeCombatState"));
+        assertTrue(damage.contracts().contains("sequentially"));
+        assertTrue(damage.contracts().contains("exactly once"));
+        assertTrue(damage.limitation().contains("does not establish complete stateful damage parity"));
+        assertTrue(damage.limitation().contains("must not re-run"));
     }
 
     @Test
@@ -29,54 +41,24 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK).support());
 
-        String statuses = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).contracts();
-        String statusLimit = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).limitation();
-        assertTrue(statuses.contains("StatusAbilityPreventionResolver"));
-        assertTrue(statuses.contains("Aroma Veil"));
-        assertTrue(statuses.contains("status_block"));
-        assertTrue(statusLimit.contains("complete status ticking"));
-        assertTrue(statusLimit.contains("charge consumption/removal"));
-        assertTrue(statusLimit.contains("must not evaluate radius"));
+        String targeting = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).contracts();
+        assertTrue(targeting.contains("RuntimeAreaMoveTargeting"));
+        assertTrue(targeting.contains("TILE choices"));
 
         String abilities = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.ABILITIES).contracts();
-        String abilityLimit = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.ABILITIES).limitation();
-        assertTrue(abilities.contains("Mirror Armor"));
-        assertTrue(abilities.contains("CombatStagePreventionHookRegistry"));
-        assertTrue(abilities.contains("CombatStageMutationService"));
-        assertTrue(abilities.contains("effect=reflect"));
-        assertTrue(abilities.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(abilityLimit.contains("not complete ability support"));
-        assertTrue(abilityLimit.contains("recursive-hook suppression"));
-        assertTrue(abilityLimit.contains("Minecraft must not decide reflection eligibility"));
+        assertTrue(abilities.contains("PRE-damage reaction pipeline"));
+        assertTrue(abilities.contains("Telepathy"));
 
         String perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).contracts();
-        String perksLimit = CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).limitation();
-        assertTrue(perks.contains("only after the effect reports applied"));
-        assertTrue(perks.contains("grant_temp_hp"));
-        assertTrue(perks.contains("grant_ap"));
-        assertTrue(perks.contains("apply_status"));
-        assertTrue(perks.contains("remove_status"));
-        assertTrue(perks.contains("8cf78e73"));
-        assertTrue(perksLimit.contains("wider Python effect library"));
-        assertTrue(perksLimit.contains("must not grant Features"));
+        assertTrue(perks.contains("TrainerFeatureResourceResolution"));
+        assertTrue(perks.contains("0d56ea7b"));
 
         CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
-        assertTrue(adapter.contracts().contains("world-scoped create-only registry"));
-        assertTrue(adapter.contracts().contains("opaque Cobblemon identity correlation"));
-        assertTrue(adapter.contracts().contains("lazy CanonicalWildRosterSource"));
-        assertTrue(adapter.contracts().contains("Mirror Armor reflect"));
-        assertTrue(adapter.limitation().contains("authenticated graphical client encounter"));
-        assertTrue(adapter.limitation().contains("trusted projection code must register"));
-        assertTrue(adapter.limitation().contains("canonical encounter ID or PTU values from Cobblemon"));
-        assertTrue(adapter.limitation().contains("registries remain lifecycle-scoped"));
-        assertTrue(adapter.limitation().contains("RuntimeCombatantState materialization"));
-        assertTrue(adapter.limitation().contains("Mirror Armor legality"));
+        assertTrue(adapter.contracts().contains("authoritative multi-target event projection"));
+        assertTrue(adapter.limitation().contains("Minecraft must not execute PTU area rules"));
     }
 }
