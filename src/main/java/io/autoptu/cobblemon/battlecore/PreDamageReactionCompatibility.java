@@ -9,7 +9,7 @@ package io.autoptu.cobblemon.battlecore;
  */
 public final class PreDamageReactionCompatibility {
     public static final String INSPECTED_AUTOPTU_JAVA_SHA = "359c31638448f23b6da230679988e42f21777abc";
-    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "cdae95536ff1b8bff0a97665c99bb25925e01be6";
+    public static final String INSPECTED_AUTOPTU_PYTHON_SHA = "a868d8a95b467030187482c4bf61da600bab912d";
     public static final String JAVA_TELEPATHY_ORACLE_PIN_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private PreDamageReactionCompatibility() {}
