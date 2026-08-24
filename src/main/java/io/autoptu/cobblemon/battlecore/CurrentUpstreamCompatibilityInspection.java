@@ -5,8 +5,8 @@ import java.util.Map;
 
 /** Records exact read-only upstream heads and bounded evidence for the current integration slice. */
 public final class CurrentUpstreamCompatibilityInspection {
-    public static final String AUTOPTU_JAVA_SHA = "f23f5aebe51f50d8aa32449878f13e5f4c644f1f";
-    public static final String AUTOPTU_PYTHON_SHA = "03321a2eba42437180fddf5c4b2570c50ba429a6";
+    public static final String AUTOPTU_JAVA_SHA = "1f9b721ef2f5e2e1dcc2c6d70a93b13875e5f0db";
+    public static final String AUTOPTU_PYTHON_SHA = "a3ff5cc71adb080973522abd604b0248b4447e06";
 
     public record Evidence(UpstreamCompatibilityMatrix.Support support, String contracts, String limitation) {
         public Evidence {
@@ -34,7 +34,7 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "EffectiveMoveTargetResolver and RuntimeAreaMoveTargeting derive and revalidate authoritative targets, footprints, range, area anchors, line of sight, HP eligibility including hp <= 0 exclusion, inactive positive-HP candidate preservation, and stable target order from BattleRuntimeState.",
+                        "EffectiveMoveTargetResolver and RuntimeAreaMoveTargeting derive and revalidate authoritative targets, footprints, range, area anchors, line of sight, HP eligibility including hp <= 0 exclusion, inactive positive-HP candidate preservation, and stable target order from BattleRuntimeState. StatusMoveRuntimeResolution reuses MoveChoiceRevalidation for combatant-target Status moves.",
                         "Minecraft must not supply effective target lists, target anchors, footprint overlap, line-of-sight results, HP eligibility filters or a generic active-state filter."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.CORE_MOVEMENT_LEGALITY,
@@ -52,14 +52,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.CORE_CALCULATIONS_AND_COMBAT_STATS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "Damage-base tables, type effectiveness, STAB, accuracy/evasion stages, CombatantStatProfile, CombatStageMutationService and selected parity-backed prevention/reflection hooks are core-owned.",
+                        "Damage-base tables, type effectiveness, STAB, accuracy/evasion stages, CombatantStatProfile, CombatStageMutationService and selected parity-backed prevention/reflection hooks are core-owned. StatusMoveRuntimeResolution resolves ordinary authoritative accuracy but deliberately skips physical/special damage arithmetic.",
                         "Minecraft may project authoritative results and stages only; it must not calculate accuracy, damage, stage legality, prevention or reflection."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "BattleRuntimeState, TrainerRuntimeState, ActionBudget, RuntimeInitiativeOrderAssembly and InitiativeRoundRebuilder own initiative and declaration resources. TemporaryApGrant state and temporary AP grants/expiry are core-owned. PRE-damage follow-up execution reuses the authoritative runtime without spending ordinary action economy or move frequency twice; Sway's STANDARD spend remains hook-owned.",
-                        "Minecraft must not spend/refund actions, validate frequency, grant temporary AP, perform temporary AP grants/expiry, rebuild initiative or duplicate reaction resource consumption."));
+                        "BattleRuntimeState, TrainerRuntimeState, ActionBudget, RuntimeInitiativeOrderAssembly and InitiativeRoundRebuilder own initiative and declaration resources. TemporaryApGrant state and temporary AP grants/expiry are core-owned. PRE-damage follow-up execution reuses the authoritative runtime without spending ordinary action economy or move frequency twice; Sway's STANDARD spend remains hook-owned. StatusMoveRuntimeResolution consumes the declared action and records move-frequency use exactly once on hit or miss.",
+                        "Minecraft must not spend/refund actions, validate frequency, grant temporary AP, perform temporary AP grants/expiry, rebuild initiative or duplicate reaction/resource consumption."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_TURN_ROUND_LIFECYCLE,
                 new Evidence(
@@ -70,14 +70,14 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "RuntimeMoveResolution owns canonical accuracy/damage, PRE/post hooks, sequential authoritative area resolution, HP/history mutation and declaration-level resource bookkeeping. RuntimeMoveResolutionWithFollowUps now executes PRE-damage follow-up moves synchronously through the authoritative runtime.",
-                        "This does not establish complete modifier parity across all moves, abilities, items and terrain. Minecraft must not re-run damage, hooks, HP/history mutation or nested follow-up resolution."));
+                        "RuntimeMoveResolution owns canonical accuracy/damage, PRE/post hooks, sequential authoritative area resolution, HP/history mutation and declaration-level resource bookkeeping. RuntimeMoveResolutionWithFollowUps executes PRE-damage follow-up moves synchronously through the authoritative runtime. StatusMoveRuntimeResolution now provides the verified non-damaging Status execution branch without mutating HP or damage history.",
+                        "This does not establish complete modifier parity across all moves, abilities, items and terrain. Minecraft must not re-run damage, hooks, HP/history mutation, nested follow-up resolution or infer Status effects from a zero-damage result."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "StatusStateStore preserves canonical status entries and selected prevention/application behavior is authoritative. Shell Shield authoritatively applies Withdrawn and a DEF combat-stage mutation through the generic PRE-damage seam. Java main f23f5ae freezes the Python Status-move zero-damage execution contract: hit follows ordinary accuracy, crit is false, damage and damage_roll are zero.",
-                        "Complete ticking, expiry, cures, immunities, source-sensitive interactions and generic move-special status application remain partial. Shell Shield does not promote the whole status category. The frozen Status execution policy is not a live Status effect executor, and open Java PR #182 must not be treated as merged authority."));
+                        "StatusStateStore preserves canonical status entries and selected prevention/application behavior is authoritative. Shell Shield authoritatively applies Withdrawn and a DEF combat-stage mutation through the generic PRE-damage seam. Java main 1f9b721 merges StatusMoveRuntimeResolution: combatant-target Status moves use ordinary accuracy, crit is false, damage is zero, HP and damage history are unchanged, and action/frequency resources are spent once.",
+                        "Complete ticking, expiry, cures, immunities, source-sensitive interactions and generic move-special status application remain partial. A successful Status move resolution does not itself apply any status or move-special effect; Minecraft must wait for upstream generic effect hooks/events instead of inventing them."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.TERRAIN_WEATHER_HAZARDS_ZONES_REACTIONS,
                 new Evidence(
@@ -88,8 +88,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Authoritative MoveSpec metadata, move-frequency enforcement, delayed-hit support, area targeting and the generic PRE-damage follow-up move execution seam are present for verified contracts. DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. Stored target_position remains an authoritative aim anchor; current geometry, footprints, line of sight and HP eligibility determine affected combatants, while live target IDs follow current authoritative positions. Java main freezes the generic Status move execution policy, but live zero-damage Status execution remains in open PR #182.",
-                        "Unported move specials remain core-owned. Minecraft must not choose delayed targets, supply RNG/combat inputs, consume or refund move frequency/actions, or infer push, pull, crash, contact, status effects or other move semantics from text or presentation metadata."));
+                        "Authoritative MoveSpec metadata, move-frequency enforcement, delayed-hit support, area targeting, PRE-damage follow-up execution and merged combatant-target zero-damage Status execution are present for their verified contracts. DelayedHitBindingResolver expands stale target-id anchors and position-only delayed requests through EffectiveMoveTargetResolver. StatusMoveRuntimeResolution emits MoveResolvedEvent with authoritative hit/miss, crit=false, damage=0 and unchanged target HP.",
+                        "Unported move specials remain core-owned. Minecraft must not choose delayed targets, supply RNG/combat inputs, consume or refund move frequency/actions, or infer push, pull, crash, contact, status application, stat changes or other move semantics from text or presentation metadata."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.ABILITIES,
                 new Evidence(
@@ -106,13 +106,13 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "TrainerRuntimeState plus TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are parity-backed for bounded families. AutoPTU Python main 03321a2 was inspected read-only; its newest changes are Career sponsor-market behavior and do not promote Trainer Feature coverage.",
+                        "TrainerRuntimeState plus TrainerFeaturePrerequisiteResolution, TrainerFeatureContextResolution, TrainerFeatureFrequencyResolution, TrainerFeatureResourceResolution and TrainerFeatureUsageResolution are parity-backed for bounded families. AutoPTU Python main a3ff5cc was inspected read-only; its newest changes are Career loan-return preview behavior and do not promote Trainer Feature coverage.",
                         "Trainer Features remain partial. Minecraft must not grant Features, decide gates, mutate AP/resources or execute missing effects."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_LEGAL_ACTION_INFRASTRUCTURE,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.VERIFIED,
-                        "RuntimeAutobattlerActionSpace derives immutable legal BattleChoice values from canonical state and authoritative lifecycle/action availability.",
+                        "RuntimeAutobattlerActionSpace derives immutable legal BattleChoice values from canonical state and authoritative lifecycle/action availability. Status execution still requires a legal combatant-target MoveChoice and live MoveChoiceRevalidation.",
                         "AI or Minecraft may select only from core-produced legal choices and must not manufacture legality."));
 
         result.put(UpstreamCompatibilityMatrix.Capability.AI_TACTICAL_SCORING_POLICY,
@@ -124,8 +124,8 @@ public final class CurrentUpstreamCompatibilityInspection {
         result.put(UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK,
                 new Evidence(
                         UpstreamCompatibilityMatrix.Support.PARTIAL,
-                        "Fabric/Cobblemon dedicated-server smoke coverage, authenticated identity, canonical reservations, live entity projection and generic semantic-event playback are present. The adapter can project authoritative PRE-damage cues and supported relocation without mechanic-specific legality branches.",
-                        "Authenticated graphical campaign battle playback, complete RuntimeCombatantState materialization and full entity lifecycle remain pending. Minecraft must remain projection-only and must not execute the open Status-move runtime contract until Java authority is merged and verified."));
+                        "Fabric/Cobblemon dedicated-server smoke coverage, authenticated identity, canonical reservations, live entity projection and generic semantic-event playback are present. The adapter may now project authoritative zero-damage Status MoveResolvedEvent playback because Java owns the declaration legality, accuracy result and resource spend.",
+                        "Authenticated graphical campaign battle playback, complete RuntimeCombatantState materialization and full entity lifecycle remain pending. Status or move-special effects remain deferred until upstream emits authoritative generic effect/state events; Minecraft must not derive effects from move names, descriptions or damage=0."));
 
         return Map.copyOf(result);
     }
