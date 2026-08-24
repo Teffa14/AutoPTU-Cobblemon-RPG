@@ -11,7 +11,7 @@ final class PreDamageReactionCompatibilityTest {
     void inspectedUpstreamsMatchCurrentReadOnlyHeads() {
         assertEquals("ab520743d8d99f06fa28fd4d6fa06a0c4ecd3fee",
                 PreDamageReactionCompatibility.INSPECTED_AUTOPTU_JAVA_SHA);
-        assertEquals("65702f3816162c804a926c228d54d405f3236a97",
+        assertEquals("03321a2eba42437180fddf5c4b2570c50ba429a6",
                 PreDamageReactionCompatibility.INSPECTED_AUTOPTU_PYTHON_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 PreDamageReactionCompatibility.JAVA_PRE_DAMAGE_ORACLE_PIN_SHA);
