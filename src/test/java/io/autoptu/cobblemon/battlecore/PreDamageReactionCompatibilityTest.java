@@ -16,6 +16,8 @@ final class PreDamageReactionCompatibilityTest {
         assertTrue(PreDamageReactionCompatibility.perceptionHookIsParityBacked());
         assertTrue(PreDamageReactionCompatibility.perceptionErrataHookIsParityBacked());
         assertTrue(PreDamageReactionCompatibility.parryHookIsParityBacked());
+        assertTrue(PreDamageReactionCompatibility.swayOracleContractIsFrozen());
+        assertFalse(PreDamageReactionCompatibility.swayAuthoritativeExecutionIsAvailable());
         assertTrue(PreDamageReactionCompatibility.perceptionReadyAndRoundScopedUsageAreCoreOwned());
         assertTrue(PreDamageReactionCompatibility.parryReadyAndRoundScopedUsageAreCoreOwned());
         assertTrue(PreDamageReactionCompatibility.preDamagePipelineOrderingIsParityBacked());
@@ -32,9 +34,19 @@ final class PreDamageReactionCompatibilityTest {
         assertTrue(policy.contains("must not invoke the registry"));
         assertTrue(policy.contains("classify a move as melee/ranged/area"));
         assertTrue(policy.contains("consume perception_ready or parry_ready"));
-        assertTrue(policy.contains("create perception_used or parry_used"));
-        assertTrue(policy.contains("choose escape destinations"));
+        assertTrue(policy.contains("sway_used or sway_redirect"));
+        assertTrue(policy.contains("choose escape or push destinations"));
+        assertTrue(policy.contains("recursively re-resolve a move"));
         assertTrue(policy.contains("cancel hit, damage or type effectiveness itself"));
+    }
+
+    @Test
+    void frozenSwayOracleDoesNotPromoteUnimplementedJavaExecution() {
+        assertTrue(PreDamageReactionCompatibility.swayOracleContractIsFrozen());
+        assertFalse(PreDamageReactionCompatibility.swayAuthoritativeExecutionIsAvailable());
+        String policy = PreDamageReactionCompatibility.adapterPolicy();
+        assertTrue(policy.contains("Sway remains blocked at the adapter boundary"));
+        assertTrue(policy.contains("records Sway only as a frozen oracle contract"));
     }
 
     @Test
