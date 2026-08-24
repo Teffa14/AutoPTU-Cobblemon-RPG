@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("7be3c4d3a4edc3324a5953fa371c033a8acabab5", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("7f1e46580cedb629cbf802135b7b1b2f290d286b", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("a2ccd31a50c9ce4e86e7dc5401e8be80fe619cae", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("fc9fdcdc2812a2b85f87f4f86e2d421a7575a3da", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -93,13 +93,36 @@ class CurrentUpstreamCompatibilityInspectionTest {
         assertTrue(moves.contracts().contains("MoveSpecialResultState"));
         assertTrue(moves.contracts().contains("shared mutable result mapping"));
         assertTrue(moves.contracts().contains("dispatch-start snapshot"));
-        assertTrue(moves.limitation().contains("not complete move-special coverage"));
+        assertTrue(moves.limitation().contains("not complete move-special runtime coverage"));
         assertTrue(moves.limitation().contains("must not register substitute PTU mechanics"));
         assertTrue(abilities.limitation().contains("must not evaluate ability legality"));
         assertTrue(abilities.limitation().contains("registry dispatch"));
         assertTrue(adapter.contracts().contains("consume resulting BattleEvents and canonical state"));
         assertTrue(adapter.limitation().contains("handler ordering"));
         assertTrue(adapter.limitation().contains("mutable result contents"));
+    }
+
+    @Test
+    void frozenMoveSpecialExecutionOrderDoesNotPromoteUnmergedRuntimeBridge() {
+        CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence abilities = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
+        assertTrue(moves.contracts().contains("a2ccd31"));
+        assertTrue(moves.contracts().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
+        assertTrue(moves.contracts().contains("743ef231a164727cee549d39d4c2b7a898c64cd7c4365931b71008267bdeff53"));
+        assertTrue(moves.contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(moves.limitation().contains("PR #186"));
+        assertTrue(moves.limitation().contains("not merged"));
+        assertTrue(moves.limitation().contains("must not treat the frozen call-site order as executable move-special authority"));
+        assertTrue(moves.limitation().contains("dispatch move-special phases"));
+        assertTrue(abilities.contracts().contains("PRE_DAMAGE/POST_DAMAGE/END_ACTION execution-order contract"));
+        assertTrue(adapter.contracts().contains("rather than mirror registry handlers or phase call sites"));
+        assertTrue(adapter.limitation().contains("call-site phase order"));
     }
 
     @Test
@@ -134,7 +157,7 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(perks.contracts().contains("7f1e465"));
-        assertTrue(perks.contracts().contains("Career progression/presentation"));
+        assertTrue(perks.contracts().contains("fc9fdcd"));
+        assertTrue(perks.contracts().contains("Career leaderboard/club-transition"));
     }
 }
