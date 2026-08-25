@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("7cd765e87fa4254789eb40e8d14f91e1251631ad",
+        assertEquals("d64d6417dc89c1aca878d0a8fd6b526921b8e193",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("87df4bcae3200324f50b71ce5438bebd62b955b9",
+        assertEquals("54edaa5377589d8d182f91260845389ae694300c",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -127,12 +127,11 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void draftSecondaryStatusApplicationReusesCanonicalPreventionButDoesNotPromoteAuthority() {
-        assertEquals(205, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_APPLICATION_PR);
-        assertEquals("8e1caefdfa1adff1d3835dbbb407ac2a33eeb37a",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_APPLICATION_HEAD_SHA);
-        String boundary = CurrentUpstreamDevelopmentWatch.openSecondaryStatusApplicationBoundary();
-        assertTrue(boundary.contains("draft PR #205"));
+    void mergedSecondaryStatusApplicationStillDoesNotPromoteLiveAdapterAuthority() {
+        assertEquals(205, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_SECONDARY_STATUS_APPLICATION_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedSecondaryStatusApplicationBoundary();
+        assertTrue(boundary.contains("PR #205 is merged"));
+        assertTrue(boundary.contains("d64d6417dc89c1aca878d0a8fd6b526921b8e193"));
         assertTrue(boundary.contains("StatusApplicationResolution"));
         assertTrue(boundary.contains("BuiltinStatusApplicationHooks"));
         assertTrue(boundary.contains("no live POST_DAMAGE wiring"));
@@ -144,11 +143,26 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
+    void draftAccuracyRollTransportRemainsFailClosedUntilLiveRuntimeWiring() {
+        assertEquals(206, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_ACCURACY_ROLL_TRANSPORT_PR);
+        assertEquals("a2d61a4eebd07143e2fa6760ceb6088bf34f264c",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_ACCURACY_ROLL_TRANSPORT_HEAD_SHA);
+        String boundary = CurrentUpstreamDevelopmentWatch.openAccuracyRollTransportBoundary();
+        assertTrue(boundary.contains("draft PR #206"));
+        assertTrue(boundary.contains("server-owned accuracy d20"));
+        assertTrue(boundary.contains("MoveSpecialPreDamageResolution"));
+        assertTrue(boundary.contains("does not wire BattleRuntime"));
+        assertTrue(boundary.contains("must not generate, inject, infer or locally consume"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+    }
+
+    @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = CurrentUpstreamDevelopmentWatch.pythonMainObservation();
-        assertTrue(observation.contains("87df4bcae3200324f50b71ce5438bebd62b955b9"));
+        assertTrue(observation.contains("54edaa5377589d8d182f91260845389ae694300c"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("battle._apply_status"));
+        assertTrue(observation.contains("shared move-result roll"));
         assertTrue(observation.contains("reference-only"));
     }
 }
