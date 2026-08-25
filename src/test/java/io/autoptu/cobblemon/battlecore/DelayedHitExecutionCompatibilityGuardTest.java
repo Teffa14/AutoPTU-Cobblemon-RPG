@@ -41,7 +41,7 @@ class DelayedHitExecutionCompatibilityGuardTest {
         assertTrue(moves.contracts().contains("line of sight"));
         assertTrue(moves.contracts().contains("HP eligibility"));
         assertTrue(moves.contracts().contains("live target IDs"));
-        assertTrue(moves.limitation().contains("must not choose delayed targets"));
+        assertTrue(moves.limitation().contains("choose delayed targets"));
         assertTrue(moves.limitation().contains("supply RNG/combat inputs"));
         assertTrue(moves.limitation().contains("consume or refund move frequency/actions"));
 

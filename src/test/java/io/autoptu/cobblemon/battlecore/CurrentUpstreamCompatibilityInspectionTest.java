@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamCompatibilityInspectionTest {
     @Test
     void pinsTheActuallyInspectedUpstreamHeads() {
-        assertEquals("1f9b721ef2f5e2e1dcc2c6d70a93b13875e5f0db", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
-        assertEquals("a3ff5cc71adb080973522abd604b0248b4447e06", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
+        assertEquals("3caac611a987322a70dbdc34c56d613b96dadb92", CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
+        assertEquals("5ab2c175be6542b867f1676cf6848b9b15fd346f", CurrentUpstreamCompatibilityInspection.AUTOPTU_PYTHON_SHA);
     }
 
     @Test
@@ -76,6 +76,91 @@ class CurrentUpstreamCompatibilityInspectionTest {
     }
 
     @Test
+    void genericMoveSpecialRegistryIsPromotedOnlyAsAnAuthoritativeSeam() {
+        CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence abilities = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, abilities.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, adapter.support());
+        assertTrue(moves.contracts().contains("MoveSpecialHookRegistry"));
+        assertTrue(moves.contracts().contains("POST_DAMAGE runs move-specific handlers before global handlers"));
+        assertTrue(moves.contracts().contains("other phases run global before specific"));
+        assertTrue(moves.contracts().contains("MoveSpecialResultState"));
+        assertTrue(moves.contracts().contains("shared mutable result mapping"));
+        assertTrue(moves.contracts().contains("dispatch-start snapshot"));
+        assertTrue(moves.limitation().contains("complete move-special coverage"));
+        assertTrue(moves.limitation().contains("must not register substitute PTU mechanics"));
+        assertTrue(abilities.limitation().contains("must not evaluate ability legality"));
+        assertTrue(abilities.limitation().contains("registry dispatch"));
+        assertTrue(adapter.contracts().contains("authoritative transport semantics"));
+        assertTrue(adapter.limitation().contains("handler ordering"));
+        assertTrue(adapter.limitation().contains("mutable result contents"));
+    }
+
+    @Test
+    void mergedPostDamageBridgeRemainsFailClosedUntilRuntimeOwnsThePhase() {
+        CurrentUpstreamCompatibilityInspection.Evidence damage = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
+        CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
+        assertTrue(damage.contracts().contains("3caac61"));
+        assertTrue(damage.contracts().contains("MoveSpecialPostDamageResolution"));
+        assertTrue(damage.contracts().contains("already-applied damage_dealt"));
+        assertTrue(damage.contracts().contains("bridge contract rather than a BattleRuntime call site"));
+        assertTrue(damage.limitation().contains("Only PRE_DAMAGE move-special execution is live"));
+        assertTrue(damage.limitation().contains("not wired into BattleRuntime"));
+        assertTrue(damage.limitation().contains("item/HP/history interactions"));
+
+        assertTrue(moves.contracts().contains("specific-before-global ordering"));
+        assertTrue(moves.contracts().contains("later POST mutations are not retroactive HP authority"));
+        assertTrue(moves.limitation().contains("MoveSpecialPostDamageResolution is not wired into BattleRuntime"));
+        assertTrue(moves.limitation().contains("dispatch move-special phases"));
+
+        assertTrue(adapter.contracts().contains("does not create downstream execution authority"));
+        assertTrue(adapter.limitation().contains("POST_DAMAGE/END_ACTION"));
+        assertTrue(adapter.limitation().contains("damage_dealt transport"));
+    }
+
+    @Test
+    void livePreDamageMoveSpecialExecutionPromotesOnlyItsVerifiedPhaseBoundary() {
+        CurrentUpstreamCompatibilityInspection.Evidence damage = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE);
+        CurrentUpstreamCompatibilityInspection.Evidence moves = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR);
+        CurrentUpstreamCompatibilityInspection.Evidence abilities = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.ABILITIES);
+        CurrentUpstreamCompatibilityInspection.Evidence adapter = CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK);
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, damage.support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, moves.support());
+        assertTrue(damage.contracts().contains("MoveSpecialPreDamageResolution live inside BattleRuntime"));
+        assertTrue(damage.contracts().contains("before defender PRE-damage reactions"));
+        assertTrue(damage.limitation().contains("Only PRE_DAMAGE move-special execution is live"));
+        assertTrue(damage.limitation().contains("POST_DAMAGE and END_ACTION runtime parity remain incomplete"));
+        assertTrue(moves.contracts().contains("3caac61"));
+        assertTrue(moves.contracts().contains("MoveSpecialPreDamageResolution live in BattleRuntime"));
+        assertTrue(moves.contracts().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
+        assertTrue(moves.contracts().contains("743ef231a164727cee549d39d4c2b7a898c64cd7c4365931b71008267bdeff53"));
+        assertTrue(moves.contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(moves.limitation().contains("not wired into BattleRuntime"));
+        assertTrue(moves.limitation().contains("dispatch move-special phases"));
+        assertTrue(abilities.contracts().contains("executed in the authoritative BattleRuntime"));
+        assertTrue(abilities.limitation().contains("do not establish full parity"));
+        assertTrue(adapter.contracts().contains("wholly inside AutoPTU-Java BattleRuntime"));
+        assertTrue(adapter.limitation().contains("POST_DAMAGE/END_ACTION"));
+    }
+
+    @Test
     void statusRuntimeStillDependsOnCoreTargetingActionEconomyAndLegalChoices() {
         CurrentUpstreamCompatibilityInspection.Evidence targeting = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.CORE_TARGETING);
@@ -107,7 +192,8 @@ class CurrentUpstreamCompatibilityInspectionTest {
         CurrentUpstreamCompatibilityInspection.Evidence perks = CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS);
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL, perks.support());
-        assertTrue(perks.contracts().contains("a3ff5cc"));
-        assertTrue(perks.contracts().contains("Career loan-return"));
+        assertTrue(perks.contracts().contains("5ab2c17"));
+        assertTrue(perks.contracts().contains("guarding repeated stalled battle retry clicks"));
+        assertTrue(perks.contracts().contains("do not promote Trainer Feature or battle-oracle coverage"));
     }
 }

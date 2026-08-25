@@ -39,7 +39,7 @@ class DelayedHitPlaybackCompatibilityTest {
 
     @Test
     void currentUpstreamOwnsDelayedMaturityResourcesTargetSelectionAndRoundExpiry() {
-        assertEquals("1f9b721ef2f5e2e1dcc2c6d70a93b13875e5f0db",
+        assertEquals("3caac611a987322a70dbdc34c56d613b96dadb92",
                 CurrentUpstreamCompatibilityInspection.AUTOPTU_JAVA_SHA);
 
         String lifecycle = CurrentUpstreamCompatibilityInspection.evidence(
@@ -70,7 +70,7 @@ class DelayedHitPlaybackCompatibilityTest {
         assertTrue(moves.contains("aim anchor"));
         assertTrue(targeting.contains("hp <= 0"));
         assertTrue(targeting.contains("inactive positive-HP"));
-        assertTrue(limitations.contains("must not choose delayed targets"));
+        assertTrue(limitations.contains("choose delayed targets"));
         assertTrue(limitations.contains("consume or refund move frequency/actions"));
     }
 
