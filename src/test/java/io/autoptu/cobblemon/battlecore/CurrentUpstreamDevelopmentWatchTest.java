@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("3d9be13bfd3c89361e58c35e2df6a3265b57f93b",
+        assertEquals("3825f32490c405a3d541c5eddf4b04097b4d1e69",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("e6aa730a77e25142f5308eaa3a738dc66ba34bbb",
+        assertEquals("fbeff1a0ba81d2f8dea2e395f21971cd9d756d77",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -94,22 +94,35 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void openCanonicalEffectsTextWorkDoesNotPromoteAdapterAuthority() {
-        assertEquals(199, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_MOVE_EFFECTS_TEXT_PR);
-        assertEquals("2e6efccc9dc5ac373a0945fcf60c1dddbc025833",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_MOVE_EFFECTS_TEXT_HEAD_SHA);
-        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("draft PR #199"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("server-owned MoveSpec"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("not client or Minecraft-supplied rule text"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("must not send rules text"));
+    void mergedCanonicalEffectsTextRemainsServerOwnedAndDoesNotPromoteRuntime() {
+        assertEquals(199, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_MOVE_EFFECTS_TEXT_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("PR #199 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("3825f32490c405a3d541c5eddf4b04097b4d1e69"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("server-owned MoveSpec"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("server-owned canonical fallback"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("must not send rules text"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+    }
+
+    @Test
+    void openStackedStatStratagemParityGapDoesNotPromoteAdapterAuthority() {
+        assertEquals(200, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR);
+        assertEquals("89f1900e50b3e7c48925105d36083642ef1026b1",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_STAT_STRATAGEM_STACKS_HEAD_SHA);
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("draft PR #200"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("every matching stat_stratagem"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("Java main"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("single boolean application"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("must not count Stat Stratagem effects"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenEffectRollOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("e6aa730a77e25142f5308eaa3a738dc66ba34bbb"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("fbeff1a0ba81d2f8dea2e395f21971cd9d756d77"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("immutable_mind_block"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("effect_range_block"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("every stat_stratagem entry"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("_effects_text_for"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
