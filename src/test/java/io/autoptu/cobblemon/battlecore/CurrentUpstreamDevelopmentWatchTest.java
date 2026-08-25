@@ -3,27 +3,27 @@ package io.autoptu.cobblemon.battlecore;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("e2fc29f32a5204d564947219c0e25a4e625b4e66",
+        assertEquals("b0dc8cc2fc6fba5d1fa3799485545d0c48b6f18a",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("4f75b652fa14e935b0f0f7c2903b946cfbb56526",
+        assertEquals("0a2b4e924e11567fa0e3cc0e4f4045ab141f7163",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
     @Test
-    void mergedTimingSeamAndOpenReactionHandoffCannotPromoteMinecraftAuthority() {
+    void mergedLivePostDamagePromotesOnlyJavaOwnedPhaseExecution() {
         assertEquals(189, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR);
-        assertEquals(190, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_REACTION_HANDOFF_PR);
-        assertFalse(CurrentUpstreamDevelopmentWatch.postDamageRuntimeMayBePromoted());
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("#189 is merged"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("not a BattleRuntime call site"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("#190"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("fail-closed"));
+        assertEquals(190, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR);
+        assertEquals(191, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeMayBePromoted());
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("#191 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("BattleRuntime"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("after the authoritative move outcome"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("END_ACTION"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -33,16 +33,19 @@ class CurrentUpstreamDevelopmentWatchTest {
                         UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE)
-                .limitation().contains("POST_DAMAGE and END_ACTION runtime parity remain incomplete"));
+                .contracts().contains("POST_DAMAGE"));
+        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE)
+                .limitation().contains("END_ACTION"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK)
-                .limitation().contains("POST_DAMAGE/END_ACTION"));
+                .contracts().contains("POST_DAMAGE"));
     }
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career relationship-role"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("does not replace"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career narrative-cache"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
                 .contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
