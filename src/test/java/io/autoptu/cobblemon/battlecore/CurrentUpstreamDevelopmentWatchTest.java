@@ -9,18 +9,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("3caac611a987322a70dbdc34c56d613b96dadb92",
+        assertEquals("e2fc29f32a5204d564947219c0e25a4e625b4e66",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("6affb828cc72ab76e6952847e2275d14d166d216",
+        assertEquals("4f75b652fa14e935b0f0f7c2903b946cfbb56526",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
     @Test
-    void openPostDamageTimingWorkCannotPromoteMinecraftAuthority() {
-        assertEquals(189, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_POST_DAMAGE_TIMING_PR);
+    void mergedTimingSeamAndOpenReactionHandoffCannotPromoteMinecraftAuthority() {
+        assertEquals(189, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR);
+        assertEquals(190, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_REACTION_HANDOFF_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.postDamageRuntimeMayBePromoted());
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("open"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("not part of main"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("#189 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("not a BattleRuntime call site"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("#190"));
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBlocker().contains("fail-closed"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
@@ -39,7 +41,7 @@ class CurrentUpstreamDevelopmentWatchTest {
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career sponsor-settlement"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career relationship-role"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("does not replace"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
