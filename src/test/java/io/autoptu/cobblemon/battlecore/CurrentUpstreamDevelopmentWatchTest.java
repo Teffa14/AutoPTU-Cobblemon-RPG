@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.battlecore;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CurrentUpstreamDevelopmentWatchTest {
@@ -10,7 +11,7 @@ class CurrentUpstreamDevelopmentWatchTest {
     void pinsCurrentReadOnlyUpstreamHeads() {
         assertEquals("b0dc8cc2fc6fba5d1fa3799485545d0c48b6f18a",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("0a2b4e924e11567fa0e3cc0e4f4045ab141f7163",
+        assertEquals("b7f8fbba1221222a61af2fe6a23d047d8b61bcbb",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -43,9 +44,26 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
+    void openEndActionBridgeRemainsFailClosedForAdapterAuthority() {
+        assertEquals(192, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_BRIDGE_PR);
+        assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("#192 is open and draft"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("defender is absent"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("last per-target result"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("total action damage"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("does not wire END_ACTION"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("failing workflow checks"));
+        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
+                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
+                .limitation().contains("END_ACTION"));
+    }
+
+    @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career narrative-cache"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career save-isolation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("defender=None"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("result=last_result"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("damage_dealt=total_damage_dealt"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
                 .contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
