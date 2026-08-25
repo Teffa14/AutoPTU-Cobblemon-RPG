@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("d64d6417dc89c1aca878d0a8fd6b526921b8e193",
+        assertEquals("f6115543da34bae91353c302a635913906656c2a",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("54edaa5377589d8d182f91260845389ae694300c",
+        assertEquals("8951f4a174a1f7e644ce08f09acb5f486c27da57",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -143,23 +143,42 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void draftAccuracyRollTransportRemainsFailClosedUntilLiveRuntimeWiring() {
-        assertEquals(206, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_ACCURACY_ROLL_TRANSPORT_PR);
-        assertEquals("a2d61a4eebd07143e2fa6760ceb6088bf34f264c",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_ACCURACY_ROLL_TRANSPORT_HEAD_SHA);
-        String boundary = CurrentUpstreamDevelopmentWatch.openAccuracyRollTransportBoundary();
-        assertTrue(boundary.contains("draft PR #206"));
+    void mergedAccuracyRollTransportRemainsFailClosedUntilBattleRuntimeSuppliesTheRoll() {
+        assertEquals(206, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_ACCURACY_ROLL_TRANSPORT_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedAccuracyRollTransportBoundary();
+        assertTrue(boundary.contains("PR #206 is merged"));
+        assertTrue(boundary.contains("f6115543da34bae91353c302a635913906656c2a"));
         assertTrue(boundary.contains("server-owned accuracy d20"));
-        assertTrue(boundary.contains("MoveSpecialPreDamageResolution"));
-        assertTrue(boundary.contains("does not wire BattleRuntime"));
+        assertTrue(boundary.contains("BattleRuntime still does not supply accuracy.roll()"));
         assertTrue(boundary.contains("must not generate, inject, infer or locally consume"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
 
     @Test
+    void draftRuntimeSecondaryStatusBridgeDoesNotPromoteAdapterAuthority() {
+        assertEquals(207, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_RUNTIME_SECONDARY_STATUS_BRIDGE_PR);
+        assertEquals("7ca7c0321d0f9d10f6df202b0634cfd2d22eab81",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_RUNTIME_SECONDARY_STATUS_BRIDGE_HEAD_SHA);
+        String boundary = CurrentUpstreamDevelopmentWatch.openRuntimeSecondaryStatusBridgeBoundary();
+        assertTrue(boundary.contains("draft PR #207"));
+        assertTrue(boundary.contains("package-private runtime bridge"));
+        assertTrue(boundary.contains("Serene Grace"));
+        assertTrue(boundary.contains("Immunity"));
+        assertTrue(boundary.contains("does not wire this bridge into BattleRuntime"));
+        assertTrue(boundary.contains("must not call an equivalent bridge"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+    }
+
+    @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = CurrentUpstreamDevelopmentWatch.pythonMainObservation();
-        assertTrue(observation.contains("54edaa5377589d8d182f91260845389ae694300c"));
+        assertTrue(observation.contains("8951f4a174a1f7e644ce08f09acb5f486c27da57"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("battle._apply_status"));
         assertTrue(observation.contains("shared move-result roll"));
