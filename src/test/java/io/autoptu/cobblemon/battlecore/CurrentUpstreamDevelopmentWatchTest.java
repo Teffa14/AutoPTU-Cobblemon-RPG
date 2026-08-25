@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("10fd20bfd513898a6f8f157a9b469db993444974",
+        assertEquals("4148255b038f85902feb781413f163c7b7cf3799",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("58f18824b32913d30d5c4e8ade91073729915a9b",
+        assertEquals("24004aa5e8db30e23b9787b00d5322ae805240ed",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -47,11 +47,15 @@ class CurrentUpstreamDevelopmentWatchTest {
         assertEquals(192, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_BRIDGE_PR);
         assertEquals(193, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_ACCUMULATOR_PR);
         assertEquals(194, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_FINALIZATION_PR);
+        assertEquals(195, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_TARGET_RESULT_TRANSPORT_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("MoveSpecialActionFinalization"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("MoveSpecialTargetResult package-private"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("AppliedActionResult as the public Minecraft-facing result"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("exactly once"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("No authoritative BattleRuntime call site"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("must not dispatch END_ACTION"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("must not aggregate target results"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("dispatch END_ACTION"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -63,7 +67,7 @@ class CurrentUpstreamDevelopmentWatchTest {
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career club-transition presentation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career Web battle-outcome presentation"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("once after target processing"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
