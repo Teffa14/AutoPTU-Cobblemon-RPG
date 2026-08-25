@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("4148255b038f85902feb781413f163c7b7cf3799",
+        assertEquals("ebdbcdc58c41bae72e9264e8f508338be95e2295",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("c9b9b372b6a86546679188df97aa5bde27ab066c",
+        assertEquals("0bff7521ecb8b1163cbd5f366dea4651de83c353",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -48,11 +48,12 @@ class CurrentUpstreamDevelopmentWatchTest {
         assertEquals(193, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_ACCUMULATOR_PR);
         assertEquals(194, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_FINALIZATION_PR);
         assertEquals(195, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_TARGET_RESULT_TRANSPORT_PR);
+        assertEquals(196, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_ORACLE_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("MoveSpecialActionFinalization"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("MoveSpecialTargetResult package-private"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("AppliedActionResult as the public Minecraft-facing result"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("target-loop aggregation oracle"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("exactly once"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("share the target loop"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("No authoritative BattleRuntime call site"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("must not aggregate target results"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("dispatch END_ACTION"));
@@ -66,22 +67,34 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void openEndActionOracleWorkCannotPromoteRuntimeAuthority() {
-        assertEquals(196, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_ORACLE_PR);
-        assertEquals("0cbf8bb3082372cb1ae487b136657ad17421bdd7",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_ORACLE_HEAD_SHA);
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("draft PR #196"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("same target loop"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("before the single END_ACTION dispatch"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("activates no Java runtime behavior"));
-        assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
+    void openEffectRollResolverCannotPromoteRuntimeAuthority() {
+        assertEquals(197, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_RESOLVER_PR);
+        assertEquals("baaf16fc90fa2008841ee282b39fe70268488267",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_RESOLVER_HEAD_SHA);
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("draft PR #197"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("resolver-only"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("runtime state derivation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("must not calculate or supply final effect rolls"));
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_PERKS).support());
     }
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career Web rival-identity presentation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career Web presentation and outcome-handling commits"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("once after target processing"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
                 .contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
