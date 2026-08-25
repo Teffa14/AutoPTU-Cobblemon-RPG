@@ -8,22 +8,23 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "e2fc29f32a5204d564947219c0e25a4e625b4e66";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "4f75b652fa14e935b0f0f7c2903b946cfbb56526";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "b0dc8cc2fc6fba5d1fa3799485545d0c48b6f18a";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "0a2b4e924e11567fa0e3cc0e4f4045ab141f7163";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
-    public static final int AUTOPTU_JAVA_REACTION_HANDOFF_PR = 190;
+    public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
+    public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
 
     private CurrentUpstreamDevelopmentWatch() {}
 
     public static boolean postDamageRuntimeMayBePromoted() {
-        return false;
+        return true;
     }
 
-    public static String postDamageRuntimeBlocker() {
-        return "AutoPTU-Java PR #189 is merged as a post-applied-outcome POST_DAMAGE timing seam, but it is not a BattleRuntime call site. Draft PR #190 only freezes shared move-special result handoff across defender reactions. POST_DAMAGE remains upstream-owned and fail-closed in Minecraft until the authoritative runtime wires the full phase ordering.";
+    public static String postDamageRuntimeBoundary() {
+        return "AutoPTU-Java PR #191 is merged on main and invokes RuntimeMoveSpecialPostDamageApplication from BattleRuntime only after the authoritative move outcome commits HP/history state. The shared PRE result is handed through defender reactions and the final pre-HP adjustment before POST_DAMAGE. This promotes Java-owned POST_DAMAGE execution only; END_ACTION and complete move-special coverage remain upstream-owned and incomplete.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main 4f75b65 contains Career relationship-role persistence hardening; it does not replace the frozen battle-oracle contract used for move-special phase parity.";
+        return "AutoPTU Python main 0a2b4e9 contains Career narrative-cache hardening; current battle-oracle behavior still executes move-special phases PRE_DAMAGE, POST_DAMAGE and END_ACTION with POST_DAMAGE observing already-applied damage_dealt and shared mutable result state.";
     }
 }
