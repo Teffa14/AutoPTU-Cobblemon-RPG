@@ -8,8 +8,8 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "3825f32490c405a3d541c5eddf4b04097b4d1e69";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "fbeff1a0ba81d2f8dea2e395f21971cd9d756d77";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "d5f2833837f6096673ad64920f239691b4481464";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -21,9 +21,10 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RESOLVER_PR = 197;
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_TEMP_STATE_PR = 198;
     public static final int AUTOPTU_JAVA_MERGED_MOVE_EFFECTS_TEXT_PR = 199;
-    public static final int AUTOPTU_JAVA_OPEN_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR = 200;
-    public static final String AUTOPTU_JAVA_OPEN_EFFECT_ROLL_STAT_STRATAGEM_STACKS_HEAD_SHA =
-            "89f1900e50b3e7c48925105d36083642ef1026b1";
+    public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR = 200;
+    public static final int AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_PR = 201;
+    public static final String AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_HEAD_SHA =
+            "5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03";
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -59,11 +60,15 @@ public final class CurrentUpstreamDevelopmentWatch {
         return "AutoPTU-Java PR #199 is merged on main at 3825f32490c405a3d541c5eddf4b04097b4d1e69 and carries canonical move effects text in server-owned MoveSpec while preserving Python _effects_text_for precedence against oracle 16d228efa63aabecb67fa788959a359aac7f8f03. Direct MoveSpec effectsText wins exactly when non-empty; otherwise resolution may use a server-owned canonical fallback. This closes a content dependency for generic move-special logic but does not provide live effect-roll runtime authority. Minecraft/Cobblemon must not send rules text or infer Stench, Firebrand or secondary-effect behavior from client/world data.";
     }
 
-    public static String openEffectRollStatStratagemStacksBoundary() {
-        return "AutoPTU-Java draft PR #200 at 89f1900e50b3e7c48925105d36083642ef1026b1 fixes a parity gap in the resolver contract: Python _effect_roll iterates every matching stat_stratagem temporary effect with stat=spatk for a non-Status Ranged move and adds the capped current SpAtk stage once per matching entry. Java main at 3825f32490c405a3d541c5eddf4b04097b4d1e69 still models this as a single boolean application. The draft changes that input to an application count but remains open reference work and still excludes live runtime state derivation, so the adapter must not count Stat Stratagem effects or calculate this bonus itself.";
+    public static String mergedEffectRollStatStratagemStacksBoundary() {
+        return "AutoPTU-Java PR #200 is merged on main at 3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a and preserves the Python _effect_roll rule that every matching stat_stratagem temporary effect with stat=spatk for a non-Status Ranged move adds the capped current SpAtk stage once. This closes the prior single-boolean parity gap in the resolver contract. It still does not derive live Stat Stratagem state or invoke secondary-effect resolution from BattleRuntime, so the adapter must not count Stat Stratagem effects or calculate this bonus itself.";
+    }
+
+    public static String openEffectRollPenaltyStateBoundary() {
+        return "AutoPTU-Java draft PR #201 at 5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03 ports the pinned Python BattleState._roll_penalty contract: all_roll_penalty entries stack in insertion order, expire only when currentRound is greater than expires_round, same-round entries remain, invalid amounts are ignored, int-like numeric values are accepted and the final penalty is clamped at zero. The PR is open reference work for a later authoritative _effect_roll runtime input factory and does not wire live move-special consumers. Minecraft/Cobblemon must not read, expire, sum or clamp roll-penalty state independently.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main fbeff1a0ba81d2f8dea2e395f21971cd9d756d77 remains the current read-only head. The inspected _effect_roll implementation checks defender immutable_mind_block first, then attacker effect_range_block, then applies server-owned ability, Trainer Feature, penalty and temporary-effect modifiers. For eligible non-Status Ranged moves it loops every stat_stratagem entry whose stat is spatk and adds min(3, max(0, current SpAtk stage)) once per matching entry. _effects_text_for continues to prefer move.effects_text and otherwise uses canonical move content by move name. Java parity remains pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03; later Career-only Python commits do not promote Minecraft battle authority.";
+        return "AutoPTU Python main d5f2833837f6096673ad64920f239691b4481464 is the current read-only head inspected for this integration refresh. Java effect-roll parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, including _effect_roll modifier semantics and the _roll_penalty behavior exercised by Java PR #201. The later Python head is reference-only and does not promote Minecraft battle authority without a merged Java runtime contract.";
     }
 }
