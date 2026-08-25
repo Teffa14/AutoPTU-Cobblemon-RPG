@@ -11,7 +11,7 @@ class CurrentUpstreamDevelopmentWatchTest {
     void pinsCurrentReadOnlyUpstreamHeads() {
         assertEquals("10fd20bfd513898a6f8f157a9b469db993444974",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("d246c3ac15290a3f661e69c75710f46e386ec871",
+        assertEquals("58f18824b32913d30d5c4e8ade91073729915a9b",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -63,7 +63,7 @@ class CurrentUpstreamDevelopmentWatchTest {
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career sponsor-history"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career club-transition presentation"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("once after target processing"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
