@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("2c83099de0f558a6e387f39174c0223f8e1668e6",
+        assertEquals("10fd20bfd513898a6f8f157a9b469db993444974",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("05363c11b0a174ef8ffee89e94ceb6273766f3d9",
+        assertEquals("d246c3ac15290a3f661e69c75710f46e386ec871",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -24,7 +24,6 @@ class CurrentUpstreamDevelopmentWatchTest {
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("#191 is merged"));
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("BattleRuntime"));
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("after the authoritative move outcome"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("END_ACTION"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -44,33 +43,29 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void mergedEndActionBridgeRemainsFailClosedUntilRuntimeWiringExists() {
+    void mergedEndActionContractsRemainFailClosedWithoutRuntimeCallSite() {
         assertEquals(192, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_BRIDGE_PR);
-        assertEquals(193, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_ACCUMULATOR_PR);
-        assertEquals("1f8b2d677f6c257aed3c1821199adeb549dc7fbb",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_ACCUMULATOR_HEAD_SHA);
+        assertEquals(193, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_ACCUMULATOR_PR);
+        assertEquals(194, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_FINALIZATION_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("#192 is merged on main"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("Draft PR #193"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("package-private action accumulator"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("current CI is green"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("does not wire END_ACTION"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("must not dispatch it once per defender"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("aggregate damage itself"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("MoveSpecialActionFinalization"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("exactly once"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("No authoritative BattleRuntime call site"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("must not dispatch END_ACTION"));
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
+                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE)
                 .limitation().contains("END_ACTION"));
     }
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career leaderboard hardening"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("defender=None"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("result=last_result"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("damage_dealt=total_damage_dealt"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("immutable_mind:true"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("initial total_damage_dealt=0"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career sponsor-history"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("once after target processing"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
                 .contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
