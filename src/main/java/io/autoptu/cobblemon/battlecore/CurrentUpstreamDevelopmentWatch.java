@@ -8,14 +8,15 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "10fd20bfd513898a6f8f157a9b469db993444974";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "58f18824b32913d30d5c4e8ade91073729915a9b";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "4148255b038f85902feb781413f163c7b7cf3799";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "24004aa5e8db30e23b9787b00d5322ae805240ed";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
     public static final int AUTOPTU_JAVA_MERGED_END_ACTION_BRIDGE_PR = 192;
     public static final int AUTOPTU_JAVA_MERGED_END_ACTION_ACCUMULATOR_PR = 193;
     public static final int AUTOPTU_JAVA_MERGED_END_ACTION_FINALIZATION_PR = 194;
+    public static final int AUTOPTU_JAVA_MERGED_TARGET_RESULT_TRANSPORT_PR = 195;
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -32,10 +33,10 @@ public final class CurrentUpstreamDevelopmentWatch {
     }
 
     public static String endActionRuntimeBoundary() {
-        return "AutoPTU-Java PRs #192, #193 and #194 are merged on main and freeze END_ACTION bridge, declaration accumulator and finalization contracts. MoveSpecialActionFinalization composes ordered per-target POST_DAMAGE results, keeps the last target result, sums applied damage and dispatches END_ACTION exactly once, including Python-compatible empty-target defaults. No authoritative BattleRuntime call site currently invokes that finalization seam, so Minecraft/Cobblemon must not dispatch END_ACTION or infer move effects from it.";
+        return "AutoPTU-Java PRs #192, #193, #194 and #195 are merged on main and freeze END_ACTION bridge, declaration accumulation, finalization and package-private per-target result transport contracts. MoveSpecialActionFinalization composes ordered per-target results, keeps the last target result, sums applied damage and dispatches END_ACTION exactly once, including Python-compatible empty-target defaults. PR #195 deliberately keeps MoveSpecialTargetResult package-private and leaves AppliedActionResult as the public Minecraft-facing result. No authoritative BattleRuntime call site was added by #195, so Minecraft/Cobblemon must not aggregate target results, dispatch END_ACTION or infer move effects from this transport.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main 58f1882 contains Career club-transition presentation work only since the previous inspected pin; the frozen battle-oracle contract remains PRE_DAMAGE, POST_DAMAGE and END_ACTION, with END_ACTION occurring once after target processing using the declaration-level final result and accumulated applied damage.";
+        return "AutoPTU Python main 24004aa differs from the prior watch pin only in Career Web battle-outcome presentation files; the frozen battle-oracle contract remains PRE_DAMAGE, POST_DAMAGE and END_ACTION, with END_ACTION occurring once after target processing using the declaration-level final result and accumulated applied damage.";
     }
 }
