@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("3825f32490c405a3d541c5eddf4b04097b4d1e69",
+        assertEquals("3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("fbeff1a0ba81d2f8dea2e395f21971cd9d756d77",
+        assertEquals("d5f2833837f6096673ad64920f239691b4481464",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -105,26 +105,35 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void openStackedStatStratagemParityGapDoesNotPromoteAdapterAuthority() {
-        assertEquals(200, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR);
-        assertEquals("89f1900e50b3e7c48925105d36083642ef1026b1",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_STAT_STRATAGEM_STACKS_HEAD_SHA);
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("draft PR #200"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("every matching stat_stratagem"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("Java main"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("single boolean application"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollStatStratagemStacksBoundary().contains("must not count Stat Stratagem effects"));
+    void mergedStackedStatStratagemParityStillDoesNotPromoteAdapterAuthority() {
+        assertEquals(200, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("PR #200 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("every matching stat_stratagem"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("live Stat Stratagem state"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("must not count Stat Stratagem effects"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+    }
+
+    @Test
+    void openRollPenaltyParityWorkRemainsFailClosed() {
+        assertEquals(201, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_PR);
+        assertEquals("5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_HEAD_SHA);
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("draft PR #201"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("all_roll_penalty"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("same-round entries remain"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("clamped at zero"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("must not read, expire, sum or clamp"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenEffectRollOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("fbeff1a0ba81d2f8dea2e395f21971cd9d756d77"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("immutable_mind_block"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("effect_range_block"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("every stat_stratagem entry"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("_effects_text_for"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("d5f2833837f6096673ad64920f239691b4481464"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("_roll_penalty"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("reference-only"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
                 .contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
