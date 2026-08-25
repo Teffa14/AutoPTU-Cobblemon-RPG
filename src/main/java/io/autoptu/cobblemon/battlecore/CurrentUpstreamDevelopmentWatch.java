@@ -8,8 +8,8 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "7cd765e87fa4254789eb40e8d14f91e1251631ad";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "87df4bcae3200324f50b71ce5438bebd62b955b9";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "d64d6417dc89c1aca878d0a8fd6b526921b8e193";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "54edaa5377589d8d182f91260845389ae694300c";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -26,9 +26,10 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_HARDENED_CRIT_EFFECT_BONUS_PR = 202;
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RUNTIME_INPUTS_PR = 203;
     public static final int AUTOPTU_JAVA_MERGED_SECONDARY_STATUS_CONTRACT_PR = 204;
-    public static final int AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_APPLICATION_PR = 205;
-    public static final String AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_APPLICATION_HEAD_SHA =
-            "8e1caefdfa1adff1d3835dbbb407ac2a33eeb37a";
+    public static final int AUTOPTU_JAVA_MERGED_SECONDARY_STATUS_APPLICATION_PR = 205;
+    public static final int AUTOPTU_JAVA_OPEN_ACCURACY_ROLL_TRANSPORT_PR = 206;
+    public static final String AUTOPTU_JAVA_OPEN_ACCURACY_ROLL_TRANSPORT_HEAD_SHA =
+            "a2d61a4eebd07143e2fa6760ceb6088bf34f264c";
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -84,11 +85,15 @@ public final class CurrentUpstreamDevelopmentWatch {
         return "AutoPTU-Java PR #204 is merged on main at 7cd765e87fa4254789eb40e8d14f91e1251631ad and freezes generic text-driven secondary-status request semantics against pinned Python _generic_post_damage_from_text. It covers Burn, Poison, Paralysis, Freeze, Confusion, Flinch and Sleep request selection from canonical move effects text and an authoritative effect roll, preserving current Python normalization and verb-mapping quirks. The contract deliberately returns ordered status requests without applying them. Minecraft/Cobblemon must not parse effects text, choose requested statuses or treat this parser contract as a complete status lifecycle.";
     }
 
-    public static String openSecondaryStatusApplicationBoundary() {
-        return "AutoPTU-Java draft PR #205 at 8e1caefdfa1adff1d3835dbbb407ac2a33eeb37a composes PR #204 status requests with the existing server-authoritative StatusApplicationResolution and BuiltinStatusApplicationHooks. Its tests cover canonical Burn mutation plus Immunity, Safeguard and Inner Focus prevention and Flinch applied_round payload semantics. It explicitly adds no live POST_DAMAGE wiring. While the PR is open, and even after merge until a stable live BattleRuntime consumer is inspected, Minecraft/Cobblemon must not apply requested statuses, run prevention hooks, attach status payloads or replay those mutations as locally authoritative outcomes.";
+    public static String mergedSecondaryStatusApplicationBoundary() {
+        return "AutoPTU-Java PR #205 is merged on main at d64d6417dc89c1aca878d0a8fd6b526921b8e193 and composes PR #204 requests with server-authoritative StatusApplicationResolution and BuiltinStatusApplicationHooks. The merged regression covers canonical Burn mutation, Immunity, Safeguard and Inner Focus prevention, ordered blocker events, and Flinch remaining/applied_round payload semantics. It still adds no live POST_DAMAGE wiring. Minecraft/Cobblemon must not apply requested statuses, run prevention hooks, attach payloads, or reconstruct those outcomes locally.";
+    }
+
+    public static String openAccuracyRollTransportBoundary() {
+        return "AutoPTU-Java draft PR #206 at a2d61a4eebd07143e2fa6760ceb6088bf34f264c freezes the Python contract that the original server-owned accuracy d20 is carried in the shared move-special result as roll and later read by _effect_roll. The draft adds a parity-preserving MoveSpecialPreDamageResolution overload but does not wire BattleRuntime to supply that roll and does not activate a live secondary-status hook. Minecraft/Cobblemon must not generate, inject, infer or locally consume the accuracy roll for move-special resolution until merged live runtime wiring is inspected.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main 87df4bcae3200324f50b71ce5438bebd62b955b9 is the current read-only head inspected for this integration refresh. Its newest commits harden Career persistence and malformed legacy roster rendering without replacing the frozen battle oracle. Java move-special parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. The oracle's generic POST_DAMAGE behavior delegates matching status requests through battle._apply_status rather than directly mutating status state, which is why adapter-side parsing, prevention and mutation remain forbidden. The later Python head is reference-only and does not promote Minecraft battle authority without a merged and live Java runtime contract.";
+        return "AutoPTU Python main 54edaa5377589d8d182f91260845389ae694300c is the current read-only head inspected for this integration refresh. Its newest commits harden Career persistence, including malformed legacy trainer identity and appearance metadata, without replacing the frozen battle oracle. Java move-special parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. The oracle's generic POST_DAMAGE behavior delegates matching status requests through battle._apply_status rather than directly mutating status state, and _effect_roll reads the shared move-result roll. The later Python head is reference-only and does not promote Minecraft battle authority without a merged and live Java runtime contract.";
     }
 }
