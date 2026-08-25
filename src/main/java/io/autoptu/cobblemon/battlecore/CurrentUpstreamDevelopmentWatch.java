@@ -9,7 +9,7 @@ package io.autoptu.cobblemon.battlecore;
  */
 public final class CurrentUpstreamDevelopmentWatch {
     public static final String AUTOPTU_JAVA_MAIN_SHA = "10fd20bfd513898a6f8f157a9b469db993444974";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "d246c3ac15290a3f661e69c75710f46e386ec871";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "58f18824b32913d30d5c4e8ade91073729915a9b";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -36,6 +36,6 @@ public final class CurrentUpstreamDevelopmentWatch {
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main d246c3a contains Career sponsor-history work; the frozen battle-oracle contract remains PRE_DAMAGE, POST_DAMAGE and END_ACTION, with END_ACTION occurring once after target processing using the declaration-level final result and accumulated applied damage.";
+        return "AutoPTU Python main 58f1882 contains Career club-transition presentation work only since the previous inspected pin; the frozen battle-oracle contract remains PRE_DAMAGE, POST_DAMAGE and END_ACTION, with END_ACTION occurring once after target processing using the declaration-level final result and accumulated applied damage.";
     }
 }
