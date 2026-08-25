@@ -8,8 +8,8 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "d5f2833837f6096673ad64920f239691b4481464";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "215967c224e3dcd73e06d47e9e4bad3153a96d8c";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "e91fc167dd2e9b5f7c94a22da76dfba5e103d7da";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -22,9 +22,8 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_TEMP_STATE_PR = 198;
     public static final int AUTOPTU_JAVA_MERGED_MOVE_EFFECTS_TEXT_PR = 199;
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR = 200;
-    public static final int AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_PR = 201;
-    public static final String AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_HEAD_SHA =
-            "5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03";
+    public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_PENALTY_STATE_PR = 201;
+    public static final int AUTOPTU_JAVA_MERGED_HARDENED_CRIT_EFFECT_BONUS_PR = 202;
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -64,11 +63,15 @@ public final class CurrentUpstreamDevelopmentWatch {
         return "AutoPTU-Java PR #200 is merged on main at 3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a and preserves the Python _effect_roll rule that every matching stat_stratagem temporary effect with stat=spatk for a non-Status Ranged move adds the capped current SpAtk stage once. This closes the prior single-boolean parity gap in the resolver contract. It still does not derive live Stat Stratagem state or invoke secondary-effect resolution from BattleRuntime, so the adapter must not count Stat Stratagem effects or calculate this bonus itself.";
     }
 
-    public static String openEffectRollPenaltyStateBoundary() {
-        return "AutoPTU-Java draft PR #201 at 5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03 ports the pinned Python BattleState._roll_penalty contract: all_roll_penalty entries stack in insertion order, expire only when currentRound is greater than expires_round, same-round entries remain, invalid amounts are ignored, int-like numeric values are accepted and the final penalty is clamped at zero. The PR is open reference work for a later authoritative _effect_roll runtime input factory and does not wire live move-special consumers. Minecraft/Cobblemon must not read, expire, sum or clamp roll-penalty state independently.";
+    public static String mergedEffectRollPenaltyStateBoundary() {
+        return "AutoPTU-Java PR #201 is merged on main at eb34ad6b3e2691e6192e8f489611bec0bb144f0d and ports the pinned Python BattleState._roll_penalty contract: all_roll_penalty entries stack in insertion order, expire only when currentRound is greater than expires_round, same-round entries remain, invalid amounts are ignored, int-like numeric values are accepted and the final penalty is clamped at zero. This is authoritative resolver/state semantics but still does not wire live move-special effect-roll consumers. Minecraft/Cobblemon must not read, expire, sum or clamp roll-penalty state independently.";
+    }
+
+    public static String mergedHardenedCritEffectBonusBoundary() {
+        return "AutoPTU-Java PR #202 is merged on main at 215967c224e3dcd73e06d47e9e4bad3153a96d8c and ports the pinned Python Hardened critical/effect-range bonus contract from server-owned semantic state. Hardened grants the bounded bonus only with the verified injury threshold and active Hardened state; Press On! may double that bonus only when its temporary state, Trainer Feature ownership and Intimidate rank contract are all satisfied. The resolver is parity-backed against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, but BattleRuntime still does not assemble these inputs into a live effect-roll consumer. Minecraft/Cobblemon must not infer injuries, Press On!, Intimidate rank, Hardened expiry or effect-roll bonuses from world/client state.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main d5f2833837f6096673ad64920f239691b4481464 is the current read-only head inspected for this integration refresh. Java effect-roll parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, including _effect_roll modifier semantics and the _roll_penalty behavior exercised by Java PR #201. The later Python head is reference-only and does not promote Minecraft battle authority without a merged Java runtime contract.";
+        return "AutoPTU Python main e91fc167dd2e9b5f7c94a22da76dfba5e103d7da is the current read-only head inspected for this integration refresh. Its newest commits harden Career persistence and malformed legacy roster handling without changing the pinned battle oracle. Java effect-roll parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, including _effect_roll, _roll_penalty and Hardened/Press On! semantics exercised by merged Java PRs #201 and #202. The later Python head is reference-only and does not promote Minecraft battle authority without a merged Java runtime contract.";
     }
 }
