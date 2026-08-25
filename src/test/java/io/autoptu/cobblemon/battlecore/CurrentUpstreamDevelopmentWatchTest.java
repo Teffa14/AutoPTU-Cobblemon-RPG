@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("b0dc8cc2fc6fba5d1fa3799485545d0c48b6f18a",
+        assertEquals("2c83099de0f558a6e387f39174c0223f8e1668e6",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("b7f8fbba1221222a61af2fe6a23d047d8b61bcbb",
+        assertEquals("f9a0617f48c8418863037f659539696b4069d1a5",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -44,15 +44,15 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void openEndActionBridgeRemainsFailClosedForAdapterAuthority() {
-        assertEquals(192, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_BRIDGE_PR);
+    void mergedEndActionBridgeRemainsFailClosedUntilRuntimeWiringExists() {
+        assertEquals(192, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_BRIDGE_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("#192 is open and draft"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("#192 is merged on main"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("defender is absent"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("last per-target result"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("total action damage"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("global-before-move-specific"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("does not wire END_ACTION"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionDevelopmentBoundary().contains("failing workflow checks"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
                 .limitation().contains("END_ACTION"));
@@ -60,7 +60,8 @@ class CurrentUpstreamDevelopmentWatchTest {
 
     @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career save-isolation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career transition"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("defender=None"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("result=last_result"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("damage_dealt=total_damage_dealt"));
