@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("0566685bf0d84b2d41bbf0bb75185c6723dd0c44",
+        assertEquals("3d9be13bfd3c89361e58c35e2df6a3265b57f93b",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("bae915ff074e1c39d05dd2fa7ab88655bf92ab60",
+        assertEquals("e6aa730a77e25142f5308eaa3a738dc66ba34bbb",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -67,20 +67,20 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void mergedEffectRollResolverAndOpenStateWorkRemainFailClosed() {
+    void mergedEffectRollResolverAndTemporaryStateRemainFailClosed() {
         assertEquals(197, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RESOLVER_PR);
-        assertEquals(198, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_TEMP_STATE_PR);
-        assertEquals("e512dfbb9161f10afc82132b61ea21f0bdb3dbce",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_TEMP_STATE_HEAD_SHA);
+        assertEquals(198, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_TEMP_STATE_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("PR #197 is merged"));
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("resolver-only"));
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("runtime state derivation"));
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("must not calculate or supply final effect rolls"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollTemporaryStateBoundary().contains("draft PR #198"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollTemporaryStateBoundary().contains("immutable_mind_block"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollTemporaryStateBoundary().contains("not adapter authority"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("PR #198 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("3d9be13bfd3c89361e58c35e2df6a3265b57f93b"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("immutable_mind_block"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("early blocks can prevent later cleanup"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("must continue to fail closed"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -94,10 +94,23 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
+    void openCanonicalEffectsTextWorkDoesNotPromoteAdapterAuthority() {
+        assertEquals(199, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_MOVE_EFFECTS_TEXT_PR);
+        assertEquals("2e6efccc9dc5ac373a0945fcf60c1dddbc025833",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_MOVE_EFFECTS_TEXT_HEAD_SHA);
+        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("draft PR #199"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("server-owned MoveSpec"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("not client or Minecraft-supplied rule text"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openMoveEffectsTextBoundary().contains("must not send rules text"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+    }
+
+    @Test
     void currentPythonHeadDoesNotReplaceFrozenEffectRollOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("bae915ff074e1c39d05dd2fa7ab88655bf92ab60"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("e6aa730a77e25142f5308eaa3a738dc66ba34bbb"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("immutable_mind_block"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("effect_range_block"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("_effects_text_for"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)

@@ -8,8 +8,8 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "0566685bf0d84b2d41bbf0bb75185c6723dd0c44";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "bae915ff074e1c39d05dd2fa7ab88655bf92ab60";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "3d9be13bfd3c89361e58c35e2df6a3265b57f93b";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "e6aa730a77e25142f5308eaa3a738dc66ba34bbb";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -19,9 +19,10 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_TARGET_RESULT_TRANSPORT_PR = 195;
     public static final int AUTOPTU_JAVA_MERGED_END_ACTION_ORACLE_PR = 196;
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RESOLVER_PR = 197;
-    public static final int AUTOPTU_JAVA_OPEN_EFFECT_ROLL_TEMP_STATE_PR = 198;
-    public static final String AUTOPTU_JAVA_OPEN_EFFECT_ROLL_TEMP_STATE_HEAD_SHA =
-            "e512dfbb9161f10afc82132b61ea21f0bdb3dbce";
+    public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_TEMP_STATE_PR = 198;
+    public static final int AUTOPTU_JAVA_OPEN_MOVE_EFFECTS_TEXT_PR = 199;
+    public static final String AUTOPTU_JAVA_OPEN_MOVE_EFFECTS_TEXT_HEAD_SHA =
+            "2e6efccc9dc5ac373a0945fcf60c1dddbc025833";
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -49,11 +50,15 @@ public final class CurrentUpstreamDevelopmentWatch {
         return "AutoPTU-Java PR #197 is merged on main and ports a deterministic move-special secondary-effect roll resolver against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. It covers modifier inputs including immutable-mind and effect-range blocks, Serene Grace, Stench, Firebrand, battle roll penalties, Mindbreak, Polished Shine, Brutal Training, effect-range bonuses, Stat Stratagem and Hardened. The merged contract is resolver-only: authoritative runtime state derivation and concrete move-special consumers remain absent, so Minecraft/Cobblemon must not calculate or supply final effect rolls.";
     }
 
-    public static String openEffectRollTemporaryStateBoundary() {
-        return "AutoPTU-Java draft PR #198 at e512dfbb9161f10afc82132b61ea21f0bdb3dbce freezes Python _effect_roll temporary-state cleanup and short-circuit ordering for immutable_mind_block, effect_range_block and effect_range_bonus against oracle 16d228efa63aabecb67fa788959a359aac7f8f03. It is open reference work, not adapter authority. Full runtime derivation of ability, Trainer Feature, penalty and Hardened inputs remains upstream follow-up.";
+    public static String mergedEffectRollTemporaryStateBoundary() {
+        return "AutoPTU-Java PR #198 is merged on main at 3d9be13bfd3c89361e58c35e2df6a3265b57f93b and freezes Python _effect_roll temporary-state cleanup and short-circuit ordering for immutable_mind_block, effect_range_block and effect_range_bonus against oracle 16d228efa63aabecb67fa788959a359aac7f8f03. The contract adds exact-entry temporary-effect removal and preserves the Python rule that early blocks can prevent later cleanup. It does not wire effect-roll resolution into BattleRuntime or derive ability, Trainer Feature, penalty, Hardened, move-content or other runtime inputs. Minecraft/Cobblemon must continue to fail closed and must not perform those mutations or effect-roll calculations independently.";
+    }
+
+    public static String openMoveEffectsTextBoundary() {
+        return "AutoPTU-Java draft PR #199 at 2e6efccc9dc5ac373a0945fcf60c1dddbc025833 carries canonical move effects text in server-owned MoveSpec and ports Python _effects_text_for precedence against oracle 16d228efa63aabecb67fa788959a359aac7f8f03. The fallback is explicitly server-owned canonical content, not client or Minecraft-supplied rule text. The PR is open reference work and does not provide live effect-roll runtime authority, so the adapter must not send rules text or infer Stench, Firebrand or secondary-effect behavior from Minecraft data.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main bae915ff074e1c39d05dd2fa7ab88655bf92ab60 remains the current read-only head. The inspected _effect_roll implementation still checks defender immutable_mind_block first, then attacker effect_range_block, then applies server-owned ability, Trainer Feature, penalty and temporary-effect modifiers while removing only expired entries reached by that control flow. The Java effect-roll parity work remains pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03; unrelated later Career commits do not promote Minecraft battle authority.";
+        return "AutoPTU Python main e6aa730a77e25142f5308eaa3a738dc66ba34bbb remains the current read-only head. The inspected _effect_roll implementation still checks defender immutable_mind_block first, then attacker effect_range_block, then applies server-owned ability, Trainer Feature, penalty and temporary-effect modifiers while removing only expired entries reached by that control flow. _effects_text_for continues to prefer move.effects_text and otherwise uses canonical move content by move name. Java parity remains pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03; later Career-only commits do not promote Minecraft battle authority.";
     }
 }
