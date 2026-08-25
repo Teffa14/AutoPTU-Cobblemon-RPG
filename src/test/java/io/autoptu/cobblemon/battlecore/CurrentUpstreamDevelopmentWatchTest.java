@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a",
+        assertEquals("215967c224e3dcd73e06d47e9e4bad3153a96d8c",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("d5f2833837f6096673ad64920f239691b4481464",
+        assertEquals("e91fc167dd2e9b5f7c94a22da76dfba5e103d7da",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -116,23 +116,45 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void openRollPenaltyParityWorkRemainsFailClosed() {
-        assertEquals(201, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_PR);
-        assertEquals("5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_HEAD_SHA);
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("draft PR #201"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("all_roll_penalty"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("same-round entries remain"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("clamped at zero"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("must not read, expire, sum or clamp"));
+    void mergedRollPenaltyStateRemainsFailClosedWithoutLiveEffectRollConsumer() {
+        assertEquals(201, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_PENALTY_STATE_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("PR #201 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("eb34ad6b3e2691e6192e8f489611bec0bb144f0d"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("all_roll_penalty"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("same-round entries remain"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("clamped at zero"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("must not read, expire, sum or clamp"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
 
     @Test
+    void mergedHardenedCritEffectBonusRemainsServerOwnedAndFailClosed() {
+        assertEquals(202, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_HARDENED_CRIT_EFFECT_BONUS_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("PR #202 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("215967c224e3dcd73e06d47e9e4bad3153a96d8c"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("Press On!"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("Intimidate rank"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("server-owned semantic state"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("must not infer injuries"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).support());
+    }
+
+    @Test
     void currentPythonHeadDoesNotReplaceFrozenEffectRollOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("d5f2833837f6096673ad64920f239691b4481464"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("e91fc167dd2e9b5f7c94a22da76dfba5e103d7da"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("_roll_penalty"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Hardened/Press On!"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("reference-only"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
