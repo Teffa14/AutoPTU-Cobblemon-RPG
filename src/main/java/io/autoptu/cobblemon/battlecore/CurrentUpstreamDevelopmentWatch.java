@@ -8,8 +8,8 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "215967c224e3dcd73e06d47e9e4bad3153a96d8c";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "e91fc167dd2e9b5f7c94a22da76dfba5e103d7da";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "f1fce54336f1a6a540e90eb1d3c5049a16e69336";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "87df4bcae3200324f50b71ce5438bebd62b955b9";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -24,6 +24,10 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR = 200;
     public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_PENALTY_STATE_PR = 201;
     public static final int AUTOPTU_JAVA_MERGED_HARDENED_CRIT_EFFECT_BONUS_PR = 202;
+    public static final int AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RUNTIME_INPUTS_PR = 203;
+    public static final int AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_CONTRACT_PR = 204;
+    public static final String AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_CONTRACT_HEAD_SHA =
+            "78d427fa442c547edf7df701f8483cf48d6b3327";
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -71,7 +75,15 @@ public final class CurrentUpstreamDevelopmentWatch {
         return "AutoPTU-Java PR #202 is merged on main at 215967c224e3dcd73e06d47e9e4bad3153a96d8c and ports the pinned Python Hardened critical/effect-range bonus contract from server-owned semantic state. Hardened grants the bounded bonus only with the verified injury threshold and active Hardened state; Press On! may double that bonus only when its temporary state, Trainer Feature ownership and Intimidate rank contract are all satisfied. The resolver is parity-backed against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, but BattleRuntime still does not assemble these inputs into a live effect-roll consumer. Minecraft/Cobblemon must not infer injuries, Press On!, Intimidate rank, Hardened expiry or effect-roll bonuses from world/client state.";
     }
 
+    public static String mergedEffectRollRuntimeInputsBoundary() {
+        return "AutoPTU-Java PR #203 is merged on main at f1fce54336f1a6a540e90eb1d3c5049a16e69336 and derives the already-ported move-special effect-roll inputs from canonical BattleRuntimeState. Ability suppression, Serene Grace, Stench, Firebrand, Polished Shine, Press On!, Intimidate rank, battle roll penalties, Mindbreak, Brutal Training, stacked Stat Stratagem, SpAtk Combat Stage, temporary effect blocks/bonuses and Hardened are read from server-owned state, including Python-compatible blocked-roll short-circuit ordering. This removes caller-supplied modifier authority but still does not prove that BattleRuntime invokes a complete secondary-effect/status consumer. Minecraft/Cobblemon must not calculate effect rolls or reconstruct these modifiers from client, entity or world state.";
+    }
+
+    public static String openSecondaryStatusContractBoundary() {
+        return "AutoPTU-Java draft PR #204 at 78d427fa442c547edf7df701f8483cf48d6b3327 freezes generic text-driven secondary-status request semantics against pinned Python _generic_post_damage_from_text. It covers Burn, Poison, Paralysis, Freeze, Confusion, Flinch and Sleep request selection from canonical move effects text and an authoritative effect roll, but deliberately returns requests without applying statuses. Because the PR is open and status prevention/application remains a separate runtime responsibility, Minecraft/Cobblemon must not parse effects text, choose requested statuses, or approximate status application.";
+    }
+
     public static String pythonMainObservation() {
-        return "AutoPTU Python main e91fc167dd2e9b5f7c94a22da76dfba5e103d7da is the current read-only head inspected for this integration refresh. Its newest commits harden Career persistence and malformed legacy roster handling without changing the pinned battle oracle. Java effect-roll parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, including _effect_roll, _roll_penalty and Hardened/Press On! semantics exercised by merged Java PRs #201 and #202. The later Python head is reference-only and does not promote Minecraft battle authority without a merged Java runtime contract.";
+        return "AutoPTU Python main 87df4bcae3200324f50b71ce5438bebd62b955b9 is the current read-only head inspected for this integration refresh. Its newest commits harden Career persistence and malformed legacy roster rendering without replacing the frozen battle oracle. Java move-special parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, including _effect_roll, _roll_penalty, Hardened/Press On! and _generic_post_damage_from_text semantics. The later Python head is reference-only and does not promote Minecraft battle authority without a merged Java runtime contract.";
     }
 }
