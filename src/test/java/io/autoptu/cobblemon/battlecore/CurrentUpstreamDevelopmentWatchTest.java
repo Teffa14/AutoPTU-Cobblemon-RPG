@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("ebdbcdc58c41bae72e9264e8f508338be95e2295",
+        assertEquals("0566685bf0d84b2d41bbf0bb75185c6723dd0c44",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("0bff7521ecb8b1163cbd5f366dea4651de83c353",
+        assertEquals("bae915ff074e1c39d05dd2fa7ab88655bf92ab60",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -67,16 +67,20 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void openEffectRollResolverCannotPromoteRuntimeAuthority() {
-        assertEquals(197, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_RESOLVER_PR);
-        assertEquals("baaf16fc90fa2008841ee282b39fe70268488267",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_RESOLVER_HEAD_SHA);
+    void mergedEffectRollResolverAndOpenStateWorkRemainFailClosed() {
+        assertEquals(197, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RESOLVER_PR);
+        assertEquals(198, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_TEMP_STATE_PR);
+        assertEquals("e512dfbb9161f10afc82132b61ea21f0bdb3dbce",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_TEMP_STATE_HEAD_SHA);
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("draft PR #197"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("resolver-only"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("runtime state derivation"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollResolverBoundary().contains("must not calculate or supply final effect rolls"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("PR #197 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("resolver-only"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("runtime state derivation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("must not calculate or supply final effect rolls"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollTemporaryStateBoundary().contains("draft PR #198"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollTemporaryStateBoundary().contains("immutable_mind_block"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollTemporaryStateBoundary().contains("not adapter authority"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -86,14 +90,14 @@ class CurrentUpstreamDevelopmentWatchTest {
                         UpstreamCompatibilityMatrix.Capability.ABILITIES).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
-                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_PERKS).support());
+                        UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS).support());
     }
 
     @Test
-    void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career Web presentation and outcome-handling commits"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("once after target processing"));
+    void currentPythonHeadDoesNotReplaceFrozenEffectRollOracle() {
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("bae915ff074e1c39d05dd2fa7ab88655bf92ab60"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("immutable_mind_block"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("effect_range_block"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
                 UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
