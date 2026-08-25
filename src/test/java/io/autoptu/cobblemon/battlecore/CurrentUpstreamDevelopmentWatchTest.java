@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("f1fce54336f1a6a540e90eb1d3c5049a16e69336",
+        assertEquals("7cd765e87fa4254789eb40e8d14f91e1251631ad",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
         assertEquals("87df4bcae3200324f50b71ce5438bebd62b955b9",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
@@ -54,7 +54,7 @@ class CurrentUpstreamDevelopmentWatchTest {
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("must not calculate or supply final effect rolls"));
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("PR #198 is merged"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("must continue to fail closed"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("must not give Minecraft authority"));
 
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -113,15 +113,30 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
-    void draftSecondaryStatusContractRemainsReferenceOnlyAndFailClosed() {
-        assertEquals(204, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_CONTRACT_PR);
-        assertEquals("78d427fa442c547edf7df701f8483cf48d6b3327",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_CONTRACT_HEAD_SHA);
-        String boundary = CurrentUpstreamDevelopmentWatch.openSecondaryStatusContractBoundary();
-        assertTrue(boundary.contains("draft PR #204"));
+    void mergedSecondaryStatusParserRemainsRequestOnlyAndFailClosed() {
+        assertEquals(204, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_SECONDARY_STATUS_CONTRACT_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedSecondaryStatusContractBoundary();
+        assertTrue(boundary.contains("PR #204 is merged"));
+        assertTrue(boundary.contains("7cd765e87fa4254789eb40e8d14f91e1251631ad"));
         assertTrue(boundary.contains("_generic_post_damage_from_text"));
-        assertTrue(boundary.contains("returns requests without applying statuses"));
+        assertTrue(boundary.contains("returns ordered status requests without applying them"));
         assertTrue(boundary.contains("must not parse effects text"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+    }
+
+    @Test
+    void draftSecondaryStatusApplicationReusesCanonicalPreventionButDoesNotPromoteAuthority() {
+        assertEquals(205, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_APPLICATION_PR);
+        assertEquals("8e1caefdfa1adff1d3835dbbb407ac2a33eeb37a",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_SECONDARY_STATUS_APPLICATION_HEAD_SHA);
+        String boundary = CurrentUpstreamDevelopmentWatch.openSecondaryStatusApplicationBoundary();
+        assertTrue(boundary.contains("draft PR #205"));
+        assertTrue(boundary.contains("StatusApplicationResolution"));
+        assertTrue(boundary.contains("BuiltinStatusApplicationHooks"));
+        assertTrue(boundary.contains("no live POST_DAMAGE wiring"));
+        assertTrue(boundary.contains("must not apply requested statuses"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
@@ -133,8 +148,7 @@ class CurrentUpstreamDevelopmentWatchTest {
         String observation = CurrentUpstreamDevelopmentWatch.pythonMainObservation();
         assertTrue(observation.contains("87df4bcae3200324f50b71ce5438bebd62b955b9"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(observation.contains("_effect_roll"));
-        assertTrue(observation.contains("_generic_post_damage_from_text"));
+        assertTrue(observation.contains("battle._apply_status"));
         assertTrue(observation.contains("reference-only"));
     }
 }
