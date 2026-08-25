@@ -11,7 +11,7 @@ class CurrentUpstreamDevelopmentWatchTest {
     void pinsCurrentReadOnlyUpstreamHeads() {
         assertEquals("4148255b038f85902feb781413f163c7b7cf3799",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("24004aa5e8db30e23b9787b00d5322ae805240ed",
+        assertEquals("c9b9b372b6a86546679188df97aa5bde27ab066c",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -66,8 +66,20 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
+    void openEndActionOracleWorkCannotPromoteRuntimeAuthority() {
+        assertEquals(196, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_ORACLE_PR);
+        assertEquals("0cbf8bb3082372cb1ae487b136657ad17421bdd7",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_END_ACTION_ORACLE_HEAD_SHA);
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("draft PR #196"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("same target loop"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("before the single END_ACTION dispatch"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.openEndActionOracleBoundary().contains("activates no Java runtime behavior"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
+    }
+
+    @Test
     void currentPythonCareerChangesDoNotReplaceFrozenBattleOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career Web battle-outcome presentation"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("Career Web rival-identity presentation"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("PRE_DAMAGE, POST_DAMAGE and END_ACTION"));
         assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("once after target processing"));
         assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
