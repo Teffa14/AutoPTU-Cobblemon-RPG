@@ -8,8 +8,8 @@ package io.autoptu.cobblemon.battlecore;
  * and reflected in {@link CurrentUpstreamCompatibilityInspection}.</p>
  */
 public final class CurrentUpstreamDevelopmentWatch {
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "412ec8f82c7dd4cb89e58e4db80b3e9d957b5bb4";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "df327530562ce4315f523316239d80a917111078";
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "fb93d3a4e6633d17a5a79f3095b141f887d4f258";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "551b6b8877d0e9087c325cb519cceef2108b5971";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -30,6 +30,7 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_ACCURACY_ROLL_TRANSPORT_PR = 206;
     public static final int AUTOPTU_JAVA_MERGED_RUNTIME_SECONDARY_STATUS_BRIDGE_PR = 207;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_ACCURACY_ROLL_PR = 208;
+    public static final int AUTOPTU_JAVA_MERGED_LIVE_DIRECT_SECONDARY_STATUS_PR = 209;
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -53,8 +54,12 @@ public final class CurrentUpstreamDevelopmentWatch {
         return false;
     }
 
+    public static boolean liveDirectSecondaryStatusMayBePromoted() {
+        return true;
+    }
+
     public static String effectRollResolverBoundary() {
-        return "AutoPTU-Java PR #197 is merged on main and ports a deterministic move-special secondary-effect roll resolver against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. Later merged contracts derive those inputs from BattleRuntimeState, preserve the authoritative accuracy d20, compose generic secondary-status requests with canonical prevention, and now pass the live BattleRuntime accuracy roll into PRE_DAMAGE. The composed secondary-status bridge is still not invoked from the live POST_DAMAGE runtime path, so Minecraft/Cobblemon must not calculate final effect rolls or secondary outcomes.";
+        return "AutoPTU-Java PR #197 is merged on main and ports a deterministic move-special secondary-effect roll resolver against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. Later merged contracts derive those inputs from BattleRuntimeState, preserve the authoritative accuracy d20, compose generic secondary-status requests with canonical prevention, and PR #209 now consumes that chain in the preferred direct combatant-target runtime path. Overall effect-roll runtime remains PARTIAL because AoE and delayed paths are not covered by this live wiring. Minecraft/Cobblemon must not calculate effect rolls or secondary outcomes for paths Java has not verified.";
     }
 
     public static String mergedEffectRollTemporaryStateBoundary() {
@@ -94,14 +99,18 @@ public final class CurrentUpstreamDevelopmentWatch {
     }
 
     public static String mergedRuntimeSecondaryStatusBridgeBoundary() {
-        return "AutoPTU-Java PR #207 is merged on main at d365642c74b43592073a7cc07bb3e011aaa503a9 and composes the authoritative shared accuracy roll, runtime-derived effect-roll modifiers, generic effects-text status parsing and canonical status application/prevention behind a package-private runtime bridge. Its regressions cover Serene Grace effect-roll modification, Immunity prevention and fail-closed behavior when the shared roll is absent. The bridge is not yet invoked by BattleRuntime POST_DAMAGE, so Minecraft/Cobblemon must not call an equivalent bridge, parse status text, provide modifiers or apply/prevent statuses locally.";
+        return "AutoPTU-Java PR #207 is merged on main at d365642c74b43592073a7cc07bb3e011aaa503a9 and composes the authoritative shared accuracy roll, runtime-derived effect-roll modifiers, generic effects-text status parsing and canonical status application/prevention behind a package-private runtime bridge. Its regressions cover Serene Grace effect-roll modification, Immunity prevention and fail-closed behavior when the shared roll is absent. PR #209 now invokes this composition for the preferred direct combatant-target path. Minecraft/Cobblemon must still not call an equivalent bridge, parse status text, provide modifiers or apply/prevent statuses locally.";
     }
 
     public static String mergedLiveAccuracyRollBoundary() {
-        return "AutoPTU-Java PR #208 is merged on main at 412ec8f82c7dd4cb89e58e4db80b3e9d957b5bb4 and passes the already-consumed authoritative accuracy d20 from BattleRuntime into MoveSpecialPreDamageResolution. The live PRE_DAMAGE shared result now carries the same roll consumed by the pinned Python move-special effect-roll path. This closes roll transport only. PR #208 adds no secondary-status POST_DAMAGE invocation, so effect-roll/status runtime authority remains fail-closed to Minecraft/Cobblemon.";
+        return "AutoPTU-Java PR #208 is merged on main at 412ec8f82c7dd4cb89e58e4db80b3e9d957b5bb4 and passes the already-consumed authoritative accuracy d20 from BattleRuntime into MoveSpecialPreDamageResolution. The live PRE_DAMAGE shared result carries the same roll consumed by the pinned Python move-special effect-roll path. PR #208 closes roll transport only; PR #209 is the separate contract that consumes it for direct-target secondary statuses.";
+    }
+
+    public static String mergedLiveDirectSecondaryStatusBoundary() {
+        return "AutoPTU-Java PR #209 is merged on main at fb93d3a4e6633d17a5a79f3095b141f887d4f258 and wires the generic secondary-status chain into the preferred authoritative single combatant-target runtime path. RuntimeMoveResolution builds a server-owned MoveSpecialHookRegistry from canonical move identity plus effective type/category, BattleRuntime supplies the real accuracy d20, POST_DAMAGE derives effect-roll inputs from BattleRuntimeState, parses canonical effects text, and delegates final application/prevention to StatusApplicationResolution. End-to-end regressions cover Serene Grace plus Burn and Immunity blocking Poison. This promotes only that direct live path. AoE and delayed paths remain explicitly outside PR #209, and complete status lifecycle remains PARTIAL. Minecraft/Cobblemon must consume authoritative events/state and must not reproduce the parser, modifier derivation, prevention, or status mutation locally.";
     }
 
     public static String pythonMainObservation() {
-        return "AutoPTU Python main df327530562ce4315f523316239d80a917111078 is the current read-only head inspected for this integration refresh. Its latest commit only removes a trainer RNG fallback test flake and does not replace the frozen battle oracle. Java battle parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, where generic POST_DAMAGE status requests delegate through battle._apply_status and _effect_roll reads the shared move-result roll. The later Python head is reference-only and cannot promote Minecraft battle authority without a merged live Java runtime contract.";
+        return "AutoPTU Python main 551b6b8877d0e9087c325cb519cceef2108b5971 is the current read-only head inspected for this integration refresh. Its latest change hardens ranked-daily sprite persistence and does not replace the frozen battle oracle. Java battle parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, where generic POST_DAMAGE status requests delegate through battle._apply_status and _effect_roll reads the shared move-result roll. The later Python head is reference-only and cannot promote Minecraft battle authority without a merged Java runtime contract.";
     }
 }
