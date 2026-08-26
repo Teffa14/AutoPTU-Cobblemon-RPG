@@ -1,5 +1,5 @@
-import { BlockDefinition, BlockModel, Identifier, Structure, StructureRenderer, TextureAtlas, upperPowerOfTwo } from 'deepslate';
-import { mat4 } from 'gl-matrix';
+(function () {
+'use strict';
 
 window.__ourosViewerBooted = true;
 
@@ -14,17 +14,33 @@ const errorBox = document.getElementById('error');
 const slice = document.getElementById('slice');
 const sliceValue = document.getElementById('slice-value');
 const panel = document.getElementById('panel');
+
+function fail(error) {
+  console.error(error);
+  if (loading) loading.style.display = 'none';
+  if (errorBox) {
+    errorBox.style.display = 'block';
+    errorBox.textContent = 'Minecraft viewer error: ' + ((error && error.message) || error) + '. Geometry remains authoritative; rendering failed on this device.';
+  }
+}
+
+const ds = window.deepslate;
+const gm = window.glMatrix;
+if (!ds) {
+  fail(new Error('local Deepslate UMD runtime missing'));
+  return;
+}
+if (!gm || !gm.mat4) {
+  fail(new Error('local gl-matrix UMD runtime missing'));
+  return;
+}
+
+const { BlockDefinition, BlockModel, Identifier, Structure, StructureRenderer, TextureAtlas, upperPowerOfTwo } = ds;
+const { mat4 } = gm;
 let manifest, resources, renderer, currentMode = 'all';
 let xRotation = .72, yRotation = -.72, viewDist = 115, panX = 0, panY = -2;
 const pointers = new Map();
 let lastPinch = null, lastCenter = null;
-
-function fail(error) {
-  console.error(error);
-  loading.style.display = 'none';
-  errorBox.style.display = 'block';
-  errorBox.textContent = 'Minecraft viewer error: ' + (error?.message || error) + '. Geometry remains authoritative; rendering failed on this device.';
-}
 
 function progress(percent, title, copy) {
   bar.style.width = percent + '%';
@@ -63,7 +79,10 @@ function rebuild() {
 }
 
 const gl = canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: false });
-if (!gl) fail(new Error('WebGL is unavailable'));
+if (!gl) {
+  fail(new Error('WebGL is unavailable'));
+  return;
+}
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -99,14 +118,14 @@ function resetCamera() {
 }
 
 canvas.addEventListener('pointerdown', e => {
-  canvas.setPointerCapture?.(e.pointerId);
+  if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, [e.clientX, e.clientY]);
 });
 canvas.addEventListener('pointermove', e => {
   if (!pointers.has(e.pointerId)) return;
   const prior = pointers.get(e.pointerId);
   pointers.set(e.pointerId, [e.clientX, e.clientY]);
-  const pts = [...pointers.values()];
+  const pts = Array.from(pointers.values());
   if (pts.length === 1) {
     yRotation += (e.clientX - prior[0]) / 110;
     xRotation += (e.clientY - prior[1]) / 110;
@@ -147,7 +166,7 @@ function paletteCounts() {
     const id = manifest.palette[block[3]].id;
     counts.set(id, (counts.get(id) || 0) + 1);
   }
-  return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
 }
 
 function fillMetadata() {
@@ -176,7 +195,7 @@ function fillMetadata() {
 async function localJson(file, label) {
   const url = assetBase + file;
   const response = await fetch(url, { cache: 'force-cache' });
-  if (!response.ok) throw new Error(`${label} local asset HTTP ${response.status} (${url})`);
+  if (!response.ok) throw new Error(label + ' local asset HTTP ' + response.status + ' (' + url + ')');
   return response.json();
 }
 
@@ -185,7 +204,7 @@ async function localImage(file, label) {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error(`${label} local asset failed (${url})`));
+    image.onerror = () => reject(new Error(label + ' local asset failed (' + url + ')'));
     image.src = url;
   });
 }
@@ -214,7 +233,8 @@ async function loadResources() {
   const atlasData = ctx.getImageData(0, 0, atlasSize, atlasSize);
   const idMap = {};
   for (const id of Object.keys(uvMap)) {
-    const [u, v, du, dv] = uvMap[id];
+    const uv = uvMap[id];
+    const u = uv[0], v = uv[1], du = uv[2], dv = uv[3];
     const dv2 = (du !== dv && id.startsWith('block/')) ? du : dv;
     idMap[Identifier.create(id).toString()] = [u / atlasSize, v / atlasSize, (u + du) / atlasSize, (v + dv2) / atlasSize];
   }
@@ -240,7 +260,7 @@ for (const button of document.querySelectorAll('[data-mode]')) button.addEventLi
 });
 document.getElementById('reset').addEventListener('click', resetCamera);
 document.getElementById('info').addEventListener('click', () => { panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; });
-slice.addEventListener('input', () => sliceValue.value = slice.value);
+slice.addEventListener('input', () => { sliceValue.value = slice.value; });
 slice.addEventListener('change', () => {
   currentMode = 'all';
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === 'all'));
@@ -253,19 +273,21 @@ window.addEventListener('resize', resize);
   try {
     progress(10, 'Loading exact Minecraft build', 'Reading the live-server BlockState manifest…');
     const response = await fetch(manifestUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`exact block manifest HTTP ${response.status}`);
+    if (!response.ok) throw new Error('exact block manifest HTTP ' + response.status);
     manifest = await response.json();
     if (manifest.geometryAuthority !== 'live_server_final_blockstate_scan') throw new Error('manifest is not live-server authoritative');
     if (manifest.blockCount !== manifest.blocks.length) throw new Error('manifest block count mismatch');
     fillMetadata();
     resources = await loadResources();
-    progress(88, 'Building exact voxel scene', `Materializing ${manifest.blockCount.toLocaleString()} Minecraft blocks…`);
+    progress(88, 'Building exact voxel scene', 'Materializing ' + manifest.blockCount.toLocaleString() + ' Minecraft blocks…');
     resize();
     renderer = new StructureRenderer(gl, makeStructure(), resources);
     progress(100, 'Minecraft build ready', 'Exact block geometry loaded.');
-    setTimeout(() => loading.style.display = 'none', 180);
+    setTimeout(() => { loading.style.display = 'none'; }, 180);
     draw();
   } catch (error) {
     fail(error);
   }
+})();
+
 })();
