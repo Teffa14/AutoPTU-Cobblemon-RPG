@@ -31,13 +31,16 @@ public final class OurosSignatureBuildRuntime {
         ServerWorld world = player.getServerWorld();
         BlockPos origin = player.getBlockPos().add(0, -1, 46);
         MeridianCanopyGymBuilder.BuildResult result = MeridianCanopyGymBuilder.build(world, origin);
+        MeridianCanopyGymDetailPass.apply(world, origin);
 
-        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE built 46 blocks ahead."), false);
+        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v2 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
                 "Footprint " + result.width() + "x" + result.depth() + ", height " + result.height()
-                        + ". Inspect lobby, atrium loops, both challenge wings, upper bridge, backstage shortcut and arena."), false);
+                        + ". The v2 pass adds a civic forecourt, deep portico, clerestory, conservatory roof, authored wing facades, arena buttresses, roof garden pergola, service yard and night lighting."), false);
         player.sendMessage(Text.literal(
-                "This build is not showcase-approved until screenshots and traversal playtest pass the Ouros build quality bar."), false);
+                "Inspect the approach silhouette, atrium section, both challenge wings, upper bridge, backstage shortcut, arena roof and rear service elevation."), false);
+        player.sendMessage(Text.literal(
+                "This build remains a GAMEPLAY PROTOTYPE until exact browser parity, screenshots and traversal playtest pass the Ouros quality bar."), false);
         return 1;
     }
 }
