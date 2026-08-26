@@ -61,7 +61,8 @@ jobs:
           ready=0
           for _ in $(seq 1 180); do
             latest="$server_dir/logs/latest.log"
-            if grep -q 'AutoPTU Ouros floating component audit passed' "$latest" 2>/dev/null \
+            if grep -q 'AutoPTU Ouros capture envelope audit passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU Ouros floating component audit passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU exact Ouros build manifest export passed' "$latest" 2>/dev/null \
               && [ -s "$output" ]; then
               ready=1
@@ -79,6 +80,7 @@ jobs:
             exit 1
           fi
 
+          grep 'AutoPTU Ouros capture envelope audit passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU Ouros floating component audit passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU exact Ouros build manifest export passed' "$server_dir/logs/latest.log"
 
@@ -86,6 +88,7 @@ jobs:
           import json, sys
           data = json.load(open(sys.argv[1], encoding='utf-8'))
           assert data['geometryAuthority'] == 'live_server_final_blockstate_scan'
+          assert data['captureEnvelopeAudit'] == 'passed'
           assert data['floatingComponentAudit'] == 'passed'
           assert data['blockCount'] == len(data['blocks'])
           assert len(data['geometrySha256']) == 64
