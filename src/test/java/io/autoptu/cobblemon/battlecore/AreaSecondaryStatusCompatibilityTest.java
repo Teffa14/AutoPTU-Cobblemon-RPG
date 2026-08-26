@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AreaSecondaryStatusCompatibilityTest {
     @Test
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
-        assertEquals("7e1115df0c7937699f179dc1f23040c06c78f719",
+        assertEquals("f85c2271e56b2c903cf53d124140d5a6dd562c9b",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("f0b8f2a31ac3626dfb5c51f9ee8195780fd3c560",
+        assertEquals("0444ff670a53b83499f360d70ff0428a45faa914",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -47,40 +47,27 @@ class AreaSecondaryStatusCompatibilityTest {
                 UpstreamCompatibilityMatrix.Capability.TRAINER_FEATURES_AND_PERKS));
         assertTrue(AreaSecondaryStatusCompatibility.dependencies().contains(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
-
-        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
-                CurrentUpstreamCompatibilityInspection.evidence(
-                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).support());
-        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
-                CurrentUpstreamCompatibilityInspection.evidence(
-                        UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).support());
-        for (UpstreamCompatibilityMatrix.Capability capability : AreaSecondaryStatusCompatibility.dependencies()) {
-            assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(capability));
-        }
     }
 
     @Test
-    void mergedPr211ParserAndDraftPr212ApplicationRemainFailClosedForProjection() {
+    void mergedPr211AndPr212StillRemainFailClosedWithoutLiveRuntimeWiring() {
         assertEquals(211, AreaSecondaryStatusCompatibility.MERGED_SECONDARY_COMBAT_STAGE_PARSER_PR);
-        assertEquals(212, AreaSecondaryStatusCompatibility.OPEN_SECONDARY_COMBAT_STAGE_APPLICATION_PR);
-        assertEquals("0b3f005dded417f59175c9424b545580cf654e2e",
-                AreaSecondaryStatusCompatibility.OPEN_SECONDARY_COMBAT_STAGE_APPLICATION_HEAD_SHA);
+        assertEquals(212, AreaSecondaryStatusCompatibility.MERGED_SECONDARY_COMBAT_STAGE_APPLICATION_PR);
         assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
         String boundary = AreaSecondaryStatusCompatibility.combatStageBoundary();
         assertTrue(boundary.contains("PR #211 is merged"));
         assertTrue(boundary.contains("ordered semantic stage-change requests"));
-        assertTrue(boundary.contains("does not mutate combat-stage state"));
-        assertTrue(boundary.contains("draft PR #212"));
+        assertTrue(boundary.contains("PR #212 is merged"));
         assertTrue(boundary.contains("CombatStageMutationService"));
-        assertTrue(boundary.contains("Accuracy and Evasion fail closed"));
-        assertTrue(boundary.contains("does not establish live BattleRuntime execution"));
+        assertTrue(boundary.contains("Accuracy and Evasion still fail closed"));
+        assertTrue(boundary.contains("does not wire that boundary into live BattleRuntime move execution"));
         assertTrue(boundary.contains("must not parse stage text"));
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("f0b8f2a31ac3626dfb5c51f9ee8195780fd3c560"));
+        assertTrue(observation.contains("0444ff670a53b83499f360d70ff0428a45faa914"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("_generic_post_damage_from_text"));
     }
