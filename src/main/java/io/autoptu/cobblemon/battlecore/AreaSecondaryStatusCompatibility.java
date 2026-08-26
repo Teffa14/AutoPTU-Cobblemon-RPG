@@ -10,7 +10,7 @@ public final class AreaSecondaryStatusCompatibility {
     public static final String AUTOPTU_JAVA_MAIN_SHA =
             "a9fb0d81238e69a5263f074b4a8ad8ef1905325d";
     public static final String AUTOPTU_PYTHON_MAIN_SHA =
-            "9fedd2efa5d0f2dc3229617e665533f2f2555897";
+            "44305a1b3f06a45fbd06392a64573f287ac31555";
     public static final String PINNED_PYTHON_BATTLE_ORACLE_SHA =
             "16d228efa63aabecb67fa788959a359aac7f8f03";
     public static final int MERGED_AREA_SECONDARY_STATUS_PR = 210;
@@ -68,7 +68,7 @@ public final class AreaSecondaryStatusCompatibility {
     }
 
     public static String pythonOracleObservation() {
-        return "AutoPTU Python main 9fedd2efa5d0f2dc3229617e665533f2f2555897 changes Career legacy decision-history rendering and does not replace the battle oracle. "
+        return "AutoPTU Python main 44305a1b3f06a45fbd06392a64573f287ac31555 changes Career sponsor-renewal presentation and explicitly leaves battle behavior unchanged, so it does not replace the battle oracle. "
                 + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The frozen oracle contract reads and writes combat_stages by the requested stat key, clamps stages to -6..+6, forwards that stat through the hook context, and lets generic move-special parsing identify Accuracy and Evasion without a five-stat allowlist.";
     }
 }
