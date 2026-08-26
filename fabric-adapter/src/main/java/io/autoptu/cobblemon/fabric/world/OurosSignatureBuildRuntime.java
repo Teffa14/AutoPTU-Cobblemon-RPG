@@ -32,15 +32,16 @@ public final class OurosSignatureBuildRuntime {
         BlockPos origin = player.getBlockPos().add(0, -1, 46);
         MeridianCanopyGymBuilder.BuildResult result = MeridianCanopyGymBuilder.build(world, origin);
         MeridianCanopyGymDetailPass.apply(world, origin);
+        MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
 
-        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v2 built 46 blocks ahead."), false);
+        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v3 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
                 "Footprint " + result.width() + "x" + result.depth() + ", height " + result.height()
-                        + ". The v2 pass adds a civic forecourt, deep portico, clerestory, conservatory roof, authored wing facades, arena buttresses, roof garden pergola, service yard and night lighting."), false);
+                        + ". OI-001 adds reusable curved/organic voxel geometry, a rebuilt specimen tree, a formal oval battle floor, curved spectator terraces and continuous conservatory ribs."), false);
         player.sendMessage(Text.literal(
-                "Inspect the approach silhouette, atrium section, both challenge wings, upper bridge, backstage shortcut, arena roof and rear service elevation."), false);
+                "Inspect the approach silhouette, atrium tree/crown, battle-floor readability, spectator bowl, challenge wings, upper bridge, backstage shortcut and roof section."), false);
         player.sendMessage(Text.literal(
-                "This build remains a GAMEPLAY PROTOTYPE until exact browser parity, screenshots and traversal playtest pass the Ouros quality bar."), false);
+                "This build remains a GAMEPLAY PROTOTYPE. Exact browser review decides whether each implementation pass actually improves the place."), false);
         return 1;
     }
 }
