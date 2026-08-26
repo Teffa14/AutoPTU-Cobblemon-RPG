@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AreaSecondaryStatusCompatibilityTest {
     @Test
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
-        assertEquals("55cd963b2eda46715b6aba3d1c2579ae1b75b501",
+        assertEquals("149254ca0f54c6b8a35a25a57a7c872e50ce042e",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("6f2072d308ee777b5574eb69d08bd23c85af58da",
+        assertEquals("011996f4b1dfa649dbb8065fc0a3fb42a852bd99",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -30,18 +30,19 @@ class AreaSecondaryStatusCompatibilityTest {
         assertEquals(219, AreaSecondaryStatusCompatibility.MERGED_TEMPORARY_ACCURACY_CONTRACT_PR);
         assertEquals(220, AreaSecondaryStatusCompatibility.MERGED_RUNTIME_TEMPORARY_ACCURACY_INPUTS_PR);
         assertEquals(221, AreaSecondaryStatusCompatibility.MERGED_ACCURACY_HELPER_OWNERSHIP_PR);
-        assertEquals(222, AreaSecondaryStatusCompatibility.OPEN_FOCUSED_TRAINING_ACCURACY_PR);
-        assertEquals("3d7509a3d934820293d29ebed1288b26767c1027",
-                AreaSecondaryStatusCompatibility.OPEN_FOCUSED_TRAINING_ACCURACY_PR_HEAD_SHA);
+        assertEquals(222, AreaSecondaryStatusCompatibility.MERGED_FOCUSED_TRAINING_ACCURACY_PR);
+        assertEquals(223, AreaSecondaryStatusCompatibility.OPEN_CHRONICLER_PROFILE_METADATA_PR);
+        assertEquals("02edb2095f7449ca8b825b1c510f54cced3ecf50",
+                AreaSecondaryStatusCompatibility.OPEN_CHRONICLER_PROFILE_METADATA_PR_HEAD_SHA);
         assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
         assertFalse(AreaSecondaryStatusCompatibility.accuracyEvasionCombatStageMayBeProjected());
         assertFalse(AreaSecondaryStatusCompatibility.effectiveAccuracyEvasionArithmeticMayBeProjected());
 
         String boundary = AreaSecondaryStatusCompatibility.combatStageBoundary();
-        assertTrue(boundary.contains("merged PR #221"));
-        assertTrue(boundary.contains("Draft PR #222"));
+        assertTrue(boundary.contains("Merged PR #222"));
         assertTrue(boundary.contains("canonical controller bindings"));
-        assertTrue(boundary.contains("Chronicler remains unported"));
+        assertTrue(boundary.contains("Draft PR #223"));
+        assertTrue(boundary.contains("Combat Stage Accuracy/Evasion parity workflow is failing"));
         assertTrue(boundary.contains("grants no adapter authority"));
         assertTrue(boundary.contains("live authoritative hit resolution"));
     }
@@ -49,7 +50,7 @@ class AreaSecondaryStatusCompatibilityTest {
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("6f2072d308ee777b5574eb69d08bd23c85af58da"));
+        assertTrue(observation.contains("011996f4b1dfa649dbb8065fc0a3fb42a852bd99"));
         assertTrue(observation.contains("separate from the pinned battle oracle"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("combat_stages['accuracy']"));
