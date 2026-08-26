@@ -10,7 +10,7 @@ public final class AreaSecondaryStatusCompatibility {
     public static final String AUTOPTU_JAVA_MAIN_SHA =
             "a9fb0d81238e69a5263f074b4a8ad8ef1905325d";
     public static final String AUTOPTU_PYTHON_MAIN_SHA =
-            "44305a1b3f06a45fbd06392a64573f287ac31555";
+            "218f272e73acf54e0feb5ac2e8f304d53c0fb3c2";
     public static final String PINNED_PYTHON_BATTLE_ORACLE_SHA =
             "16d228efa63aabecb67fa788959a359aac7f8f03";
     public static final int MERGED_AREA_SECONDARY_STATUS_PR = 210;
@@ -19,6 +19,7 @@ public final class AreaSecondaryStatusCompatibility {
     public static final int MERGED_ACCURACY_EVASION_COMBAT_STAGE_CONTRACT_PR = 213;
     public static final int MERGED_SEVEN_COMBAT_STAGE_STATE_PR = 214;
     public static final int MERGED_SEVEN_COMBAT_STAGE_HOOKS_PR = 215;
+    public static final int OPEN_EFFECTIVE_ACCURACY_EVASION_PROJECTION_PR = 216;
 
     private static final Set<UpstreamCompatibilityMatrix.Capability> DEPENDENCIES = Set.of(
             UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
@@ -48,6 +49,10 @@ public final class AreaSecondaryStatusCompatibility {
         return false;
     }
 
+    public static boolean effectiveAccuracyEvasionArithmeticMayBeProjected() {
+        return false;
+    }
+
     public static boolean delayedSecondaryStatusMayBeProjected() {
         return false;
     }
@@ -63,12 +68,12 @@ public final class AreaSecondaryStatusCompatibility {
                 + "PR #212 is merged and composes stage requests with authoritative CombatStageMutationService, preserving prevention, reflection, clamping and post-apply reactions, but does not wire that application boundary into live BattleRuntime move execution. "
                 + "PR #213 freezes the pinned Python Accuracy/Evasion Combat Stage contract and PR #214 stores all seven stages canonically on server-owned state. "
                 + "PR #215 is merged on main at a9fb0d81238e69a5263f074b4a8ad8ef1905325d and migrates CombatStageMutationService plus prevention/post-apply hooks to CombatStageStat, so ATK/DEF/SPATK/SPDEF/SPD/Accuracy/Evasion share the authoritative mutation seam. "
-                + "PR #215 verifies Accuracy mutation, Evasion prevention and Mirror Armor reflection, while explicitly stopping short of effective Evasion calculation parity and without establishing live BattleRuntime secondary Combat Stage execution. "
-                + "Minecraft/Cobblemon therefore must not parse stage text, apply any secondary stage changes, evaluate prevention/reflection, calculate effective Evasion from stage state, or synthesize semantic stage events until live runtime execution and downstream arithmetic are merged and verified.";
+                + "Draft PR #216 freezes effective arithmetic against the pinned Python oracle before Java runtime arithmetic changes: Accuracy contributes dynamic combat_stages['accuracy'] alongside intrinsic move Accuracy CS and runtime accuracy bonus, while the current oracle does not project combat_stages['evasion'] into evasion_value and Status-category evasion reads Speed Combat Stage. "
+                + "PR #216 is not merged and changes only the oracle/exported contract, so it grants no adapter authority. Minecraft/Cobblemon must not parse stage text, apply secondary stage changes, calculate effective Accuracy/Evasion, reinterpret the Python Evasion asymmetry, or synthesize semantic stage events until merged live runtime contracts prove those behaviors.";
     }
 
     public static String pythonOracleObservation() {
-        return "AutoPTU Python main 44305a1b3f06a45fbd06392a64573f287ac31555 changes Career sponsor-renewal presentation and explicitly leaves battle behavior unchanged, so it does not replace the battle oracle. "
-                + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The frozen oracle contract reads and writes combat_stages by the requested stat key, clamps stages to -6..+6, forwards that stat through the hook context, and lets generic move-special parsing identify Accuracy and Evasion without a five-stat allowlist.";
+        return "AutoPTU Python main 218f272e73acf54e0feb5ac2e8f304d53c0fb3c2 changes Career sponsor-history validation and does not replace the pinned battle oracle. "
+                + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The frozen stage contract reads and writes combat_stages by requested stat key, clamps stages to -6..+6, and forwards the stat through hook context. The effective projection contract under draft Java PR #216 observes that Accuracy arithmetic reads combat_stages['accuracy'], while current evasion_value does not read combat_stages['evasion'].";
     }
 }
