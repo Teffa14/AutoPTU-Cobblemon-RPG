@@ -4,9 +4,9 @@ import java.util.Set;
 
 public final class AreaSecondaryStatusCompatibility {
     public static final String AUTOPTU_JAVA_MAIN_SHA =
-            "b66fcb4dac909c2f44bf6caf54a15f8da82e3e0a";
+            "b35f09bbcc4246b1846e57c5c4f9bb5771d474e8";
     public static final String AUTOPTU_PYTHON_MAIN_SHA =
-            "231c50e4f2e7c4c0442123b1ba2221b7d07384eb";
+            "0ea4f8b9b5a2cb98fec40974e088f4238b480c52";
     public static final String PINNED_PYTHON_BATTLE_ORACLE_SHA =
             "16d228efa63aabecb67fa788959a359aac7f8f03";
     public static final int MERGED_AREA_SECONDARY_STATUS_PR = 210;
@@ -17,6 +17,10 @@ public final class AreaSecondaryStatusCompatibility {
     public static final int MERGED_SEVEN_COMBAT_STAGE_HOOKS_PR = 215;
     public static final int MERGED_EFFECTIVE_ACCURACY_EVASION_PROJECTION_CONTRACT_PR = 216;
     public static final int MERGED_EFFECTIVE_ACCURACY_PROJECTION_PR = 217;
+    public static final int MERGED_INTRINSIC_ACCURACY_PROFILE_PR = 218;
+    public static final int MERGED_TEMPORARY_ACCURACY_BONUS_CONTRACT_PR = 219;
+    public static final int MERGED_RUNTIME_TEMPORARY_ACCURACY_INPUTS_PR = 220;
+    public static final int DRAFT_ACCURACY_HELPER_OWNERSHIP_PR = 221;
 
     private static final Set<UpstreamCompatibilityMatrix.Capability> DEPENDENCIES = Set.of(
             UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
@@ -61,13 +65,14 @@ public final class AreaSecondaryStatusCompatibility {
     public static String combatStageBoundary() {
         return "AutoPTU-Java PR #211 through PR #215 establish parsing, application, seven-stage state and authoritative mutation hooks. "
                 + "PR #216 freezes the effective Accuracy/Evasion arithmetic contract against the pinned Python oracle. "
-                + "PR #217 is merged on main at b66fcb4dac909c2f44bf6caf54a15f8da82e3e0a and adds only a package-private EffectiveAccuracyStageProjection primitive that combines dynamic stage, intrinsic Accuracy CS and runtime bonus before clamping. "
-                + "PR #217 does not add intrinsic Accuracy ownership to RuntimeCombatantState and does not wire the primitive into live hit resolution, so it grants no adapter authority. "
-                + "The pinned oracle reads combat_stages['accuracy'] for effective Accuracy while current evasion_value does not read combat_stages['evasion']. Minecraft/Cobblemon must not apply secondary stage changes, calculate effective Accuracy/Evasion, reinterpret that asymmetry, or synthesize stage outcomes until merged live runtime contracts prove those behaviors.";
+                + "PR #217 adds the package-private EffectiveAccuracyStageProjection primitive, PR #218 stores intrinsic PokemonSpec.accuracy_cs as trusted immutable profile content, PR #219 freezes temporary Accuracy bonus semantics, and PR #220 materializes ordinary runtime inputs from BattleRuntimeState. "
+                + "PR #220 still keeps Focused Training and Chronicler helper contributions behind a package-private core seam and does not wire the resolved temporary bonus or effective Accuracy projection into live hit resolution. "
+                + "Draft PR #221 only freezes helper ownership semantics and currently has a failing Combat Stage Accuracy Evasion Parity workflow, so it grants no adapter authority. "
+                + "The pinned oracle reads combat_stages['accuracy'] for effective Accuracy while current evasion_value does not read combat_stages['evasion']. Minecraft/Cobblemon must not calculate effective Accuracy/Evasion, supply helper contributions, derive temporary Accuracy bonuses independently, apply secondary stage changes, reinterpret that asymmetry, or synthesize hit/stage outcomes until merged live runtime contracts prove those behaviors.";
     }
 
     public static String pythonOracleObservation() {
-        return "AutoPTU Python main 231c50e4f2e7c4c0442123b1ba2221b7d07384eb changes Career rival-timeline validation and does not replace the pinned battle oracle. "
-                + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. Current calculations still separate temporary accuracy modifiers from the stage contract; Java PR #216 records that Accuracy consumes combat_stages['accuracy'] while current evasion_value does not consume combat_stages['evasion'].";
+        return "AutoPTU Python main 0ea4f8b9b5a2cb98fec40974e088f4238b480c52 hardens Career battle presentation collections and explicitly preserves canonical battle output, HP, RNG and PTU rules. "
+                + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The pinned calculations keep temporary Accuracy modifiers server-side and separate from mutable Accuracy stage plus intrinsic accuracy_cs projection; current evasion_value still does not consume combat_stages['evasion'].";
     }
 }
