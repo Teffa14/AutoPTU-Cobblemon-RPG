@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ouros Build Review</title>
+  <style>
+    :root{color-scheme:dark;background:#0d1117;color:#e6edf3;font-family:Inter,system-ui,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#172033,#0d1117 50%)}
+    header{padding:42px 7vw 26px;max-width:1200px;margin:auto}.eyebrow{letter-spacing:.14em;text-transform:uppercase;color:#7ee787;font-size:12px;font-weight:700}
+    h1{font-size:clamp(32px,5vw,64px);margin:9px 0 12px;line-height:.95}.lead{max-width:760px;color:#9da7b3;font-size:17px;line-height:1.6}
+    main{max-width:1200px;margin:auto;padding:10px 7vw 60px}.card{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:0;border:1px solid #30363d;border-radius:18px;overflow:hidden;background:#111820;box-shadow:0 25px 70px #0008}
+    .preview{min-height:440px;position:relative;background:linear-gradient(155deg,#142118,#0a1114)}.preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .meta{padding:28px}.status{display:inline-block;padding:6px 9px;border:1px solid #d29922;border-radius:999px;color:#e3b341;font-size:12px;font-weight:700}.meta h2{font-size:30px;margin:16px 0 10px}.meta p{color:#9da7b3;line-height:1.55}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0}.stat{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:12px}.stat b{display:block;font-size:19px}.stat span{font-size:12px;color:#8b949e}
+    a.button{display:inline-block;text-decoration:none;color:#0d1117;background:#7ee787;font-weight:800;padding:12px 16px;border-radius:9px}.note{margin-top:28px;padding:20px;border-left:3px solid #58a6ff;background:#0d1520;color:#9da7b3;line-height:1.55}
+    @media(max-width:800px){.card{grid-template-columns:1fr}.preview{min-height:390px}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">AutoPTU · Cobblemon · Ouros</div>
+  <h1>Build Review</h1>
+  <div class="lead">Browser previews for authored Minecraft locations. Every major Ouros build should become reviewable here before it is called showcase-ready.</div>
+</header>
+<main>
+  <section class="card">
+    <div class="preview"><iframe title="Meridian Canopy Gym preview" src="builds/meridian-canopy-gym.html"></iframe></div>
+    <div class="meta">
+      <span class="status">GAMEPLAY PROTOTYPE</span>
+      <h2>Meridian Canopy Gym</h2>
+      <p>First large Ouros Gym massing pass. Public institution, challenge space and repeat-visit location rather than a leader room wrapped in a facade.</p>
+      <div class="stats">
+        <div class="stat"><b>67 × 67</b><span>footprint</span></div>
+        <div class="stat"><b>22</b><span>max height</span></div>
+        <div class="stat"><b>2 + service</b><span>vertical bands</span></div>
+        <div class="stat"><b>10</b><span>major spatial beats</span></div>
+      </div>
+      <a class="button" href="builds/meridian-canopy-gym.html">Open full 3D review</a>
+      <div class="note">This preview is a browser review model of the current authored volumes and routes. It is not yet a texture-perfect Minecraft render. The next pipeline step makes the browser model and in-game structure share one geometry manifest.</div>
+    </div>
+  </section>
+</main>
+</body>
+</html>
