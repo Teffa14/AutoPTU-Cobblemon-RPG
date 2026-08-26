@@ -5,6 +5,7 @@ on:
     paths:
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/**'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/build/**'
+      - '.github/workflows/build-review-pages.yml'
       - '.github/workflows/ouros-structure-gate.yml'
 
 jobs:
