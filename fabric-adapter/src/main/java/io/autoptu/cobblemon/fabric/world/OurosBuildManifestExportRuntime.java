@@ -49,8 +49,6 @@ public final class OurosBuildManifestExportRuntime {
     private static final int MIN_Z = -33;
     private static final int MAX_Z = 33;
 
-    // Export runs in an isolated high-altitude sandbox larger than the visible manifest envelope.
-    // Any authored block left in this guard shell proves the builder wrote geometry the viewer would hide.
     private static final int GUARD_MIN_X = -40;
     private static final int GUARD_MAX_X = 40;
     private static final int GUARD_MIN_Y = -4;
@@ -80,6 +78,7 @@ public final class OurosBuildManifestExportRuntime {
         MeridianCanopyGymRebuild.build(world, origin);
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
         MeridianCanopyGymRebuildDetailPass.apply(world, origin);
+        MeridianCanopyGymRebuildAnchoringPass.apply(world, origin);
 
         validateCaptureEnvelope(world, origin);
         LOGGER.info(ENVELOPE_AUDIT_MARKER);
@@ -214,6 +213,7 @@ public final class OurosBuildManifestExportRuntime {
         sources.add("MeridianCanopyGymRebuild");
         sources.add("MeridianCanopyGymRebuildStructuralPass");
         sources.add("MeridianCanopyGymRebuildDetailPass");
+        sources.add("MeridianCanopyGymRebuildAnchoringPass");
         root.add("productionSources", sources);
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);
