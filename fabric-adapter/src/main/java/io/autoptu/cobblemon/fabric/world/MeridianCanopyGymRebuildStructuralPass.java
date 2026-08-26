@@ -40,8 +40,10 @@ public final class MeridianCanopyGymRebuildStructuralPass {
     }
 
     private static void rebuildGatehouseRoofWithinEnvelope(ServerWorld world, BlockPos o) {
+        // The first authored draft used a 1:1 gable and could write above the exact-viewer envelope.
+        // Clear the whole draft roof volume, including hidden blocks above y=22, before rebuilding it.
         for (int x = -16; x <= 16; x++) {
-            for (int y = 9; y <= 22; y++) {
+            for (int y = 9; y <= 30; y++) {
                 for (int z = -26; z <= -16; z++) {
                     BlockPos pos = o.add(x, y, z);
                     BlockState state = world.getBlockState(pos);
