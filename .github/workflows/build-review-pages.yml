@@ -116,6 +116,49 @@ jobs:
           PY
           stop_server
 
+      - name: Stage pinned Minecraft viewer assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$PWD/site/minecraft-assets"
+          mkdir -p "$out"
+
+          # Browser clients must never depend on raw.githubusercontent.com at runtime.
+          # Pin the generated mcmeta trees here, validate them in CI, then publish the files
+          # under the same GitHub Pages origin as the viewer itself.
+          summary_sha='483c3f2f70a78e61127b68f3ee2416b58aeecacc'
+          atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
+          raw='https://raw.githubusercontent.com/misode/mcmeta'
+
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$summary_sha/assets/block_definition/data.min.json" \
+            -o "$out/block-definitions.json"
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$summary_sha/assets/model/data.min.json" \
+            -o "$out/block-models.json"
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/data.min.json" \
+            -o "$out/atlas-map.json"
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/atlas.png" \
+            -o "$out/atlas.png"
+
+          python3 - <<'PY' "$out"
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          for name in ('block-definitions.json', 'block-models.json', 'atlas-map.json'):
+              path = root / name
+              with path.open(encoding='utf-8') as fh:
+                  data = json.load(fh)
+              if not isinstance(data, dict) or not data:
+                  raise SystemExit(f'{name} is empty or invalid')
+          png = (root / 'atlas.png').read_bytes()
+          if not png.startswith(b'\x89PNG\r\n\x1a\n'):
+              raise SystemExit('atlas.png is not a valid PNG')
+          print('Pinned Minecraft viewer assets staged:',
+                *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
+          PY
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
