@@ -11,7 +11,7 @@ class AreaSecondaryStatusCompatibilityTest {
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
         assertEquals("a9fb0d81238e69a5263f074b4a8ad8ef1905325d",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("9fedd2efa5d0f2dc3229617e665533f2f2555897",
+        assertEquals("44305a1b3f06a45fbd06392a64573f287ac31555",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -79,7 +79,8 @@ class AreaSecondaryStatusCompatibilityTest {
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("9fedd2efa5d0f2dc3229617e665533f2f2555897"));
+        assertTrue(observation.contains("44305a1b3f06a45fbd06392a64573f287ac31555"));
+        assertTrue(observation.contains("battle behavior unchanged"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("combat_stages"));
         assertTrue(observation.contains("-6..+6"));
