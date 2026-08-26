@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="data:," />
   <title>Ouros Build Review</title>
   <style>
     :root{color-scheme:dark;background:#0b120f;color:#eef4f0;font-family:Inter,system-ui,sans-serif}
@@ -25,7 +26,7 @@
 </header>
 <main>
   <section class="card">
-    <div class="preview"><iframe title="Meridian Canopy Gym exact Minecraft block viewer" src="builds/meridian-canopy-gym.html?v=exact-minecraft-v3"></iframe></div>
+    <div class="preview"><iframe title="Meridian Canopy Gym exact Minecraft block viewer" src="builds/meridian-canopy-gym.html?v=classic-umd-v4"></iframe></div>
     <div class="meta">
       <span class="status">EXACT MINECRAFT BLOCK VIEWER</span>
       <h2>Meridian Canopy Gym</h2>
@@ -36,8 +37,8 @@
         <div class="stat"><b>Live server</b><span>geometry authority</span></div>
         <div class="stat"><b>SHA-256</b><span>build identity</span></div>
       </div>
-      <a class="button" href="builds/meridian-canopy-gym.html?v=exact-minecraft-v3">Open Minecraft viewer</a>
-      <div class="note">Every Pages deployment regenerates the manifest inside a dedicated Fabric + Cobblemon server, validates the block assets, bundles Deepslate and gl-matrix into one Safari-targeted local script, then publishes everything together. Mobile runtime no longer depends on esm.sh or GitHub Raw.</div>
+      <a class="button" href="builds/meridian-canopy-gym.html?v=classic-umd-v4">Open Minecraft viewer</a>
+      <div class="note">Every Pages deployment regenerates the manifest inside a dedicated Fabric + Cobblemon server, validates the block assets and concatenates the prebuilt Deepslate UMD runtime, gl-matrix UMD runtime and Ouros viewer into one classic local script. The browser performs no module imports and uses no runtime CDN.</div>
     </div>
   </section>
 </main>
