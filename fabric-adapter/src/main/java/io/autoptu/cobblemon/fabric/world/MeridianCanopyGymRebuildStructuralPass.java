@@ -23,7 +23,8 @@ public final class MeridianCanopyGymRebuildStructuralPass {
             .with(Properties.AXIS, Direction.Axis.Z);
     private static final BlockState FRAME_Y = Blocks.STRIPPED_DARK_OAK_LOG.getDefaultState()
             .with(Properties.AXIS, Direction.Axis.Y);
-    private static final BlockState LANTERN = Blocks.LANTERN.getDefaultState();
+    private static final BlockState HANGING_LANTERN = Blocks.LANTERN.getDefaultState()
+            .with(Properties.HANGING, true);
 
     private MeridianCanopyGymRebuildStructuralPass() {}
 
@@ -39,7 +40,6 @@ public final class MeridianCanopyGymRebuildStructuralPass {
     }
 
     private static void rebuildGatehouseRoofWithinEnvelope(ServerWorld world, BlockPos o) {
-        // Remove only the first-pass roof skin/ridge. Keep every pier, lintel and wall below y=9.
         for (int x = -16; x <= 16; x++) {
             for (int y = 9; y <= 22; y++) {
                 for (int z = -26; z <= -16; z++) {
@@ -59,7 +59,6 @@ public final class MeridianCanopyGymRebuildStructuralPass {
         BlockState east = Blocks.DEEPSLATE_TILE_STAIRS.getDefaultState()
                 .with(Properties.HORIZONTAL_FACING, Direction.WEST);
 
-        // Continuous 2:1 stepped pitch. Every x-column receives roof skin; no isolated stair strips.
         for (int x = -15; x <= 15; x++) {
             int distanceFromRidge = Math.abs(x);
             int y = 9 + (15 - distanceFromRidge) / 2;
@@ -72,7 +71,6 @@ public final class MeridianCanopyGymRebuildStructuralPass {
             world.setBlockState(o.add(0, 17, z), FRAME_Z);
         }
 
-        // Three real roof trusses connect eaves to ridge and explain the span from below.
         for (int z : new int[]{-24, -21, -18}) {
             beamX(world, o, -14, 14, 9, z, FRAME_X);
             column(world, o, 0, 10, z, 7, FRAME_Y);
@@ -90,7 +88,7 @@ public final class MeridianCanopyGymRebuildStructuralPass {
             world.setBlockState(o.add(x + inward, 5, -31), FRAME_X);
             world.setBlockState(o.add(x + inward * 2, 5, -31), FRAME_X);
             world.setBlockState(o.add(x + inward * 2, 4, -31), Blocks.CHAIN.getDefaultState());
-            world.setBlockState(o.add(x + inward * 2, 3, -31), LANTERN);
+            world.setBlockState(o.add(x + inward * 2, 3, -31), HANGING_LANTERN);
         }
     }
 
@@ -99,7 +97,7 @@ public final class MeridianCanopyGymRebuildStructuralPass {
         for (int x : new int[]{-3, 3}) {
             world.setBlockState(o.add(x, 8, -20), Blocks.CHAIN.getDefaultState());
             world.setBlockState(o.add(x, 7, -20), Blocks.CHAIN.getDefaultState());
-            world.setBlockState(o.add(x, 6, -20), LANTERN);
+            world.setBlockState(o.add(x, 6, -20), HANGING_LANTERN);
         }
     }
 
@@ -110,7 +108,7 @@ public final class MeridianCanopyGymRebuildStructuralPass {
                 for (int y = 12; y >= 10; y--) {
                     world.setBlockState(o.add(x, y, z), Blocks.CHAIN.getDefaultState());
                 }
-                world.setBlockState(o.add(x, 9, z), LANTERN);
+                world.setBlockState(o.add(x, 9, z), HANGING_LANTERN);
             }
         }
     }
@@ -118,7 +116,6 @@ public final class MeridianCanopyGymRebuildStructuralPass {
     private static void alignArenaRoofTies(ServerWorld world, BlockPos o) {
         BlockPos c = o.add(0, 0, 22);
 
-        // Remove the two off-grid ties from the first pass. They did not terminate on piers.
         for (int x : new int[]{-9, 9}) {
             for (int z = -8; z <= 8; z++) {
                 BlockPos pos = c.add(x, 12, z);
@@ -128,7 +125,6 @@ public final class MeridianCanopyGymRebuildStructuralPass {
             }
         }
 
-        // Every tie now terminates directly on paired perimeter piers.
         for (int x : new int[]{-18, 18}) {
             beamZ(world, c, -8, 8, 12, x, FRAME_Z);
         }
@@ -136,12 +132,11 @@ public final class MeridianCanopyGymRebuildStructuralPass {
             beamZ(world, c, -10, 10, 12, x, FRAME_Z);
         }
 
-        // Supported hanging lamps mark the spectator ring without floating chains.
         for (int[] p : new int[][]{{-18, 0}, {18, 0}, {-10, -7}, {10, -7}}) {
             for (int y = 11; y >= 9; y--) {
                 world.setBlockState(c.add(p[0], y, p[1]), Blocks.CHAIN.getDefaultState());
             }
-            world.setBlockState(c.add(p[0], 8, p[1]), LANTERN);
+            world.setBlockState(c.add(p[0], 8, p[1]), HANGING_LANTERN);
         }
     }
 
@@ -151,7 +146,7 @@ public final class MeridianCanopyGymRebuildStructuralPass {
             for (int y = 10; y >= 6; y--) {
                 world.setBlockState(c.add(x, y, 9), Blocks.CHAIN.getDefaultState());
             }
-            world.setBlockState(c.add(x, 5, 9), LANTERN);
+            world.setBlockState(c.add(x, 5, 9), HANGING_LANTERN);
         }
     }
 
@@ -165,7 +160,6 @@ public final class MeridianCanopyGymRebuildStructuralPass {
     }
 
     private static void consolidateServiceProps(ServerWorld world, BlockPos o) {
-        // Move institution-use clues onto the actual service floor, away from the arena edge.
         for (int z : new int[]{17, 20, 23, 26}) {
             BlockPos legacy = o.add(-24, 3, z);
             if (!world.getBlockState(legacy).isAir()) {
