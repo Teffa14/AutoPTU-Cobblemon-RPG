@@ -25,19 +25,19 @@
 </header>
 <main>
   <section class="card">
-    <div class="preview"><iframe title="Meridian Canopy Gym exact Minecraft block viewer" src="builds/meridian-canopy-gym.html?v=exact-minecraft-v2"></iframe></div>
+    <div class="preview"><iframe title="Meridian Canopy Gym exact Minecraft block viewer" src="builds/meridian-canopy-gym.html?v=exact-minecraft-v3"></iframe></div>
     <div class="meta">
       <span class="status">EXACT MINECRAFT BLOCK VIEWER</span>
       <h2>Meridian Canopy Gym</h2>
-      <p>The browser uses the final block states produced by the same Fabric runtime that builds the Gym in Minecraft. Viewer block models and texture data are staged into the same Pages deployment so mobile browsers do not depend on GitHub Raw.</p>
+      <p>The browser uses the final block states produced by the same Fabric runtime that builds the Gym in Minecraft. Viewer JavaScript, block models, texture atlas and manifest are all published on the same GitHub Pages origin.</p>
       <div class="stats">
         <div class="stat"><b>67 × 27 × 67</b><span>exact capture volume</span></div>
         <div class="stat"><b>1.21.1</b><span>Minecraft target</span></div>
         <div class="stat"><b>Live server</b><span>geometry authority</span></div>
         <div class="stat"><b>SHA-256</b><span>build identity</span></div>
       </div>
-      <a class="button" href="builds/meridian-canopy-gym.html?v=exact-minecraft-v2">Open Minecraft viewer</a>
-      <div class="note">Every Pages deployment regenerates the manifest inside a dedicated Fabric + Cobblemon server, stages and validates the browser assets, then publishes them together. A missing block-model file now fails deployment instead of failing later on your phone.</div>
+      <a class="button" href="builds/meridian-canopy-gym.html?v=exact-minecraft-v3">Open Minecraft viewer</a>
+      <div class="note">Every Pages deployment regenerates the manifest inside a dedicated Fabric + Cobblemon server, validates the block assets, bundles Deepslate and gl-matrix into one Safari-targeted local script, then publishes everything together. Mobile runtime no longer depends on esm.sh or GitHub Raw.</div>
     </div>
   </section>
 </main>

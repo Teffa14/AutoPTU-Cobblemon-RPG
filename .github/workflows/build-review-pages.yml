@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'site/**'
+      - 'tools/build-review/**'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/AutoPtuCobblemonFabricAdapter.java'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/MeridianCanopyGymBuilder.java'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/MeridianCanopyGymDetailPass.java'
@@ -123,9 +124,6 @@ jobs:
           out="$PWD/site/minecraft-assets"
           mkdir -p "$out"
 
-          # Browser clients must never depend on raw.githubusercontent.com at runtime.
-          # Pin the generated mcmeta trees here, validate them in CI, then publish the files
-          # under the same GitHub Pages origin as the viewer itself.
           summary_sha='483c3f2f70a78e61127b68f3ee2416b58aeecacc'
           atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
           raw='https://raw.githubusercontent.com/misode/mcmeta'
@@ -158,6 +156,41 @@ jobs:
           print('Pinned Minecraft viewer assets staged:',
                 *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
           PY
+
+      - name: Bundle self-contained Safari viewer runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          deps="$RUNNER_TEMP/ouros-viewer-node"
+          out="$PWD/site/assets"
+          mkdir -p "$deps" "$out"
+
+          npm install --prefix "$deps" --no-save \
+            deepslate@0.26.0 \
+            gl-matrix@3.4.3 \
+            esbuild@0.25.9
+
+          "$deps/node_modules/.bin/esbuild" \
+            tools/build-review/meridian-canopy-gym.js \
+            --bundle \
+            --format=iife \
+            --platform=browser \
+            --target=safari15 \
+            --minify \
+            --outfile="$out/meridian-canopy-gym.bundle.js"
+
+          test -s "$out/meridian-canopy-gym.bundle.js"
+          test "$(wc -c < "$out/meridian-canopy-gym.bundle.js")" -gt 10000
+          if grep -q 'esm.sh' "$out/meridian-canopy-gym.bundle.js"; then
+            echo 'Viewer bundle still contains esm.sh runtime dependency' >&2
+            exit 1
+          fi
+          if grep -q 'esm.sh' site/builds/meridian-canopy-gym.html; then
+            echo 'Viewer HTML still contains esm.sh runtime dependency' >&2
+            exit 1
+          fi
+          grep -q '__ourosViewerBooted' "$out/meridian-canopy-gym.bundle.js"
+          echo "Self-contained viewer bundle staged: $(wc -c < "$out/meridian-canopy-gym.bundle.js") bytes"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
