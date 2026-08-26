@@ -2,6 +2,9 @@ package io.autoptu.cobblemon.fabric.world;
 
 /** Server-owned coarse behavior for the first living-world slice. */
 public final class CedarMeadowBehavior {
+    private static final int RECOVERY_QUIET_TICKS = 80;
+    private static final int ABANDONED_ALARM_QUIET_TICKS = 100;
+
     public enum State {
         CALM,
         WATCHING,
@@ -19,7 +22,10 @@ public final class CedarMeadowBehavior {
     public State update(double nearestPlayerDistance, boolean playerPresent) {
         if (!playerPresent) {
             quietTicks++;
-            if (quietTicks >= 100) {
+            int calmThreshold = state == State.RECOVERING
+                    ? RECOVERY_QUIET_TICKS
+                    : ABANDONED_ALARM_QUIET_TICKS;
+            if (quietTicks >= calmThreshold) {
                 state = State.CALM;
             }
             return state;
@@ -41,7 +47,7 @@ public final class CedarMeadowBehavior {
         if (state == State.ALARMED || state == State.WATCHING) {
             state = State.RECOVERING;
         }
-        if (quietTicks >= 80) {
+        if (quietTicks >= RECOVERY_QUIET_TICKS) {
             state = State.CALM;
         }
         return state;
