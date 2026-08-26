@@ -3,101 +3,91 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Meridian Canopy Gym · Ouros Build Review</title>
+<title>Meridian Canopy Gym v2 · Ouros Build Review</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1117;color:#e6edf3;font-family:Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}#app{position:fixed;inset:0}canvas{display:block;touch-action:none}
-#fallback{position:fixed;inset:0;display:grid;place-items:center;padding:120px 18px 70px;background:linear-gradient(160deg,#122019,#0b1117);z-index:0}.fallback-card{width:min(760px,92vw);border:1px solid #30363d;border-radius:18px;background:#0d1117;padding:18px;box-shadow:0 22px 70px #0008}.fallback-card h2{margin:0 0 6px;font-size:20px}.fallback-card p{margin:0 0 12px;color:#8b949e;font-size:13px;line-height:1.45}.plan{width:100%;height:auto;display:block;background:#111820;border-radius:12px}
-#hud{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:min(360px,calc(100vw - 24px));background:#0d1117e8;border:1px solid #30363d;border-radius:14px;padding:14px;backdrop-filter:blur(12px);z-index:3;box-shadow:0 15px 45px #0008}.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7ee787;font-weight:800}h1{font-size:21px;margin:6px 0 3px}.sub{font-size:12px;color:#8b949e;line-height:1.35}.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.btn{border:1px solid #30363d;background:#161b22;color:#c9d1d9;border-radius:8px;padding:8px 10px;font:inherit;font-size:12px;cursor:pointer;min-height:36px}.btn:hover,.btn.active{border-color:#7ee787;color:#7ee787;background:#102018}
-#legend{position:fixed;right:18px;bottom:18px;background:#0d1117e8;border:1px solid #30363d;border-radius:12px;padding:12px 14px;z-index:3;font-size:12px;color:#9da7b3;line-height:1.65}.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}#tip{position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#0d1117d9;border:1px solid #30363d;border-radius:999px;padding:8px 13px;font-size:11px;color:#8b949e;z-index:3;white-space:nowrap}#error{position:fixed;left:12px;right:12px;bottom:12px;display:none;background:#3b1115;border:1px solid #f85149;color:#ffd8d5;border-radius:10px;padding:12px;z-index:5;font-size:12px;line-height:1.4}
-@media(max-width:720px){#legend{display:none}#hud{padding:11px}h1{font-size:18px}.sub{font-size:11px}#tip{font-size:10px}.fallback-card{padding:12px}}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08100d;color:#eef4f0;font-family:Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}#app{position:fixed;inset:0}canvas{display:block;touch-action:none}
+#fallback{position:fixed;inset:0;display:grid;place-items:center;padding:120px 18px 70px;background:linear-gradient(160deg,#122019,#08100d);z-index:0}.fallback-card{width:min(760px,92vw);border:1px solid #314039;border-radius:18px;background:#0d1512;padding:18px;box-shadow:0 22px 70px #0008}.fallback-card h2{margin:0 0 6px;font-size:20px}.fallback-card p{margin:0 0 12px;color:#95a39b;font-size:13px;line-height:1.45}.plan{width:100%;height:auto;display:block;background:#111a16;border-radius:12px}
+#hud{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:min(420px,calc(100vw - 24px));background:#0b120fee;border:1px solid #35443d;border-radius:16px;padding:14px;backdrop-filter:blur(14px);z-index:3;box-shadow:0 15px 45px #0009}.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#83ef9f;font-weight:800}h1{font-size:22px;margin:6px 0 3px}.sub{font-size:12px;color:#98a59f;line-height:1.4}.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.btn{border:1px solid #33413b;background:#151d19;color:#d0d9d4;border-radius:9px;padding:8px 10px;font:inherit;font-size:12px;cursor:pointer;min-height:36px}.btn:hover,.btn.active{border-color:#83ef9f;color:#9cffb3;background:#102017}
+#badge{display:inline-flex;align-items:center;gap:7px;margin-top:9px;padding:6px 8px;border:1px solid #40614a;border-radius:999px;background:#102017;color:#b7efc3;font-size:11px}.dot{width:7px;height:7px;border-radius:50%;background:#83ef9f;box-shadow:0 0 14px #83ef9f}
+#legend{position:fixed;right:16px;bottom:16px;background:#0b120fee;border:1px solid #35443d;border-radius:12px;padding:12px 14px;z-index:3;font-size:12px;color:#9eadA5;line-height:1.7}.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}#tip{position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#0b120fe6;border:1px solid #35443d;border-radius:999px;padding:8px 13px;font-size:11px;color:#98a59f;z-index:3;white-space:nowrap}
+#selection{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));width:min(330px,calc(100vw - 24px));display:none;background:#0b120ff2;border:1px solid #4b6357;border-radius:13px;padding:12px 14px;z-index:4;box-shadow:0 12px 38px #0009}.sel-title{font-weight:800;font-size:14px}.sel-copy{font-size:12px;color:#9facA5;line-height:1.4;margin-top:4px}
+#error{position:fixed;left:12px;right:12px;bottom:12px;display:none;background:#3b1115;border:1px solid #f85149;color:#ffd8d5;border-radius:10px;padding:12px;z-index:5;font-size:12px;line-height:1.4}
+@media(max-width:720px){#legend{display:none}#hud{padding:11px}h1{font-size:18px}.sub{font-size:11px}#tip{font-size:10px}.fallback-card{padding:12px}#selection{bottom:54px}}
 </style>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
-  }
-}
-</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 </head>
 <body>
 <div id="app"></div>
-<div id="fallback">
- <div class="fallback-card">
-  <h2>Meridian Canopy Gym</h2>
-  <p>Loading interactive 3D review. This floor plan stays visible if the device cannot start WebGL.</p>
-  <svg class="plan" viewBox="0 0 670 670" role="img" aria-label="Meridian Canopy Gym fallback plan">
-   <rect width="670" height="670" fill="#18251c"/>
-   <rect x="245" y="15" width="180" height="80" rx="8" fill="#a6a099"/>
-   <rect x="190" y="80" width="290" height="130" rx="8" fill="#747d86"/>
-   <rect x="170" y="200" width="330" height="260" rx="12" fill="#747d86"/>
-   <rect x="215" y="245" width="240" height="170" rx="20" fill="#31854a"/>
-   <rect x="260" y="285" width="150" height="95" rx="20" fill="#3f8fd2"/>
-   <rect x="35" y="220" width="140" height="230" rx="9" fill="#55a868"/>
-   <rect x="495" y="220" width="140" height="230" rx="9" fill="#65707b"/>
-   <rect x="505" y="265" width="120" height="140" rx="8" fill="#3f8fd2"/>
-   <rect x="110" y="455" width="450" height="185" rx="10" fill="#747d86"/>
-   <rect x="180" y="500" width="310" height="95" rx="8" fill="#d0a34f"/>
-   <path d="M55 430 L55 600 L230 600" fill="none" stroke="#8a63c7" stroke-width="18" stroke-linecap="round" opacity=".9"/>
-   <g fill="#e6edf3" font-family="system-ui" font-size="17" font-weight="700" text-anchor="middle">
-    <text x="335" y="60">APPROACH</text><text x="335" y="150">LOBBY</text><text x="335" y="230">CANOPY ATRIUM</text><text x="105" y="340">GARDEN WING</text><text x="565" y="340">WATER WING</text><text x="335" y="485">LEADER ARENA</text>
-   </g>
-  </svg>
- </div>
-</div>
-<div id="hud">
- <div class="eyebrow">Ouros Build Review · Gameplay Prototype</div>
- <h1>Meridian Canopy Gym</h1>
- <div class="sub">67 × 67 × 22 · drag with one finger to orbit · pinch to zoom.</div>
- <div class="row">
-  <button class="btn active" data-view="all">All</button>
-  <button class="btn" data-view="ground">Ground</button>
-  <button class="btn" data-view="upper">Upper</button>
-  <button class="btn" data-view="service">Service</button>
-  <button class="btn" id="labels">Labels</button>
-  <button class="btn" id="reset">Reset</button>
- </div>
-</div>
-<div id="legend"><div><span class="sw" style="background:#8b949e"></span>public / structural</div><div><span class="sw" style="background:#3fb950"></span>planted / ecological</div><div><span class="sw" style="background:#58a6ff"></span>water / control wing</div><div><span class="sw" style="background:#d29922"></span>challenge / arena</div><div><span class="sw" style="background:#bc8cff"></span>service / shortcut</div></div>
-<div id="tip">one finger: orbit · pinch: zoom · two fingers: pan</div>
-<div id="error"></div>
-<script>
-window.addEventListener('error',function(e){const box=document.getElementById('error');box.style.display='block';box.textContent='3D preview error: '+(e.message||'unknown browser error')+' · The floor plan remains available.';});
-window.addEventListener('unhandledrejection',function(e){const box=document.getElementById('error');box.style.display='block';box.textContent='3D preview could not start: '+(e.reason?.message||e.reason||'module error')+' · The floor plan remains available.';});
-</script>
+<div id="fallback"><div class="fallback-card"><h2>Meridian Canopy Gym v2</h2><p>Loading the architectural review. This plan remains visible if WebGL cannot start.</p><svg class="plan" viewBox="0 0 670 670" role="img" aria-label="Meridian Canopy Gym v2 plan"><rect width="670" height="670" fill="#17251c"/><rect x="225" y="8" width="220" height="95" rx="8" fill="#9b968b"/><rect x="185" y="80" width="300" height="135" rx="8" fill="#6f7873"/><rect x="165" y="195" width="340" height="270" rx="12" fill="#5e6964"/><rect x="205" y="235" width="260" height="190" rx="20" fill="#2f7e49"/><rect x="255" y="280" width="160" height="105" rx="20" fill="#3986c5"/><rect x="25" y="215" width="150" height="240" rx="9" fill="#458a52"/><rect x="495" y="215" width="150" height="240" rx="9" fill="#5d6863"/><rect x="510" y="260" width="120" height="150" rx="8" fill="#3986c5"/><rect x="95" y="450" width="480" height="200" rx="10" fill="#626d68"/><rect x="170" y="500" width="330" height="100" rx="8" fill="#c49a4b"/><g fill="#eef4f0" font-family="system-ui" font-size="17" font-weight="700" text-anchor="middle"><text x="335" y="55">CIVIC FORECOURT</text><text x="335" y="145">PORTICO + LOBBY</text><text x="335" y="225">CONSERVATORY ATRIUM</text><text x="100" y="340">GARDEN WING</text><text x="570" y="340">WATER WING</text><text x="335" y="485">RIBBED ARENA</text></g></svg></div></div>
+<div id="hud"><div class="eyebrow">Ouros Build Review · Architectural v2</div><h1>Meridian Canopy Gym</h1><div class="sub">67 × 67 × 22 · second architectural pass. The browser model now reviews facade depth, roofs, sectional hierarchy, interior anchors and service logic instead of only massing.</div><div id="badge"><span class="dot"></span> GAMEPLAY PROTOTYPE · DETAIL PASS ACTIVE</div><div class="row"><button class="btn active" data-view="all">All</button><button class="btn" data-view="cutaway">Cutaway</button><button class="btn" data-view="ground">Ground</button><button class="btn" data-view="roof">Roof</button><button class="btn" data-view="service">Service</button><button class="btn" id="labels">Inspect</button><button class="btn" id="reset">Reset</button></div></div>
+<div id="legend"><div><span class="sw" style="background:#69736e"></span>masonry / structure</div><div><span class="sw" style="background:#43352b"></span>timber frame</div><div><span class="sw" style="background:#4aa3d5"></span>glass / water</div><div><span class="sw" style="background:#ba6a39"></span>copper roof accents</div><div><span class="sw" style="background:#3f8b51"></span>botanical systems</div></div>
+<div id="tip">one finger: orbit · pinch: zoom · tap markers: inspect</div><div id="selection"><div class="sel-title"></div><div class="sel-copy"></div></div><div id="error"></div>
+<script>window.addEventListener('error',e=>{const b=document.getElementById('error');b.style.display='block';b.textContent='3D preview error: '+(e.message||'unknown browser error');});window.addEventListener('unhandledrejection',e=>{const b=document.getElementById('error');b.style.display='block';b.textContent='3D preview could not start: '+(e.reason?.message||e.reason||'module error');});</script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-try {
- const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1117);scene.fog=new THREE.Fog(0x0b1117,110,190);
- const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,500);camera.position.set(85,65,92);
- const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.querySelector('#app').appendChild(renderer.domElement);
- const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,5,0);controls.enableDamping=true;controls.dampingFactor=.07;controls.maxPolarAngle=Math.PI*.49;controls.minDistance=24;controls.maxDistance=185;controls.enablePan=true;
- scene.add(new THREE.HemisphereLight(0xaed7ff,0x172018,1.7));const sun=new THREE.DirectionalLight(0xfff1cc,3.0);sun.position.set(-45,80,-25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
- const palette={stone:0x747d86,dark:0x352b28,green:0x31854a,leaf:0x55a868,water:0x3f8fd2,copper:0xc7773f,arena:0xd0a34f,service:0x8a63c7,path:0xa6a099};
- const groups={ground:new THREE.Group(),upper:new THREE.Group(),service:new THREE.Group(),labels:new THREE.Group()};Object.values(groups).forEach(g=>scene.add(g));
- function mat(color,opacity=1){return new THREE.MeshStandardMaterial({color,transparent:opacity<1,opacity,roughness:.74,metalness:.02});}
- function box(name,x,y,z,w,h,d,color,band='ground',opacity=1){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,opacity));mesh.position.set(x,y+h/2,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData={name};groups[band].add(mesh);return mesh;}
- function label(text,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='rgba(13,17,23,.9)';ctx.fillRect(4,4,504,88);ctx.font='700 30px system-ui';ctx.fillStyle='#f0f6fc';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,48);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));s.position.set(x,y,z);s.scale.set(18,3.4,1);s.visible=false;groups.labels.add(s);}
- box('site',0,-1,0,67,1,67,0x27372b);box('approach plaza',0,0,-30,18,.5,8,palette.path);label('Approach',0,3,-31);
- box('entry hall',0,0,-20,29,8,13,palette.stone);box('atrium',0,0,0,33,15,26,palette.stone,'ground',.92);label('Public lobby',0,10,-20);label('Canopy atrium',0,18,0);
- box('atrium floor',0,.2,0,28,.4,22,palette.dark);box('atrium planted ring',0,.55,0,21,.7,18,palette.green);box('atrium water',0,.9,0,13,.35,13,palette.water,'ground',.82);box('canopy trunk',0,1,0,2,11,2,palette.dark);box('canopy crown',0,11.5,0,16,3,16,palette.leaf,'upper',.86);
- box('west challenge',-23.5,0,1,14,10,23,palette.green);box('west stepped garden',-24,1,3,9,3,15,palette.leaf);label('West garden challenge',-24,13,1);
- box('east challenge',23.5,0,1,14,10,23,palette.stone);box('east water court',23.5,.4,1,9,.5,17,palette.water,'ground',.84);box('control spine',23.5,1,1,2,1.2,17,palette.copper);label('East water/control challenge',24,13,1);
- box('leader arena',0,0,21.5,45,13,18,palette.stone);box('battle floor',0,.25,22,31,.45,11,palette.arena);box('leader dais',0,.8,28,11,2.2,3,palette.dark);label('Leader arena',0,16,23);
- box('north balcony',0,8,-10,29,.6,3,palette.dark,'upper');box('south balcony',0,8,10,29,.6,3,palette.dark,'upper');box('west balcony',-13,8,0,3,.6,17,palette.dark,'upper');box('east balcony',13,8,0,3,.6,17,palette.dark,'upper');box('central bridge',0,8.2,3,25,.5,3,palette.copper,'upper');box('arena gallery',0,9,15,41,.7,3,palette.dark,'upper');label('Upper circulation',0,12,5);
- box('roof garden',0,16,-9.5,21,1,6,palette.green,'upper');box('botanical crown',0,16,7,10,6,2,palette.copper,'upper');label('Roof overlook',0,24,-9);
- box('service west tunnel',-28,-4,9,5,3,28,palette.service,'service');box('service south tunnel',-16,-4,21,19,3,4,palette.service,'service');box('maintenance room',-20.5,-4,14.5,8,4,8,palette.service,'service');box('backstage shaft',-7,-3,21,3,7,3,palette.service,'service');label('Maintenance shortcut',-21,2,18);
- box('west side route',-32,.1,0,3,.3,50,palette.path);box('east side route',32,.1,0,3,.3,50,palette.path);
- const grid=new THREE.GridHelper(100,50,0x32404b,0x1c2730);grid.position.y=.03;scene.add(grid);
- let labelsOn=false;document.querySelector('#labels').onclick=e=>{labelsOn=!labelsOn;groups.labels.children.forEach(x=>x.visible=labelsOn);e.currentTarget.classList.toggle('active',labelsOn)};
- function applyView(view){groups.ground.visible=view==='all'||view==='ground';groups.upper.visible=view==='all'||view==='upper';groups.service.visible=view==='all'||view==='service';document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));}document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>applyView(b.dataset.view));
- function reset(){camera.position.set(85,65,92);controls.target.set(0,5,0);controls.update()}document.querySelector('#reset').onclick=reset;
- addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
- let firstFrame=true;renderer.setAnimationLoop(()=>{controls.update();groups.labels.children.forEach(s=>s.quaternion.copy(camera.quaternion));renderer.render(scene,camera);if(firstFrame){firstFrame=false;document.getElementById('fallback').style.display='none';}});
-} catch(err) {
- const box=document.getElementById('error');box.style.display='block';box.textContent='3D preview could not start on this device: '+(err?.message||err)+' · The floor plan remains available.';
-}
+try{
+ const scene=new THREE.Scene();scene.background=new THREE.Color(0x08100d);scene.fog=new THREE.Fog(0x08100d,120,220);
+ const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,500);camera.position.set(92,62,105);
+ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;document.querySelector('#app').appendChild(renderer.domElement);
+ const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,7,0);controls.enableDamping=true;controls.dampingFactor=.075;controls.maxPolarAngle=Math.PI*.49;controls.minDistance=24;controls.maxDistance=190;controls.enablePan=true;
+ scene.add(new THREE.HemisphereLight(0xc7e5d6,0x162019,1.8));const sun=new THREE.DirectionalLight(0xffedc7,3.2);sun.position.set(-55,82,-38);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+ const c={stone:0x69736e,stone2:0x7c867f,deep:0x28302f,timber:0x43352b,wood:0x5a4334,glass:0x7bc3d8,copper:0xba6a39,moss:0x3f8b51,leaf:0x56a466,flower:0x7dbc72,water:0x3888c4,path:0xa19b8f,arena:0xc79b4f,service:0x7860a5,light:0xdaf5e0};
+ const groups={landscape:new THREE.Group(),shell:new THREE.Group(),interior:new THREE.Group(),upper:new THREE.Group(),roof:new THREE.Group(),service:new THREE.Group(),markers:new THREE.Group()};Object.values(groups).forEach(g=>scene.add(g));
+ const mats=new Map();function material(color,opacity=1,metal=.02){const k=color+'-'+opacity+'-'+metal;if(!mats.has(k))mats.set(k,new THREE.MeshStandardMaterial({color,transparent:opacity<1,opacity,roughness:.72,metalness:metal,depthWrite:opacity>.55}));return mats.get(k)}
+ function box(name,x,y,z,w,h,d,color,group='shell',opacity=1,metal=.02){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color,opacity,metal));m.position.set(x,y+h/2,z);m.castShadow=opacity>.55;m.receiveShadow=true;m.userData={name};groups[group].add(m);return m}
+ function column(name,x,y,z,h,color,group='shell',size=1){return box(name,x,y,z,size,h,size,color,group)}
+ function water(name,x,y,z,w,d){return box(name,x,y,z,w,.28,d,c.water,'interior',.72)}
+ function tree(x,z,h=7,r=3){column('tree trunk',x,0,z,h,c.timber,'landscape',1.2);box('tree canopy',x,h-1,z,r*2.2,2.4,r*2.2,c.leaf,'landscape',.95);box('tree canopy',x,h+.6,z,r*1.5,1.8,r*1.5,c.flower,'landscape',.9)}
+ function marker(title,copy,x,y,z){const s=new THREE.Mesh(new THREE.SphereGeometry(.55,14,10),new THREE.MeshStandardMaterial({color:0x83ef9f,emissive:0x184b27,emissiveIntensity:.8}));s.position.set(x,y,z);s.userData={marker:true,title,copy};s.visible=false;groups.markers.add(s)}
+ function frameBay(x,z,side=1){column('atrium rib',x,2,z,12,c.timber,'shell',.8);box('glazed bay',x+side*.55,4.5,z,0.28,7.5,3.2,c.glass,'shell',.34)}
+ // Site and forecourt.
+ box('landscape plate',0,-1,0,67,1,67,0x213129,'landscape');box('civic forecourt',0,0,-31,25,.45,5,c.path,'landscape');box('second arrival terrace',0,.35,-28.7,21,.45,2,c.stone2,'landscape');box('entry threshold',0,.7,-27.2,17,.45,1.4,c.stone,'landscape');
+ box('left retaining wall',-21,0,-30,2,2,7,c.deep,'landscape');box('right retaining wall',21,0,-30,2,2,7,c.deep,'landscape');water('left reflecting rill',-18,.12,-30,2.2,5);water('right reflecting rill',18,.12,-30,2.2,5);[-24,-14,14,24].forEach(x=>{column('forecourt lamp post',x,0,-29,5,c.timber,'landscape',.7);box('lantern',x,5,-29,.9,.9,.9,c.light,'landscape')});tree(-29,-25,7,2.5);tree(29,-22,7,2.5);tree(-31,6,8,3);tree(31,10,8,3);tree(-30,28,7,2.5);tree(30,27,7,2.5);
+ // Entry hall with deep portico and layered roof.
+ box('lobby foundation',0,0,-20,30,1,13,c.deep,'shell');box('lobby west masonry',-11.5,1,-20,7,7,12,c.stone,'shell');box('lobby east masonry',11.5,1,-20,7,7,12,c.stone,'shell');
+ [-13,-9,-5,5,9,13].forEach(x=>{column('portico timber pier',x,1,-28,8,c.timber,'shell',.85);column('portico stone pier',x,1,-27,8,c.stone,'shell',.9)});box('portico canopy',0,8,-27.5,31,1,4,c.wood,'roof');box('copper fascia',0,9,-27.5,27,.7,2,c.copper,'roof',1,.16);box('entry glazing',0,2,-27.1,9,4.6,.25,c.glass,'shell',.42);box('botanical crest',0,9.7,-28.2,9,1.4,.4,c.moss,'shell');
+ for(let x=-10;x<=10;x+=5){box('front clerestory',x,4,-26.2,3.3,3.2,.25,c.glass,'shell',.38);column('front mullion',x-2,2,-26.4,6,c.timber,'shell',.45)}
+ box('lobby lower eave',0,8,-20,33,.7,14,c.deep,'roof');box('lobby middle roof',0,8.7,-19.7,29,.8,10,c.wood,'roof');box('roof meadow',0,9.5,-19,21,.6,7,c.moss,'roof');box('lobby lantern glass',0,10,-19,11,4,7,c.glass,'roof',.36);[-5,0,5].forEach(x=>{column('clerestory frame',x,10,-22,4,c.timber,'roof',.5);column('clerestory frame',x,10,-16,4,c.timber,'roof',.5)});box('lantern cap',0,14,-19,13,.65,9,c.copper,'roof',1,.15);
+ // Lobby interior.
+ box('public axis',0,.1,-20,8,.3,12,c.path,'interior');box('west reception',-9,1,-21,5,1.2,2,c.wood,'interior');box('east waiting bench',9,1,-17,7,.6,1.5,c.wood,'interior');box('archive shelves',-10,1,-17,5,2.6,1,c.timber,'interior');
+ // Conservatory atrium: masonry plinth, glass walls and actual roof silhouette.
+ box('atrium floor',0,0,0,34,1,26,c.wood,'shell');box('atrium west plinth',-16.5,1,0,1,3,26,c.stone,'shell');box('atrium east plinth',16.5,1,0,1,3,26,c.stone,'shell');box('atrium north plinth',0,1,-13,32,3,1,c.stone,'shell');box('atrium south plinth',0,1,12.5,32,3,1,c.stone,'shell');
+ for(let z=-12;z<=12;z+=4){frameBay(-17,z,1);frameBay(17,z,-1)}box('west clerestory glass',-17,11,-0.5,.25,4,21,c.glass,'shell',.28);box('east clerestory glass',17,11,-0.5,.25,4,21,c.glass,'shell',.28);
+ // Atrium ring, water, planting and central canopy.
+ box('atrium timber ring',0,.8,0,29,.35,23,c.wood,'interior');box('atrium planted basin',0,1,0,21,.45,18,c.moss,'interior');water('atrium water ring',0,1.35,0,13,13);box('central island',0,1.5,0,8,.45,8,c.moss,'interior');column('canopy tree trunk',0,2,0,11,c.timber,'interior',1.5);box('canopy lower crown',0,12,0,15,2.3,15,c.leaf,'upper',.92);box('canopy flowering crown',0,14,0,10,2,10,c.flower,'upper',.9);
+ [[-10,-7],[10,-7],[-10,7],[10,7]].forEach(([x,z])=>{box('planted island',x,1.25,z,4.5,.8,4.5,c.moss,'interior');box('island canopy',x,2,z,3.2,1.6,3.2,c.leaf,'interior',.92)});
+ // Conservatory stepped roof ribs and glazing.
+ for(let step=0;step<=6;step++){const x=16-step*2,y=15+Math.floor(step/2);column('conservatory roof rib',-x,y,-10,1,c.timber,'roof',.55);box('west roof rib',-x,y,-.5,.5,.5,21,c.copper,'roof',1,.16);box('east roof rib',x,y,-.5,.5,.5,21,c.copper,'roof',1,.16);if(x>2){box('north roof glass',0,y+.15,-10,x*2-1,.22,2,c.glass,'roof',.3);box('south roof glass',0,y+.15,10,x*2-1,.22,2,c.glass,'roof',.3)}}box('conservatory ridge glass',0,19,-.5,7,.35,19,c.glass,'roof',.34);box('conservatory ridge beam',0,20,-.5,.7,.7,19,c.timber,'roof');
+ // West garden challenge wing.
+ box('west wing base',-23.5,0,1,14,3,23,c.stone,'shell');box('west wing inner volume',-23.5,3,1,12,7,21,c.moss,'shell',.92);for(let z=-9;z<=11;z+=5){box('west facade buttress',-31,0,z,1.5,9,1.2,c.stone,'shell');box('west facade glazing',-30.1,3,z+1.7,.25,4,3,c.glass,'shell',.36)}box('west roof eave',-24,10,1,15,.7,25,c.wood,'roof');box('west roof garden',-24.5,10.7,1,11,.7,19,c.moss,'roof');[-6,2,9].forEach(z=>tree(-27,z,4.5,1.8));box('garden route low',-21,1,-2,4,.45,17,c.wood,'interior');box('garden route high',-26,2,7,9,.45,4,c.wood,'interior');
+ // East water/control challenge wing.
+ box('east wing base',23.5,0,1,14,3,23,c.deep,'shell');box('east wing upper volume',23.5,3,1,12,7,21,c.stone,'shell');for(let z=-9;z<=11;z+=5){box('east facade buttress',31,0,z,1.5,9,1.2,c.deep,'shell');box('east facade glazing',30.1,3,z+1.7,.25,4,3,c.glass,'shell',.36)}box('east roof eave',24,10,1,15,.7,25,c.deep,'roof');[-6,1,8].forEach(z=>{box('control lantern',26,11,z,5,4,3,c.glass,'roof',.38);column('lantern copper post',23.5,11,z,4,c.copper,'roof',.55);column('lantern copper post',28.5,11,z,4,c.copper,'roof',.55);box('lantern cap',26,15,z,7,.55,3.5,c.copper,'roof',1,.16)});water('west channel',21,1,-.5,2.4,15);water('east channel',26,1,-.5,2.4,15);box('control spine',23.5,1.1,-.5,2,.6,15,c.wood,'interior');box('cross bridge',23.5,1.7,0,9,.45,2.5,c.wood,'interior');
+ // Upper circulation around atrium.
+ box('north balcony',0,8,-10,29,.55,3,c.wood,'upper');box('south balcony',0,8,10,29,.55,3,c.wood,'upper');box('west balcony',-13,8,0,3,.55,17,c.wood,'upper');box('east balcony',13,8,0,3,.55,17,c.wood,'upper');box('central bridge',0,8.2,3,25,.45,3,c.copper,'upper',1,.12);[-12,12].forEach(x=>{for(let z=-8;z<=8;z+=4)column('balcony railing',x,8.5,z,1.4,c.timber,'upper',.35)});
+ // Arena structure and interior.
+ box('arena base',0,0,21.5,45,4,18,c.stone,'shell');box('arena upper shell',0,4,21.5,43,9,16,c.stone2,'shell');for(let x of [-22,-16,-10,10,16,22]){box('arena front buttress',x,0,13.5,2.2,12,2.2,c.deep,'shell');box('arena rear buttress',x,0,29.5,2.2,12,2.2,c.deep,'shell');box('arena front timber rib',x,5,13,1,8,1,c.timber,'shell');box('arena rear timber rib',x,5,30,1,8,1,c.timber,'shell')}
+ box('arena front clerestory',0,10,13,36,2.5,.25,c.glass,'shell',.34);box('arena rear clerestory',0,10,30,36,2.5,.25,c.glass,'shell',.34);[-23,23].forEach(x=>{box('corner tower',x,0,28.5,3.5,13,5,c.stone,'shell');box('corner tower cap',x,14,28.5,5.5,.7,6.5,c.copper,'roof',1,.16);box('corner lantern',x,15,28.5,1.1,1.1,1.1,c.light,'roof')});
+ box('battle floor',0,.25,22,31,.45,11,c.arena,'interior');box('battle green inset',0,.72,22,25,.18,7,c.moss,'interior');box('leader dais',0,.9,28,11,2,3,c.wood,'interior');for(let tier=0;tier<4;tier++){box('west spectator tier',-18+tier*.6,1+tier,21,4.5,.6,12-tier,c.stone2,'interior');box('east spectator tier',18-tier*.6,1+tier,21,4.5,.6,12-tier,c.stone2,'interior')}
+ // Arena ribbed roof.
+ for(let step=0;step<=6;step++){const x=21-step*3,y=14+Math.floor(step/2);box('west arena roof rib',-x,y,21.5,.7,.7,16,c.timber,'roof');box('east arena roof rib',x,y,21.5,.7,.7,16,c.timber,'roof');if(x>3){box('arena roof glass',0,y+.15,15.5,x*2-1,.2,2,c.glass,'roof',.28);box('arena rear roof glass',0,y+.15,27.5,x*2-1,.2,2,c.glass,'roof',.28)}}box('arena ridge skylight',0,18,21.5,7,.32,15,c.glass,'roof',.32);box('arena ridge timber',0,19,21.5,.7,.7,13,c.timber,'roof');
+ // Roof garden and landmark crown.
+ box('roof garden deck',0,16,-9.5,21,.55,6,c.wood,'roof');box('roof garden planting',0,16.6,-9.5,17,.55,4,c.moss,'roof');for(let x=-10;x<=10;x+=5){column('roof pergola post',x,17,-12,4,c.timber,'roof',.55);column('roof pergola post',x,17,-7,4,c.timber,'roof',.55)}box('roof pergola beam north',0,21,-12,22,.55,.55,c.timber,'roof');box('roof pergola beam south',0,21,-7,22,.55,.55,c.timber,'roof');for(let y=16;y<=21;y++){const r=Math.max(1,4-Math.floor((y-16)/2));box('crown west frame',-r,y,7,.5,.5,r*2,c.copper,'roof',1,.18);box('crown east frame',r,y,7,.5,.5,r*2,c.copper,'roof',1,.18);box('crown north frame',0,y,7-r,r*2,.5,.5,c.timber,'roof');box('crown south frame',0,y,7+r,r*2,.5,.5,c.timber,'roof')}box('crown light',0,22,7,1.2,1.2,1.2,c.light,'roof');
+ // Service route and working rear yard.
+ box('west service tunnel',-28,-4,9,5,3,28,c.service,'service');box('south service tunnel',-16,-4,21,19,3,4,c.service,'service');box('maintenance room',-20.5,-4,14.5,8,4,8,c.deep,'service');box('backstage shaft',-7,-3,21,3,7,3,c.service,'service');box('rear loading canopy',0,1,32,24,5,3,c.deep,'service');[-27,-24,-21].forEach((x,i)=>box('barrel stack '+i,x,1,32,1.2,2.4,1.2,c.wood,'service'));[21,24,27].forEach((x,i)=>box('utility tank '+i,x,1,32,1.4,1.5,1.4,c.stone2,'service'));
+ // Side circulation and authored rear edge.
+ box('west side path',-32,.1,0,2.5,.3,50,c.path,'landscape');box('east side path',32,.1,0,2.5,.3,50,c.path,'landscape');box('rear service road',0,.1,32,54,.3,2.5,c.path,'landscape');
+ // Review markers replace giant floating labels.
+ marker('Civic forecourt','Three arrival terraces, water rills, retaining walls and lighting establish a ceremonial public approach before the front door.',0,3,-31);marker('Deep entry portico','Six paired structural bays, recessed glazing, copper eaves and a planted institutional crest give the facade depth.',0,11,-27);marker('Conservatory atrium','A tall glazed volume, central canopy tree, ring circulation and stepped greenhouse roof create the main spatial reveal.',0,21,0);marker('Garden challenge wing','Stepped planted routes, glazed observation bays and a roof garden make the west wing read as a working botanical challenge space.',-25,15,1);marker('Water/control wing','Water channels, cross bridges and three glazed copper control lanterns give the east wing its own architectural grammar.',25,16,1);marker('Leader arena','Buttresses, clerestories, corner towers and a ribbed glazed roof make the battle hall the structural climax instead of another box.',0,21,22);marker('Roof garden','The public roof garden and timber pergola create a repeat-visit overlook above the lobby.',0,23,-9);marker('Service yard','Loading canopy, storage and utility elements make the rear elevation part of the institution rather than dead scenery.',0,6,32);marker('Maintenance shortcut','The underground route links service circulation to backstage without pretending to be PTU forced movement.',-20,0,18);
+ const grid=new THREE.GridHelper(104,52,0x2f4439,0x16251e);grid.position.y=.03;scene.add(grid);
+ function setGroupOpacity(group,opacity){group.traverse(o=>{if(o.isMesh&&o.material&&!o.userData.marker){o.material=o.material.clone();o.material.transparent=opacity<1||o.material.transparent;o.material.opacity=Math.min(o.material.opacity,opacity);o.material.depthWrite=opacity>.55}})}
+ function applyView(view){Object.values(groups).forEach(g=>g.visible=true);if(view==='cutaway'){groups.shell.visible=false;groups.roof.visible=false;groups.service.visible=false}else if(view==='ground'){groups.upper.visible=false;groups.roof.visible=false;groups.service.visible=false}else if(view==='roof'){groups.interior.visible=false;groups.service.visible=false}else if(view==='service'){groups.shell.visible=false;groups.interior.visible=false;groups.upper.visible=false;groups.roof.visible=false;groups.markers.visible=false}else if(view==='all'){groups.service.visible=false}document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view))}
+ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>applyView(b.dataset.view));applyView('all');
+ let inspect=false;document.querySelector('#labels').onclick=e=>{inspect=!inspect;groups.markers.children.forEach(m=>m.visible=inspect);e.currentTarget.classList.toggle('active',inspect);if(!inspect)document.getElementById('selection').style.display='none'};
+ const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),selection=document.getElementById('selection');renderer.domElement.addEventListener('pointerdown',ev=>{pointer.x=ev.clientX/innerWidth*2-1;pointer.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(pointer,camera);const markerHit=ray.intersectObjects(groups.markers.children,false)[0];if(markerHit){selection.querySelector('.sel-title').textContent=markerHit.object.userData.title;selection.querySelector('.sel-copy').textContent=markerHit.object.userData.copy;selection.style.display='block';return}const all=[...groups.shell.children,...groups.interior.children,...groups.upper.children,...groups.roof.children,...groups.service.children];const hit=ray.intersectObjects(all,false)[0];if(hit&&inspect){selection.querySelector('.sel-title').textContent=hit.object.userData.name||'Build element';selection.querySelector('.sel-copy').textContent='Architectural v2 review element. Tap a green inspection marker for the authored gameplay reason behind this area.';selection.style.display='block'}});
+ function reset(){camera.position.set(92,62,105);controls.target.set(0,7,0);controls.update()}document.querySelector('#reset').onclick=reset;
+ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});let first=true;renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera);if(first){first=false;document.getElementById('fallback').style.display='none'}});
+}catch(err){const b=document.getElementById('error');b.style.display='block';b.textContent='3D preview could not start on this device: '+(err?.message||err);}
 </script>
 </body>
 </html>
