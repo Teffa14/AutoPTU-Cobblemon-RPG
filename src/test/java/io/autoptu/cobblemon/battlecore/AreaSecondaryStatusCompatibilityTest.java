@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AreaSecondaryStatusCompatibilityTest {
     @Test
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
-        assertEquals("f85c2271e56b2c903cf53d124140d5a6dd562c9b",
+        assertEquals("96789aa57c71dfa0f23140b39aa5b5ed33673e23",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("0444ff670a53b83499f360d70ff0428a45faa914",
+        assertEquals("57a77f5566c4f8d0069e9af9e3d981a1aaf846fd",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -50,25 +50,38 @@ class AreaSecondaryStatusCompatibilityTest {
     }
 
     @Test
-    void mergedPr211AndPr212StillRemainFailClosedWithoutLiveRuntimeWiring() {
+    void mergedPr211ThroughPr213AndDraftPr214RemainFailClosedWithoutLiveRuntimeWiring() {
         assertEquals(211, AreaSecondaryStatusCompatibility.MERGED_SECONDARY_COMBAT_STAGE_PARSER_PR);
         assertEquals(212, AreaSecondaryStatusCompatibility.MERGED_SECONDARY_COMBAT_STAGE_APPLICATION_PR);
+        assertEquals(213, AreaSecondaryStatusCompatibility.MERGED_ACCURACY_EVASION_COMBAT_STAGE_CONTRACT_PR);
+        assertEquals(214, AreaSecondaryStatusCompatibility.OPEN_SEVEN_COMBAT_STAGE_STATE_PR);
+        assertEquals("a27d6c7526c5a2dc08b369776b766398643b55db",
+                AreaSecondaryStatusCompatibility.OPEN_SEVEN_COMBAT_STAGE_STATE_HEAD_SHA);
         assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
+        assertFalse(AreaSecondaryStatusCompatibility.accuracyEvasionCombatStageMayBeProjected());
+
         String boundary = AreaSecondaryStatusCompatibility.combatStageBoundary();
         assertTrue(boundary.contains("PR #211 is merged"));
         assertTrue(boundary.contains("ordered semantic stage-change requests"));
         assertTrue(boundary.contains("PR #212 is merged"));
         assertTrue(boundary.contains("CombatStageMutationService"));
-        assertTrue(boundary.contains("Accuracy and Evasion still fail closed"));
-        assertTrue(boundary.contains("does not wire that boundary into live BattleRuntime move execution"));
+        assertTrue(boundary.contains("PR #213 is merged"));
+        assertTrue(boundary.contains("Accuracy and Evasion"));
+        assertTrue(boundary.contains("dynamic Combat Stage read/write path"));
+        assertTrue(boundary.contains("Draft PR #214"));
+        assertTrue(boundary.contains("seven-stage server-owned state"));
+        assertTrue(boundary.contains("does not migrate CombatStageMutationService or hook contexts"));
         assertTrue(boundary.contains("must not parse stage text"));
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("0444ff670a53b83499f360d70ff0428a45faa914"));
+        assertTrue(observation.contains("57a77f5566c4f8d0069e9af9e3d981a1aaf846fd"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(observation.contains("_generic_post_damage_from_text"));
+        assertTrue(observation.contains("combat_stages"));
+        assertTrue(observation.contains("-6..+6"));
+        assertTrue(observation.contains("Accuracy and Evasion"));
+        assertTrue(observation.contains("without a five-stat allowlist"));
     }
 }
