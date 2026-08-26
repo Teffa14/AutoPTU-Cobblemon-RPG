@@ -63,14 +63,13 @@ public final class OurosBuildManifestExportRuntime {
             throw new IllegalStateException("Overworld is unavailable for Ouros build export");
         }
 
-        // Use a clean, isolated volume high above ordinary terrain so the manifest contains only
-        // authored build output. The production builder itself remains unchanged.
         BlockPos origin = new BlockPos(0, 100, 0);
         clearCaptureVolume(world, origin);
         MeridianCanopyGymBuilder.build(world, origin);
         MeridianCanopyGymDetailPass.apply(world, origin);
         MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
         MeridianCanopyGymDecorativePass.apply(world, origin);
+        MeridianCanopyGymSilhouettePass.apply(world, origin);
 
         Manifest manifest = capture(world, origin);
         try {
@@ -154,6 +153,7 @@ public final class OurosBuildManifestExportRuntime {
         sources.add("MeridianCanopyGymDetailPass");
         sources.add("MeridianCanopyGymAuthoredGeometryPass");
         sources.add("MeridianCanopyGymDecorativePass");
+        sources.add("MeridianCanopyGymSilhouettePass");
         root.add("productionSources", sources);
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);
