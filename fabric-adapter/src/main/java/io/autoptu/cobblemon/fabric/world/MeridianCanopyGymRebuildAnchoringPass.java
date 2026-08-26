@@ -37,7 +37,6 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
     }
 
     private static void anchorServiceLights(ServerWorld world, BlockPos o) {
-        // The lean-to roof sits at y=10 above x=-28. Extend every hanging chain to that roof skin.
         for (int z : new int[]{17, 23, 29}) {
             world.setBlockState(o.add(-28, 9, z), Blocks.CHAIN.getDefaultState());
             world.setBlockState(o.add(-28, 8, z), Blocks.CHAIN.getDefaultState());
@@ -52,8 +51,9 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
                 {-21, 5}, {-19, 7}, {-14, 9}, {-6, 10}, {6, 10}, {14, 9}, {19, 7}, {21, 5}
         };
         for (int[] p : railNodes) {
-            // Narrow posts read as spectator-rail stanchions and connect the fence/grate detail to the bowl.
-            for (int y = 3; y <= 6; y++) {
+            // Each stanchion now reaches the arena foundation band. This intentionally forms a
+            // visible support rhythm below the spectator rail instead of relying on nearby slabs.
+            for (int y = 1; y <= 6; y++) {
                 world.setBlockState(c.add(p[0], y, p[1]),
                         y <= 4 ? Blocks.POLISHED_TUFF_WALL.getDefaultState() : Blocks.DARK_OAK_FENCE.getDefaultState());
             }
@@ -62,8 +62,8 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
 
     private static void anchorGateWindowJoinery(ServerWorld world, BlockPos o) {
         for (int x : new int[]{-11, -8, 8, 11}) {
-            // The mullion connects sill, shutters and head cap as one framed window bay.
-            for (int y = 2; y <= 4; y++) {
+            // Mullions reach the ground band and carry the sill/shutters/head cap as one bay.
+            for (int y = 1; y <= 4; y++) {
                 world.setBlockState(o.add(x, y, -25), FRAME_Y);
             }
             world.setBlockState(o.add(x, 5, -25), Blocks.DARK_OAK_SLAB.getDefaultState());
@@ -71,8 +71,6 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
     }
 
     private static void anchorCentralTreeCrotch(ServerWorld world, BlockPos o) {
-        // Central specimen trunk is rooted at (0,2,-2). A thick branch crotch prevents 3-axis
-        // Bresenham branches from touching the trunk only at a corner before opening into the crown.
         for (int x = -4; x <= 4; x++) {
             world.setBlockState(o.add(x, 11, -2), WOOD_X);
         }
@@ -85,7 +83,6 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
         for (int z = -4; z <= 1; z++) {
             world.setBlockState(o.add(0, 12, z), WOOD_Z);
         }
-        // Two short diagonal-looking forks are built as adjacent orthogonal steps, never corner-only.
         world.setBlockState(o.add(-2, 12, -1), FRAME_X);
         world.setBlockState(o.add(-3, 12, -1), FRAME_X);
         world.setBlockState(o.add(-3, 13, -2), FRAME_Y);
@@ -95,8 +92,11 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
     }
 
     private static void anchorBotanicalGalleryLights(ServerWorld world, BlockPos o) {
-        // The three gallery lamps now hang from short beams tied back into terrace frames/roofs.
         for (int z : new int[]{-7, 0, 7}) {
+            // A timber standard ties each light arm into the gallery floor/terrace below.
+            for (int y = 2; y <= 10; y++) {
+                world.setBlockState(o.add(-21, y, z), FRAME_Y);
+            }
             beamX(world, o, -21, -19, 10, z, FRAME_X);
             world.setBlockState(o.add(-19, 9, z), Blocks.CHAIN.getDefaultState());
         }
