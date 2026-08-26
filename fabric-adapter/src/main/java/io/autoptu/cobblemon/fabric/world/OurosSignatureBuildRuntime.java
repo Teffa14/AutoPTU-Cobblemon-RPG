@@ -33,6 +33,7 @@ public final class OurosSignatureBuildRuntime {
         MeridianCanopyGymRebuild.BuildResult result = MeridianCanopyGymRebuild.build(world, origin);
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
         MeridianCanopyGymRebuildDetailPass.apply(world, origin);
+        MeridianCanopyGymRebuildAnchoringPass.apply(world, origin);
 
         player.sendMessage(Text.literal("Meridian Canopy Gym ZERO-BASE REBUILD v1 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
@@ -41,7 +42,7 @@ public final class OurosSignatureBuildRuntime {
         player.sendMessage(Text.literal(
                 "Review the monumental gatehouse, supported compound roofs, conservatory vault, staggered botanical wing, hydro sawtooth wing, elliptical battle sanctum, backstage service bar, custom trees, joinery, drainage and human-scale props."), false);
         player.sendMessage(Text.literal(
-                "This remains under OI-106 visual review. Exact browser geometry is the acceptance artifact; floating or amateur-looking construction is a rejection."), false);
+                "This remains under OI-106 visual review. Exact browser geometry is the acceptance artifact; disconnected floating components fail CI."), false);
         return 1;
     }
 }
