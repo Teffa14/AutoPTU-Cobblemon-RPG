@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AreaSecondaryStatusCompatibilityTest {
     @Test
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
-        assertEquals("b66fcb4dac909c2f44bf6caf54a15f8da82e3e0a",
+        assertEquals("d2d232a4a5be9facbeaeea706081deb93b9c4b7c",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("231c50e4f2e7c4c0442123b1ba2221b7d07384eb",
+        assertEquals("e9c4173e066da999046818d9ca066bd013f26431",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -25,27 +25,37 @@ class AreaSecondaryStatusCompatibilityTest {
     }
 
     @Test
-    void mergedStageContractsRemainFailClosedWithoutLiveRuntimeWiring() {
-        assertEquals(216, AreaSecondaryStatusCompatibility.MERGED_EFFECTIVE_ACCURACY_EVASION_PROJECTION_CONTRACT_PR);
-        assertEquals(217, AreaSecondaryStatusCompatibility.MERGED_EFFECTIVE_ACCURACY_PROJECTION_PR);
+    void mergedAccuracyInputsAndDraftChroniclerBonusRemainFailClosedWithoutLiveHitWiring() {
+        assertEquals(218, AreaSecondaryStatusCompatibility.MERGED_INTRINSIC_ACCURACY_OWNERSHIP_PR);
+        assertEquals(219, AreaSecondaryStatusCompatibility.MERGED_TEMPORARY_ACCURACY_CONTRACT_PR);
+        assertEquals(220, AreaSecondaryStatusCompatibility.MERGED_TEMPORARY_ACCURACY_RUNTIME_INPUTS_PR);
+        assertEquals(221, AreaSecondaryStatusCompatibility.MERGED_FOCUSED_TRAINING_CHRONICLER_CONTRACT_PR);
+        assertEquals(222, AreaSecondaryStatusCompatibility.MERGED_FOCUSED_TRAINING_RUNTIME_PR);
+        assertEquals(223, AreaSecondaryStatusCompatibility.MERGED_CHRONICLER_METADATA_PR);
+        assertEquals(225, AreaSecondaryStatusCompatibility.MERGED_CHRONICLER_PROFILE_MATCH_PR);
+        assertEquals(226, AreaSecondaryStatusCompatibility.DRAFT_CHRONICLER_ACCURACY_BONUS_PR);
+        assertEquals("f3c9eab585a48aeec5fad27aa712dd1d38aa4b3a",
+                AreaSecondaryStatusCompatibility.DRAFT_CHRONICLER_ACCURACY_BONUS_SHA);
+
         assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
         assertFalse(AreaSecondaryStatusCompatibility.accuracyEvasionCombatStageMayBeProjected());
         assertFalse(AreaSecondaryStatusCompatibility.effectiveAccuracyEvasionArithmeticMayBeProjected());
+        assertFalse(AreaSecondaryStatusCompatibility.chroniclerAccuracyMayBeProjected());
 
         String boundary = AreaSecondaryStatusCompatibility.combatStageBoundary();
-        assertTrue(boundary.contains("PR #217 is merged"));
-        assertTrue(boundary.contains("EffectiveAccuracyStageProjection"));
-        assertTrue(boundary.contains("does not wire the primitive into live hit resolution"));
-        assertTrue(boundary.contains("grants no adapter authority"));
+        assertTrue(boundary.contains("PR #225 is merged"));
+        assertTrue(boundary.contains("Draft PR #226"));
+        assertTrue(boundary.contains("live hit resolution"));
+        assertTrue(boundary.contains("must not run Chronicler profile matching"));
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("231c50e4f2e7c4c0442123b1ba2221b7d07384eb"));
-        assertTrue(observation.contains("rival-timeline validation"));
+        assertTrue(observation.contains("e9c4173e066da999046818d9ca066bd013f26431"));
+        assertTrue(observation.contains("ranked persistence"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(observation.contains("combat_stages['accuracy']"));
-        assertTrue(observation.contains("does not consume combat_stages['evasion']"));
+        assertTrue(observation.contains("_chronicler_profile_matches()"));
+        assertTrue(observation.contains("_chronicler_accuracy_bonus()"));
     }
 }
