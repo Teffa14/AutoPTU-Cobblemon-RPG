@@ -4,13 +4,13 @@ import java.util.Set;
 
 public final class AreaSecondaryStatusCompatibility {
     public static final String AUTOPTU_JAVA_MAIN_SHA =
-            "b35f09bbcc4246b1846e57c5c4f9bb5771d474e8";
+            "55cd963b2eda46715b6aba3d1c2579ae1b75b501";
     public static final String AUTOPTU_PYTHON_MAIN_SHA =
-            "7c4edba551cc57a51514f7cb43a75745db422837";
+            "6f2072d308ee777b5574eb69d08bd23c85af58da";
     public static final String PINNED_PYTHON_BATTLE_ORACLE_SHA =
             "16d228efa63aabecb67fa788959a359aac7f8f03";
-    public static final String OPEN_ACCURACY_HELPER_OWNERSHIP_PR_HEAD_SHA =
-            "d317e1ded62752a098513458474b70b2a197f1f9";
+    public static final String OPEN_FOCUSED_TRAINING_ACCURACY_PR_HEAD_SHA =
+            "3d7509a3d934820293d29ebed1288b26767c1027";
     public static final int MERGED_AREA_SECONDARY_STATUS_PR = 210;
     public static final int MERGED_SECONDARY_COMBAT_STAGE_PARSER_PR = 211;
     public static final int MERGED_SECONDARY_COMBAT_STAGE_APPLICATION_PR = 212;
@@ -22,7 +22,8 @@ public final class AreaSecondaryStatusCompatibility {
     public static final int MERGED_INTRINSIC_ACCURACY_OWNERSHIP_PR = 218;
     public static final int MERGED_TEMPORARY_ACCURACY_CONTRACT_PR = 219;
     public static final int MERGED_RUNTIME_TEMPORARY_ACCURACY_INPUTS_PR = 220;
-    public static final int OPEN_ACCURACY_HELPER_OWNERSHIP_PR = 221;
+    public static final int MERGED_ACCURACY_HELPER_OWNERSHIP_PR = 221;
+    public static final int OPEN_FOCUSED_TRAINING_ACCURACY_PR = 222;
 
     private static final Set<UpstreamCompatibilityMatrix.Capability> DEPENDENCIES = Set.of(
             UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
@@ -66,14 +67,14 @@ public final class AreaSecondaryStatusCompatibility {
 
     public static String combatStageBoundary() {
         return "AutoPTU-Java PR #211 through PR #217 establish parsing, seven-stage state/hooks and the isolated EffectiveAccuracyStageProjection primitive. "
-                + "PR #218 makes intrinsic Accuracy CS trusted combatant-profile state, PR #219 freezes temporary Accuracy bonus parity, and PR #220 materializes normal temporary Accuracy inputs from BattleRuntimeState. "
-                + "Java main is b35f09bbcc4246b1846e57c5c4f9bb5771d474e8. Those contracts still do not compose mutable Accuracy stage + intrinsic Accuracy CS + resolved temporary Accuracy bonus inside live authoritative hit resolution. "
-                + "Draft PR #221 at d317e1ded62752a098513458474b70b2a197f1f9 freezes Focused Training/Chronicler helper ownership and has green parity/contract checks on the inspected head, but it still deliberately does not wire those values into live Accuracy, so it grants no adapter authority. "
-                + "The pinned oracle reads combat_stages['accuracy'] for effective Accuracy while current evasion_value does not read combat_stages['evasion']. Minecraft/Cobblemon must not calculate effective Accuracy/Evasion, reinterpret that asymmetry, apply secondary stage rules, or synthesize hit/stage outcomes until merged live runtime contracts prove them.";
+                + "PR #218 makes intrinsic Accuracy CS trusted combatant-profile state, PR #219 freezes temporary Accuracy bonus parity, PR #220 materializes normal temporary Accuracy inputs from BattleRuntimeState, and merged PR #221 freezes Focused Training/Chronicler helper ownership and behavior. "
+                + "Java main is 55cd963b2eda46715b6aba3d1c2579ae1b75b501. These contracts still do not compose mutable Accuracy stage + intrinsic Accuracy CS + all state-backed temporary Accuracy helpers inside live authoritative hit resolution. "
+                + "Draft PR #222 at 3d7509a3d934820293d29ebed1288b26767c1027 ports Focused Training resolution from canonical controller bindings and Duelist tag/momentum state, while retaining only a package-private compatibility seam for legacy snapshots. Its inspected parity and execution workflows are green, but Chronicler remains unported and the PR does not wire effective Accuracy into live hit resolution, so it grants no adapter authority. "
+                + "The pinned oracle reads combat_stages['accuracy'] for effective Accuracy while current evasion_value does not read combat_stages['evasion']. Minecraft/Cobblemon must not calculate effective Accuracy/Evasion, derive Focused Training or Chronicler bonuses, reinterpret that asymmetry, apply secondary stage rules, or synthesize hit/stage outcomes until merged live runtime contracts prove them.";
     }
 
     public static String pythonOracleObservation() {
-        return "AutoPTU Python main 7c4edba551cc57a51514f7cb43a75745db422837 remains separate from the pinned battle oracle used for Java parity. "
+        return "AutoPTU Python main 6f2072d308ee777b5574eb69d08bd23c85af58da remains separate from the pinned battle oracle used for Java parity. "
                 + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The pinned calculations contract keeps temporary Accuracy modifiers separate from stage projection; Java PR #216 records that Accuracy consumes combat_stages['accuracy'] while current evasion_value does not consume combat_stages['evasion'].";
     }
 }
