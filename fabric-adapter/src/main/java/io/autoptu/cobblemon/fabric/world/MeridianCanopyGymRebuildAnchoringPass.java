@@ -12,9 +12,8 @@ import net.minecraft.util.math.Direction;
  * Validation-driven structural anchoring for the zero-base Meridian rebuild.
  *
  * This pass exists because the exact server audit rejects disconnected authored components. It adds
- * physical joinery where decorative geometry would otherwise terminate in air and re-authors the
- * two arena-edge specimen trees so their crowns lean into the site instead of escaping the exact
- * review envelope.
+ * physical joinery where decorative geometry would otherwise terminate in air and re-authors edge
+ * specimen trees so their crowns lean into the site instead of escaping the exact review envelope.
  */
 public final class MeridianCanopyGymRebuildAnchoringPass {
     private static final BlockState AIR = Blocks.AIR.getDefaultState();
@@ -41,6 +40,7 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
         anchorGateWindowJoinery(world, o);
         anchorCentralTreeCrotch(world, o);
         anchorBotanicalGalleryLights(world, o);
+        replantApproachBoundaryTrees(world, o);
         replantArenaBoundaryTrees(world, o);
     }
 
@@ -106,32 +106,57 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
         }
     }
 
+    private static void replantApproachBoundaryTrees(ServerWorld world, BlockPos o) {
+        // The two front specimens were rooted at z=-29. Their south-facing branch lobes reached
+        // z=-34 by a single leaf block. Replant one block north so the full crown remains visible
+        // while preserving the paired approach composition and all nearby architecture.
+        clearOldApproachTree(world, o, -1);
+        clearOldApproachTree(world, o, 1);
+        buildContainedSpecimenTree(world, o.add(-23, 1, -28), 8, -1);
+        buildContainedSpecimenTree(world, o.add(23, 1, -28), 9, 1);
+    }
+
+    private static void clearOldApproachTree(ServerWorld world, BlockPos o, int side) {
+        int minX = side < 0 ? -32 : 14;
+        int maxX = side < 0 ? -14 : 32;
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = 1; y <= 15; y++) {
+                for (int z = -36; z <= -22; z++) {
+                    clearTreeBlock(world, o.add(x, y, z));
+                }
+            }
+        }
+    }
+
     private static void replantArenaBoundaryTrees(ServerWorld world, BlockPos o) {
         // The original arena-side trees were rooted at x=+-29. Their symmetric crowns extended to
-        // x=+-37, outside the exact 67-block review envelope. Remove only their organic block types,
-        // preserve adjacent architecture, then regrow them two blocks inward with the lean reversed.
-        clearOldBoundaryTree(world, o, -29);
-        clearOldBoundaryTree(world, o, 29);
+        // x=+-37. Regrow them two blocks inward with the lean reversed toward the building.
+        clearOldArenaTree(world, o, -29);
+        clearOldArenaTree(world, o, 29);
         buildContainedSpecimenTree(world, o.add(-27, 1, 9), 9, 1);
         buildContainedSpecimenTree(world, o.add(27, 1, 9), 8, -1);
     }
 
-    private static void clearOldBoundaryTree(ServerWorld world, BlockPos o, int rootX) {
+    private static void clearOldArenaTree(ServerWorld world, BlockPos o, int rootX) {
         int minX = rootX < 0 ? -40 : 20;
         int maxX = rootX < 0 ? -20 : 40;
         for (int x = minX; x <= maxX; x++) {
             for (int y = 1; y <= 15; y++) {
                 for (int z = 2; z <= 16; z++) {
-                    BlockPos pos = o.add(x, y, z);
-                    BlockState state = world.getBlockState(pos);
-                    if (state.isOf(Blocks.DARK_OAK_LOG)
-                            || state.isOf(Blocks.MANGROVE_ROOTS)
-                            || state.isOf(Blocks.AZALEA_LEAVES)
-                            || state.isOf(Blocks.FLOWERING_AZALEA_LEAVES)) {
-                        world.setBlockState(pos, AIR);
-                    }
+                    clearTreeBlock(world, o.add(x, y, z));
                 }
             }
+        }
+    }
+
+    private static void clearTreeBlock(ServerWorld world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        if (state.isOf(Blocks.DARK_OAK_LOG)
+                || state.isOf(Blocks.DARK_OAK_WOOD)
+                || state.isOf(Blocks.MANGROVE_ROOTS)
+                || state.isOf(Blocks.AZALEA_LEAVES)
+                || state.isOf(Blocks.FLOWERING_AZALEA_LEAVES)) {
+            world.setBlockState(pos, AIR);
         }
     }
 
