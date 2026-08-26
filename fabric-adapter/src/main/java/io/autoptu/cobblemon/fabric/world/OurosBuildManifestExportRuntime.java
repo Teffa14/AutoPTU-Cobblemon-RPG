@@ -65,11 +65,8 @@ public final class OurosBuildManifestExportRuntime {
 
         BlockPos origin = new BlockPos(0, 100, 0);
         clearCaptureVolume(world, origin);
-        MeridianCanopyGymBuilder.build(world, origin);
-        MeridianCanopyGymDetailPass.apply(world, origin);
-        MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
-        MeridianCanopyGymDecorativePass.apply(world, origin);
-        MeridianCanopyGymSilhouettePass.apply(world, origin);
+        MeridianCanopyGymRebuild.build(world, origin);
+        MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
 
         Manifest manifest = capture(world, origin);
         try {
@@ -140,7 +137,7 @@ public final class OurosBuildManifestExportRuntime {
         JsonObject root = new JsonObject();
         root.addProperty("format", "ouros.minecraft.block-manifest.v1");
         root.addProperty("buildId", "meridian_canopy_gym");
-        root.addProperty("displayName", "Meridian Canopy Gym");
+        root.addProperty("displayName", "Meridian Canopy Gym - Zero-base Rebuild");
         root.addProperty("minecraftVersion", "1.21.1");
         root.addProperty("geometryAuthority", "live_server_final_blockstate_scan");
         root.addProperty("geometrySha256", hash);
@@ -149,11 +146,8 @@ public final class OurosBuildManifestExportRuntime {
         root.add("max", vector(MAX_X, MAX_Y, MAX_Z));
         root.add("size", vector(MAX_X - MIN_X + 1, MAX_Y - MIN_Y + 1, MAX_Z - MIN_Z + 1));
         JsonArray sources = new JsonArray();
-        sources.add("MeridianCanopyGymBuilder");
-        sources.add("MeridianCanopyGymDetailPass");
-        sources.add("MeridianCanopyGymAuthoredGeometryPass");
-        sources.add("MeridianCanopyGymDecorativePass");
-        sources.add("MeridianCanopyGymSilhouettePass");
+        sources.add("MeridianCanopyGymRebuild");
+        sources.add("MeridianCanopyGymRebuildStructuralPass");
         root.add("productionSources", sources);
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);
