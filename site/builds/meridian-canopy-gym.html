@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<link rel="icon" href="data:," />
 <title>Meridian Canopy Gym · Exact Minecraft Build Review</title>
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07100c;color:#edf5ef;font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}#canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;background:linear-gradient(#0c1812,#07100c)}
@@ -14,7 +15,7 @@
 </head>
 <body>
 <canvas id="canvas"></canvas>
-<div id="loading"><div class="loadcard"><div class="spinner"></div><div id="load-title">Loading exact Minecraft build</div><div id="load-copy">Starting the self-contained viewer runtime…</div><div class="progress"><i id="bar"></i></div></div></div>
+<div id="loading"><div class="loadcard"><div class="spinner"></div><div id="load-title">Loading exact Minecraft build</div><div id="load-copy">Starting the classic self-contained viewer runtime…</div><div class="progress"><i id="bar"></i></div></div></div>
 <div id="hud">
  <div class="eyebrow">Ouros Build Review · Minecraft Block Viewer</div>
  <h1>Meridian Canopy Gym</h1>
@@ -28,14 +29,25 @@
 <div id="tip">one finger: orbit · pinch: zoom · two fingers: pan</div><div id="error"></div>
 <script>
 window.__ourosViewerBooted=false;
-setTimeout(function(){
-  if(window.__ourosViewerBooted)return;
-  var loading=document.getElementById('loading');
-  var error=document.getElementById('error');
-  if(loading)loading.style.display='none';
-  if(error){error.style.display='block';error.textContent='Minecraft viewer error: local viewer bundle did not start. Reload this exact v3 URL; no external JavaScript CDN is required.';}
-},12000);
+(function(){
+  function showEarlyError(message){
+    var loading=document.getElementById('loading');
+    var error=document.getElementById('error');
+    if(loading)loading.style.display='none';
+    if(error){error.style.display='block';error.textContent='Minecraft viewer boot error: '+message;}
+  }
+  window.addEventListener('error',function(event){
+    if(!window.__ourosViewerBooted){showEarlyError(event.message||'classic viewer script failed to parse');}
+  });
+  window.addEventListener('unhandledrejection',function(event){
+    if(!window.__ourosViewerBooted){showEarlyError((event.reason&&event.reason.message)||String(event.reason||'unhandled rejection'));}
+  });
+  setTimeout(function(){
+    if(window.__ourosViewerBooted)return;
+    showEarlyError('local classic viewer bundle did not start within 12 seconds. This build uses no runtime module CDN.');
+  },12000);
+})();
 </script>
-<script src="../assets/meridian-canopy-gym.bundle.js?v=local-bundle-v3"></script>
+<script src="../assets/meridian-canopy-gym.bundle.js?v=classic-umd-v4"></script>
 </body>
 </html>
