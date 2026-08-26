@@ -34,15 +34,16 @@ public final class OurosSignatureBuildRuntime {
         MeridianCanopyGymDetailPass.apply(world, origin);
         MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
         MeridianCanopyGymDecorativePass.apply(world, origin);
+        MeridianCanopyGymSilhouettePass.apply(world, origin);
 
-        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v4 built 46 blocks ahead."), false);
+        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v5 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
                 "Footprint " + result.width() + "x" + result.depth() + ", height " + result.height()
-                        + ". The current pass adds small-scale architectural detail: layered dark eaves, brackets, balconies, shutters, railings, lanterns, roof finials, planters, copper screens and service props."), false);
+                        + ". Browser review v5 reshapes the south approach, entry gable, lobby facade, challenge-wing roof gardens and arena roof shoulders instead of only adding surface detail."), false);
         player.sendMessage(Text.literal(
-                "The west keeper pavilion adapts the supplied bastion reference into the Gym's botanical civic language: masonry base, timber gallery, stacked roof and dense human-scale detail."), false);
+                "The old copper picture-frame entrance is replaced by a recessed three-bay civic gate with masonry feet, timber hierarchy, window niches, benches, planters and layered deepslate roofing."), false);
         player.sendMessage(Text.literal(
-                "This build remains a GAMEPLAY PROTOTYPE. Exact browser review decides whether each implementation pass actually improves the place."), false);
+                "This build remains a GAMEPLAY PROTOTYPE. Exact browser review decides whether the silhouette and architecture are strong enough to continue."), false);
         return 1;
     }
 }
