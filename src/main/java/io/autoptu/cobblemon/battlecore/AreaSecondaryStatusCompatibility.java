@@ -2,15 +2,11 @@ package io.autoptu.cobblemon.battlecore;
 
 import java.util.Set;
 
-/**
- * Bounded compatibility gate for authoritative secondary-effect paths in AutoPTU-Java. This class
- * records integration authority only; it does not implement PTU rules in Minecraft.
- */
 public final class AreaSecondaryStatusCompatibility {
     public static final String AUTOPTU_JAVA_MAIN_SHA =
-            "a9fb0d81238e69a5263f074b4a8ad8ef1905325d";
+            "38eb8966ecdc2295cabff932ad1f09d3e82ed6f5";
     public static final String AUTOPTU_PYTHON_MAIN_SHA =
-            "218f272e73acf54e0feb5ac2e8f304d53c0fb3c2";
+            "ad9c202ec9e3982c6797bd38b14df8f647852fc9";
     public static final String PINNED_PYTHON_BATTLE_ORACLE_SHA =
             "16d228efa63aabecb67fa788959a359aac7f8f03";
     public static final int MERGED_AREA_SECONDARY_STATUS_PR = 210;
@@ -19,7 +15,8 @@ public final class AreaSecondaryStatusCompatibility {
     public static final int MERGED_ACCURACY_EVASION_COMBAT_STAGE_CONTRACT_PR = 213;
     public static final int MERGED_SEVEN_COMBAT_STAGE_STATE_PR = 214;
     public static final int MERGED_SEVEN_COMBAT_STAGE_HOOKS_PR = 215;
-    public static final int OPEN_EFFECTIVE_ACCURACY_EVASION_PROJECTION_PR = 216;
+    public static final int MERGED_EFFECTIVE_ACCURACY_EVASION_PROJECTION_CONTRACT_PR = 216;
+    public static final int OPEN_EFFECTIVE_ACCURACY_PROJECTION_PR = 217;
 
     private static final Set<UpstreamCompatibilityMatrix.Capability> DEPENDENCIES = Set.of(
             UpstreamCompatibilityMatrix.Capability.CORE_TARGETING,
@@ -58,22 +55,19 @@ public final class AreaSecondaryStatusCompatibility {
     }
 
     public static String mergedAreaBoundary() {
-        return "AutoPTU-Java PR #210 is merged on main. BattleRuntime supplies RuntimeMoveSpecialHooks.standardRegistry for each authoritative area target while the outer declaration retains one action/frequency spend. "
-                + "RuntimeMultiTargetSecondaryStatusIntegrationTest verifies two Burst targets, Poison application to one target, Immunity status_block on the other, stable authoritative target ids, and exactly one declaration-level STANDARD/frequency consumption. "
-                + "Projection is permitted only while every declared upstream dependency remains non-BLOCKING. Minecraft/Cobblemon must not calculate per-target effect rolls, parse effects text, choose statuses, run prevention hooks, or mutate status state.";
+        return "AutoPTU-Java PR #210 is merged on main. Projection is permitted only while every declared upstream dependency remains non-BLOCKING. Minecraft/Cobblemon must not calculate secondary-effect outcomes or mutate status state.";
     }
 
     public static String combatStageBoundary() {
-        return "AutoPTU-Java PR #211 is merged and freezes Python-compatible generic secondary Combat Stage parsing into ordered semantic stage-change requests. "
-                + "PR #212 is merged and composes stage requests with authoritative CombatStageMutationService, preserving prevention, reflection, clamping and post-apply reactions, but does not wire that application boundary into live BattleRuntime move execution. "
-                + "PR #213 freezes the pinned Python Accuracy/Evasion Combat Stage contract and PR #214 stores all seven stages canonically on server-owned state. "
-                + "PR #215 is merged on main at a9fb0d81238e69a5263f074b4a8ad8ef1905325d and migrates CombatStageMutationService plus prevention/post-apply hooks to CombatStageStat, so ATK/DEF/SPATK/SPDEF/SPD/Accuracy/Evasion share the authoritative mutation seam. "
-                + "Draft PR #216 freezes effective arithmetic against the pinned Python oracle before Java runtime arithmetic changes: Accuracy contributes dynamic combat_stages['accuracy'] alongside intrinsic move Accuracy CS and runtime accuracy bonus, while the current oracle does not project combat_stages['evasion'] into evasion_value and Status-category evasion reads Speed Combat Stage. "
-                + "PR #216 is not merged and changes only the oracle/exported contract, so it grants no adapter authority. Minecraft/Cobblemon must not parse stage text, apply secondary stage changes, calculate effective Accuracy/Evasion, reinterpret the Python Evasion asymmetry, or synthesize semantic stage events until merged live runtime contracts prove those behaviors.";
+        return "AutoPTU-Java PR #211 through PR #215 establish parsing, application, seven-stage state and authoritative mutation hooks. "
+                + "PR #216 is merged on main at 38eb8966ecdc2295cabff932ad1f09d3e82ed6f5 and freezes the effective Accuracy/Evasion arithmetic contract against the pinned Python oracle. "
+                + "Accuracy reads combat_stages['accuracy']; current evasion_value does not read combat_stages['evasion']. "
+                + "Draft PR #217 adds a package-private effective Accuracy projection primitive but does not add intrinsic Accuracy ownership to RuntimeCombatantState and does not change live hit resolution, so it grants no adapter authority. "
+                + "Minecraft/Cobblemon must not apply secondary stage changes, calculate effective Accuracy/Evasion, reinterpret the oracle asymmetry, or synthesize stage outcomes until merged live runtime contracts prove those behaviors.";
     }
 
     public static String pythonOracleObservation() {
-        return "AutoPTU Python main 218f272e73acf54e0feb5ac2e8f304d53c0fb3c2 changes Career sponsor-history validation and does not replace the pinned battle oracle. "
-                + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The frozen stage contract reads and writes combat_stages by requested stat key, clamps stages to -6..+6, and forwards the stat through hook context. The effective projection contract under draft Java PR #216 observes that Accuracy arithmetic reads combat_stages['accuracy'], while current evasion_value does not read combat_stages['evasion'].";
+        return "AutoPTU Python main ad9c202ec9e3982c6797bd38b14df8f647852fc9 changes Career club-transition validation and does not replace the pinned battle oracle. "
+                + "Battle parity remains pinned to AutoPTU 16d228efa63aabecb67fa788959a359aac7f8f03. The merged Java PR #216 contract observes that Accuracy arithmetic reads combat_stages['accuracy'], while current evasion_value does not read combat_stages['evasion'].";
     }
 }
