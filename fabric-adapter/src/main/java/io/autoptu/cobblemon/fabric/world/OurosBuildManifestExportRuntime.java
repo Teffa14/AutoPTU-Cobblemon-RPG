@@ -38,6 +38,7 @@ public final class OurosBuildManifestExportRuntime {
     public static final String OUTPUT_PROPERTY = "autoptu.ourosBuildManifestOutput";
     public static final String SUCCESS_MARKER = "AutoPTU exact Ouros build manifest export passed";
     public static final String STRUCTURAL_AUDIT_MARKER = "AutoPTU Ouros floating component audit passed";
+    public static final String ENVELOPE_AUDIT_MARKER = "AutoPTU Ouros capture envelope audit passed";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-ouros-build-export");
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
@@ -47,6 +48,15 @@ public final class OurosBuildManifestExportRuntime {
     private static final int MAX_Y = 22;
     private static final int MIN_Z = -33;
     private static final int MAX_Z = 33;
+
+    // Export runs in an isolated high-altitude sandbox larger than the visible manifest envelope.
+    // Any authored block left in this guard shell proves the builder wrote geometry the viewer would hide.
+    private static final int GUARD_MIN_X = -40;
+    private static final int GUARD_MAX_X = 40;
+    private static final int GUARD_MIN_Y = -4;
+    private static final int GUARD_MAX_Y = 30;
+    private static final int GUARD_MIN_Z = -40;
+    private static final int GUARD_MAX_Z = 40;
 
     private OurosBuildManifestExportRuntime() {}
 
@@ -66,10 +76,13 @@ public final class OurosBuildManifestExportRuntime {
         }
 
         BlockPos origin = new BlockPos(0, 100, 0);
-        clearCaptureVolume(world, origin);
+        clearGuardVolume(world, origin);
         MeridianCanopyGymRebuild.build(world, origin);
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
         MeridianCanopyGymRebuildDetailPass.apply(world, origin);
+
+        validateCaptureEnvelope(world, origin);
+        LOGGER.info(ENVELOPE_AUDIT_MARKER);
 
         OurosFloatingBlockAudit.Report audit = OurosFloatingBlockAudit.scan(
                 world,
@@ -106,14 +119,39 @@ public final class OurosBuildManifestExportRuntime {
                 outputPath);
     }
 
-    private static void clearCaptureVolume(ServerWorld world, BlockPos origin) {
+    private static void clearGuardVolume(ServerWorld world, BlockPos origin) {
         BlockState air = net.minecraft.block.Blocks.AIR.getDefaultState();
-        for (int x = MIN_X; x <= MAX_X; x++) {
-            for (int y = MIN_Y; y <= MAX_Y; y++) {
-                for (int z = MIN_Z; z <= MAX_Z; z++) {
+        for (int x = GUARD_MIN_X; x <= GUARD_MAX_X; x++) {
+            for (int y = GUARD_MIN_Y; y <= GUARD_MAX_Y; y++) {
+                for (int z = GUARD_MIN_Z; z <= GUARD_MAX_Z; z++) {
                     world.setBlockState(origin.add(x, y, z), air);
                 }
             }
+        }
+    }
+
+    private static void validateCaptureEnvelope(ServerWorld world, BlockPos origin) {
+        List<String> overflow = new ArrayList<>();
+        for (int x = GUARD_MIN_X; x <= GUARD_MAX_X; x++) {
+            for (int y = GUARD_MIN_Y; y <= GUARD_MAX_Y; y++) {
+                for (int z = GUARD_MIN_Z; z <= GUARD_MAX_Z; z++) {
+                    boolean insideCapture = x >= MIN_X && x <= MAX_X
+                            && y >= MIN_Y && y <= MAX_Y
+                            && z >= MIN_Z && z <= MAX_Z;
+                    if (insideCapture || world.getBlockState(origin.add(x, y, z)).isAir()) {
+                        continue;
+                    }
+                    if (overflow.size() < 16) {
+                        overflow.add(x + "," + y + "," + z + "="
+                                + Registries.BLOCK.getId(world.getBlockState(origin.add(x, y, z)).getBlock()));
+                    }
+                }
+            }
+        }
+        if (!overflow.isEmpty()) {
+            throw new IllegalStateException(
+                    "Ouros build wrote blocks outside the exact viewer envelope; first entries: "
+                            + String.join("; ", overflow));
         }
     }
 
@@ -165,6 +203,7 @@ public final class OurosBuildManifestExportRuntime {
         root.addProperty("geometryAuthority", "live_server_final_blockstate_scan");
         root.addProperty("geometrySha256", hash);
         root.addProperty("blockCount", blockCount);
+        root.addProperty("captureEnvelopeAudit", "passed");
         root.addProperty("floatingComponentAudit", "passed");
         root.addProperty("structuralComponentCount", audit.componentCount());
         root.addProperty("anchoredStructuralComponentCount", audit.anchoredComponentCount());
