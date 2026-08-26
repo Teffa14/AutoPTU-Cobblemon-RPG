@@ -32,13 +32,14 @@ public final class OurosSignatureBuildRuntime {
         BlockPos origin = player.getBlockPos().add(0, -1, 46);
         MeridianCanopyGymRebuild.BuildResult result = MeridianCanopyGymRebuild.build(world, origin);
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
+        MeridianCanopyGymRebuildDetailPass.apply(world, origin);
 
         player.sendMessage(Text.literal("Meridian Canopy Gym ZERO-BASE REBUILD v1 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
                 "Footprint " + result.width() + "x" + result.depth() + ", height envelope " + result.height()
                         + ". The legacy box/detail-pass stack is no longer used by this command."), false);
         player.sendMessage(Text.literal(
-                "Review the monumental gatehouse, supported compound roofs, conservatory vault, staggered botanical wing, hydro sawtooth wing, elliptical battle sanctum, backstage service bar, custom trees and human-scale props."), false);
+                "Review the monumental gatehouse, supported compound roofs, conservatory vault, staggered botanical wing, hydro sawtooth wing, elliptical battle sanctum, backstage service bar, custom trees, joinery, drainage and human-scale props."), false);
         player.sendMessage(Text.literal(
                 "This remains under OI-106 visual review. Exact browser geometry is the acceptance artifact; floating or amateur-looking construction is a rejection."), false);
         return 1;
