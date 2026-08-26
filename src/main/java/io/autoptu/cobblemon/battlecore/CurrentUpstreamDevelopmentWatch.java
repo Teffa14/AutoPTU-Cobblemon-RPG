@@ -9,7 +9,7 @@ package io.autoptu.cobblemon.battlecore;
  */
 public final class CurrentUpstreamDevelopmentWatch {
     public static final String AUTOPTU_JAVA_MAIN_SHA = "fb93d3a4e6633d17a5a79f3095b141f887d4f258";
-    public static final String AUTOPTU_PYTHON_MAIN_SHA = "551b6b8877d0e9087c325cb519cceef2108b5971";
+    public static final String AUTOPTU_PYTHON_MAIN_SHA = "ef0143b900ab671b1f0e061318278058b87fe403";
     public static final int AUTOPTU_JAVA_MERGED_POST_DAMAGE_TIMING_PR = 189;
     public static final int AUTOPTU_JAVA_MERGED_REACTION_HANDOFF_PR = 190;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_POST_DAMAGE_PR = 191;
@@ -31,6 +31,9 @@ public final class CurrentUpstreamDevelopmentWatch {
     public static final int AUTOPTU_JAVA_MERGED_RUNTIME_SECONDARY_STATUS_BRIDGE_PR = 207;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_ACCURACY_ROLL_PR = 208;
     public static final int AUTOPTU_JAVA_MERGED_LIVE_DIRECT_SECONDARY_STATUS_PR = 209;
+    public static final int AUTOPTU_JAVA_OPEN_AREA_SECONDARY_STATUS_PR = 210;
+    public static final String AUTOPTU_JAVA_OPEN_AREA_SECONDARY_STATUS_HEAD_SHA =
+            "ec977ede1f506e2c95278de2711bc2c1a4e68f99";
 
     private CurrentUpstreamDevelopmentWatch() {}
 
@@ -58,8 +61,12 @@ public final class CurrentUpstreamDevelopmentWatch {
         return true;
     }
 
+    public static boolean areaSecondaryStatusMayBePromoted() {
+        return false;
+    }
+
     public static String effectRollResolverBoundary() {
-        return "AutoPTU-Java PR #197 is merged on main and ports a deterministic move-special secondary-effect roll resolver against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. Later merged contracts derive those inputs from BattleRuntimeState, preserve the authoritative accuracy d20, compose generic secondary-status requests with canonical prevention, and PR #209 now consumes that chain in the preferred direct combatant-target runtime path. Overall effect-roll runtime remains PARTIAL because AoE and delayed paths are not covered by this live wiring. Minecraft/Cobblemon must not calculate effect rolls or secondary outcomes for paths Java has not verified.";
+        return "AutoPTU-Java PR #197 is merged on main and ports a deterministic move-special secondary-effect roll resolver against pinned Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03. Later merged contracts derive those inputs from BattleRuntimeState, preserve the authoritative accuracy d20, compose generic secondary-status requests with canonical prevention, and PR #209 now consumes that chain in the preferred direct combatant-target runtime path. Overall effect-roll runtime remains PARTIAL because AoE and delayed paths are not covered by merged live wiring. Minecraft/Cobblemon must not calculate effect rolls or secondary outcomes for paths Java has not verified on main.";
     }
 
     public static String mergedEffectRollTemporaryStateBoundary() {
@@ -110,7 +117,11 @@ public final class CurrentUpstreamDevelopmentWatch {
         return "AutoPTU-Java PR #209 is merged on main at fb93d3a4e6633d17a5a79f3095b141f887d4f258 and wires the generic secondary-status chain into the preferred authoritative single combatant-target runtime path. RuntimeMoveResolution builds a server-owned MoveSpecialHookRegistry from canonical move identity plus effective type/category, BattleRuntime supplies the real accuracy d20, POST_DAMAGE derives effect-roll inputs from BattleRuntimeState, parses canonical effects text, and delegates final application/prevention to StatusApplicationResolution. End-to-end regressions cover Serene Grace plus Burn and Immunity blocking Poison. This promotes only that direct live path. AoE and delayed paths remain explicitly outside PR #209, and complete status lifecycle remains PARTIAL. Minecraft/Cobblemon must consume authoritative events/state and must not reproduce the parser, modifier derivation, prevention, or status mutation locally.";
     }
 
+    public static String openAreaSecondaryStatusBoundary() {
+        return "AutoPTU-Java draft PR #210 at ec977ede1f506e2c95278de2711bc2c1a4e68f99 proposes live generic secondary-status execution for authoritative area targets by reusing RuntimeMoveSpecialHooks.standardRegistry per resolved target while the outer declaration retains single action/frequency spending. Its end-to-end regression covers guaranteed Poison across two Burst targets with Immunity blocking one target, and the observed Java Core Parity, Multi-Target Move Execution Contract, Move Special Secondary Status Parity, Move Special Execution Order Contract, Move Special POST Damage Contract and Battle RNG Ownership Contract are green on that draft head. The PR is still open and draft, so this is reference evidence only. Minecraft/Cobblemon must not promote AoE secondary outcomes, apply area statuses, reconstruct per-target RNG/status prevention, or infer that the contract will merge unchanged.";
+    }
+
     public static String pythonMainObservation() {
-        return "AutoPTU Python main 551b6b8877d0e9087c325cb519cceef2108b5971 is the current read-only head inspected for this integration refresh. Its latest change hardens ranked-daily sprite persistence and does not replace the frozen battle oracle. Java battle parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, where generic POST_DAMAGE status requests delegate through battle._apply_status and _effect_roll reads the shared move-result roll. The later Python head is reference-only and cannot promote Minecraft battle authority without a merged Java runtime contract.";
+        return "AutoPTU Python main ef0143b900ab671b1f0e061318278058b87fe403 is the current read-only head inspected for this integration refresh. Its latest change hardens Career ranked leaderboard rendering against malformed entries and does not replace the frozen battle oracle. Java battle parity remains explicitly pinned to Python oracle 16d228efa63aabecb67fa788959a359aac7f8f03, where generic POST_DAMAGE status requests delegate through battle._apply_status and _effect_roll reads the shared move-result roll. The later Python head is reference-only and cannot promote Minecraft battle authority without a merged Java runtime contract.";
     }
 }
