@@ -156,7 +156,7 @@ public final class OurosFloatingBlockAudit {
                 .append(" floating components / ")
                 .append(report.floatingBlockCount())
                 .append(" blocks");
-        int limit = Math.min(8, report.floatingComponents().size());
+        int limit = Math.min(32, report.floatingComponents().size());
         for (int i = 0; i < limit; i++) {
             FloatingComponent c = report.floatingComponents().get(i);
             description.append("; #").append(i + 1)
