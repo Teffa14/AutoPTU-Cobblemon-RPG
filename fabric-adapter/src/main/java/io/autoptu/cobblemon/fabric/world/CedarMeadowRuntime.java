@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,7 +18,6 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -135,13 +135,14 @@ public final class CedarMeadowRuntime {
                 return true;
             }
 
-            ServerPlayerEntity nearest = world.getClosestPlayer(
+            PlayerEntity closestPlayer = world.getClosestPlayer(
                     layout.origin().getX() + 0.5D,
                     layout.origin().getY() + 1.0D,
                     layout.origin().getZ() + 0.5D,
                     24.0D,
                     false
             );
+            ServerPlayerEntity nearest = closestPlayer instanceof ServerPlayerEntity serverPlayer ? serverPlayer : null;
             double distance = nearest == null
                     ? Double.POSITIVE_INFINITY
                     : Math.sqrt(nearest.squaredDistanceTo(lookout));
