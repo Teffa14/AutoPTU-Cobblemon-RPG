@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AreaSecondaryStatusCompatibilityTest {
     @Test
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
-        assertEquals("453210d46a04ebc52babc675ce7824f83991da5d",
+        assertEquals("7e1115df0c7937699f179dc1f23040c06c78f719",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("68427feebcc1728fd6bcb53b6520a82595ab956b",
+        assertEquals("f0b8f2a31ac3626dfb5c51f9ee8195780fd3c560",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -27,10 +27,14 @@ class AreaSecondaryStatusCompatibilityTest {
         assertTrue(boundary.contains("two Burst targets"));
         assertTrue(boundary.contains("Immunity status_block"));
         assertTrue(boundary.contains("exactly one declaration-level STANDARD/frequency consumption"));
-        assertTrue(boundary.contains("must not calculate per-target effect rolls"));
+        assertTrue(boundary.contains("every declared upstream dependency remains non-BLOCKING"));
         assertFalse(AreaSecondaryStatusCompatibility.delayedSecondaryStatusMayBeProjected());
 
-        assertEquals(6, AreaSecondaryStatusCompatibility.dependencies().size());
+        assertEquals(8, AreaSecondaryStatusCompatibility.dependencies().size());
+        assertTrue(AreaSecondaryStatusCompatibility.dependencies().contains(
+                UpstreamCompatibilityMatrix.Capability.CORE_TARGETING));
+        assertTrue(AreaSecondaryStatusCompatibility.dependencies().contains(
+                UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE));
         assertTrue(AreaSecondaryStatusCompatibility.dependencies().contains(
                 UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE));
         assertTrue(AreaSecondaryStatusCompatibility.dependencies().contains(
@@ -44,31 +48,39 @@ class AreaSecondaryStatusCompatibilityTest {
         assertTrue(AreaSecondaryStatusCompatibility.dependencies().contains(
                 UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK));
 
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.CORE_TARGETING).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.VERIFIED,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.ACTION_ECONOMY_AND_INITIATIVE).support());
         for (UpstreamCompatibilityMatrix.Capability capability : AreaSecondaryStatusCompatibility.dependencies()) {
-            assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
-                    CurrentUpstreamCompatibilityInspection.evidence(capability).support());
+            assertTrue(UpstreamCompatibilityMatrix.mayProjectAuthoritativeBehavior(capability));
         }
     }
 
     @Test
-    void draftPr211RemainsFailClosedBecauseItOnlyFreezesSemanticRequests() {
-        assertEquals(211, AreaSecondaryStatusCompatibility.OPEN_SECONDARY_COMBAT_STAGE_PR);
-        assertEquals("cb2eabaf7d9874c0a4738ddaecc5eb04eb8a4e00",
-                AreaSecondaryStatusCompatibility.OPEN_SECONDARY_COMBAT_STAGE_HEAD_SHA);
+    void mergedPr211ParserAndDraftPr212ApplicationRemainFailClosedForProjection() {
+        assertEquals(211, AreaSecondaryStatusCompatibility.MERGED_SECONDARY_COMBAT_STAGE_PARSER_PR);
+        assertEquals(212, AreaSecondaryStatusCompatibility.OPEN_SECONDARY_COMBAT_STAGE_APPLICATION_PR);
+        assertEquals("0b3f005dded417f59175c9424b545580cf654e2e",
+                AreaSecondaryStatusCompatibility.OPEN_SECONDARY_COMBAT_STAGE_APPLICATION_HEAD_SHA);
         assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
-        String boundary = AreaSecondaryStatusCompatibility.draftCombatStageBoundary();
-        assertTrue(boundary.contains("draft PR #211"));
+        String boundary = AreaSecondaryStatusCompatibility.combatStageBoundary();
+        assertTrue(boundary.contains("PR #211 is merged"));
         assertTrue(boundary.contains("ordered semantic stage-change requests"));
         assertTrue(boundary.contains("does not mutate combat-stage state"));
+        assertTrue(boundary.contains("draft PR #212"));
         assertTrue(boundary.contains("CombatStageMutationService"));
-        assertTrue(boundary.contains("reference evidence only"));
+        assertTrue(boundary.contains("Accuracy and Evasion fail closed"));
+        assertTrue(boundary.contains("does not establish live BattleRuntime execution"));
         assertTrue(boundary.contains("must not parse stage text"));
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("68427feebcc1728fd6bcb53b6520a82595ab956b"));
+        assertTrue(observation.contains("f0b8f2a31ac3626dfb5c51f9ee8195780fd3c560"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("_generic_post_damage_from_text"));
     }
