@@ -11,7 +11,7 @@ class CurrentUpstreamDevelopmentWatchTest {
     void pinsCurrentReadOnlyUpstreamHeads() {
         assertEquals("fb93d3a4e6633d17a5a79f3095b141f887d4f258",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("551b6b8877d0e9087c325cb519cceef2108b5971",
+        assertEquals("ef0143b900ab671b1f0e061318278058b87fe403",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -207,9 +207,33 @@ class CurrentUpstreamDevelopmentWatchTest {
     }
 
     @Test
+    void draftPr210RemainsReferenceOnlyEvenWithGreenAreaTargetContracts() {
+        assertEquals(210, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_AREA_SECONDARY_STATUS_PR);
+        assertEquals("ec977ede1f506e2c95278de2711bc2c1a4e68f99",
+                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_AREA_SECONDARY_STATUS_HEAD_SHA);
+        assertFalse(CurrentUpstreamDevelopmentWatch.areaSecondaryStatusMayBePromoted());
+        String boundary = CurrentUpstreamDevelopmentWatch.openAreaSecondaryStatusBoundary();
+        assertTrue(boundary.contains("draft PR #210"));
+        assertTrue(boundary.contains("authoritative area targets"));
+        assertTrue(boundary.contains("two Burst targets"));
+        assertTrue(boundary.contains("Immunity blocking one target"));
+        assertTrue(boundary.contains("reference evidence only"));
+        assertTrue(boundary.contains("must not promote AoE secondary outcomes"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+    }
+
+    @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = CurrentUpstreamDevelopmentWatch.pythonMainObservation();
-        assertTrue(observation.contains("551b6b8877d0e9087c325cb519cceef2108b5971"));
+        assertTrue(observation.contains("ef0143b900ab671b1f0e061318278058b87fe403"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("battle._apply_status"));
         assertTrue(observation.contains("shared move-result roll"));
