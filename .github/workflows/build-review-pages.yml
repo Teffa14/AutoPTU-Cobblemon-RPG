@@ -157,40 +157,67 @@ jobs:
                 *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
           PY
 
-      - name: Bundle self-contained Safari viewer runtime
+      - name: Assemble classic Safari viewer runtime
         shell: bash
         run: |
           set -euo pipefail
           deps="$RUNNER_TEMP/ouros-viewer-node"
           out="$PWD/site/assets"
+          bundle="$out/meridian-canopy-gym.bundle.js"
           mkdir -p "$deps" "$out"
 
           npm install --prefix "$deps" --no-save \
             deepslate@0.26.0 \
-            gl-matrix@3.4.3 \
-            esbuild@0.25.9
+            gl-matrix@3.4.3
 
-          "$deps/node_modules/.bin/esbuild" \
-            tools/build-review/meridian-canopy-gym.js \
-            --bundle \
-            --format=iife \
-            --platform=browser \
-            --target=safari15 \
-            --minify \
-            --outfile="$out/meridian-canopy-gym.bundle.js"
+          deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
+          glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
+          test -s "$deepslate_umd"
+          test -s "$glmatrix_umd"
 
-          test -s "$out/meridian-canopy-gym.bundle.js"
-          test "$(wc -c < "$out/meridian-canopy-gym.bundle.js")" -gt 10000
-          if grep -q 'esm.sh' "$out/meridian-canopy-gym.bundle.js"; then
-            echo 'Viewer bundle still contains esm.sh runtime dependency' >&2
-            exit 1
-          fi
+          node - <<'NODE' "$glmatrix_umd" "$deepslate_umd"
+          const fs = require('fs');
+          const vm = require('vm');
+          const ctx = {};
+          ctx.window = ctx;
+          ctx.self = ctx;
+          ctx.globalThis = ctx;
+          vm.createContext(ctx);
+          vm.runInContext(fs.readFileSync(process.argv[2], 'utf8'), ctx, { filename: 'gl-matrix-min.js' });
+          vm.runInContext(fs.readFileSync(process.argv[3], 'utf8'), ctx, { filename: 'deepslate.umd.js' });
+          if (!ctx.glMatrix || !ctx.glMatrix.mat4) throw new Error('gl-matrix UMD did not expose glMatrix.mat4');
+          if (!ctx.deepslate || !ctx.deepslate.StructureRenderer || !ctx.deepslate.Structure) throw new Error('Deepslate UMD did not expose renderer globals');
+          console.log('Classic UMD globals verified before concatenation');
+          NODE
+
+          {
+            cat "$glmatrix_umd"
+            printf '\n;\n'
+            cat "$deepslate_umd"
+            printf '\n;\n'
+            cat tools/build-review/meridian-canopy-gym.js
+          } > "$bundle"
+
+          test -s "$bundle"
+          test "$(wc -c < "$bundle")" -gt 10000
+
+          node - <<'NODE' "$bundle"
+          const fs = require('fs');
+          const source = fs.readFileSync(process.argv[2], 'utf8');
+          new Function(source);
+          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", 'from "deepslate"', "from 'gl-matrix'", 'from "gl-matrix"'];
+          for (const token of forbidden) {
+            if (source.includes(token)) throw new Error('classic viewer bundle contains forbidden modular runtime token: ' + token);
+          }
+          if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
+          console.log('Classic Safari bundle parse and modular-runtime guard passed');
+          NODE
+
           if grep -q 'esm.sh' site/builds/meridian-canopy-gym.html; then
             echo 'Viewer HTML still contains esm.sh runtime dependency' >&2
             exit 1
           fi
-          grep -q '__ourosViewerBooted' "$out/meridian-canopy-gym.bundle.js"
-          echo "Self-contained viewer bundle staged: $(wc -c < "$out/meridian-canopy-gym.bundle.js") bytes"
+          echo "Classic self-contained viewer staged: $(wc -c < "$bundle") bytes"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
