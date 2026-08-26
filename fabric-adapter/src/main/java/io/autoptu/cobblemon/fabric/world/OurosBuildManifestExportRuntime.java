@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.autoptu.cobblemon.fabric.world.build.OurosFloatingBlockAudit;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.registry.Registries;
@@ -36,6 +37,7 @@ import java.util.Map;
 public final class OurosBuildManifestExportRuntime {
     public static final String OUTPUT_PROPERTY = "autoptu.ourosBuildManifestOutput";
     public static final String SUCCESS_MARKER = "AutoPTU exact Ouros build manifest export passed";
+    public static final String STRUCTURAL_AUDIT_MARKER = "AutoPTU Ouros floating component audit passed";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-ouros-build-export");
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
@@ -69,7 +71,23 @@ public final class OurosBuildManifestExportRuntime {
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
         MeridianCanopyGymRebuildDetailPass.apply(world, origin);
 
-        Manifest manifest = capture(world, origin);
+        OurosFloatingBlockAudit.Report audit = OurosFloatingBlockAudit.scan(
+                world,
+                origin,
+                new OurosFloatingBlockAudit.Bounds(MIN_X, MAX_X, MIN_Y, MAX_Y, MIN_Z, MAX_Z),
+                1
+        );
+        if (!audit.passed()) {
+            throw new IllegalStateException(
+                    "Ouros build contains disconnected floating geometry: "
+                            + OurosFloatingBlockAudit.describeFailures(audit));
+        }
+        LOGGER.info("{}: {} connected components, all {} anchored",
+                STRUCTURAL_AUDIT_MARKER,
+                audit.componentCount(),
+                audit.anchoredComponentCount());
+
+        Manifest manifest = capture(world, origin, audit);
         try {
             Path parent = outputPath.getParent();
             if (parent != null) {
@@ -99,7 +117,11 @@ public final class OurosBuildManifestExportRuntime {
         }
     }
 
-    private static Manifest capture(ServerWorld world, BlockPos origin) {
+    private static Manifest capture(
+            ServerWorld world,
+            BlockPos origin,
+            OurosFloatingBlockAudit.Report audit
+    ) {
         Map<String, Integer> paletteIndices = new LinkedHashMap<>();
         List<JsonObject> palette = new ArrayList<>();
         JsonArray blocks = new JsonArray();
@@ -143,6 +165,9 @@ public final class OurosBuildManifestExportRuntime {
         root.addProperty("geometryAuthority", "live_server_final_blockstate_scan");
         root.addProperty("geometrySha256", hash);
         root.addProperty("blockCount", blockCount);
+        root.addProperty("floatingComponentAudit", "passed");
+        root.addProperty("structuralComponentCount", audit.componentCount());
+        root.addProperty("anchoredStructuralComponentCount", audit.anchoredComponentCount());
         root.add("min", vector(MIN_X, MIN_Y, MIN_Z));
         root.add("max", vector(MAX_X, MAX_Y, MAX_Z));
         root.add("size", vector(MAX_X - MIN_X + 1, MAX_Y - MIN_Y + 1, MAX_Z - MIN_Z + 1));
