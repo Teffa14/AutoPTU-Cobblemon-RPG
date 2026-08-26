@@ -39,6 +39,7 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
         anchorArenaRailNodes(world, o);
         anchorGateWindowJoinery(world, o);
         anchorCentralTreeCrotch(world, o);
+        anchorHydroSawtoothFrames(world, o);
         anchorBotanicalGalleryLights(world, o);
         replantApproachBoundaryTrees(world, o);
         replantArenaBoundaryTrees(world, o);
@@ -94,6 +95,28 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
         world.setBlockState(o.add(2, 12, -2), FRAME_X);
         world.setBlockState(o.add(3, 12, -2), FRAME_X);
         world.setBlockState(o.add(3, 13, -3), FRAME_Y);
+
+        // A short orthogonal fork connects the last diagonal branch fragments reported by the exact
+        // audit at x=2..3,z=0..1 back into the main crotch. It reads as a natural secondary limb.
+        for (int z = -2; z <= 1; z++) {
+            world.setBlockState(o.add(2, 11, z), WOOD_Z);
+        }
+        world.setBlockState(o.add(3, 11, 1), WOOD_X);
+    }
+
+    private static void anchorHydroSawtoothFrames(ServerWorld world, BlockPos o) {
+        // Each copper sawtooth bay receives an explicit timber support section. The original roof
+        // skin sat one block above its wall beam in two bays, which made complete 87-block roof
+        // modules structurally disconnected. Eave extensions and a king post now carry every bay.
+        for (int centerZ : new int[]{-10, -4, 2, 8}) {
+            int supportZ = centerZ - 2;
+            world.setBlockState(o.add(18, 11, supportZ), FRAME_Y);
+            world.setBlockState(o.add(30, 11, supportZ), FRAME_Y);
+            beamX(world, o, 18, 30, 10, supportZ, FRAME_X);
+            for (int y = 11; y <= 14; y++) {
+                world.setBlockState(o.add(24, y, supportZ), FRAME_Y);
+            }
+        }
     }
 
     private static void anchorBotanicalGalleryLights(ServerWorld world, BlockPos o) {
@@ -117,8 +140,8 @@ public final class MeridianCanopyGymRebuildAnchoringPass {
     }
 
     private static void clearOldApproachTree(ServerWorld world, BlockPos o, int side) {
-        int minX = side < 0 ? -32 : 14;
-        int maxX = side < 0 ? -14 : 32;
+        int minX = side < 0 ? -32 : 16;
+        int maxX = side < 0 ? -16 : 32;
         for (int x = minX; x <= maxX; x++) {
             for (int y = 1; y <= 15; y++) {
                 for (int z = -36; z <= -22; z++) {
