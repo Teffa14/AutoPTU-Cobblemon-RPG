@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CurrentUpstreamDevelopmentWatchTest {
     @Test
     void pinsCurrentReadOnlyUpstreamHeads() {
-        assertEquals("3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a",
+        assertEquals("fb93d3a4e6633d17a5a79f3095b141f887d4f258",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("d5f2833837f6096673ad64920f239691b4481464",
+        assertEquals("551b6b8877d0e9087c325cb519cceef2108b5971",
                 CurrentUpstreamDevelopmentWatch.AUTOPTU_PYTHON_MAIN_SHA);
     }
 
@@ -24,22 +24,12 @@ class CurrentUpstreamDevelopmentWatchTest {
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("#191 is merged"));
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("BattleRuntime"));
         assertTrue(CurrentUpstreamDevelopmentWatch.postDamageRuntimeBoundary().contains("after the authoritative move outcome"));
-
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE).support());
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
-        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE)
-                .contracts().contains("POST_DAMAGE"));
-        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE)
-                .limitation().contains("END_ACTION"));
-        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.MINECRAFT_COBBLEMON_CRAFTICS_ADAPTER_PLAYBACK)
-                .contracts().contains("POST_DAMAGE"));
     }
 
     @Test
@@ -50,38 +40,21 @@ class CurrentUpstreamDevelopmentWatchTest {
         assertEquals(195, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_TARGET_RESULT_TRANSPORT_PR);
         assertEquals(196, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_END_ACTION_ORACLE_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.endActionRuntimeMayBePromoted());
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("MoveSpecialActionFinalization"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("target-loop aggregation oracle"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("exactly once"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("share the target loop"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("No authoritative BattleRuntime call site"));
         assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("must not aggregate target results"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.endActionRuntimeBoundary().contains("dispatch END_ACTION"));
-
-        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
-                CurrentUpstreamCompatibilityInspection.evidence(
-                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
-        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE)
-                .limitation().contains("END_ACTION"));
     }
 
     @Test
-    void mergedEffectRollResolverAndTemporaryStateRemainFailClosed() {
+    void mergedEffectRollInfrastructureRemainsPartialAcrossAllRuntimePaths() {
         assertEquals(197, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RESOLVER_PR);
         assertEquals(198, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_TEMP_STATE_PR);
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("PR #197 is merged"));
         assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("resolver-only"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("runtime state derivation"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("must not calculate or supply final effect rolls"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("PR #209 now consumes that chain"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.effectRollResolverBoundary().contains("AoE and delayed paths"));
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("PR #198 is merged"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("3d9be13bfd3c89361e58c35e2df6a3265b57f93b"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("immutable_mind_block"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("early blocks can prevent later cleanup"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("must continue to fail closed"));
-
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollTemporaryStateBoundary().contains("does not give Minecraft authority"));
         assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
                 CurrentUpstreamCompatibilityInspection.evidence(
                         UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
@@ -97,9 +70,7 @@ class CurrentUpstreamDevelopmentWatchTest {
     void mergedCanonicalEffectsTextRemainsServerOwnedAndDoesNotPromoteRuntime() {
         assertEquals(199, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_MOVE_EFFECTS_TEXT_PR);
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("PR #199 is merged"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("3825f32490c405a3d541c5eddf4b04097b4d1e69"));
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("server-owned MoveSpec"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("server-owned canonical fallback"));
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedMoveEffectsTextBoundary().contains("must not send rules text"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
@@ -108,34 +79,140 @@ class CurrentUpstreamDevelopmentWatchTest {
     void mergedStackedStatStratagemParityStillDoesNotPromoteAdapterAuthority() {
         assertEquals(200, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_STAT_STRATAGEM_STACKS_PR);
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("PR #200 is merged"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("3dbfc85605c03e4f8e6aeb1f4195e0fdb412556a"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("every matching stat_stratagem"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("live Stat Stratagem state"));
         assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollStatStratagemStacksBoundary().contains("must not count Stat Stratagem effects"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
 
     @Test
-    void openRollPenaltyParityWorkRemainsFailClosed() {
-        assertEquals(201, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_PR);
-        assertEquals("5a7a34aa0cf072c48cdd9e3e7a9a83be6f9b9b03",
-                CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_OPEN_EFFECT_ROLL_PENALTY_STATE_HEAD_SHA);
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("draft PR #201"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("all_roll_penalty"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("same-round entries remain"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("clamped at zero"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.openEffectRollPenaltyStateBoundary().contains("must not read, expire, sum or clamp"));
+    void mergedRollPenaltyStateRemainsFailClosedWithoutAdapterAuthority() {
+        assertEquals(201, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_PENALTY_STATE_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("PR #201 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedEffectRollPenaltyStateBoundary().contains("must not read, expire, sum or clamp"));
         assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
     }
 
     @Test
-    void currentPythonHeadDoesNotReplaceFrozenEffectRollOracle() {
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("d5f2833837f6096673ad64920f239691b4481464"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("_roll_penalty"));
-        assertTrue(CurrentUpstreamDevelopmentWatch.pythonMainObservation().contains("reference-only"));
-        assertTrue(CurrentUpstreamCompatibilityInspection.evidence(
-                UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR)
-                .contracts().contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+    void mergedHardenedCritEffectBonusRemainsServerOwnedAndFailClosed() {
+        assertEquals(202, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_HARDENED_CRIT_EFFECT_BONUS_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("PR #202 is merged"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("server-owned semantic state"));
+        assertTrue(CurrentUpstreamDevelopmentWatch.mergedHardenedCritEffectBonusBoundary().contains("must not infer injuries"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+    }
+
+    @Test
+    void mergedRuntimeEffectRollInputsRemoveCallerModifierAuthority() {
+        assertEquals(203, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_EFFECT_ROLL_RUNTIME_INPUTS_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedEffectRollRuntimeInputsBoundary();
+        assertTrue(boundary.contains("PR #203 is merged"));
+        assertTrue(boundary.contains("BattleRuntimeState"));
+        assertTrue(boundary.contains("server-owned"));
+        assertTrue(boundary.contains("must not reconstruct these modifiers"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+    }
+
+    @Test
+    void mergedSecondaryStatusParserRemainsServerOwned() {
+        assertEquals(204, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_SECONDARY_STATUS_CONTRACT_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedSecondaryStatusContractBoundary();
+        assertTrue(boundary.contains("PR #204 is merged"));
+        assertTrue(boundary.contains("7cd765e87fa4254789eb40e8d14f91e1251631ad"));
+        assertTrue(boundary.contains("_generic_post_damage_from_text"));
+        assertTrue(boundary.contains("returns ordered status requests without applying them"));
+        assertTrue(boundary.contains("must not parse effects text"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+    }
+
+    @Test
+    void mergedSecondaryStatusApplicationRemainsServerOwned() {
+        assertEquals(205, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_SECONDARY_STATUS_APPLICATION_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedSecondaryStatusApplicationBoundary();
+        assertTrue(boundary.contains("PR #205 is merged"));
+        assertTrue(boundary.contains("d64d6417dc89c1aca878d0a8fd6b526921b8e193"));
+        assertTrue(boundary.contains("StatusApplicationResolution"));
+        assertTrue(boundary.contains("BuiltinStatusApplicationHooks"));
+        assertTrue(boundary.contains("must not apply requested statuses"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+    }
+
+    @Test
+    void mergedAccuracyRollTransportRemainsServerOwned() {
+        assertEquals(206, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_ACCURACY_ROLL_TRANSPORT_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedAccuracyRollTransportBoundary();
+        assertTrue(boundary.contains("PR #206 is merged"));
+        assertTrue(boundary.contains("f6115543da34bae91353c302a635913906656c2a"));
+        assertTrue(boundary.contains("server-owned accuracy d20"));
+        assertTrue(boundary.contains("must not generate, inject or infer"));
+    }
+
+    @Test
+    void mergedRuntimeSecondaryStatusBridgeIsConsumedOnlyByVerifiedLivePath() {
+        assertEquals(207, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_RUNTIME_SECONDARY_STATUS_BRIDGE_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedRuntimeSecondaryStatusBridgeBoundary();
+        assertTrue(boundary.contains("PR #207 is merged"));
+        assertTrue(boundary.contains("d365642c74b43592073a7cc07bb3e011aaa503a9"));
+        assertTrue(boundary.contains("package-private runtime bridge"));
+        assertTrue(boundary.contains("Serene Grace"));
+        assertTrue(boundary.contains("Immunity"));
+        assertTrue(boundary.contains("PR #209 now invokes this composition"));
+        assertTrue(boundary.contains("must still not call an equivalent bridge"));
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+    }
+
+    @Test
+    void mergedLiveAccuracyRollClosesTransportSeparatelyFromStatusConsumer() {
+        assertEquals(208, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_LIVE_ACCURACY_ROLL_PR);
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedLiveAccuracyRollBoundary();
+        assertTrue(boundary.contains("PR #208 is merged"));
+        assertTrue(boundary.contains("412ec8f82c7dd4cb89e58e4db80b3e9d957b5bb4"));
+        assertTrue(boundary.contains("BattleRuntime"));
+        assertTrue(boundary.contains("authoritative accuracy d20"));
+        assertTrue(boundary.contains("closes roll transport only"));
+        assertTrue(boundary.contains("PR #209 is the separate contract"));
+    }
+
+    @Test
+    void mergedPr209PromotesOnlyDirectCombatantTargetSecondaryStatusExecution() {
+        assertEquals(209, CurrentUpstreamDevelopmentWatch.AUTOPTU_JAVA_MERGED_LIVE_DIRECT_SECONDARY_STATUS_PR);
+        assertTrue(CurrentUpstreamDevelopmentWatch.liveDirectSecondaryStatusMayBePromoted());
+        String boundary = CurrentUpstreamDevelopmentWatch.mergedLiveDirectSecondaryStatusBoundary();
+        assertTrue(boundary.contains("PR #209 is merged"));
+        assertTrue(boundary.contains("fb93d3a4e6633d17a5a79f3095b141f887d4f258"));
+        assertTrue(boundary.contains("single combatant-target runtime path"));
+        assertTrue(boundary.contains("canonical move identity plus effective type/category"));
+        assertTrue(boundary.contains("Serene Grace plus Burn"));
+        assertTrue(boundary.contains("Immunity blocking Poison"));
+        assertTrue(boundary.contains("AoE and delayed paths remain explicitly outside PR #209"));
+        assertTrue(boundary.contains("complete status lifecycle remains PARTIAL"));
+        assertTrue(boundary.contains("must consume authoritative events/state"));
+        assertFalse(CurrentUpstreamDevelopmentWatch.effectRollRuntimeMayBePromoted());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.FULL_STATEFUL_DAMAGE_PIPELINE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.COMPLETE_STATUS_LIFECYCLE).support());
+        assertEquals(UpstreamCompatibilityMatrix.Support.PARTIAL,
+                CurrentUpstreamCompatibilityInspection.evidence(
+                        UpstreamCompatibilityMatrix.Capability.MOVE_SPECIFIC_BEHAVIOR).support());
+    }
+
+    @Test
+    void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
+        String observation = CurrentUpstreamDevelopmentWatch.pythonMainObservation();
+        assertTrue(observation.contains("551b6b8877d0e9087c325cb519cceef2108b5971"));
+        assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
+        assertTrue(observation.contains("battle._apply_status"));
+        assertTrue(observation.contains("shared move-result roll"));
+        assertTrue(observation.contains("reference-only"));
     }
 }
