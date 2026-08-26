@@ -11,7 +11,7 @@ class AreaSecondaryStatusCompatibilityTest {
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
         assertEquals("b35f09bbcc4246b1846e57c5c4f9bb5771d474e8",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("5de84c9168da64f0573ad83590d19fd36bf724e2",
+        assertEquals("7c4edba551cc57a51514f7cb43a75745db422837",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -30,7 +30,7 @@ class AreaSecondaryStatusCompatibilityTest {
         assertEquals(219, AreaSecondaryStatusCompatibility.MERGED_TEMPORARY_ACCURACY_CONTRACT_PR);
         assertEquals(220, AreaSecondaryStatusCompatibility.MERGED_RUNTIME_TEMPORARY_ACCURACY_INPUTS_PR);
         assertEquals(221, AreaSecondaryStatusCompatibility.OPEN_ACCURACY_HELPER_OWNERSHIP_PR);
-        assertEquals("0746cd60d9be6612bba3712b0a2f08c1d9568abc",
+        assertEquals("d317e1ded62752a098513458474b70b2a197f1f9",
                 AreaSecondaryStatusCompatibility.OPEN_ACCURACY_HELPER_OWNERSHIP_PR_HEAD_SHA);
         assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
         assertFalse(AreaSecondaryStatusCompatibility.accuracyEvasionCombatStageMayBeProjected());
@@ -41,7 +41,8 @@ class AreaSecondaryStatusCompatibilityTest {
         assertTrue(boundary.contains("PR #219"));
         assertTrue(boundary.contains("PR #220"));
         assertTrue(boundary.contains("Draft PR #221"));
-        assertTrue(boundary.contains("failing/startup-failed CI"));
+        assertTrue(boundary.contains("green parity/contract checks"));
+        assertTrue(boundary.contains("does not wire those values into live Accuracy"));
         assertTrue(boundary.contains("grants no adapter authority"));
         assertTrue(boundary.contains("live authoritative hit resolution"));
     }
@@ -49,8 +50,8 @@ class AreaSecondaryStatusCompatibilityTest {
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("5de84c9168da64f0573ad83590d19fd36bf724e2"));
-        assertTrue(observation.contains("Career-side changes"));
+        assertTrue(observation.contains("7c4edba551cc57a51514f7cb43a75745db422837"));
+        assertTrue(observation.contains("separate from the pinned battle oracle"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
         assertTrue(observation.contains("combat_stages['accuracy']"));
         assertTrue(observation.contains("does not consume combat_stages['evasion']"));
