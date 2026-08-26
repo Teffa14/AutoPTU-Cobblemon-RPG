@@ -70,6 +70,7 @@ public final class OurosBuildManifestExportRuntime {
         MeridianCanopyGymBuilder.build(world, origin);
         MeridianCanopyGymDetailPass.apply(world, origin);
         MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
+        MeridianCanopyGymDecorativePass.apply(world, origin);
 
         Manifest manifest = capture(world, origin);
         try {
@@ -152,6 +153,7 @@ public final class OurosBuildManifestExportRuntime {
         sources.add("MeridianCanopyGymBuilder");
         sources.add("MeridianCanopyGymDetailPass");
         sources.add("MeridianCanopyGymAuthoredGeometryPass");
+        sources.add("MeridianCanopyGymDecorativePass");
         root.add("productionSources", sources);
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);

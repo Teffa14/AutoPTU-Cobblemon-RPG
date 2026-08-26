@@ -33,13 +33,14 @@ public final class OurosSignatureBuildRuntime {
         MeridianCanopyGymBuilder.BuildResult result = MeridianCanopyGymBuilder.build(world, origin);
         MeridianCanopyGymDetailPass.apply(world, origin);
         MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
+        MeridianCanopyGymDecorativePass.apply(world, origin);
 
-        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v3 built 46 blocks ahead."), false);
+        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v4 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
                 "Footprint " + result.width() + "x" + result.depth() + ", height " + result.height()
-                        + ". OI-001 adds reusable curved/organic voxel geometry, a rebuilt specimen tree, a formal oval battle floor, curved spectator terraces and continuous conservatory ribs."), false);
+                        + ". The current pass adds small-scale architectural detail: layered dark eaves, brackets, balconies, shutters, railings, lanterns, roof finials, planters, copper screens and service props."), false);
         player.sendMessage(Text.literal(
-                "Inspect the approach silhouette, atrium tree/crown, battle-floor readability, spectator bowl, challenge wings, upper bridge, backstage shortcut and roof section."), false);
+                "The west keeper pavilion adapts the supplied bastion reference into the Gym's botanical civic language: masonry base, timber gallery, stacked roof and dense human-scale detail."), false);
         player.sendMessage(Text.literal(
                 "This build remains a GAMEPLAY PROTOTYPE. Exact browser review decides whether each implementation pass actually improves the place."), false);
         return 1;
