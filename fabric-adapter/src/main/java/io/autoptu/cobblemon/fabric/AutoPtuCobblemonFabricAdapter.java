@@ -11,6 +11,7 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
+import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
@@ -19,10 +20,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Dedicated-server Fabric entrypoint for the integration adapter.
  *
- * Startup registers transport, world-scoped canonical persistence and authenticated-player
- * provisioning, then verifies that the Cobblemon runtime needed by the presentation adapter is
- * present. Runtime battle services are wired separately so Fabric/Cobblemon startup cannot invent
- * battle state or PTU behavior.
+ * Startup registers transport, world-scoped canonical persistence, authenticated-player
+ * provisioning and the first Ouros living-world slice, then verifies that the Cobblemon runtime
+ * needed by the presentation adapter is present. Runtime battle services remain separate so
+ * Fabric/Cobblemon startup cannot invent battle state or PTU behavior.
  */
 public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
@@ -37,6 +38,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
             throw new IllegalStateException("Cobblemon runtime is required by the AutoPTU adapter");
         }
         PlayableBattleTestRuntime.register();
+        CedarMeadowRuntime.register();
         CobblemonLiveRelocationSmoke.registerIfEnabled();
         CobblemonLiveReactionPlaybackSmoke.registerIfEnabled();
         CobblemonLiveHealthSmoke.registerIfEnabled();
