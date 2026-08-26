@@ -2,69 +2,102 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Meridian Canopy Gym · Ouros Build Review</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1117;color:#e6edf3;font-family:Inter,system-ui,sans-serif}#app{position:fixed;inset:0}canvas{display:block}
-#hud{position:fixed;left:18px;top:18px;width:min(360px,calc(100vw - 36px));background:#0d1117e8;border:1px solid #30363d;border-radius:14px;padding:16px;backdrop-filter:blur(12px);z-index:2;box-shadow:0 15px 45px #0008}
-.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7ee787;font-weight:800}h1{font-size:23px;margin:7px 0 3px}.sub{font-size:13px;color:#8b949e;line-height:1.4}.row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.btn{border:1px solid #30363d;background:#161b22;color:#c9d1d9;border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}.btn:hover,.btn.active{border-color:#7ee787;color:#7ee787;background:#102018}
-#legend{position:fixed;right:18px;bottom:18px;background:#0d1117e8;border:1px solid #30363d;border-radius:12px;padding:12px 14px;z-index:2;font-size:12px;color:#9da7b3;line-height:1.65}.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
-#tip{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0d1117d9;border:1px solid #30363d;border-radius:999px;padding:8px 13px;font-size:12px;color:#8b949e;z-index:2;white-space:nowrap}
-@media(max-width:720px){#legend{display:none}#hud{padding:12px}#tip{bottom:8px;font-size:10px}}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1117;color:#e6edf3;font-family:Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}#app{position:fixed;inset:0}canvas{display:block;touch-action:none}
+#fallback{position:fixed;inset:0;display:grid;place-items:center;padding:120px 18px 70px;background:linear-gradient(160deg,#122019,#0b1117);z-index:0}.fallback-card{width:min(760px,92vw);border:1px solid #30363d;border-radius:18px;background:#0d1117;padding:18px;box-shadow:0 22px 70px #0008}.fallback-card h2{margin:0 0 6px;font-size:20px}.fallback-card p{margin:0 0 12px;color:#8b949e;font-size:13px;line-height:1.45}.plan{width:100%;height:auto;display:block;background:#111820;border-radius:12px}
+#hud{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:min(360px,calc(100vw - 24px));background:#0d1117e8;border:1px solid #30363d;border-radius:14px;padding:14px;backdrop-filter:blur(12px);z-index:3;box-shadow:0 15px 45px #0008}.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7ee787;font-weight:800}h1{font-size:21px;margin:6px 0 3px}.sub{font-size:12px;color:#8b949e;line-height:1.35}.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.btn{border:1px solid #30363d;background:#161b22;color:#c9d1d9;border-radius:8px;padding:8px 10px;font:inherit;font-size:12px;cursor:pointer;min-height:36px}.btn:hover,.btn.active{border-color:#7ee787;color:#7ee787;background:#102018}
+#legend{position:fixed;right:18px;bottom:18px;background:#0d1117e8;border:1px solid #30363d;border-radius:12px;padding:12px 14px;z-index:3;font-size:12px;color:#9da7b3;line-height:1.65}.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}#tip{position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#0d1117d9;border:1px solid #30363d;border-radius:999px;padding:8px 13px;font-size:11px;color:#8b949e;z-index:3;white-space:nowrap}#error{position:fixed;left:12px;right:12px;bottom:12px;display:none;background:#3b1115;border:1px solid #f85149;color:#ffd8d5;border-radius:10px;padding:12px;z-index:5;font-size:12px;line-height:1.4}
+@media(max-width:720px){#legend{display:none}#hud{padding:11px}h1{font-size:18px}.sub{font-size:11px}#tip{font-size:10px}.fallback-card{padding:12px}}
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 <div id="app"></div>
+<div id="fallback">
+ <div class="fallback-card">
+  <h2>Meridian Canopy Gym</h2>
+  <p>Loading interactive 3D review. This floor plan stays visible if the device cannot start WebGL.</p>
+  <svg class="plan" viewBox="0 0 670 670" role="img" aria-label="Meridian Canopy Gym fallback plan">
+   <rect width="670" height="670" fill="#18251c"/>
+   <rect x="245" y="15" width="180" height="80" rx="8" fill="#a6a099"/>
+   <rect x="190" y="80" width="290" height="130" rx="8" fill="#747d86"/>
+   <rect x="170" y="200" width="330" height="260" rx="12" fill="#747d86"/>
+   <rect x="215" y="245" width="240" height="170" rx="20" fill="#31854a"/>
+   <rect x="260" y="285" width="150" height="95" rx="20" fill="#3f8fd2"/>
+   <rect x="35" y="220" width="140" height="230" rx="9" fill="#55a868"/>
+   <rect x="495" y="220" width="140" height="230" rx="9" fill="#65707b"/>
+   <rect x="505" y="265" width="120" height="140" rx="8" fill="#3f8fd2"/>
+   <rect x="110" y="455" width="450" height="185" rx="10" fill="#747d86"/>
+   <rect x="180" y="500" width="310" height="95" rx="8" fill="#d0a34f"/>
+   <path d="M55 430 L55 600 L230 600" fill="none" stroke="#8a63c7" stroke-width="18" stroke-linecap="round" opacity=".9"/>
+   <g fill="#e6edf3" font-family="system-ui" font-size="17" font-weight="700" text-anchor="middle">
+    <text x="335" y="60">APPROACH</text><text x="335" y="150">LOBBY</text><text x="335" y="230">CANOPY ATRIUM</text><text x="105" y="340">GARDEN WING</text><text x="565" y="340">WATER WING</text><text x="335" y="485">LEADER ARENA</text>
+   </g>
+  </svg>
+ </div>
+</div>
 <div id="hud">
  <div class="eyebrow">Ouros Build Review · Gameplay Prototype</div>
  <h1>Meridian Canopy Gym</h1>
- <div class="sub">67 × 67 × 22 · current browser massing model. Rotate, zoom and isolate circulation bands before opening Minecraft.</div>
+ <div class="sub">67 × 67 × 22 · drag with one finger to orbit · pinch to zoom.</div>
  <div class="row">
   <button class="btn active" data-view="all">All</button>
   <button class="btn" data-view="ground">Ground</button>
   <button class="btn" data-view="upper">Upper</button>
   <button class="btn" data-view="service">Service</button>
   <button class="btn" id="labels">Labels</button>
-  <button class="btn" id="reset">Reset camera</button>
+  <button class="btn" id="reset">Reset</button>
  </div>
 </div>
-<div id="legend">
- <div><span class="sw" style="background:#8b949e"></span>public / structural</div>
- <div><span class="sw" style="background:#3fb950"></span>planted / ecological</div>
- <div><span class="sw" style="background:#58a6ff"></span>water / control wing</div>
- <div><span class="sw" style="background:#d29922"></span>challenge / arena</div>
- <div><span class="sw" style="background:#bc8cff"></span>service / shortcut</div>
-</div>
-<div id="tip">drag to orbit · wheel/pinch to zoom · right-drag to pan</div>
+<div id="legend"><div><span class="sw" style="background:#8b949e"></span>public / structural</div><div><span class="sw" style="background:#3fb950"></span>planted / ecological</div><div><span class="sw" style="background:#58a6ff"></span>water / control wing</div><div><span class="sw" style="background:#d29922"></span>challenge / arena</div><div><span class="sw" style="background:#bc8cff"></span>service / shortcut</div></div>
+<div id="tip">one finger: orbit · pinch: zoom · two fingers: pan</div>
+<div id="error"></div>
+<script>
+window.addEventListener('error',function(e){const box=document.getElementById('error');box.style.display='block';box.textContent='3D preview error: '+(e.message||'unknown browser error')+' · The floor plan remains available.';});
+window.addEventListener('unhandledrejection',function(e){const box=document.getElementById('error');box.style.display='block';box.textContent='3D preview could not start: '+(e.reason?.message||e.reason||'module error')+' · The floor plan remains available.';});
+</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/controls/OrbitControls.js';
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1117);scene.fog=new THREE.Fog(0x0b1117,110,190);
-const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,500);camera.position.set(85,65,92);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.querySelector('#app').appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,5,0);controls.enableDamping=true;controls.dampingFactor=.07;controls.maxPolarAngle=Math.PI*.49;controls.minDistance=24;controls.maxDistance=185;
-scene.add(new THREE.HemisphereLight(0xaed7ff,0x172018,1.7));const sun=new THREE.DirectionalLight(0xfff1cc,3.2);sun.position.set(-45,80,-25);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
-const palette={stone:0x747d86,dark:0x352b28,green:0x31854a,leaf:0x55a868,water:0x3f8fd2,copper:0xc7773f,arena:0xd0a34f,service:0x8a63c7,path:0xa6a099};
-const groups={ground:new THREE.Group(),upper:new THREE.Group(),service:new THREE.Group(),labels:new THREE.Group()};Object.values(groups).forEach(g=>scene.add(g));
-function mat(color,opacity=1){return new THREE.MeshStandardMaterial({color,transparent:opacity<1,opacity,roughness:.74,metalness:.02});}
-function box(name,x,y,z,w,h,d,color,band='ground',opacity=1){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,opacity));mesh.position.set(x,y+h/2,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData={name};groups[band].add(mesh);return mesh;}
-function label(text,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='rgba(13,17,23,.88)';ctx.roundRect(4,4,504,88,18);ctx.fill();ctx.font='700 30px system-ui';ctx.fillStyle='#f0f6fc';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,48);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));s.position.set(x,y,z);s.scale.set(18,3.4,1);s.visible=false;groups.labels.add(s);}
-function lineRect(x,z,w,d,y,color){const pts=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2],[-w/2,-d/2]].map(p=>new THREE.Vector3(x+p[0],y,z+p[1]));scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color})));}
-box('site',0,-1,0,67,1,67,0x27372b);box('approach plaza',0,0,-30,18,.5,8,palette.path);label('Approach',0,3,-31);
-box('entry hall',0,0,-20,29,8,13,palette.stone);box('atrium',0,0,0,33,15,26,palette.stone,'ground',.92);label('Public lobby',0,10,-20);label('Canopy atrium',0,18,0);
-box('atrium floor',0,.2,0,28,.4,22,palette.dark);box('atrium planted ring',0,.55,0,21,.7,18,palette.green);box('atrium water',0,.9,0,13,.35,13,palette.water,'ground',.82);box('canopy trunk',0,1,0,2,11,2,palette.dark);box('canopy crown',0,11.5,0,16,3,16,palette.leaf,'upper',.86);
-box('west challenge',-23.5,0,1,14,10,23,palette.green);box('west stepped garden',-24,1,3,9,3,15,palette.leaf);label('West garden challenge',-24,13,1);
-box('east challenge',23.5,0,1,14,10,23,palette.stone);box('east water court',23.5,.4,1,9,.5,17,palette.water,'ground',.84);box('control spine',23.5,1,1,2,1.2,17,palette.copper);label('East water/control challenge',24,13,1);
-box('leader arena',0,0,21.5,45,13,18,palette.stone);box('battle floor',0,.25,22,31,.45,11,palette.arena);box('leader dais',0,.8,28,11,2.2,3,palette.dark);label('Leader arena',0,16,23);
-box('north balcony',0,8,-10,29,.6,3,palette.dark,'upper');box('south balcony',0,8,10,29,.6,3,palette.dark,'upper');box('west balcony',-13,8,0,3,.6,17,palette.dark,'upper');box('east balcony',13,8,0,3,.6,17,palette.dark,'upper');box('central bridge',0,8.2,3,25,.5,3,palette.copper,'upper');box('arena gallery',0,9,15,41,.7,3,palette.dark,'upper');label('Upper circulation',0,12,5);
-box('roof garden',0,16,-9.5,21,1,6,palette.green,'upper');box('botanical crown',0,16,7,10,6,2,palette.copper,'upper');label('Roof overlook',0,24,-9);
-box('service west tunnel',-28,-4,9,5,3,28,palette.service,'service');box('service south tunnel',-16,-4,21,19,3,4,palette.service,'service');box('maintenance room',-20.5,-4,14.5,8,4,8,palette.service,'service');box('backstage shaft',-7,-3,21,3,7,3,palette.service,'service');label('Maintenance shortcut',-21,2,18);
-box('west side route',-32,.1,0,3,.3,50,palette.path);box('east side route',32,.1,0,3,.3,50,palette.path);lineRect(0,0,67,67,.05,0x4e5963);const grid=new THREE.GridHelper(100,50,0x32404b,0x1c2730);grid.position.y=.03;scene.add(grid);
-let labelsOn=false;document.querySelector('#labels').onclick=e=>{labelsOn=!labelsOn;groups.labels.children.forEach(x=>x.visible=labelsOn);e.currentTarget.classList.toggle('active',labelsOn)};
-function applyView(view){groups.ground.visible=view==='all'||view==='ground';groups.upper.visible=view==='all'||view==='upper';groups.service.visible=view==='all'||view==='service';document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));}document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>applyView(b.dataset.view));
-function reset(){camera.position.set(85,65,92);controls.target.set(0,5,0);controls.update()}document.querySelector('#reset').onclick=reset;
-const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let hover=null;renderer.domElement.addEventListener('pointermove',ev=>{mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects([groups.ground,groups.upper,groups.service],true);if(hover?.material?.emissive)hover.material.emissive.setHex(0);hover=hits[0]?.object||null;if(hover?.material?.emissive)hover.material.emissive.setHex(0x152515);renderer.domElement.title=hover?.userData?.name||''});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});renderer.setAnimationLoop(()=>{controls.update();groups.labels.children.forEach(s=>s.quaternion.copy(camera.quaternion));renderer.render(scene,camera)});
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+try {
+ const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1117);scene.fog=new THREE.Fog(0x0b1117,110,190);
+ const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,500);camera.position.set(85,65,92);
+ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.querySelector('#app').appendChild(renderer.domElement);
+ const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,5,0);controls.enableDamping=true;controls.dampingFactor=.07;controls.maxPolarAngle=Math.PI*.49;controls.minDistance=24;controls.maxDistance=185;controls.enablePan=true;
+ scene.add(new THREE.HemisphereLight(0xaed7ff,0x172018,1.7));const sun=new THREE.DirectionalLight(0xfff1cc,3.0);sun.position.set(-45,80,-25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+ const palette={stone:0x747d86,dark:0x352b28,green:0x31854a,leaf:0x55a868,water:0x3f8fd2,copper:0xc7773f,arena:0xd0a34f,service:0x8a63c7,path:0xa6a099};
+ const groups={ground:new THREE.Group(),upper:new THREE.Group(),service:new THREE.Group(),labels:new THREE.Group()};Object.values(groups).forEach(g=>scene.add(g));
+ function mat(color,opacity=1){return new THREE.MeshStandardMaterial({color,transparent:opacity<1,opacity,roughness:.74,metalness:.02});}
+ function box(name,x,y,z,w,h,d,color,band='ground',opacity=1){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,opacity));mesh.position.set(x,y+h/2,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData={name};groups[band].add(mesh);return mesh;}
+ function label(text,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='rgba(13,17,23,.9)';ctx.fillRect(4,4,504,88);ctx.font='700 30px system-ui';ctx.fillStyle='#f0f6fc';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,48);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));s.position.set(x,y,z);s.scale.set(18,3.4,1);s.visible=false;groups.labels.add(s);}
+ box('site',0,-1,0,67,1,67,0x27372b);box('approach plaza',0,0,-30,18,.5,8,palette.path);label('Approach',0,3,-31);
+ box('entry hall',0,0,-20,29,8,13,palette.stone);box('atrium',0,0,0,33,15,26,palette.stone,'ground',.92);label('Public lobby',0,10,-20);label('Canopy atrium',0,18,0);
+ box('atrium floor',0,.2,0,28,.4,22,palette.dark);box('atrium planted ring',0,.55,0,21,.7,18,palette.green);box('atrium water',0,.9,0,13,.35,13,palette.water,'ground',.82);box('canopy trunk',0,1,0,2,11,2,palette.dark);box('canopy crown',0,11.5,0,16,3,16,palette.leaf,'upper',.86);
+ box('west challenge',-23.5,0,1,14,10,23,palette.green);box('west stepped garden',-24,1,3,9,3,15,palette.leaf);label('West garden challenge',-24,13,1);
+ box('east challenge',23.5,0,1,14,10,23,palette.stone);box('east water court',23.5,.4,1,9,.5,17,palette.water,'ground',.84);box('control spine',23.5,1,1,2,1.2,17,palette.copper);label('East water/control challenge',24,13,1);
+ box('leader arena',0,0,21.5,45,13,18,palette.stone);box('battle floor',0,.25,22,31,.45,11,palette.arena);box('leader dais',0,.8,28,11,2.2,3,palette.dark);label('Leader arena',0,16,23);
+ box('north balcony',0,8,-10,29,.6,3,palette.dark,'upper');box('south balcony',0,8,10,29,.6,3,palette.dark,'upper');box('west balcony',-13,8,0,3,.6,17,palette.dark,'upper');box('east balcony',13,8,0,3,.6,17,palette.dark,'upper');box('central bridge',0,8.2,3,25,.5,3,palette.copper,'upper');box('arena gallery',0,9,15,41,.7,3,palette.dark,'upper');label('Upper circulation',0,12,5);
+ box('roof garden',0,16,-9.5,21,1,6,palette.green,'upper');box('botanical crown',0,16,7,10,6,2,palette.copper,'upper');label('Roof overlook',0,24,-9);
+ box('service west tunnel',-28,-4,9,5,3,28,palette.service,'service');box('service south tunnel',-16,-4,21,19,3,4,palette.service,'service');box('maintenance room',-20.5,-4,14.5,8,4,8,palette.service,'service');box('backstage shaft',-7,-3,21,3,7,3,palette.service,'service');label('Maintenance shortcut',-21,2,18);
+ box('west side route',-32,.1,0,3,.3,50,palette.path);box('east side route',32,.1,0,3,.3,50,palette.path);
+ const grid=new THREE.GridHelper(100,50,0x32404b,0x1c2730);grid.position.y=.03;scene.add(grid);
+ let labelsOn=false;document.querySelector('#labels').onclick=e=>{labelsOn=!labelsOn;groups.labels.children.forEach(x=>x.visible=labelsOn);e.currentTarget.classList.toggle('active',labelsOn)};
+ function applyView(view){groups.ground.visible=view==='all'||view==='ground';groups.upper.visible=view==='all'||view==='upper';groups.service.visible=view==='all'||view==='service';document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));}document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>applyView(b.dataset.view));
+ function reset(){camera.position.set(85,65,92);controls.target.set(0,5,0);controls.update()}document.querySelector('#reset').onclick=reset;
+ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+ let firstFrame=true;renderer.setAnimationLoop(()=>{controls.update();groups.labels.children.forEach(s=>s.quaternion.copy(camera.quaternion));renderer.render(scene,camera);if(firstFrame){firstFrame=false;document.getElementById('fallback').style.display='none';}});
+} catch(err) {
+ const box=document.getElementById('error');box.style.display='block';box.textContent='3D preview could not start on this device: '+(err?.message||err)+' · The floor plan remains available.';
+}
 </script>
 </body>
 </html>
