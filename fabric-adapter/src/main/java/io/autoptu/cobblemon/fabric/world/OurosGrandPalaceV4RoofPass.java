@@ -36,7 +36,7 @@ final class OurosGrandPalaceV4RoofPass {
         int x2 = room.maxX() + 2;
         int z1 = room.minZ() - 2;
         int z2 = room.maxZ() + 2;
-        int layers = ceremonial ? 9 : 8;
+        int layers = roofLayers(room, ceremonial);
 
         // Two-block-thick stepped rings overlap vertically with the next inset ring. That keeps the
         // Minecraft silhouette sloped while preserving real six-neighbor structural connectivity.
@@ -58,6 +58,18 @@ final class OurosGrandPalaceV4RoofPass {
                 x2 - topInset, eaveY + layers, z2 - topInset, COPPER);
         world.setBlockState(o.add(room.centerX(), eaveY + layers + 1, room.centerZ()),
                 Blocks.LIGHTNING_ROD.getDefaultState());
+    }
+
+    private static int roofLayers(Room room, boolean ceremonial) {
+        boolean terminalRow = Math.abs(room.centerZ()) > 30;
+        if (ceremonial) {
+            // The front and garden-end state rooms sit below their flanking corner pavilions, while
+            // the two central state halls retain the taller roof base for their glazed lanterns.
+            return terminalRow ? 8 : 9;
+        }
+        // Side-wing terminal pavilions carry the skyline; intermediate salons deliberately recede.
+        // This removes the four-identical-roofs rhythm visible in long side elevations.
+        return terminalRow ? 10 : 7;
     }
 
     private static void buildCentralLantern(ServerWorld world, BlockPos o, Room room, int topY) {
