@@ -53,6 +53,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-012 | LIVE | server-owned wild encounter table | PR #211, implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`. Zone/context selects and freezes an already-authored canonical WILD roster without reading Cobblemon gameplay state. |
 | CUR-013 | LIVE | visible wild actor interaction boundary | Registered visible Pokemon presentation actors can submit an encounter request by entity UUID -> AutoPTU-owned world binding. The adapter never reads Cobblemon Pokemon gameplay data. |
 | CUR-014 | LIVE | `/autoptu party lead <slot>` | PR #219, commit `e0149f97939aec2926d6b828c00851eb86a6a538`. Promotes the selected durable canonical party member to lead with server-side slot resolution and optimistic concurrency. |
+| CUR-015 | LIVE | authoritative battle choice menu/fallback | PR #220, implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`. Displays only fresh AutoPTU-Java legal-choice stable keys and submits the exact revalidated choice without client-supplied battle scope or PTU legality. |
 
 ---
 
@@ -70,13 +71,13 @@ Work these point by point.
 | P0-006 | LIVE | Server-owned wild encounter table | Shipped via PR #211 / implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`; exact server-owned zone/context selects and freezes an already-authored complete canonical WILD blueprint, with deterministic RPG/world selection separate from battle RNG and no Cobblemon gameplay-state inputs. |
 | P0-007 | BLOCKED | Visible roaming wild encounter trigger | Visible actor interaction/request binding is live via PR #214, but normal ecology cannot complete this item until a trusted server-authored source can publish the complete canonical WILD blueprint before the Cobblemon presentation actor is revealed. The adapter must not derive missing PTU stats, moves, HP, statuses, abilities or legality from Cobblemon species/entity data. |
 | P0-008 | BLOCKED | Party-to-encounter handoff | Core immutable handoff service shipped in PR #216 / implementation commit `167b61471893e9b21d9b2630dd65960117178939`: it freezes the authenticated canonical party, consumables, visible actor identity, world context and exact server-owned wild blueprint without rereading mutable client/Cobblemon state. Normal world wiring is blocked only on P0-007 publishing that exact blueprint. |
-| P0-009 | TODO | Normal player-vs-wild battle start | World encounter starts AutoPTU-Java using persistent canonical actors. |
-| P0-010 | TODO | Battle choice UI | Displays authoritative legal choices and submits only choice IDs/targets. |
-| P0-011 | TODO | Normal semantic battle playback | Movement, attacks, HP, statuses, faint and result are projected from authoritative events/results. |
+| P0-009 | BLOCKED | Normal player-vs-wild battle start | The battle-start boundary exists, but the normal world path cannot start AutoPTU-Java until P0-007 publishes the trusted complete WILD blueprint and P0-008 can wire that exact immutable handoff. Do not substitute Cobblemon BattleState or entity Pokémon data. |
+| P0-010 | LIVE | Battle choice UI | Shipped via PR #220 / implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; the server binds player -> reservation/actor, displays only a fresh authoritative legal-choice set, accepts only a stable choice ID, re-fetches the action space, and executes the exact still-legal choice. |
+| P0-011 | NEXT | Normal semantic battle playback | Movement, attacks, HP, statuses, faint and result are projected from authoritative events/results. |
 | P0-012 | TODO | Post-battle commit | Supported authoritative HP/status/injury/item changes commit exactly once to durable RPG state. |
 | P0-013 | TODO | Return-to-world transition | Battle session/reservations clean up and the player resumes world control. |
 | P0-014 | TODO | Reconnect/restart recovery | No duplicate items, lost party state, or stranded battle session after disconnect/restart. |
-| P0-015 | TODO | `/autoptu status` | Shows Trainer loaded, party count, save revision, current encounter/battle, and actionable blockers. |
+| P0-015 | LIVE | `/autoptu status` | Verified live on main `843e71a1fb6e9bc6cd1272342432cff7804d8dbe`; shows Trainer loaded, party count, save revision, current encounter/battle summary, and actionable blockers from server-owned state. |
 
 ---
 
@@ -88,7 +89,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-001 | TODO | `/autoptu status` |
+| CMD-001 | LIVE | `/autoptu status` — verified on main `843e71a1fb6e9bc6cd1272342432cff7804d8dbe` |
 | CMD-002 | TODO | `/autoptu trainer` |
 | CMD-003 | TODO | `/autoptu trainer skills` |
 | CMD-004 | TODO | `/autoptu trainer classes` |
@@ -156,8 +157,8 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 |---|---|---|
 | CMD-120 | TODO | `/autoptu encounter status` |
 | CMD-121 | TODO | `/autoptu battle status` |
-| CMD-122 | TODO | `/autoptu battle choices` |
-| CMD-123 | TODO | `/autoptu battle choose <choiceId> [target]` |
+| CMD-122 | LIVE | `/autoptu battle choices` — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; reads a fresh authoritative action space for the server-bound battle actor. |
+| CMD-123 | LIVE | `/autoptu battle choose <choiceId>` — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; re-fetches legal choices and executes only the exact still-present authoritative stable key. |
 | CMD-124 | BLOCKED | `/autoptu battle forfeit` until upstream owns/validates the outcome |
 | CMD-125 | TODO | `/autoptu battle spectate <battleId>` |
 | CMD-126 | DEV_ONLY | Current `/autoptu testbattle ...`; later move to `/autoptu admin battle demo ...` |
@@ -218,7 +219,7 @@ These should become the normal gameplay path.
 | ID | Status | Tool |
 |---|---|---|
 | BUI-001 | TODO | Battle HUD: turn owner, action budget, HP/status, event log. |
-| BUI-002 | TODO | Legal move/action menu from authoritative choice set. |
+| BUI-002 | LIVE | Legal move/action menu from authoritative choice set — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; server-bound scope plus fresh stable-key revalidation, with no Minecraft legality calculation. |
 | BUI-003 | TODO | Grid targeting overlay from authoritative legal tiles/targets. |
 | BUI-004 | TODO | Party switch menu from authoritative switch choices. |
 | BUI-005 | TODO | Battle item menu from authoritative item choices. |
