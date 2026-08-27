@@ -47,6 +47,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-008 | LIVE | `/autoptu starter choose <species>` | PR #203, commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. Persists one server-authoritative starter and party binding. |
 | CUR-009 | LIVE | `/autoptu party` | PR #204, commit `ab484b9ebc753668a1271bae27e9f56395584bb1`. Shows the durable canonical party without trusting Cobblemon stats. |
 | CUR-010 | LIVE | `/autoptu pokemon <slot>` | PR #207, commit `b3fed8380f801222d6c549f1695b8bb98789a135`. Shows detailed durable canonical Pokemon state while leaving unavailable PTU inputs unavailable. |
+| CUR-011 | LIVE | healing station block interaction | PR #209, commit `81ca566e645f749e7cb6b23cd0714dd91f706094`. Right-clicking an authored station invokes canonical persistent party HP healing. |
 
 ---
 
@@ -60,8 +61,8 @@ Work these point by point.
 | P0-002 | LIVE | `/autoptu starter choose <species>` | Shipped via PR #203 / commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`; one-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
 | P0-003 | LIVE | `/autoptu party` | Shipped via PR #204 / commit `ab484b9ebc753668a1271bae27e9f56395584bb1`; shows canonical slot order, species, level, HP when available, and status summary. |
 | P0-004 | LIVE | `/autoptu pokemon <slot>` | Shipped via PR #207 / commit `b3fed8380f801222d6c549f1695b8bb98789a135`; shows an ownership-safe detailed canonical Pokémon summary and reports missing optional PTU inputs as unavailable. |
-| P0-005 | NEXT | Healing station interaction | A real block/NPC/facility calls the same server healing service as `/autoptu healparty`. |
-| P0-006 | TODO | Server-owned wild encounter table | Zone/context selects a server-owned wild blueprint without using Cobblemon stats as PTU truth. |
+| P0-005 | LIVE | Healing station interaction | Shipped via PR #209 / commit `81ca566e645f749e7cb6b23cd0714dd91f706094`; a real authored Minecraft block signature calls the same canonical healing service as `/autoptu healparty`, with server-side distance/context checks. |
+| P0-006 | NEXT | Server-owned wild encounter table | Zone/context selects a server-owned wild blueprint without using Cobblemon stats as PTU truth. |
 | P0-007 | TODO | World encounter trigger | Walking/interacting in a configured context can request a wild encounter. |
 | P0-008 | TODO | Party-to-encounter handoff | Active canonical party + wild blueprint become an immutable reservation. |
 | P0-009 | TODO | Normal player-vs-wild battle start | World encounter starts AutoPTU-Java using persistent canonical actors. |
@@ -183,7 +184,7 @@ These should become the normal gameplay path.
 | WORLD-002 | TODO | Starter-selection screen with Pokémon preview. |
 | WORLD-003 | TODO | Party HUD and party management screen. |
 | WORLD-004 | TODO | Pokémon summary screen. |
-| WORLD-005 | NEXT | Healing machine/nurse/healer NPC. |
+| WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | WORLD-006 | TODO | PC/storage terminal. |
 | WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
 | WORLD-008 | TODO | Crafting workstation/menu. |
@@ -255,7 +256,7 @@ These should become the normal gameplay path.
 
 | ID | Status | Facility/service |
 |---|---|---|
-| FAC-001 | NEXT | Pokémon Center/healer backed by canonical healing service. |
+| FAC-001 | LIVE | Pokémon Center/healer backed by canonical healing service — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | FAC-002 | TODO | Shop catalogue/stock/price service. |
 | FAC-003 | TODO | Canonical wallet/currency transactions. |
 | FAC-004 | TODO | Crafting recipe registry. |
