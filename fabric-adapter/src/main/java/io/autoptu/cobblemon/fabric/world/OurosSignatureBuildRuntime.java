@@ -58,16 +58,16 @@ public final class OurosSignatureBuildRuntime {
 
         ServerWorld world = player.getServerWorld();
         BlockPos origin = player.getBlockPos().add(0, -1, 74);
-        OurosGrandPalace.BuildResult result = OurosGrandPalace.build(world, origin);
+        OurosGrandPalace.BuildResult result = OurosGrandPalaceV3Builder.build(world, origin);
 
-        player.sendMessage(Text.literal("Ouros Grand Palace OI-107 built 74 blocks ahead."), false);
+        player.sendMessage(Text.literal("Ouros Grand Palace EXTERIOR-FIRST V3 built 74 blocks ahead."), false);
         player.sendMessage(Text.literal(
-                "Footprint " + result.width() + "x" + result.depth() + ", capture height " + result.height()
+                "Review envelope " + result.width() + "x" + result.depth() + "x" + result.height()
                         + ", authored spaces " + result.authoredSpaces() + "."), false);
         player.sendMessage(Text.literal(
-                "The palace includes the 19-space reference program: four double-height ceremonial halls, side salons/cabinets, two upper galleries, a glazed mansard roof and seven distinct upper rooms."), false);
+                "V3 starts from an articulated foundation and exterior massing: deep transverse notches, unequal side-loggia projections, a court portico, independent roof bodies and a rear garden gallery. The old rectangular foundation/envelope is not invoked."), false);
         player.sendMessage(Text.literal(
-                "OI-107 is a SIGNATURE STRUCTURE candidate under docs/ouros-build-doctrine.md. Exact live-server BlockState export and browser visual review remain mandatory."), false);
+                "After the exterior is established, the 19 reference rooms receive their room-specific wall architecture, ceiling composition, furniture, lighting and focal decoration. Exact live-server BlockState export and browser visual review remain mandatory."), false);
         return 1;
     }
 }
