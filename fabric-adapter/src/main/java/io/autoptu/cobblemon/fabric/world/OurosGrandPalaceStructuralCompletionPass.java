@@ -11,8 +11,8 @@ import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.fill;
  * Final authored support pass for the Grand Palace.
  *
  * The pass first replaces the prototype exterior shell with the authored Palace V2 architecture,
- * keeps that architecture honest to the current exact-viewer envelope, then closes small visual/
- * support gaps that are easy to miss when dense furniture and ornament are composed room-by-room.
+ * keeps that architecture honest to the current exact-viewer envelope, adds real backing under
+ * every stepped roof course, then closes smaller visual/support gaps in dense room decoration.
  * The floating-component audit remains strict afterwards.
  */
 final class OurosGrandPalaceStructuralCompletionPass {
@@ -21,6 +21,7 @@ final class OurosGrandPalaceStructuralCompletionPass {
     static void apply(ServerWorld world, BlockPos origin) {
         OurosGrandPalaceExteriorRebuildPass.apply(world, origin);
         OurosGrandPalaceEnvelopeSafetyPass.apply(world, origin);
+        OurosGrandPalaceRoofSupportPass.apply(world, origin);
         groundFurnitureFeet(world, origin, 2, 0);
         groundFurnitureFeet(world, origin, 17, 15);
         supportGalleryRibs(world, origin);
