@@ -46,6 +46,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-007 | LIVE | `/autoptu starter list` | PR #202, commit `e86b1d2144a1faa35be19bb408f1e301033c4863`. Shows only server-configured starter choices. |
 | CUR-008 | LIVE | `/autoptu starter choose <species>` | PR #203, commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. Persists one server-authoritative starter and party binding. |
 | CUR-009 | LIVE | `/autoptu party` | PR #204, commit `ab484b9ebc753668a1271bae27e9f56395584bb1`. Shows the durable canonical party without trusting Cobblemon stats. |
+| CUR-010 | LIVE | `/autoptu pokemon <slot>` | PR #207, commit `b3fed8380f801222d6c549f1695b8bb98789a135`. Shows detailed durable canonical Pokemon state while leaving unavailable PTU inputs unavailable. |
 
 ---
 
@@ -58,8 +59,8 @@ Work these point by point.
 | P0-001 | LIVE | Starter catalogue + `/autoptu starter list` | Shipped via PR #202 / commit `e86b1d2144a1faa35be19bb408f1e301033c4863`; server exposes only configured starter choices. |
 | P0-002 | LIVE | `/autoptu starter choose <species>` | Shipped via PR #203 / commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`; one-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
 | P0-003 | LIVE | `/autoptu party` | Shipped via PR #204 / commit `ab484b9ebc753668a1271bae27e9f56395584bb1`; shows canonical slot order, species, level, HP when available, and status summary. |
-| P0-004 | NEXT | `/autoptu pokemon <slot>` | Shows a detailed canonical Pokémon summary. |
-| P0-005 | TODO | Healing station interaction | A real block/NPC/facility calls the same server healing service as `/autoptu healparty`. |
+| P0-004 | LIVE | `/autoptu pokemon <slot>` | Shipped via PR #207 / commit `b3fed8380f801222d6c549f1695b8bb98789a135`; shows an ownership-safe detailed canonical Pokémon summary and reports missing optional PTU inputs as unavailable. |
+| P0-005 | NEXT | Healing station interaction | A real block/NPC/facility calls the same server healing service as `/autoptu healparty`. |
 | P0-006 | TODO | Server-owned wild encounter table | Zone/context selects a server-owned wild blueprint without using Cobblemon stats as PTU truth. |
 | P0-007 | TODO | World encounter trigger | Walking/interacting in a configured context can request a wild encounter. |
 | P0-008 | TODO | Party-to-encounter handoff | Active canonical party + wild blueprint become an immutable reservation. |
@@ -96,7 +97,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-020 | LIVE | `/autoptu party` — PR #204 / `ab484b9ebc753668a1271bae27e9f56395584bb1` |
 | CMD-021 | TODO | `/autoptu party lead <slot>` |
 | CMD-022 | TODO | `/autoptu party move <from> <to>` |
-| CMD-023 | NEXT | `/autoptu pokemon <slot>` |
+| CMD-023 | LIVE | `/autoptu pokemon <slot>` — PR #207 / `b3fed8380f801222d6c549f1695b8bb98789a135` |
 | CMD-024 | TODO | `/autoptu box` |
 | CMD-025 | TODO | `/autoptu box deposit <partySlot>` |
 | CMD-026 | TODO | `/autoptu box withdraw <boxSlot>` |
@@ -182,7 +183,7 @@ These should become the normal gameplay path.
 | WORLD-002 | TODO | Starter-selection screen with Pokémon preview. |
 | WORLD-003 | TODO | Party HUD and party management screen. |
 | WORLD-004 | TODO | Pokémon summary screen. |
-| WORLD-005 | TODO | Healing machine/nurse/healer NPC. |
+| WORLD-005 | NEXT | Healing machine/nurse/healer NPC. |
 | WORLD-006 | TODO | PC/storage terminal. |
 | WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
 | WORLD-008 | TODO | Crafting workstation/menu. |
@@ -254,7 +255,7 @@ These should become the normal gameplay path.
 
 | ID | Status | Facility/service |
 |---|---|---|
-| FAC-001 | TODO | Pokémon Center/healer backed by canonical healing service. |
+| FAC-001 | NEXT | Pokémon Center/healer backed by canonical healing service. |
 | FAC-002 | TODO | Shop catalogue/stock/price service. |
 | FAC-003 | TODO | Canonical wallet/currency transactions. |
 | FAC-004 | TODO | Crafting recipe registry. |
