@@ -34,15 +34,15 @@ public final class OurosSignatureBuildRuntime {
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
         MeridianCanopyGymRebuildDetailPass.apply(world, origin);
         MeridianCanopyGymRebuildAnchoringPass.apply(world, origin);
+        MeridianCanopyGymVerticalLandmarkPass.apply(world, origin);
 
-        player.sendMessage(Text.literal("Meridian Canopy Gym ZERO-BASE REBUILD v1 built 46 blocks ahead."), false);
+        player.sendMessage(Text.literal("Meridian Canopy Gym VERTICAL LANDMARK REBUILD v2 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
-                "Footprint " + result.width() + "x" + result.depth() + ", height envelope " + result.height()
-                        + ". The legacy box/detail-pass stack is no longer used by this command."), false);
+                "Footprint " + result.width() + "x" + result.depth() + ", authored height envelope 46. The vertical limit is intentionally unlocked for silhouette review."), false);
         player.sendMessage(Text.literal(
-                "Review the monumental gatehouse, supported compound roofs, conservatory vault, staggered botanical wing, hydro sawtooth wing, elliptical battle sanctum, backstage service bar, custom trees, joinery, drainage and human-scale props."), false);
+                "Review the monumental gatehouse, high conservatory lantern, supported arena canopy ribs, distinct challenge wings, backstage service bar, custom trees, joinery, drainage and human-scale props."), false);
         player.sendMessage(Text.literal(
-                "This remains under OI-106 visual review. Exact browser geometry is the acceptance artifact; disconnected floating components fail CI."), false);
+                "OI-106 remains under visual review. Exact browser geometry is the acceptance artifact; disconnected floating components or geometry outside the expanded capture envelope fail CI."), false);
         return 1;
     }
 }
