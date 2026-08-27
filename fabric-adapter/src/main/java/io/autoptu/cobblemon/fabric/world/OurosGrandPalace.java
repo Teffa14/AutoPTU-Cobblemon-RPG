@@ -20,7 +20,7 @@ public final class OurosGrandPalace {
     public static final int MIN_X = -43;
     public static final int MAX_X = 43;
     public static final int MIN_Y = -4;
-    public static final int MAX_Y = 46;
+    public static final int MAX_Y = 48;
     public static final int MIN_Z = -57;
     public static final int MAX_Z = 57;
     public static final int WIDTH = MAX_X - MIN_X + 1;
@@ -67,6 +67,7 @@ public final class OurosGrandPalace {
         buildExteriorFacade(world, origin);
         buildMansardAndSkylight(world, origin);
         buildRoofLanterns(world, origin);
+        OurosGrandPalaceStructuralCompletionPass.apply(world, origin);
         return new BuildResult(origin, WIDTH, HEIGHT, DEPTH, 19);
     }
 
@@ -166,7 +167,8 @@ public final class OurosGrandPalace {
         // Long red processional carpet linking all four double-height halls.
         fill(world, o, -2, 1, -56, 2, 1, 56, Blocks.RED_CARPET.getDefaultState());
 
-        // Corridor ceiling ribs and supported hanging lights.
+        // Corridor ceiling ribs and hanging lights. Structural piers for the open crossing bands are
+        // authored in OurosGrandPalaceStructuralCompletionPass after all room circulation is laid out.
         for (int z = -50; z <= 50; z += 7) {
             fill(world, o, -16, 12, z, -12, 12, z, Blocks.BAMBOO_MOSAIC.getDefaultState());
             fill(world, o, 12, 12, z, 16, 12, z, Blocks.BAMBOO_MOSAIC.getDefaultState());
