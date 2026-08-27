@@ -10,10 +10,9 @@ import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.fill;
 /**
  * Final authored support/composition pass for the Grand Palace.
  *
- * The nineteen-room grid remains stable as the interior program. Exterior architecture is free to
- * project beyond that grid: the V2 shell is cleaned of prototype leftovers, its roof courses are
- * physically backed, and a cour d'honneur is composed around the original room program. Dense room
- * decoration receives smaller grounding fixes afterwards. The floating-component audit stays strict.
+ * Exterior architecture is rebuilt first. The reference-driven interior pass then composes every
+ * room with wall architecture, ceiling architecture, furniture, lighting and focal objects before
+ * the final grounding/support sweep. The floating-component audit remains strict.
  */
 final class OurosGrandPalaceStructuralCompletionPass {
     private OurosGrandPalaceStructuralCompletionPass() {}
@@ -23,6 +22,7 @@ final class OurosGrandPalaceStructuralCompletionPass {
         OurosGrandPalaceExteriorCleanupPass.apply(world, origin);
         OurosGrandPalaceRoofSupportPass.apply(world, origin);
         OurosGrandPalaceCourDHonneurPass.apply(world, origin);
+        OurosGrandPalaceReferenceInteriorPass.apply(world, origin);
         groundFurnitureFeet(world, origin, 2, 0);
         groundFurnitureFeet(world, origin, 17, 15);
         supportGalleryRibs(world, origin);
