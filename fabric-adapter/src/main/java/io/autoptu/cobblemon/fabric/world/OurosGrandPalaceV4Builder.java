@@ -21,8 +21,11 @@ public final class OurosGrandPalaceV4Builder {
         // envelope or roof can survive underneath the courtyard plan on rebuild.
         clear(world, origin, MIN_X, MIN_Y, MIN_Z, MAX_X, MAX_Y, MAX_Z);
 
-        // Order is intentional: massing, room program, support joins, roofscape, silhouette, audit.
+        // Order is intentional: massing, facade refinement, room program, support joins, roofscape,
+        // silhouette, audit. Facade refinement runs before room shells so it never erases authored
+        // interiors, only the original flat front-wing ribbon outside z=-53.
         OurosGrandPalaceV4ArchitecturePass.apply(world, origin);
+        OurosGrandPalaceV4FacadeRefinementPass.apply(world, origin);
         OurosGrandPalaceV4Rooms.buildAll(world, origin);
         OurosGrandPalaceV4RoomAnchoringPass.apply(world, origin);
         OurosGrandPalaceV4ConnectivityPass.apply(world, origin);
