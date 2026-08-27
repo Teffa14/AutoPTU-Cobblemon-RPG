@@ -29,6 +29,8 @@ final class OurosGrandPalaceStructuralCompletionPass {
         supportBloomingSalonTrellis(world, origin);
         supportHarpsichordBench(world, origin);
         supportHuntingTrophyAntlers(world, origin);
+        supportAudienceStandard(world, origin);
+        supportHuntingHearthLights(world, origin);
     }
 
     private static void groundFurnitureFeet(ServerWorld world, BlockPos o, int furnitureBaseY, int floorY) {
@@ -79,6 +81,22 @@ final class OurosGrandPalaceStructuralCompletionPass {
         for (int centerZ = room.minZ() + 4; centerZ <= room.maxZ() - 4; centerZ += 6) {
             world.setBlockState(o.add(x, 10, centerZ - 2), joinery);
             world.setBlockState(o.add(x, 10, centerZ + 2), joinery);
+        }
+    }
+
+    private static void supportAudienceStandard(ServerWorld world, BlockPos o) {
+        OurosGrandPalaceBuildKit.Room room = OurosGrandPalace.AUDIENCE_CHAMBER;
+        int x = room.centerX();
+        int z = room.maxZ() - 7;
+        world.setBlockState(o.add(x, room.floorY() + 4, z), Blocks.BAMBOO_FENCE.getDefaultState());
+    }
+
+    private static void supportHuntingHearthLights(ServerWorld world, BlockPos o) {
+        OurosGrandPalaceBuildKit.Room room = OurosGrandPalace.HUNTING_SALON;
+        int z = room.maxZ() - 3;
+        int y = room.floorY() + 2;
+        for (int x = room.centerX() - 2; x <= room.centerX() + 2; x += 2) {
+            world.setBlockState(o.add(x, y, z), Blocks.IRON_BARS.getDefaultState());
         }
     }
 }
