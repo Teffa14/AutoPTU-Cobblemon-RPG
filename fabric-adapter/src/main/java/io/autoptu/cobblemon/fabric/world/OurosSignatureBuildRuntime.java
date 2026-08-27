@@ -30,20 +30,19 @@ public final class OurosSignatureBuildRuntime {
 
         ServerWorld world = player.getServerWorld();
         BlockPos origin = player.getBlockPos().add(0, -1, 46);
-        MeridianCanopyGymBuilder.BuildResult result = MeridianCanopyGymBuilder.build(world, origin);
-        MeridianCanopyGymDetailPass.apply(world, origin);
-        MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
-        MeridianCanopyGymDecorativePass.apply(world, origin);
-        MeridianCanopyGymSilhouettePass.apply(world, origin);
+        MeridianCanopyGymRebuild.BuildResult result = MeridianCanopyGymRebuild.build(world, origin);
+        MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
+        MeridianCanopyGymRebuildDetailPass.apply(world, origin);
+        MeridianCanopyGymRebuildAnchoringPass.apply(world, origin);
 
-        player.sendMessage(Text.literal("Meridian Canopy Gym GAMEPLAY PROTOTYPE v5 built 46 blocks ahead."), false);
+        player.sendMessage(Text.literal("Meridian Canopy Gym ZERO-BASE REBUILD v1 built 46 blocks ahead."), false);
         player.sendMessage(Text.literal(
-                "Footprint " + result.width() + "x" + result.depth() + ", height " + result.height()
-                        + ". Browser review v5 reshapes the south approach, entry gable, lobby facade, challenge-wing roof gardens and arena roof shoulders instead of only adding surface detail."), false);
+                "Footprint " + result.width() + "x" + result.depth() + ", height envelope " + result.height()
+                        + ". The legacy box/detail-pass stack is no longer used by this command."), false);
         player.sendMessage(Text.literal(
-                "The old copper picture-frame entrance is replaced by a recessed three-bay civic gate with masonry feet, timber hierarchy, window niches, benches, planters and layered deepslate roofing."), false);
+                "Review the monumental gatehouse, supported compound roofs, conservatory vault, staggered botanical wing, hydro sawtooth wing, elliptical battle sanctum, backstage service bar, custom trees, joinery, drainage and human-scale props."), false);
         player.sendMessage(Text.literal(
-                "This build remains a GAMEPLAY PROTOTYPE. Exact browser review decides whether the silhouette and architecture are strong enough to continue."), false);
+                "This remains under OI-106 visual review. Exact browser geometry is the acceptance artifact; disconnected floating components fail CI."), false);
         return 1;
     }
 }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.autoptu.cobblemon.fabric.world.build.OurosFloatingBlockAudit;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.registry.Registries;
@@ -36,6 +37,8 @@ import java.util.Map;
 public final class OurosBuildManifestExportRuntime {
     public static final String OUTPUT_PROPERTY = "autoptu.ourosBuildManifestOutput";
     public static final String SUCCESS_MARKER = "AutoPTU exact Ouros build manifest export passed";
+    public static final String STRUCTURAL_AUDIT_MARKER = "AutoPTU Ouros floating component audit passed";
+    public static final String ENVELOPE_AUDIT_MARKER = "AutoPTU Ouros capture envelope audit passed";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-ouros-build-export");
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
@@ -45,6 +48,13 @@ public final class OurosBuildManifestExportRuntime {
     private static final int MAX_Y = 22;
     private static final int MIN_Z = -33;
     private static final int MAX_Z = 33;
+
+    private static final int GUARD_MIN_X = -40;
+    private static final int GUARD_MAX_X = 40;
+    private static final int GUARD_MIN_Y = -4;
+    private static final int GUARD_MAX_Y = 30;
+    private static final int GUARD_MIN_Z = -40;
+    private static final int GUARD_MAX_Z = 40;
 
     private OurosBuildManifestExportRuntime() {}
 
@@ -64,14 +74,32 @@ public final class OurosBuildManifestExportRuntime {
         }
 
         BlockPos origin = new BlockPos(0, 100, 0);
-        clearCaptureVolume(world, origin);
-        MeridianCanopyGymBuilder.build(world, origin);
-        MeridianCanopyGymDetailPass.apply(world, origin);
-        MeridianCanopyGymAuthoredGeometryPass.apply(world, origin);
-        MeridianCanopyGymDecorativePass.apply(world, origin);
-        MeridianCanopyGymSilhouettePass.apply(world, origin);
+        clearGuardVolume(world, origin);
+        MeridianCanopyGymRebuild.build(world, origin);
+        MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
+        MeridianCanopyGymRebuildDetailPass.apply(world, origin);
+        MeridianCanopyGymRebuildAnchoringPass.apply(world, origin);
 
-        Manifest manifest = capture(world, origin);
+        validateCaptureEnvelope(world, origin);
+        LOGGER.info(ENVELOPE_AUDIT_MARKER);
+
+        OurosFloatingBlockAudit.Report audit = OurosFloatingBlockAudit.scan(
+                world,
+                origin,
+                new OurosFloatingBlockAudit.Bounds(MIN_X, MAX_X, MIN_Y, MAX_Y, MIN_Z, MAX_Z),
+                1
+        );
+        if (!audit.passed()) {
+            throw new IllegalStateException(
+                    "Ouros build contains disconnected floating geometry: "
+                            + OurosFloatingBlockAudit.describeFailures(audit));
+        }
+        LOGGER.info("{}: {} connected components, all {} anchored",
+                STRUCTURAL_AUDIT_MARKER,
+                audit.componentCount(),
+                audit.anchoredComponentCount());
+
+        Manifest manifest = capture(world, origin, audit);
         try {
             Path parent = outputPath.getParent();
             if (parent != null) {
@@ -90,18 +118,47 @@ public final class OurosBuildManifestExportRuntime {
                 outputPath);
     }
 
-    private static void clearCaptureVolume(ServerWorld world, BlockPos origin) {
+    private static void clearGuardVolume(ServerWorld world, BlockPos origin) {
         BlockState air = net.minecraft.block.Blocks.AIR.getDefaultState();
-        for (int x = MIN_X; x <= MAX_X; x++) {
-            for (int y = MIN_Y; y <= MAX_Y; y++) {
-                for (int z = MIN_Z; z <= MAX_Z; z++) {
+        for (int x = GUARD_MIN_X; x <= GUARD_MAX_X; x++) {
+            for (int y = GUARD_MIN_Y; y <= GUARD_MAX_Y; y++) {
+                for (int z = GUARD_MIN_Z; z <= GUARD_MAX_Z; z++) {
                     world.setBlockState(origin.add(x, y, z), air);
                 }
             }
         }
     }
 
-    private static Manifest capture(ServerWorld world, BlockPos origin) {
+    private static void validateCaptureEnvelope(ServerWorld world, BlockPos origin) {
+        List<String> overflow = new ArrayList<>();
+        for (int x = GUARD_MIN_X; x <= GUARD_MAX_X; x++) {
+            for (int y = GUARD_MIN_Y; y <= GUARD_MAX_Y; y++) {
+                for (int z = GUARD_MIN_Z; z <= GUARD_MAX_Z; z++) {
+                    boolean insideCapture = x >= MIN_X && x <= MAX_X
+                            && y >= MIN_Y && y <= MAX_Y
+                            && z >= MIN_Z && z <= MAX_Z;
+                    if (insideCapture || world.getBlockState(origin.add(x, y, z)).isAir()) {
+                        continue;
+                    }
+                    if (overflow.size() < 16) {
+                        overflow.add(x + "," + y + "," + z + "="
+                                + Registries.BLOCK.getId(world.getBlockState(origin.add(x, y, z)).getBlock()));
+                    }
+                }
+            }
+        }
+        if (!overflow.isEmpty()) {
+            throw new IllegalStateException(
+                    "Ouros build wrote blocks outside the exact viewer envelope; first entries: "
+                            + String.join("; ", overflow));
+        }
+    }
+
+    private static Manifest capture(
+            ServerWorld world,
+            BlockPos origin,
+            OurosFloatingBlockAudit.Report audit
+    ) {
         Map<String, Integer> paletteIndices = new LinkedHashMap<>();
         List<JsonObject> palette = new ArrayList<>();
         JsonArray blocks = new JsonArray();
@@ -140,20 +197,23 @@ public final class OurosBuildManifestExportRuntime {
         JsonObject root = new JsonObject();
         root.addProperty("format", "ouros.minecraft.block-manifest.v1");
         root.addProperty("buildId", "meridian_canopy_gym");
-        root.addProperty("displayName", "Meridian Canopy Gym");
+        root.addProperty("displayName", "Meridian Canopy Gym - Zero-base Rebuild");
         root.addProperty("minecraftVersion", "1.21.1");
         root.addProperty("geometryAuthority", "live_server_final_blockstate_scan");
         root.addProperty("geometrySha256", hash);
         root.addProperty("blockCount", blockCount);
+        root.addProperty("captureEnvelopeAudit", "passed");
+        root.addProperty("floatingComponentAudit", "passed");
+        root.addProperty("structuralComponentCount", audit.componentCount());
+        root.addProperty("anchoredStructuralComponentCount", audit.anchoredComponentCount());
         root.add("min", vector(MIN_X, MIN_Y, MIN_Z));
         root.add("max", vector(MAX_X, MAX_Y, MAX_Z));
         root.add("size", vector(MAX_X - MIN_X + 1, MAX_Y - MIN_Y + 1, MAX_Z - MIN_Z + 1));
         JsonArray sources = new JsonArray();
-        sources.add("MeridianCanopyGymBuilder");
-        sources.add("MeridianCanopyGymDetailPass");
-        sources.add("MeridianCanopyGymAuthoredGeometryPass");
-        sources.add("MeridianCanopyGymDecorativePass");
-        sources.add("MeridianCanopyGymSilhouettePass");
+        sources.add("MeridianCanopyGymRebuild");
+        sources.add("MeridianCanopyGymRebuildStructuralPass");
+        sources.add("MeridianCanopyGymRebuildDetailPass");
+        sources.add("MeridianCanopyGymRebuildAnchoringPass");
         root.add("productionSources", sources);
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);
