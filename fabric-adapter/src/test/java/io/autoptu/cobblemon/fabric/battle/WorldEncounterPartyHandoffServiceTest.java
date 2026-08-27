@@ -119,6 +119,6 @@ class WorldEncounterPartyHandoffServiceTest {
     }
 
     private static BattleArenaSnapshot arena() {
-        return new BattleArenaSnapshot("minecraft:overworld", 0, 64, 0, 31, 80, 31, List.of());
+        return new BattleArenaSnapshot("minecraft:overworld", 0, 64, 0, 1, 0, 0, 1);
     }
 }
