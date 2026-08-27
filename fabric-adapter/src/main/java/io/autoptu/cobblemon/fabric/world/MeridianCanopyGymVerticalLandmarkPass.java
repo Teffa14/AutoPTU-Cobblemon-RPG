@@ -4,7 +4,9 @@ import io.autoptu.cobblemon.fabric.world.build.OurosVoxelGeometry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 /**
  * Vertical landmark pass for the zero-base Meridian Canopy Gym.
@@ -128,7 +130,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             connectedBrace(world, c, new BlockPos(10, 29, z), new BlockPos(0, 33, z), OAK);
         }
 
-        // These baffles hang directly from the z=+/-6 canopy ribs, not from approximate nearby air.
         for (int x : new int[]{-15, 15}) {
             for (int z : new int[]{-6, 6}) {
                 column(world, c, x, 25, z, 4, Blocks.CHAIN.getDefaultState());
@@ -198,16 +199,45 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
         int x = start.getX();
         int y = start.getY();
         int z = start.getZ();
-        world.setBlockState(origin.add(x, y, z), state);
-        while (x != end.getX() || y != end.getY() || z != end.getZ()) {
-            if (x != end.getX()) {
-                x += Integer.signum(end.getX() - x);
-            } else if (z != end.getZ()) {
-                z += Integer.signum(end.getZ() - z);
+        int dx = Math.abs(end.getX() - x);
+        int dy = Math.abs(end.getY() - y);
+        int dz = Math.abs(end.getZ() - z);
+        int sx = Integer.signum(end.getX() - x);
+        int sy = Integer.signum(end.getY() - y);
+        int sz = Integer.signum(end.getZ() - z);
+        int total = dx + dy + dz;
+        int movedX = 0;
+        int movedY = 0;
+        int movedZ = 0;
+
+        Direction.Axis initialAxis = dx >= dz && dx >= dy
+                ? Direction.Axis.X
+                : dz >= dy ? Direction.Axis.Z : Direction.Axis.Y;
+        world.setBlockState(origin.add(x, y, z), orient(state, initialAxis));
+
+        for (int step = 1; step <= total; step++) {
+            double targetX = total == 0 ? 0 : (double) step * dx / total;
+            double targetY = total == 0 ? 0 : (double) step * dy / total;
+            double targetZ = total == 0 ? 0 : (double) step * dz / total;
+            double lagX = movedX < dx ? targetX - movedX : Double.NEGATIVE_INFINITY;
+            double lagY = movedY < dy ? targetY - movedY : Double.NEGATIVE_INFINITY;
+            double lagZ = movedZ < dz ? targetZ - movedZ : Double.NEGATIVE_INFINITY;
+
+            Direction.Axis axis;
+            if (lagX >= lagY && lagX >= lagZ) {
+                x += sx;
+                movedX++;
+                axis = Direction.Axis.X;
+            } else if (lagZ >= lagY) {
+                z += sz;
+                movedZ++;
+                axis = Direction.Axis.Z;
             } else {
-                y += Integer.signum(end.getY() - y);
+                y += sy;
+                movedY++;
+                axis = Direction.Axis.Y;
             }
-            world.setBlockState(origin.add(x, y, z), state);
+            world.setBlockState(origin.add(x, y, z), orient(state, axis));
         }
     }
 
@@ -248,21 +278,28 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
     }
 
     private static void column(ServerWorld world, BlockPos o, int x, int y, int z, int height, BlockState state) {
+        BlockState oriented = orient(state, Direction.Axis.Y);
         for (int dy = 0; dy < height; dy++) {
-            world.setBlockState(o.add(x, y + dy, z), state);
+            world.setBlockState(o.add(x, y + dy, z), oriented);
         }
     }
 
     private static void beamX(ServerWorld world, BlockPos o, int minX, int maxX, int y, int z, BlockState state) {
+        BlockState oriented = orient(state, Direction.Axis.X);
         for (int x = minX; x <= maxX; x++) {
-            world.setBlockState(o.add(x, y, z), state);
+            world.setBlockState(o.add(x, y, z), oriented);
         }
     }
 
     private static void beamZ(ServerWorld world, BlockPos o, int minZ, int maxZ, int y, int x, BlockState state) {
+        BlockState oriented = orient(state, Direction.Axis.Z);
         for (int z = minZ; z <= maxZ; z++) {
-            world.setBlockState(o.add(x, y, z), state);
+            world.setBlockState(o.add(x, y, z), oriented);
         }
+    }
+
+    private static BlockState orient(BlockState state, Direction.Axis axis) {
+        return state.contains(Properties.AXIS) ? state.with(Properties.AXIS, axis) : state;
     }
 
     private static void fillLayer(
