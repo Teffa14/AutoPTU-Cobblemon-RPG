@@ -35,6 +35,7 @@ jobs:
 
           scripts = sorted(p.name for p in (root / 'tools/build-review').glob('*.js'))
           assert scripts == ['ouros-build-review.js'], f'build-specific viewer runtimes are forbidden: {scripts}'
+          assert (root / 'tools/build-review/compile-surface-mesh.mjs').is_file(), 'server-side surface mesh compiler missing'
 
           legacy_pages = sorted((root / 'site/builds').glob('*.html')) if (root / 'site/builds').exists() else []
           for page in legacy_pages:
@@ -57,21 +58,32 @@ jobs:
           print('Unified explorer architecture passed for:', ', '.join(ids))
           PY
 
-      - name: Validate shared viewer source syntax
+      - name: Validate low-memory viewer source syntax
         shell: bash
         run: |
           set -euo pipefail
           node --check tools/build-review/ouros-build-review.js
+          node --check tools/build-review/compile-surface-mesh.mjs
           python3 - <<'PY'
           source = open('tools/build-review/ouros-build-review.js', encoding='utf-8').read()
           required = [
               'build-select', 'reviewSpaces', "cameraMode = 'orbit'", "cameraMode === 'fly'",
               'KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'requestPointerLock',
-              'pointerdown', 'wheel', 'history.replaceState'
+              'pointerdown', 'wheel', 'history.replaceState', 'SurfaceMeshRenderer',
+              'build-mesh/', 'uClipMin', 'uClipMax', 'uSliceMax', 'gl.deleteBuffer'
           ]
           missing = [token for token in required if token not in source]
           assert not missing, f'missing explorer capabilities: {missing}'
-          print('Shared viewer navigation source passed')
+          forbidden = [
+              'StructureRenderer', 'new Structure(', 'manifest.blocks', 'block-definitions.json',
+              'block-models.json', 'window.deepslate', 'TextureAtlas', 'getImageData('
+          ]
+          leaked = [token for token in forbidden if token in source]
+          assert not leaked, f'viewer regressed to browser voxel/model materialization: {leaked}'
+          compiler = open('tools/build-review/compile-surface-mesh.mjs', encoding='utf-8').read()
+          for token in ['live_server_final_blockstate_scan', 'culledInteriorBlocks', 'visibleFaces', 'VertexWriter']:
+              assert token in compiler, f'surface mesh compiler missing {token}'
+          print('Low-memory viewer source contract passed')
           PY
 
       - name: Assemble and parse classic browser bundle
@@ -80,14 +92,11 @@ jobs:
           set -euo pipefail
           deps="$RUNNER_TEMP/ouros-viewer-node"
           mkdir -p "$deps"
-          npm install --prefix "$deps" --no-save deepslate@0.26.0 gl-matrix@3.4.3
-          deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
+          npm install --prefix "$deps" --no-save gl-matrix@3.4.3
           glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
           bundle="$RUNNER_TEMP/ouros-build-review.bundle.js"
           {
             cat "$glmatrix_umd"
-            printf '\n;\n'
-            cat "$deepslate_umd"
             printf '\n;\n'
             cat tools/build-review/ouros-build-review.js
           } > "$bundle"
@@ -95,8 +104,9 @@ jobs:
           const fs = require('fs');
           const source = fs.readFileSync(process.argv[2], 'utf8');
           new Function(source);
-          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", "from 'gl-matrix'"];
-          for (const token of forbidden) if (source.includes(token)) throw new Error('forbidden runtime dependency: ' + token);
+          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', 'deepslate', 'StructureRenderer', 'manifest.blocks'];
+          for (const token of forbidden) if (source.includes(token)) throw new Error('forbidden low-memory runtime token: ' + token);
           if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
-          console.log('Unified classic browser bundle parses:', source.length, 'bytes');
+          if (!source.includes('SurfaceMeshRenderer')) throw new Error('surface mesh renderer missing');
+          console.log('Unified low-memory browser bundle parses:', source.length, 'bytes');
           NODE
