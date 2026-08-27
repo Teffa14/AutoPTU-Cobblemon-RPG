@@ -10,20 +10,16 @@ import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.fill;
 /**
  * Final authored support/composition pass for the Grand Palace.
  *
- * V3 constructs the exterior before the room program, so interior completion is now separately
- * invokable. The legacy apply method remains for older call sites while exact OI-107 review uses
- * {@link #finishInterior(ServerWorld, BlockPos)} after the V3 exterior-first builder has established
- * the silhouette, foundations, courtyard and roofscape.
+ * Exact OI-107 review is now V3. Any legacy caller that still reaches the old completion hook is
+ * deliberately converged onto the exterior-first V3 builder so the live-server final BlockState scan
+ * cannot publish the former rectangular prototype. V3 itself calls only finishInterior(), avoiding
+ * recursion and keeping the new construction order explicit.
  */
 final class OurosGrandPalaceStructuralCompletionPass {
     private OurosGrandPalaceStructuralCompletionPass() {}
 
     static void apply(ServerWorld world, BlockPos origin) {
-        OurosGrandPalaceExteriorRebuildPass.apply(world, origin);
-        OurosGrandPalaceExteriorCleanupPass.apply(world, origin);
-        OurosGrandPalaceRoofSupportPass.apply(world, origin);
-        OurosGrandPalaceCourDHonneurPass.apply(world, origin);
-        finishInterior(world, origin);
+        OurosGrandPalaceV3Builder.build(world, origin);
     }
 
     static void finishInterior(ServerWorld world, BlockPos origin) {
