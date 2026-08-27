@@ -23,12 +23,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * First real Ouros overworld runtime slice.
  *
- * The command builds a small authored habitat and materializes persistent Cobblemon actors. A coarse
- * server-owned behavior controller makes the lookout react to nearby players and moves the feeding
- * group toward shelter after an alarm. No battle, PTU status, stat modifier or ecological truth is
- * derived from Minecraft AI.
+ * The command builds a small authored habitat and materializes persistent Cobblemon presentation
+ * actors. AutoPTU assigns every spawned actor a canonical encounter identity before players can
+ * engage it. Cobblemon species data is used only to choose the rendered model; no gameplay state is
+ * read back from the entity. A coarse server-owned behavior controller makes the lookout react to
+ * nearby players and moves the feeding group toward shelter after an alarm.
  */
 public final class CedarMeadowRuntime {
+    private static final String WILD_ZONE_ID = "cedar_meadow";
+    private static final String WILD_CONTEXT_ID = "visible_roaming_wild";
     private static final List<Instance> INSTANCES = new CopyOnWriteArrayList<>();
 
     private CedarMeadowRuntime() {}
@@ -76,6 +79,9 @@ public final class CedarMeadowRuntime {
             return 0;
         }
 
+        bindVisibleWild(lookout);
+        feeders.forEach(CedarMeadowRuntime::bindVisibleWild);
+
         lookout.setCustomName(Text.literal("Cedar Lookout"));
         lookout.setPersistent();
         feeders.forEach(PokemonEntity::setPersistent);
@@ -99,9 +105,19 @@ public final class CedarMeadowRuntime {
         return world.spawnEntity(entity) ? entity : null;
     }
 
+    private static void bindVisibleWild(PokemonEntity entity) {
+        VisibleWildPokemonEncounterRuntime.bind(
+                entity,
+                "world-wild:" + entity.getUuidAsString(),
+                WILD_ZONE_ID,
+                WILD_CONTEXT_ID
+        );
+    }
+
     private static void discard(PokemonEntity entity) {
-        if (entity != null && !entity.isRemoved()) {
-            entity.discard();
+        if (entity != null) {
+            VisibleWildPokemonEncounterRuntime.unbind(entity.getUuid());
+            if (!entity.isRemoved()) entity.discard();
         }
     }
 
@@ -128,6 +144,7 @@ public final class CedarMeadowRuntime {
 
         private boolean tick() {
             if (lookout.isRemoved()) {
+                cleanupBindings();
                 return false;
             }
             tickCounter++;
@@ -160,6 +177,11 @@ public final class CedarMeadowRuntime {
             }
             priorState = state;
             return true;
+        }
+
+        private void cleanupBindings() {
+            VisibleWildPokemonEncounterRuntime.unbind(lookout.getUuid());
+            feeders.forEach(entity -> VisibleWildPokemonEncounterRuntime.unbind(entity.getUuid()));
         }
 
         private void calm() {
