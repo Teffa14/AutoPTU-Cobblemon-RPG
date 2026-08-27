@@ -18,6 +18,7 @@ final class OurosGrandPalaceV4ConnectivityPass {
     static void apply(ServerWorld world, BlockPos o) {
         connectExteriorUpperGalleries(world, o);
         supportRearGardenPots(world, o);
+        connectUpperStairwellDisplays(world, o);
         for (OurosGrandPalaceBuildKit.Room room : groundSideRooms()) supportRoofEave(world, o, room);
         for (OurosGrandPalaceBuildKit.Room room : ceremonialRooms()) supportRoofEave(world, o, room);
     }
@@ -34,6 +35,27 @@ final class OurosGrandPalaceV4ConnectivityPass {
             // The terrace floor is y=0; the original pots begin at y=2.
             world.setBlockState(o.add(x, 1, 63), Blocks.POLISHED_ANDESITE.getDefaultState());
         }
+    }
+
+    private static void connectUpperStairwellDisplays(ServerWorld world, BlockPos o) {
+        OurosGrandPalaceBuildKit.Room west = physical(OurosGrandPalace.RAILING_SALON);
+        int railingZ = west.minZ() + 14;
+        // The middle railing strip crosses the west stair void. Give its safe east end a real post
+        // onto intact upper-floor structure instead of dropping a column through the stair flight.
+        world.setBlockState(
+                o.add(west.maxX() - 4, west.floorY() + 1, railingZ),
+                Blocks.DARK_OAK_FENCE.getDefaultState()
+        );
+
+        OurosGrandPalaceBuildKit.Room east = physical(OurosGrandPalace.COAT_OF_ARMS_HALL);
+        int displayX = east.centerX() + 6;
+        int displayZ = east.centerZ();
+        // The right heraldic pedestal sits above the east stair void. A short stone bearer reaches
+        // the intact floor at x=displayX+3 while retaining the stair's full vertical clearance.
+        fill(world, o,
+                displayX, east.floorY() + 1, displayZ,
+                displayX + 3, east.floorY() + 1, displayZ,
+                CORNICE);
     }
 
     private static void supportRoofEave(ServerWorld world, BlockPos o, OurosGrandPalaceBuildKit.Room room) {
