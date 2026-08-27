@@ -40,9 +40,7 @@ public final class OurosGrandPalaceManifestExportRuntime {
     private static final int MIN_X = OurosGrandPalace.MIN_X;
     private static final int MAX_X = OurosGrandPalace.MAX_X;
     private static final int MIN_Y = OurosGrandPalace.MIN_Y;
-    // The authored roof lanterns intentionally exceed the original prototype envelope.
-    // Review bounds follow the building instead of clipping or shrinking the landmark.
-    private static final int MAX_Y = 48;
+    private static final int MAX_Y = OurosGrandPalace.MAX_Y;
     private static final int MIN_Z = OurosGrandPalace.MIN_Z;
     private static final int MAX_Z = OurosGrandPalace.MAX_Z;
 
@@ -182,6 +180,7 @@ public final class OurosGrandPalaceManifestExportRuntime {
         sources.add("OurosGrandPalaceCeremonialRooms");
         sources.add("OurosGrandPalaceSalonRooms");
         sources.add("OurosGrandPalaceUpperRooms");
+        sources.add("OurosGrandPalaceStructuralCompletionPass");
         root.add("productionSources", sources);
 
         JsonArray spaces = new JsonArray();
@@ -193,11 +192,43 @@ public final class OurosGrandPalaceManifestExportRuntime {
         }) spaces.add(name);
         root.add("authoredSpaces", spaces);
 
+        JsonArray reviewSpaces = new JsonArray();
+        addReviewSpace(reviewSpaces, "antechamber", "Antechamber", OurosGrandPalace.ANTECHAMBER);
+        addReviewSpace(reviewSpaces, "audience", "Audience Chamber", OurosGrandPalace.AUDIENCE_CHAMBER);
+        addReviewSpace(reviewSpaces, "themis", "Themis Hall", OurosGrandPalace.THEMIS_HALL);
+        addReviewSpace(reviewSpaces, "railings", "Railings, Tables and Chairs", OurosGrandPalace.RAILING_SALON);
+        addReviewSpace(reviewSpaces, "cabinet", "Cabinet", OurosGrandPalace.CABINET);
+        addReviewSpace(reviewSpaces, "salla", "Salla Terrena", OurosGrandPalace.SALLA_TERRENA);
+        addReviewSpace(reviewSpaces, "relief", "Coat of Arms Relief Hall", OurosGrandPalace.COAT_OF_ARMS_HALL);
+        addReviewSpace(reviewSpaces, "blooming", "Blooming Salon", OurosGrandPalace.BLOOMING_SALON);
+        addReviewSpace(reviewSpaces, "hunting", "Hunting Salon", OurosGrandPalace.HUNTING_SALON);
+        addReviewSpace(reviewSpaces, "library", "Library", OurosGrandPalace.LIBRARY);
+        addReviewSpace(reviewSpaces, "globe", "Book Cabinet and Globe Room", OurosGrandPalace.GLOBE_BOOK_CABINET);
+        addReviewSpace(reviewSpaces, "geography", "Geography Cabinet", OurosGrandPalace.GEOGRAPHY_CABINET);
+        addReviewSpace(reviewSpaces, "porcelain", "Porcelain Hall", OurosGrandPalace.PORCELAIN_HALL);
+        addReviewSpace(reviewSpaces, "marble", "Marble Salon", OurosGrandPalace.MARBLE_SALON);
+        addReviewSpace(reviewSpaces, "gallery", "Gallery of Art", OurosGrandPalace.GALLERY_OF_ART);
+        addReviewSpace(reviewSpaces, "accounting", "Accounting Office", OurosGrandPalace.ACCOUNTING_OFFICE);
+        addReviewSpace(reviewSpaces, "music", "Music Chamber with Harpsichord", OurosGrandPalace.MUSIC_CHAMBER);
+        addReviewSpace(reviewSpaces, "blue", "Blue Salon", OurosGrandPalace.BLUE_SALON);
+        addReviewSpace(reviewSpaces, "banquet", "Banquet Hall", OurosGrandPalace.BANQUET_HALL);
+        root.add("reviewSpaces", reviewSpaces);
+
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);
         root.add("palette", paletteJson);
         root.add("blocks", blocks);
         return new Manifest(root, blockCount, palette.size(), hash);
+    }
+
+    private static void addReviewSpace(JsonArray target, String id, String displayName, OurosGrandPalaceBuildKit.Room room) {
+        JsonObject review = new JsonObject();
+        review.addProperty("id", id);
+        review.addProperty("name", displayName);
+        review.add("min", vector(room.minX(), room.floorY(), room.minZ()));
+        review.add("max", vector(room.maxX(), room.ceilingY(), room.maxZ()));
+        review.add("focus", vector(room.centerX(), (room.floorY() + room.ceilingY()) / 2, room.centerZ()));
+        target.add(review);
     }
 
     private static StateSnapshot snapshot(BlockState state) {
