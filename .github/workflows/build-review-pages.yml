@@ -186,9 +186,33 @@ jobs:
           assert len(data['geometrySha256']) == 64
           assert data['size'] == [87, 53, 115], data['size']
           assert len(data['authoredSpaces']) == 19
+          assert len(data.get('reviewSpaces', [])) == 19
           print(f"Exact Grand Palace manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
           PY
           stop_server
+
+      - name: Validate shared build-review registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          root = pathlib.Path('site/build-data')
+          registry = json.loads((root / 'builds.json').read_text(encoding='utf-8'))
+          assert registry['format'] == 'ouros.build-review.registry.v1'
+          builds = registry['builds']
+          assert len(builds) >= 2
+          ids = set()
+          for build in builds:
+              assert build['id'] not in ids
+              ids.add(build['id'])
+              manifest = json.loads(pathlib.Path('site', build['manifest']).read_text(encoding='utf-8'))
+              assert manifest['buildId'] == build['id']
+              assert manifest['geometryAuthority'] == 'live_server_final_blockstate_scan'
+              assert manifest['captureEnvelopeAudit'] == 'passed'
+              assert manifest['floatingComponentAudit'] == 'passed'
+          print('Shared build registry validated:', ', '.join(sorted(ids)))
+          PY
 
       - name: Stage pinned Minecraft viewer assets
         shell: bash
@@ -222,7 +246,7 @@ jobs:
           print('Pinned Minecraft viewer assets staged:', *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
           PY
 
-      - name: Assemble classic Safari viewer runtimes
+      - name: Assemble unified classic Safari viewer runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -233,8 +257,11 @@ jobs:
           npm install --prefix "$deps" --no-save deepslate@0.26.0 gl-matrix@3.4.3
           deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
           glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
+          entry="$PWD/tools/build-review/ouros-build-review.js"
+          bundle="$out/ouros-build-review.bundle.js"
           test -s "$deepslate_umd"
           test -s "$glmatrix_umd"
+          test -s "$entry"
 
           node - <<'NODE' "$glmatrix_umd" "$deepslate_umd"
           const fs = require('fs'); const vm = require('vm'); const ctx = {};
@@ -246,37 +273,37 @@ jobs:
           console.log('Classic UMD globals verified before concatenation');
           NODE
 
-          assemble_bundle() {
-            entry="$1"
-            bundle="$2"
-            {
-              cat "$glmatrix_umd"
-              printf '\n;\n'
-              cat "$deepslate_umd"
-              printf '\n;\n'
-              cat "$entry"
-            } > "$bundle"
-            test -s "$bundle"
-            test "$(wc -c < "$bundle")" -gt 10000
-            node - <<'NODE' "$bundle"
+          {
+            cat "$glmatrix_umd"
+            printf '\n;\n'
+            cat "$deepslate_umd"
+            printf '\n;\n'
+            cat "$entry"
+          } > "$bundle"
+          test -s "$bundle"
+          test "$(wc -c < "$bundle")" -gt 10000
+
+          node - <<'NODE' "$bundle"
           const fs = require('fs');
           const source = fs.readFileSync(process.argv[2], 'utf8');
           new Function(source);
           const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", 'from "deepslate"', "from 'gl-matrix'", 'from "gl-matrix"'];
           for (const token of forbidden) if (source.includes(token)) throw new Error('classic viewer bundle contains forbidden modular runtime token: ' + token);
+          for (const token of ['build-select', 'cameraMode', 'requestPointerLock', 'reviewSpaces']) {
+            if (!source.includes(token)) throw new Error('unified explorer capability missing: ' + token);
+          }
           if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
           NODE
-          }
 
-          assemble_bundle tools/build-review/meridian-canopy-gym.js "$out/meridian-canopy-gym.bundle.js"
-          assemble_bundle tools/build-review/ouros-grand-palace.js "$out/ouros-grand-palace.bundle.js"
-
-          if grep -q 'esm.sh' site/builds/meridian-canopy-gym.html site/builds/ouros-grand-palace.html; then
-            echo 'Viewer HTML still contains esm.sh runtime dependency' >&2
+          if grep -q 'esm.sh' site/index.html; then
+            echo 'Unified viewer HTML still contains esm.sh runtime dependency' >&2
             exit 1
           fi
-          echo "Meridian classic viewer: $(wc -c < "$out/meridian-canopy-gym.bundle.js") bytes"
-          echo "Grand Palace classic viewer: $(wc -c < "$out/ouros-grand-palace.bundle.js") bytes"
+          if grep -q '<iframe' site/index.html; then
+            echo 'Unified viewer regressed to per-build iframe gallery' >&2
+            exit 1
+          fi
+          echo "Unified Ouros viewer: $(wc -c < "$bundle") bytes"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
