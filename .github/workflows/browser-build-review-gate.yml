@@ -86,6 +86,42 @@ jobs:
           print('Low-memory viewer source contract passed')
           PY
 
+      - name: Exercise server-side surface mesh compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          assets="$RUNNER_TEMP/ouros-mesh-assets"
+          out="$RUNNER_TEMP/ouros-build-mesh"
+          mkdir -p "$assets" "$out"
+          atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
+          raw='https://raw.githubusercontent.com/misode/mcmeta'
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/data.min.json" -o "$assets/atlas-map.json"
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/atlas.png" -o "$assets/atlas.png"
+
+          node tools/build-review/compile-surface-mesh.mjs \
+            site/build-data/builds.json "$out" "$assets/atlas-map.json" "$assets/atlas.png"
+
+          python3 - <<'PY' "$out"
+          import json, pathlib, sys
+          out = pathlib.Path(sys.argv[1])
+          registry = json.loads(pathlib.Path('site/build-data/builds.json').read_text(encoding='utf-8'))
+          for build in registry['builds']:
+              source = json.loads(pathlib.Path('site', build['manifest']).read_text(encoding='utf-8'))
+              mesh = json.loads((out / f"{build['id']}.mesh.json").read_text(encoding='utf-8'))
+              assert mesh['sourceGeometrySha256'] == source['geometrySha256']
+              assert mesh['blockCount'] == source['blockCount']
+              assert mesh['renderMode'] == 'server_precomputed_surface_mesh'
+              total = mesh['opaque']['bytes'] + mesh['translucent']['bytes']
+              assert total < 48 * 1024 * 1024, f"{build['id']} exceeds 48 MiB mesh budget: {total}"
+              assert mesh['meshStats']['visibleFaces'] > 0
+              for part in ('opaque', 'translucent'):
+                  p = out / pathlib.Path(mesh[part]['url']).name
+                  assert p.stat().st_size == mesh[part]['bytes']
+              print(build['id'], total, 'bytes,', mesh['meshStats'])
+          PY
+
       - name: Assemble and parse classic browser bundle
         shell: bash
         run: |
