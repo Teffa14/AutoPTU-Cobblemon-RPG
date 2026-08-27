@@ -11,10 +11,9 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Live dedicated-server proof that AutoPTU recognizes Cobblemon's actual Healing Machine block. */
+/** Live proof that AutoPTU recognizes only Cobblemon's visual Healing Machine block surface. */
 public final class FabricHealingStationRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveHealingStationSmoke";
-    // Keep the established CI marker stable while changing what the smoke actually proves.
     public static final String SUCCESS_LOG = "AutoPTU live healing station interaction signature smoke passed";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
@@ -33,12 +32,12 @@ public final class FabricHealingStationRuntimeSmoke {
         try {
             world.setBlockState(pos, CobblemonBlocks.HEALING_MACHINE.getDefaultState(), Block.NOTIFY_ALL);
             if (!FabricHealingStationRuntime.isCobblemonHealingMachine(world, pos)) {
-                throw new IllegalStateException("Cobblemon healing machine was not recognized in live ServerWorld");
+                throw new IllegalStateException("Cobblemon healing machine visual surface was not recognized");
             }
 
             world.setBlockState(pos, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_ALL);
             if (FabricHealingStationRuntime.isCobblemonHealingMachine(world, pos)) {
-                throw new IllegalStateException("vanilla lodestone was accepted as a Cobblemon healing machine");
+                throw new IllegalStateException("vanilla lodestone was accepted as a Cobblemon healing machine surface");
             }
             LOGGER.info(SUCCESS_LOG);
         } finally {
