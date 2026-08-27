@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory;
 /** Live dedicated-server proof that AutoPTU recognizes Cobblemon's actual Healing Machine block. */
 public final class FabricHealingStationRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveHealingStationSmoke";
-    public static final String SUCCESS_LOG = "AutoPTU live Cobblemon healing machine interaction smoke passed";
+    // Keep the established CI marker stable while changing what the smoke actually proves.
+    public static final String SUCCESS_LOG = "AutoPTU live healing station interaction signature smoke passed";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
 
