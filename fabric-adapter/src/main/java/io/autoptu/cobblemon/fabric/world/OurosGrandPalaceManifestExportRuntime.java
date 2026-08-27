@@ -40,7 +40,9 @@ public final class OurosGrandPalaceManifestExportRuntime {
     private static final int MIN_X = OurosGrandPalace.MIN_X;
     private static final int MAX_X = OurosGrandPalace.MAX_X;
     private static final int MIN_Y = OurosGrandPalace.MIN_Y;
-    private static final int MAX_Y = OurosGrandPalace.MAX_Y;
+    // The authored roof lanterns intentionally exceed the original prototype envelope.
+    // Review bounds follow the building instead of clipping or shrinking the landmark.
+    private static final int MAX_Y = 48;
     private static final int MIN_Z = OurosGrandPalace.MIN_Z;
     private static final int MAX_Z = OurosGrandPalace.MAX_Z;
 
