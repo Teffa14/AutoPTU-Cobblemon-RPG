@@ -1,0 +1,31 @@
+{
+  "format": "ouros.build-review.registry.v1",
+  "builds": [
+    {
+      "id": "meridian_canopy_gym",
+      "name": "Meridian Canopy Gym",
+      "manifest": "build-data/meridian-canopy-gym.blocks.json",
+      "classification": "AUTHORED LOCATION · EXACT REVIEW",
+      "layers": [
+        {"id": "all", "label": "All"},
+        {"id": "ground", "label": "Ground", "minY": 0, "maxY": 8},
+        {"id": "upper", "label": "Upper", "minY": 8, "maxY": 46},
+        {"id": "service", "label": "Service", "minY": -4, "maxY": -1},
+        {"id": "cutaway", "label": "Cutaway", "cutawayAxis": "z", "cutawayAt": 0, "cutawaySide": "positive"}
+      ]
+    },
+    {
+      "id": "ouros_grand_palace",
+      "name": "Ouros Grand Palace",
+      "manifest": "build-data/ouros-grand-palace.blocks.json",
+      "classification": "SIGNATURE STRUCTURE CANDIDATE",
+      "layers": [
+        {"id": "all", "label": "All"},
+        {"id": "ground", "label": "Ground", "minY": -3, "maxY": 14},
+        {"id": "upper", "label": "Upper", "minY": 15, "maxY": 29},
+        {"id": "roof", "label": "Roof", "minY": 30, "maxY": 48},
+        {"id": "cutaway", "label": "Cutaway", "cutawayAxis": "z", "cutawayAt": 0, "cutawaySide": "positive"}
+      ]
+    }
+  ]
+}

@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
 
-      - name: Export exact Minecraft block manifest
+      - name: Export exact Meridian Canopy Gym manifest
         shell: bash
         run: |
           set -euo pipefail
@@ -111,17 +111,108 @@ jobs:
           import json, sys
           p = sys.argv[1]
           data = json.load(open(p, encoding='utf-8'))
-          if data.get('captureEnvelopeAudit') != 'passed':
-              raise SystemExit('capture envelope audit did not pass')
-          if data.get('floatingComponentAudit') != 'passed':
-              raise SystemExit('floating component audit did not pass')
-          if data['blockCount'] != len(data['blocks']):
-              raise SystemExit('blockCount does not match exported block array')
-          if not data['geometrySha256'] or len(data['geometrySha256']) != 64:
-              raise SystemExit('missing geometry SHA-256')
-          print(f"Exact Minecraft manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
+          if data.get('captureEnvelopeAudit') != 'passed': raise SystemExit('capture envelope audit did not pass')
+          if data.get('floatingComponentAudit') != 'passed': raise SystemExit('floating component audit did not pass')
+          if data['blockCount'] != len(data['blocks']): raise SystemExit('blockCount does not match exported block array')
+          if not data['geometrySha256'] or len(data['geometrySha256']) != 64: raise SystemExit('missing geometry SHA-256')
+          print(f"Exact Meridian manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
           PY
           stop_server
+
+      - name: Export exact Ouros Grand Palace manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          server_dir="$PWD/grand-palace-review-server"
+          output="$PWD/site/build-data/ouros-grand-palace.blocks.json"
+          mkdir -p "$server_dir/mods" "$(dirname "$output")"
+          cp fabric-adapter/build/production-smoke/mods/*.jar "$server_dir/mods/"
+          printf 'eula=true\n' > "$server_dir/eula.txt"
+
+          curl -fsSL \
+            -o "$server_dir/fabric-server-launch.jar" \
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+
+          server_pid=""
+          stop_server() {
+            if [ -n "$server_pid" ]; then
+              kill "$server_pid" 2>/dev/null || true
+              wait "$server_pid" 2>/dev/null || true
+              server_pid=""
+            fi
+          }
+          trap stop_server EXIT
+
+          (
+            cd "$server_dir"
+            exec java \
+              -Dautoptu.ourosGrandPalaceManifestOutput="$output" \
+              -Xms768M -Xmx3G -jar fabric-server-launch.jar nogui > ../grand-palace-review-server.log 2>&1
+          ) &
+          server_pid=$!
+
+          export_ready=0
+          for _ in $(seq 1 300); do
+            latest="$server_dir/logs/latest.log"
+            if grep -q 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU Ouros Grand Palace floating component audit passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU exact Ouros Grand Palace manifest export passed' "$latest" 2>/dev/null \
+              && [ -s "$output" ]; then
+              export_ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+
+          if [ "$export_ready" -ne 1 ]; then
+            cat grand-palace-review-server.log || true
+            cat "$server_dir/logs/latest.log" 2>/dev/null || true
+            exit 1
+          fi
+
+          grep 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$server_dir/logs/latest.log"
+          grep 'AutoPTU Ouros Grand Palace floating component audit passed' "$server_dir/logs/latest.log"
+          grep 'AutoPTU exact Ouros Grand Palace manifest export passed' "$server_dir/logs/latest.log"
+
+          python3 - <<'PY' "$output"
+          import json, sys
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          assert data['buildId'] == 'ouros_grand_palace'
+          assert data['geometryAuthority'] == 'live_server_final_blockstate_scan'
+          assert data['captureEnvelopeAudit'] == 'passed'
+          assert data['floatingComponentAudit'] == 'passed'
+          assert data['blockCount'] == len(data['blocks'])
+          assert len(data['geometrySha256']) == 64
+          assert data['size'] == [87, 53, 115], data['size']
+          assert len(data['authoredSpaces']) == 19
+          assert len(data.get('reviewSpaces', [])) == 19
+          print(f"Exact Grand Palace manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
+          PY
+          stop_server
+
+      - name: Validate shared build-review registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          root = pathlib.Path('site/build-data')
+          registry = json.loads((root / 'builds.json').read_text(encoding='utf-8'))
+          assert registry['format'] == 'ouros.build-review.registry.v1'
+          builds = registry['builds']
+          assert len(builds) >= 2
+          ids = set()
+          for build in builds:
+              assert build['id'] not in ids
+              ids.add(build['id'])
+              manifest = json.loads(pathlib.Path('site', build['manifest']).read_text(encoding='utf-8'))
+              assert manifest['buildId'] == build['id']
+              assert manifest['geometryAuthority'] == 'live_server_final_blockstate_scan'
+              assert manifest['captureEnvelopeAudit'] == 'passed'
+              assert manifest['floatingComponentAudit'] == 'passed'
+          print('Shared build registry validated:', ', '.join(sorted(ids)))
+          PY
 
       - name: Stage pinned Minecraft viewer assets
         shell: bash
@@ -135,60 +226,46 @@ jobs:
           raw='https://raw.githubusercontent.com/misode/mcmeta'
 
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$raw/$summary_sha/assets/block_definition/data.min.json" \
-            -o "$out/block-definitions.json"
+            "$raw/$summary_sha/assets/block_definition/data.min.json" -o "$out/block-definitions.json"
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$raw/$summary_sha/assets/model/data.min.json" \
-            -o "$out/block-models.json"
+            "$raw/$summary_sha/assets/model/data.min.json" -o "$out/block-models.json"
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$raw/$atlas_sha/blocks/data.min.json" \
-            -o "$out/atlas-map.json"
+            "$raw/$atlas_sha/blocks/data.min.json" -o "$out/atlas-map.json"
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$raw/$atlas_sha/blocks/atlas.png" \
-            -o "$out/atlas.png"
+            "$raw/$atlas_sha/blocks/atlas.png" -o "$out/atlas.png"
 
           python3 - <<'PY' "$out"
           import json, pathlib, sys
           root = pathlib.Path(sys.argv[1])
           for name in ('block-definitions.json', 'block-models.json', 'atlas-map.json'):
               path = root / name
-              with path.open(encoding='utf-8') as fh:
-                  data = json.load(fh)
-              if not isinstance(data, dict) or not data:
-                  raise SystemExit(f'{name} is empty or invalid')
+              with path.open(encoding='utf-8') as fh: data = json.load(fh)
+              if not isinstance(data, dict) or not data: raise SystemExit(f'{name} is empty or invalid')
           png = (root / 'atlas.png').read_bytes()
-          if not png.startswith(b'\x89PNG\r\n\x1a\n'):
-              raise SystemExit('atlas.png is not a valid PNG')
-          print('Pinned Minecraft viewer assets staged:',
-                *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
+          if not png.startswith(b'\x89PNG\r\n\x1a\n'): raise SystemExit('atlas.png is not a valid PNG')
+          print('Pinned Minecraft viewer assets staged:', *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
           PY
 
-      - name: Assemble classic Safari viewer runtime
+      - name: Assemble unified classic Safari viewer runtime
         shell: bash
         run: |
           set -euo pipefail
           deps="$RUNNER_TEMP/ouros-viewer-node"
           out="$PWD/site/assets"
-          bundle="$out/meridian-canopy-gym.bundle.js"
           mkdir -p "$deps" "$out"
 
-          npm install --prefix "$deps" --no-save \
-            deepslate@0.26.0 \
-            gl-matrix@3.4.3
-
+          npm install --prefix "$deps" --no-save deepslate@0.26.0 gl-matrix@3.4.3
           deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
           glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
+          entry="$PWD/tools/build-review/ouros-build-review.js"
+          bundle="$out/ouros-build-review.bundle.js"
           test -s "$deepslate_umd"
           test -s "$glmatrix_umd"
+          test -s "$entry"
 
           node - <<'NODE' "$glmatrix_umd" "$deepslate_umd"
-          const fs = require('fs');
-          const vm = require('vm');
-          const ctx = {};
-          ctx.window = ctx;
-          ctx.self = ctx;
-          ctx.globalThis = ctx;
-          vm.createContext(ctx);
+          const fs = require('fs'); const vm = require('vm'); const ctx = {};
+          ctx.window = ctx; ctx.self = ctx; ctx.globalThis = ctx; vm.createContext(ctx);
           vm.runInContext(fs.readFileSync(process.argv[2], 'utf8'), ctx, { filename: 'gl-matrix-min.js' });
           vm.runInContext(fs.readFileSync(process.argv[3], 'utf8'), ctx, { filename: 'deepslate.umd.js' });
           if (!ctx.glMatrix || !ctx.glMatrix.mat4) throw new Error('gl-matrix UMD did not expose glMatrix.mat4');
@@ -201,9 +278,8 @@ jobs:
             printf '\n;\n'
             cat "$deepslate_umd"
             printf '\n;\n'
-            cat tools/build-review/meridian-canopy-gym.js
+            cat "$entry"
           } > "$bundle"
-
           test -s "$bundle"
           test "$(wc -c < "$bundle")" -gt 10000
 
@@ -212,18 +288,22 @@ jobs:
           const source = fs.readFileSync(process.argv[2], 'utf8');
           new Function(source);
           const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", 'from "deepslate"', "from 'gl-matrix'", 'from "gl-matrix"'];
-          for (const token of forbidden) {
-            if (source.includes(token)) throw new Error('classic viewer bundle contains forbidden modular runtime token: ' + token);
+          for (const token of forbidden) if (source.includes(token)) throw new Error('classic viewer bundle contains forbidden modular runtime token: ' + token);
+          for (const token of ['build-select', 'cameraMode', 'requestPointerLock', 'reviewSpaces']) {
+            if (!source.includes(token)) throw new Error('unified explorer capability missing: ' + token);
           }
           if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
-          console.log('Classic Safari bundle parse and modular-runtime guard passed');
           NODE
 
-          if grep -q 'esm.sh' site/builds/meridian-canopy-gym.html; then
-            echo 'Viewer HTML still contains esm.sh runtime dependency' >&2
+          if grep -q 'esm.sh' site/index.html; then
+            echo 'Unified viewer HTML still contains esm.sh runtime dependency' >&2
             exit 1
           fi
-          echo "Classic self-contained viewer staged: $(wc -c < "$bundle") bytes"
+          if grep -q '<iframe' site/index.html; then
+            echo 'Unified viewer regressed to per-build iframe gallery' >&2
+            exit 1
+          fi
+          echo "Unified Ouros viewer: $(wc -c < "$bundle") bytes"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

@@ -13,20 +13,14 @@ import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmo
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
 import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosBuildManifestExportRuntime;
+import io.autoptu.cobblemon.fabric.world.OurosGrandPalaceManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosSignatureBuildRuntime;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Dedicated-server Fabric entrypoint for the integration adapter.
- *
- * Startup registers transport, world-scoped canonical persistence, authenticated-player
- * provisioning and Ouros overworld/build slices, then verifies that the Cobblemon runtime needed by
- * the presentation adapter is present. Runtime battle services remain separate so Fabric/Cobblemon
- * startup cannot invent battle state or PTU behavior.
- */
+/** Dedicated-server Fabric entrypoint for the integration adapter. */
 public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
 
@@ -43,6 +37,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         CedarMeadowRuntime.register();
         OurosSignatureBuildRuntime.register();
         OurosBuildManifestExportRuntime.registerIfEnabled();
+        OurosGrandPalaceManifestExportRuntime.registerIfEnabled();
         CobblemonLiveRelocationSmoke.registerIfEnabled();
         CobblemonLiveReactionPlaybackSmoke.registerIfEnabled();
         CobblemonLiveHealthSmoke.registerIfEnabled();

@@ -8,7 +8,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
-/** Registers manually-invoked large Ouros build prototypes for visual and traversal review. */
+/** Registers manually-invoked large Ouros builds for visual and traversal review. */
 public final class OurosSignatureBuildRuntime {
     private OurosSignatureBuildRuntime() {}
 
@@ -18,7 +18,10 @@ public final class OurosSignatureBuildRuntime {
                         .then(CommandManager.literal("build")
                                 .then(CommandManager.literal("meridian_canopy_gym")
                                         .requires(source -> source.hasPermissionLevel(2))
-                                        .executes(context -> buildCanopyGym(context.getSource()))))));
+                                        .executes(context -> buildCanopyGym(context.getSource())))
+                                .then(CommandManager.literal("grand_palace")
+                                        .requires(source -> source.hasPermissionLevel(2))
+                                        .executes(context -> buildGrandPalace(context.getSource()))))));
     }
 
     private static int buildCanopyGym(ServerCommandSource source) {
@@ -43,6 +46,28 @@ public final class OurosSignatureBuildRuntime {
                 "Review the monumental gatehouse, high conservatory lantern, supported arena canopy ribs, distinct challenge wings, backstage service bar, custom trees, joinery, drainage and human-scale props."), false);
         player.sendMessage(Text.literal(
                 "OI-106 remains under visual review. Exact browser geometry is the acceptance artifact; disconnected floating components or geometry outside the expanded capture envelope fail CI."), false);
+        return 1;
+    }
+
+    private static int buildGrandPalace(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("The Ouros Grand Palace must be placed by a player."));
+            return 0;
+        }
+
+        ServerWorld world = player.getServerWorld();
+        BlockPos origin = player.getBlockPos().add(0, -1, 74);
+        OurosGrandPalace.BuildResult result = OurosGrandPalace.build(world, origin);
+
+        player.sendMessage(Text.literal("Ouros Grand Palace OI-107 built 74 blocks ahead."), false);
+        player.sendMessage(Text.literal(
+                "Footprint " + result.width() + "x" + result.depth() + ", capture height " + result.height()
+                        + ", authored spaces " + result.authoredSpaces() + "."), false);
+        player.sendMessage(Text.literal(
+                "The palace includes the 19-space reference program: four double-height ceremonial halls, side salons/cabinets, two upper galleries, a glazed mansard roof and seven distinct upper rooms."), false);
+        player.sendMessage(Text.literal(
+                "OI-107 is a SIGNATURE STRUCTURE candidate under docs/ouros-build-doctrine.md. Exact live-server BlockState export and browser visual review remain mandatory."), false);
         return 1;
     }
 }

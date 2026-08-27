@@ -1,46 +1,66 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="icon" href="data:," />
-  <title>Ouros Build Review</title>
-  <style>
-    :root{color-scheme:dark;background:#0b120f;color:#eef4f0;font-family:Inter,system-ui,sans-serif}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#173023,#0b120f 52%)}
-    header{padding:42px 7vw 26px;max-width:1200px;margin:auto}.eyebrow{letter-spacing:.14em;text-transform:uppercase;color:#83ef9f;font-size:12px;font-weight:700}
-    h1{font-size:clamp(32px,5vw,64px);margin:9px 0 12px;line-height:.95}.lead{max-width:790px;color:#a2aea8;font-size:17px;line-height:1.6}
-    main{max-width:1200px;margin:auto;padding:10px 7vw 60px}.card{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:0;border:1px solid #34443c;border-radius:18px;overflow:hidden;background:#111a16;box-shadow:0 25px 70px #0008}
-    .preview{min-height:560px;position:relative;background:linear-gradient(155deg,#142118,#08100d)}.preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-    .meta{padding:28px}.status{display:inline-block;padding:6px 9px;border:1px solid #45a862;border-radius:999px;color:#a9f8ba;font-size:12px;font-weight:700}.meta h2{font-size:30px;margin:16px 0 10px}.meta p{color:#a2aea8;line-height:1.55}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:24px 0}.stat{background:#0b120f;border:1px solid #34443c;border-radius:10px;padding:12px}.stat b{display:block;font-size:19px}.stat span{font-size:12px;color:#8f9c95}
-    a.button{display:inline-block;text-decoration:none;color:#09110d;background:#83ef9f;font-weight:800;padding:12px 16px;border-radius:9px}.note{margin-top:28px;padding:20px;border-left:3px solid #83ef9f;background:#0c1812;color:#9eaaa4;line-height:1.55}
-    @media(max-width:800px){.card{grid-template-columns:1fr}.preview{min-height:560px}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<link rel="icon" href="data:," />
+<title>Ouros Build Review · Exact Minecraft Explorer</title>
+<style>
+:root{color-scheme:dark;--green:#7ff19b;--panel:#09130fee;--border:#365045;--muted:#9eaaa3}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07100c;color:#edf5ef;font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}
+#canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;background:linear-gradient(#0c1812,#07100c)}
+#hud{position:fixed;z-index:5;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:min(520px,calc(100vw - 24px));border:1px solid var(--border);border-radius:16px;background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 18px 55px #000a;overflow:hidden}
+#hud-head{display:flex;gap:10px;align-items:flex-start;padding:12px 12px 8px}.head-copy{min-width:0;flex:1}.eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:850}.classification{display:inline-block;margin-top:5px;padding:4px 7px;border:1px solid #36734b;border-radius:999px;color:#aff7bf;background:#0c2115;font-size:9px;font-weight:800;letter-spacing:.08em}h1{font-size:20px;margin:7px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.iconbtn{border:1px solid #34463e;background:#131c18;color:#d4ddd7;border-radius:9px;padding:7px 10px;min-height:34px;cursor:pointer;font:inherit;font-size:11px}
+#hud-body{padding:0 12px 12px}.collapsed #hud-body{display:none}.collapsed #hud-head{padding-bottom:12px}.select-label{display:block;margin-top:8px;font-size:10px;color:#8f9c95;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.select-row{display:grid;grid-template-columns:1fr;gap:6px}.hidden{display:none!important}select{width:100%;margin-top:4px;border:1px solid #34463e;background:#131c18;color:#eef4f0;border-radius:9px;padding:8px 10px;min-height:38px;font:inherit;font-size:12px}.truth{display:flex;gap:8px;align-items:center;margin-top:9px;padding:7px 9px;border:1px solid #36734b;border-radius:999px;background:#0c2115;color:#aff7bf;font-size:10px;font-weight:750}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}.stat{min-width:0;border:1px solid #273930;background:#0a120f;border-radius:8px;padding:7px}.stat b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat span{font-size:9px;color:#86958d}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.btn{border:1px solid #34463e;background:#131c18;color:#d4ddd7;border-radius:9px;padding:7px 9px;font:inherit;font-size:11px;cursor:pointer;min-height:34px}.btn.active{border-color:var(--green);color:#a9f8ba;background:#102217}.group-label{width:100%;font-size:9px;color:#76857d;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}.slice{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:10px;color:#a7b2ac}.slice input{flex:1;accent-color:var(--green)}.slice output{min-width:30px;text-align:right;color:#dff5e5;font-variant-numeric:tabular-nums}
+#loading{position:fixed;z-index:4;inset:0;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 35%,#10261a,#07100c 55%)}.loadcard{width:min(440px,92vw);padding:20px;border:1px solid #30483c;border-radius:16px;background:#09130f;text-align:center;box-shadow:0 22px 70px #0009}.spinner{width:34px;height:34px;margin:0 auto 14px;border:3px solid #23382d;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#load-title{font-weight:800;font-size:16px}#load-copy{font-size:12px;color:#8f9f96;line-height:1.5;margin-top:6px}.progress{height:6px;background:#17251e;border-radius:99px;overflow:hidden;margin-top:14px}.progress i{display:block;height:100%;width:8%;background:var(--green);border-radius:99px;transition:width .25s ease}
+#tip{position:fixed;z-index:5;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100vw - 24px);padding:8px 13px;border:1px solid #31453b;border-radius:999px;background:#09130fe8;color:#9aa8a0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.panel{position:fixed;z-index:7;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));width:min(390px,calc(100vw - 24px));max-height:70vh;overflow:auto;padding:13px;border:1px solid #374c41;border-radius:13px;background:#09130ff5;box-shadow:0 15px 45px #000a;display:none}.panel h2{font-size:14px;margin:0 0 8px}.panel p{font-size:11px;line-height:1.45;color:#9caaa2;margin:5px 0}.palette{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:10px;margin-top:8px}.palette span:nth-child(2n){color:var(--green);font-variant-numeric:tabular-nums}#error{position:fixed;z-index:10;left:12px;right:12px;bottom:12px;display:none;padding:12px;border:1px solid #f85149;border-radius:10px;background:#3b1115;color:#ffd8d5;font-size:12px;line-height:1.45}
+#fly-pad{position:fixed;z-index:6;right:max(14px,env(safe-area-inset-right));bottom:max(54px,calc(env(safe-area-inset-bottom) + 48px));display:none;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:5px;user-select:none;-webkit-user-select:none}.flykey{border:1px solid #4b6658;border-radius:13px;background:#0b1712dd;color:#dff5e5;font-size:17px;font-weight:800;touch-action:none;box-shadow:0 7px 24px #0008}.flykey[data-move="KeyW"]{grid-column:2;grid-row:1}.flykey[data-move="KeyA"]{grid-column:1;grid-row:2}.flykey[data-move="KeyS"]{grid-column:2;grid-row:2}.flykey[data-move="KeyD"]{grid-column:3;grid-row:2}.flykey[data-move="KeyE"]{grid-column:3;grid-row:1}.flykey[data-move="KeyQ"]{grid-column:1;grid-row:1}#fly-pad.visible{display:grid}
+@media(pointer:fine){#fly-pad.visible{display:none}}
+@media(max-width:720px){#hud{width:calc(100vw - 24px)}#hud-head{padding:10px 10px 7px}#hud-body{padding:0 10px 10px}h1{font-size:17px}.stats{grid-template-columns:repeat(2,1fr)}.btn{padding:7px 8px}.panel{top:auto;bottom:54px;max-height:55vh}#tip{font-size:9px}.flykey{width:48px;height:48px}#fly-pad{grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px)}}
+</style>
 </head>
 <body>
-<header>
-  <div class="eyebrow">AutoPTU · Cobblemon · Ouros</div>
-  <h1>Build Review</h1>
-  <div class="lead">Major Ouros locations are reviewed from Minecraft-authoritative geometry. The deploy boots Fabric + Cobblemon, runs the production builder, scans the final BlockState result and publishes that exact structure to the browser.</div>
-</header>
-<main>
-  <section class="card">
-    <div class="preview"><iframe title="Meridian Canopy Gym exact Minecraft block viewer" src="builds/meridian-canopy-gym.html?v=vertical-landmark-v2"></iframe></div>
-    <div class="meta">
-      <span class="status">EXACT MINECRAFT BLOCK VIEWER</span>
-      <h2>Meridian Canopy Gym</h2>
-      <p>The browser uses the final block states produced by the same Fabric runtime that builds the Gym in Minecraft. Viewer JavaScript, block models, texture atlas and manifest are all published on the same GitHub Pages origin.</p>
-      <div class="stats">
-        <div class="stat"><b>67 × 51 × 67</b><span>expanded exact capture volume</span></div>
-        <div class="stat"><b>1.21.1</b><span>Minecraft target</span></div>
-        <div class="stat"><b>Live server</b><span>geometry authority</span></div>
-        <div class="stat"><b>SHA-256</b><span>build identity</span></div>
-      </div>
-      <a class="button" href="builds/meridian-canopy-gym.html?v=vertical-landmark-v2">Open Minecraft viewer</a>
-      <div class="note">Every Pages deployment regenerates the manifest inside a dedicated Fabric + Cobblemon server, validates the block assets and concatenates the prebuilt Deepslate UMD runtime, gl-matrix UMD runtime and Ouros viewer into one classic local script. The browser performs no module imports and uses no runtime CDN.</div>
+<canvas id="canvas"></canvas>
+<div id="loading"><div class="loadcard"><div class="spinner"></div><div id="load-title">Loading Ouros Build Review</div><div id="load-copy">Starting the unified exact Minecraft explorer…</div><div class="progress"><i id="bar"></i></div></div></div>
+
+<div id="hud">
+  <div id="hud-head">
+    <div class="head-copy"><div class="eyebrow">AutoPTU · Cobblemon · Ouros Build Review</div><span class="classification" id="classification">BUILD REVIEW</span><h1 id="build-title">Exact Minecraft Explorer</h1></div>
+    <button class="iconbtn" id="hud-toggle">Hide</button>
+  </div>
+  <div id="hud-body">
+    <label class="select-label" for="build-select">Build</label>
+    <div class="select-row"><select id="build-select" aria-label="Select Ouros build"></select></div>
+    <div id="space-row">
+      <label class="select-label" for="space-select">Room / review space</label>
+      <select id="space-select" aria-label="Select authored review space"></select>
     </div>
-  </section>
-</main>
+    <div class="truth"><span class="dot"></span><span id="truth-label">VERIFYING LIVE-SERVER GEOMETRY…</span></div>
+    <div class="stats"><div class="stat"><b id="block-count">—</b><span>actual blocks</span></div><div class="stat"><b id="palette-count">—</b><span>block states</span></div><div class="stat"><b id="bounds">—</b><span>capture volume</span></div><div class="stat"><b id="hash">—</b><span>geometry SHA</span></div></div>
+    <div class="row"><span class="group-label">Camera</span><button class="btn active" data-camera="orbit">Orbit</button><button class="btn" data-camera="fly">First person</button><button class="btn" id="focus">Focus</button><button class="btn" id="reset">Reset camera</button></div>
+    <div class="row" id="layer-buttons"><span class="group-label">View</span></div>
+    <div class="row"><button class="btn" id="info">Blocks / authority</button></div>
+    <label class="slice"><span>Max Y</span><input id="slice" type="range" min="0" max="1" value="1" step="1"/><output id="slice-value">1</output></label>
+  </div>
+</div>
+
+<div class="panel" id="panel"><h2>Exact build manifest</h2><p id="authority"></p><p id="sources"></p><div class="palette" id="palette"></div></div>
+<div id="fly-pad" aria-label="First-person touch controls"><button class="flykey" data-move="KeyQ" aria-label="Down">−</button><button class="flykey" data-move="KeyW" aria-label="Forward">↑</button><button class="flykey" data-move="KeyE" aria-label="Up">+</button><button class="flykey" data-move="KeyA" aria-label="Left">←</button><button class="flykey" data-move="KeyS" aria-label="Back">↓</button><button class="flykey" data-move="KeyD" aria-label="Right">→</button></div>
+<div id="tip">ORBIT · drag rotate · right-drag/two fingers pan · WASD/QE move focus · wheel/pinch dolly</div>
+<div id="error"></div>
+
+<script>
+window.__ourosViewerBooted=false;
+(function(){
+  function showEarlyError(message){var loading=document.getElementById('loading');var error=document.getElementById('error');if(loading)loading.style.display='none';if(error){error.style.display='block';error.textContent='Minecraft viewer boot error: '+message;}}
+  window.addEventListener('error',function(event){if(!window.__ourosViewerBooted){showEarlyError(event.message||'classic viewer script failed to parse');}});
+  window.addEventListener('unhandledrejection',function(event){if(!window.__ourosViewerBooted){showEarlyError((event.reason&&event.reason.message)||String(event.reason||'unhandled rejection'));}});
+  setTimeout(function(){if(window.__ourosViewerBooted)return;showEarlyError('local unified viewer bundle did not start within 12 seconds.');},12000);
+})();
+</script>
+<script src="assets/ouros-build-review.bundle.js?v=unified-explorer-v1"></script>
 </body>
 </html>
