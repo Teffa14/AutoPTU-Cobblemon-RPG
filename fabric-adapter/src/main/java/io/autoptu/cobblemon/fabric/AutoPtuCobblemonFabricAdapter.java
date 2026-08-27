@@ -13,7 +13,7 @@ import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmo
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
 import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosBuildManifestExportRuntime;
-import io.autoptu.cobblemon.fabric.world.OurosGrandPalaceManifestExportRuntime;
+import io.autoptu.cobblemon.fabric.world.OurosGrandPalaceV4ManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosSignatureBuildRuntime;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -37,7 +37,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         CedarMeadowRuntime.register();
         OurosSignatureBuildRuntime.register();
         OurosBuildManifestExportRuntime.registerIfEnabled();
-        OurosGrandPalaceManifestExportRuntime.registerIfEnabled();
+        OurosGrandPalaceV4ManifestExportRuntime.registerIfEnabled();
         CobblemonLiveRelocationSmoke.registerIfEnabled();
         CobblemonLiveReactionPlaybackSmoke.registerIfEnabled();
         CobblemonLiveHealthSmoke.registerIfEnabled();
