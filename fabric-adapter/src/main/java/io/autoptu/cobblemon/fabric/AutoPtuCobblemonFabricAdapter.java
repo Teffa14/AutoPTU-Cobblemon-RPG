@@ -12,6 +12,7 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
+import io.autoptu.cobblemon.fabric.rpg.FabricCraftingAssessmentRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyHealingRuntime;
@@ -57,6 +58,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricStarterCatalogueRuntime.register();
         FabricStarterSelectionRuntime.register();
         FabricTrainerPtuActionRuntime.register();
+        FabricCraftingAssessmentRuntime.register();
         VisibleWildPokemonEncounterRuntime.register();
         CedarMeadowRuntime.register();
         OurosSignatureBuildRuntime.register();
