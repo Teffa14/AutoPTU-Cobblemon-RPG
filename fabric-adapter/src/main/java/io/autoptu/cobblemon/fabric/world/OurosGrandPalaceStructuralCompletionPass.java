@@ -8,12 +8,12 @@ import net.minecraft.util.math.BlockPos;
 import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.fill;
 
 /**
- * Final authored support pass for the Grand Palace.
+ * Final authored support/composition pass for the Grand Palace.
  *
- * The pass first replaces the prototype exterior shell with the authored Palace V2 architecture,
- * adds real backing under every stepped roof course, then trims temporary study geometry to the
- * current exact-viewer envelope before closing smaller support gaps in dense room decoration.
- * The floating-component audit remains strict afterwards.
+ * The nineteen-room grid remains stable as the interior program. Exterior architecture is free to
+ * project beyond that grid: the V2 shell, roof support and cour d'honneur are composed around it,
+ * then dense room decoration receives its smaller grounding fixes. The exact exporter owns the
+ * larger review envelope and the floating-component audit remains strict afterwards.
  */
 final class OurosGrandPalaceStructuralCompletionPass {
     private OurosGrandPalaceStructuralCompletionPass() {}
@@ -21,7 +21,7 @@ final class OurosGrandPalaceStructuralCompletionPass {
     static void apply(ServerWorld world, BlockPos origin) {
         OurosGrandPalaceExteriorRebuildPass.apply(world, origin);
         OurosGrandPalaceRoofSupportPass.apply(world, origin);
-        OurosGrandPalaceEnvelopeSafetyPass.apply(world, origin);
+        OurosGrandPalaceCourDHonneurPass.apply(world, origin);
         groundFurnitureFeet(world, origin, 2, 0);
         groundFurnitureFeet(world, origin, 17, 15);
         supportGalleryRibs(world, origin);
