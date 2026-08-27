@@ -4,7 +4,6 @@
 window.__ourosViewerBooted = true;
 
 const registryUrl = 'build-data/builds.json';
-const assetBase = 'minecraft-assets/';
 const canvas = document.getElementById('canvas');
 const loading = document.getElementById('loading');
 const loadTitle = document.getElementById('load-title');
@@ -28,16 +27,12 @@ function fail(error) {
   if (errorBox) {
     errorBox.style.display = 'block';
     errorBox.textContent = 'Minecraft viewer error: ' + ((error && error.message) || error)
-      + '. The exported geometry remains authoritative; this browser renderer failed.';
+      + '. The authoritative Fabric block manifest remains valid; the low-memory review mesh failed.';
   }
 }
 
-const ds = window.deepslate;
 const gm = window.glMatrix;
-if (!ds) { fail(new Error('local Deepslate UMD runtime missing')); return; }
 if (!gm || !gm.mat4) { fail(new Error('local gl-matrix UMD runtime missing')); return; }
-
-const { BlockDefinition, BlockModel, Identifier, Structure, StructureRenderer, TextureAtlas, upperPowerOfTwo } = ds;
 const { mat4 } = gm;
 const gl = canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: false });
 if (!gl) { fail(new Error('WebGL is unavailable')); return; }
@@ -45,8 +40,8 @@ if (!gl) { fail(new Error('WebGL is unavailable')); return; }
 let registry = null;
 let currentBuild = null;
 let manifest = null;
-let resources = null;
 let renderer = null;
+let atlasTexture = null;
 let currentLayer = 'all';
 let currentSpace = '';
 let cameraMode = 'orbit';
@@ -70,242 +65,323 @@ function progress(percent, title, copy) {
   if (title && loadTitle) loadTitle.textContent = title;
   if (copy && loadCopy) loadCopy.textContent = copy;
 }
-
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function add(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
 function scale(v, n) { return [v[0] * n, v[1] * n, v[2] * n]; }
 function length(v) { return Math.hypot(v[0], v[1], v[2]); }
-function normalize(v) {
-  const n = length(v) || 1;
-  return [v[0] / n, v[1] / n, v[2] / n];
-}
-function cross(a, b) {
-  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-}
-function worldToLocal(v) {
-  return [v[0] - manifest.min[0], v[1] - manifest.min[1], v[2] - manifest.min[2]];
-}
-function localCenter() { return [manifest.size[0] / 2, manifest.size[1] / 2, manifest.size[2] / 2]; }
+function normalize(v) { const n = length(v) || 1; return [v[0] / n, v[1] / n, v[2] / n]; }
+function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function worldToLocal(v) { return [v[0]-manifest.min[0], v[1]-manifest.min[1], v[2]-manifest.min[2]]; }
+function localCenter() { return [manifest.size[0]/2, manifest.size[1]/2, manifest.size[2]/2]; }
 function orbitEye() {
   const cp = Math.cos(pitch);
-  return [
-    orbitTarget[0] + Math.sin(yaw) * cp * orbitDistance,
-    orbitTarget[1] + Math.sin(pitch) * orbitDistance,
-    orbitTarget[2] + Math.cos(yaw) * cp * orbitDistance
-  ];
+  return [orbitTarget[0] + Math.sin(yaw)*cp*orbitDistance,
+    orbitTarget[1] + Math.sin(pitch)*orbitDistance,
+    orbitTarget[2] + Math.cos(yaw)*cp*orbitDistance];
 }
 function flyForward() {
   const cp = Math.cos(flyPitch);
-  return normalize([Math.sin(flyYaw) * cp, Math.sin(flyPitch), Math.cos(flyYaw) * cp]);
+  return normalize([Math.sin(flyYaw)*cp, Math.sin(flyPitch), Math.cos(flyYaw)*cp]);
 }
 function orbitForwardHorizontal() {
   const eye = orbitEye();
-  return normalize([orbitTarget[0] - eye[0], 0, orbitTarget[2] - eye[2]]);
+  return normalize([orbitTarget[0]-eye[0], 0, orbitTarget[2]-eye[2]]);
 }
 
-function resize() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.35);
-  const w = Math.max(1, Math.floor(innerWidth * dpr));
-  const h = Math.max(1, Math.floor(innerHeight * dpr));
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-    gl.viewport(0, 0, w, h);
-    draw();
+function compileShader(type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || 'shader compile failed');
+  return shader;
+}
+function createProgram() {
+  const vs = compileShader(gl.VERTEX_SHADER, `
+    attribute vec3 aPosition;
+    attribute vec2 aUv;
+    attribute vec3 aNormal;
+    uniform mat4 uMvp;
+    uniform float uPositionScale;
+    varying vec2 vUv;
+    varying vec3 vPos;
+    varying float vLight;
+    void main() {
+      vec3 p = aPosition / uPositionScale;
+      vPos = p;
+      vUv = aUv;
+      vec3 n = normalize(aNormal);
+      vLight = 0.58 + 0.42 * max(0.0, dot(n, normalize(vec3(0.35, 0.85, 0.4))));
+      gl_Position = uMvp * vec4(p, 1.0);
+    }
+  `);
+  const fs = compileShader(gl.FRAGMENT_SHADER, `
+    precision mediump float;
+    uniform sampler2D uAtlas;
+    uniform vec3 uClipMin;
+    uniform vec3 uClipMax;
+    uniform float uSliceMax;
+    uniform float uAlphaMode;
+    varying vec2 vUv;
+    varying vec3 vPos;
+    varying float vLight;
+    void main() {
+      if (vPos.x < uClipMin.x || vPos.y < uClipMin.y || vPos.z < uClipMin.z ||
+          vPos.x > uClipMax.x || vPos.y > uClipMax.y || vPos.z > uClipMax.z ||
+          vPos.y > uSliceMax) discard;
+      vec4 tex = texture2D(uAtlas, vUv);
+      if (tex.a < 0.08) discard;
+      if (uAlphaMode < 0.5 && tex.a < 0.98) tex.a = 1.0;
+      gl_FragColor = vec4(tex.rgb * vLight, tex.a);
+    }
+  `);
+  const program = gl.createProgram();
+  gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
+  gl.deleteShader(vs); gl.deleteShader(fs);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || 'shader link failed');
+  return program;
+}
+
+class SurfaceMeshRenderer {
+  constructor(descriptor, texture) {
+    this.descriptor = descriptor;
+    this.texture = texture;
+    this.program = createProgram();
+    this.opaque = null;
+    this.translucent = null;
+    this.aPosition = gl.getAttribLocation(this.program, 'aPosition');
+    this.aUv = gl.getAttribLocation(this.program, 'aUv');
+    this.aNormal = gl.getAttribLocation(this.program, 'aNormal');
+    this.uMvp = gl.getUniformLocation(this.program, 'uMvp');
+    this.uPositionScale = gl.getUniformLocation(this.program, 'uPositionScale');
+    this.uAtlas = gl.getUniformLocation(this.program, 'uAtlas');
+    this.uClipMin = gl.getUniformLocation(this.program, 'uClipMin');
+    this.uClipMax = gl.getUniformLocation(this.program, 'uClipMax');
+    this.uSliceMax = gl.getUniformLocation(this.program, 'uSliceMax');
+    this.uAlphaMode = gl.getUniformLocation(this.program, 'uAlphaMode');
+  }
+  async load() {
+    const loadPart = async part => {
+      if (!part || !part.vertices) return null;
+      const response = await fetch(part.url, { cache: 'force-cache' });
+      if (!response.ok) throw new Error('surface mesh HTTP ' + response.status + ' (' + part.url + ')');
+      const data = await response.arrayBuffer();
+      if (data.byteLength !== part.bytes) throw new Error('surface mesh byte count mismatch for ' + part.url);
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      return { buffer, vertices: part.vertices };
+    };
+    [this.opaque, this.translucent] = await Promise.all([
+      loadPart(this.descriptor.opaque), loadPart(this.descriptor.translucent)
+    ]);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  }
+  dispose() {
+    for (const part of [this.opaque, this.translucent]) if (part && part.buffer) gl.deleteBuffer(part.buffer);
+    if (this.program) gl.deleteProgram(this.program);
+    this.opaque = null; this.translucent = null; this.program = null;
+  }
+  drawPart(part, alphaMode) {
+    if (!part || !part.vertices) return;
+    gl.bindBuffer(gl.ARRAY_BUFFER, part.buffer);
+    gl.enableVertexAttribArray(this.aPosition);
+    gl.enableVertexAttribArray(this.aUv);
+    gl.enableVertexAttribArray(this.aNormal);
+    gl.vertexAttribPointer(this.aPosition, 3, gl.UNSIGNED_SHORT, false, 16, 0);
+    gl.vertexAttribPointer(this.aUv, 2, gl.UNSIGNED_SHORT, true, 16, 6);
+    gl.vertexAttribPointer(this.aNormal, 3, gl.BYTE, true, 16, 10);
+    gl.uniform1f(this.uAlphaMode, alphaMode);
+    gl.drawArrays(gl.TRIANGLES, 0, part.vertices);
+  }
+  draw(view, clipMin, clipMax, sliceMax) {
+    gl.useProgram(this.program);
+    const projection = mat4.create();
+    mat4.perspective(projection, Math.PI / 3, canvas.width / Math.max(1, canvas.height), 0.05, 1200);
+    const mvp = mat4.create();
+    mat4.multiply(mvp, projection, view);
+    gl.uniformMatrix4fv(this.uMvp, false, mvp);
+    gl.uniform1f(this.uPositionScale, this.descriptor.vertexFormat.positionScale || 16);
+    gl.uniform3fv(this.uClipMin, clipMin);
+    gl.uniform3fv(this.uClipMax, clipMax);
+    gl.uniform1f(this.uSliceMax, sliceMax);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.uniform1i(this.uAtlas, 0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.disable(gl.BLEND);
+    gl.depthMask(true);
+    this.drawPart(this.opaque, 0);
+    if (this.translucent && this.translucent.vertices) {
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.depthMask(false);
+      this.drawPart(this.translucent, 1);
+      gl.depthMask(true);
+      gl.disable(gl.BLEND);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 }
 
-function draw() {
-  if (!renderer || !manifest) return;
-  gl.clearColor(0.027, 0.063, 0.047, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  const view = mat4.create();
-  if (cameraMode === 'fly') {
-    const forward = flyForward();
-    mat4.lookAt(view, flyPosition, add(flyPosition, forward), [0, 1, 0]);
-  } else {
-    mat4.lookAt(view, orbitEye(), orbitTarget, [0, 1, 0]);
-  }
-  renderer.drawStructure(view);
+async function localJson(url, label, cacheMode) {
+  const response = await fetch(url, { cache: cacheMode || 'force-cache' });
+  if (!response.ok) throw new Error(label + ' HTTP ' + response.status + ' (' + url + ')');
+  return response.json();
+}
+async function loadAtlas() {
+  if (atlasTexture) return atlasTexture;
+  progress(28, 'Loading compact texture atlas', 'The browser no longer loads Minecraft block definitions or model JSON.');
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Minecraft texture atlas failed'));
+    img.src = 'minecraft-assets/atlas.png';
+  });
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  atlasTexture = texture;
+  return texture;
 }
 
 function activeLayerConfig() {
   const layers = (currentBuild && currentBuild.layers) || [];
   return layers.find(layer => layer.id === currentLayer) || null;
 }
-
 function activeSpaceConfig() {
   const spaces = (manifest && manifest.reviewSpaces) || [];
   return spaces.find(space => space.id === currentSpace) || null;
 }
-
-function included(block) {
-  if (block[1] > Number(slice.value)) return false;
+function reviewClip() {
+  let min = [0, 0, 0];
+  let max = [manifest.size[0], manifest.size[1], manifest.size[2]];
   const space = activeSpaceConfig();
   if (space) {
-    return block[0] >= space.min[0] && block[0] <= space.max[0]
-      && block[1] >= space.min[1] && block[1] <= space.max[1]
-      && block[2] >= space.min[2] && block[2] <= space.max[2];
+    min = worldToLocal(space.min);
+    max = worldToLocal([space.max[0] + 1, space.max[1] + 1, space.max[2] + 1]);
+  } else {
+    const layer = activeLayerConfig();
+    if (layer) {
+      if (typeof layer.minY === 'number') min[1] = layer.minY - manifest.min[1];
+      if (typeof layer.maxY === 'number') max[1] = layer.maxY - manifest.min[1] + 1;
+      if (layer.cutawayAxis === 'x') {
+        const split = typeof layer.cutawayAt === 'number' ? layer.cutawayAt : (manifest.min[0] + manifest.max[0]) / 2;
+        if (layer.cutawaySide === 'negative') max[0] = split - manifest.min[0] + 1;
+        else min[0] = split - manifest.min[0];
+      }
+      if (layer.cutawayAxis === 'z') {
+        const split = typeof layer.cutawayAt === 'number' ? layer.cutawayAt : (manifest.min[2] + manifest.max[2]) / 2;
+        if (layer.cutawaySide === 'negative') max[2] = split - manifest.min[2] + 1;
+        else min[2] = split - manifest.min[2];
+      }
+    }
   }
-  const layer = activeLayerConfig();
-  if (!layer || layer.id === 'all') return true;
-  if (typeof layer.minY === 'number' && block[1] < layer.minY) return false;
-  if (typeof layer.maxY === 'number' && block[1] > layer.maxY) return false;
-  if (layer.cutawayAxis === 'x') {
-    const split = typeof layer.cutawayAt === 'number' ? layer.cutawayAt : (manifest.min[0] + manifest.max[0]) / 2;
-    return layer.cutawaySide === 'negative' ? block[0] <= split : block[0] >= split;
-  }
-  if (layer.cutawayAxis === 'z') {
-    const split = typeof layer.cutawayAt === 'number' ? layer.cutawayAt : (manifest.min[2] + manifest.max[2]) / 2;
-    return layer.cutawaySide === 'negative' ? block[2] <= split : block[2] >= split;
-  }
-  return true;
+  return { min, max };
 }
 
-function propertiesOf(entry) { return entry.properties || {}; }
-function shifted(block) { return [block[0] - manifest.min[0], block[1] - manifest.min[1], block[2] - manifest.min[2]]; }
-function makeStructure() {
-  const structure = new Structure(manifest.size);
-  for (const block of manifest.blocks) {
-    if (!included(block)) continue;
-    const state = manifest.palette[block[3]];
-    structure.addBlock(shifted(block), state.id, propertiesOf(state));
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.15);
+  const w = Math.max(1, Math.floor(innerWidth * dpr));
+  const h = Math.max(1, Math.floor(innerHeight * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); draw();
   }
-  return structure;
+}
+function draw() {
+  if (!renderer || !manifest) return;
+  gl.clearColor(0.027, 0.063, 0.047, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  const view = mat4.create();
+  if (cameraMode === 'fly') mat4.lookAt(view, flyPosition, add(flyPosition, flyForward()), [0,1,0]);
+  else mat4.lookAt(view, orbitEye(), orbitTarget, [0,1,0]);
+  const clip = reviewClip();
+  const sliceLocal = Number(slice.value) - manifest.min[1] + 1;
+  renderer.draw(view, clip.min, clip.max, sliceLocal);
 }
 
-function rebuild(message) {
-  if (!resources || !manifest) return;
-  progress(94, 'Rebuilding exact Minecraft view', message || 'Applying review filter to the live-server manifest…');
-  if (loading) loading.style.display = 'grid';
-  renderer = new StructureRenderer(gl, makeStructure(), resources);
-  if (loading) loading.style.display = 'none';
-  draw();
-}
-
-function paletteCounts() {
-  const counts = new Map();
-  for (const block of manifest.blocks) {
-    const id = manifest.palette[block[3]].id;
-    counts.set(id, (counts.get(id) || 0) + 1);
-  }
-  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-}
-
+function paletteCounts() { return manifest.paletteCounts || []; }
 function fillMetadata() {
   document.getElementById('build-title').textContent = manifest.displayName || currentBuild.name;
   document.getElementById('classification').textContent = currentBuild.classification || 'BUILD REVIEW';
-  document.getElementById('truth-label').textContent = 'EXACT LIVE-SERVER BLOCKSTATE GEOMETRY';
+  document.getElementById('truth-label').textContent = 'EXACT SERVER BLOCK DATA · LOW-MEMORY SURFACE MESH';
   document.getElementById('block-count').textContent = manifest.blockCount.toLocaleString();
-  document.getElementById('palette-count').textContent = manifest.palette.length.toLocaleString();
+  document.getElementById('palette-count').textContent = manifest.paletteCount.toLocaleString();
   document.getElementById('bounds').textContent = manifest.size.join(' × ');
-  document.getElementById('hash').textContent = manifest.geometrySha256.slice(0, 12);
+  document.getElementById('hash').textContent = manifest.sourceGeometrySha256.slice(0, 12);
+  const stats = manifest.meshStats || {};
   document.getElementById('authority').textContent = 'Authority: ' + manifest.geometryAuthority
-    + ' · Minecraft ' + manifest.minecraftVersion + ' · SHA-256 ' + manifest.geometrySha256 + '.';
-  document.getElementById('sources').textContent = 'Production sources: ' + (manifest.productionSources || []).join(' + ') + '.';
-  slice.min = manifest.min[1];
-  slice.max = manifest.max[1];
-  slice.value = manifest.max[1];
-  sliceValue.value = manifest.max[1];
-  const p = document.getElementById('palette');
-  p.replaceChildren();
+    + ' · Minecraft ' + manifest.minecraftVersion + ' · source SHA-256 ' + manifest.sourceGeometrySha256
+    + ' · review mesh ' + Number(stats.visibleFaces || 0).toLocaleString() + ' visible faces.';
+  document.getElementById('sources').textContent = 'Production sources: ' + (manifest.productionSources || []).join(' + ')
+    + '. Browser does not materialize the source BlockState array.';
+  slice.min = manifest.min[1]; slice.max = manifest.max[1]; slice.value = manifest.max[1]; sliceValue.value = manifest.max[1];
+  const p = document.getElementById('palette'); p.replaceChildren();
   for (const [id, count] of paletteCounts()) {
     const a = document.createElement('span'); a.textContent = id.replace('minecraft:', '');
     const b = document.createElement('span'); b.textContent = count.toLocaleString();
     p.append(a, b);
   }
 }
-
 function populateLayers() {
   layerButtons.replaceChildren();
-  const layers = currentBuild.layers && currentBuild.layers.length ? currentBuild.layers : [{ id: 'all', label: 'All' }];
+  const layers = currentBuild.layers && currentBuild.layers.length ? currentBuild.layers : [{ id:'all', label:'All' }];
   if (!layers.some(layer => layer.id === currentLayer)) currentLayer = 'all';
   for (const layer of layers) {
     const button = document.createElement('button');
     button.className = 'btn' + (layer.id === currentLayer ? ' active' : '');
-    button.textContent = layer.label;
-    button.dataset.layer = layer.id;
+    button.textContent = layer.label; button.dataset.layer = layer.id;
     button.addEventListener('click', () => {
-      currentLayer = layer.id;
-      currentSpace = '';
-      spaceSelect.value = '';
-      populateLayers();
-      rebuild('Applying ' + layer.label + ' to the exact block manifest…');
+      currentLayer = layer.id; currentSpace = ''; spaceSelect.value = ''; populateLayers(); draw();
     });
     layerButtons.appendChild(button);
   }
 }
-
 function populateSpaces() {
   const spaces = manifest.reviewSpaces || [];
   spaceSelect.replaceChildren();
-  const all = document.createElement('option');
-  all.value = '';
-  all.textContent = spaces.length ? 'Whole build' : 'No authored subspaces';
+  const all = document.createElement('option'); all.value = ''; all.textContent = spaces.length ? 'Whole build' : 'No authored subspaces';
   spaceSelect.appendChild(all);
-  for (const space of spaces) {
-    const option = document.createElement('option');
-    option.value = space.id;
-    option.textContent = space.name;
-    spaceSelect.appendChild(option);
-  }
-  currentSpace = '';
-  spaceSelect.value = '';
-  spaceSelect.disabled = spaces.length === 0;
-  spaceRow.classList.toggle('hidden', spaces.length === 0);
+  for (const space of spaces) { const option = document.createElement('option'); option.value = space.id; option.textContent = space.name; spaceSelect.appendChild(option); }
+  currentSpace = ''; spaceSelect.value = ''; spaceSelect.disabled = spaces.length === 0; spaceRow.classList.toggle('hidden', spaces.length === 0);
 }
-
 function focusCurrentSelection() {
   const space = activeSpaceConfig();
   if (space) {
-    const focusWorld = space.focus || [
-      (space.min[0] + space.max[0]) / 2,
-      (space.min[1] + space.max[1]) / 2,
-      (space.min[2] + space.max[2]) / 2
-    ];
+    const focusWorld = space.focus || [(space.min[0]+space.max[0])/2,(space.min[1]+space.max[1])/2,(space.min[2]+space.max[2])/2];
     orbitTarget = worldToLocal(focusWorld);
-    orbitDistance = Math.max(18, Math.max(space.max[0] - space.min[0], space.max[2] - space.min[2]) * 1.75);
-    pitch = 0.24;
-    yaw = -0.35;
+    orbitDistance = Math.max(18, Math.max(space.max[0]-space.min[0], space.max[2]-space.min[2]) * 1.75);
+    pitch = 0.24; yaw = -0.35;
   } else {
-    orbitTarget = localCenter();
-    orbitTarget[1] = Math.max(3, manifest.size[1] * 0.38);
+    orbitTarget = localCenter(); orbitTarget[1] = Math.max(3, manifest.size[1] * 0.38);
     orbitDistance = Math.max(60, Math.max(manifest.size[0], manifest.size[2]) * 1.55);
-    pitch = 0.52;
-    yaw = -0.72;
+    pitch = 0.52; yaw = -0.72;
   }
   if (cameraMode === 'fly') {
-    const eye = orbitEye();
-    flyPosition = eye.slice();
-    const toward = normalize([
-      orbitTarget[0] - eye[0], orbitTarget[1] - eye[1], orbitTarget[2] - eye[2]
-    ]);
-    flyPitch = Math.asin(clamp(toward[1], -1, 1));
-    flyYaw = Math.atan2(toward[0], toward[2]);
+    const eye = orbitEye(); flyPosition = eye.slice();
+    const toward = normalize([orbitTarget[0]-eye[0], orbitTarget[1]-eye[1], orbitTarget[2]-eye[2]]);
+    flyPitch = Math.asin(clamp(toward[1], -1, 1)); flyYaw = Math.atan2(toward[0], toward[2]);
   }
   draw();
 }
-
-function resetCamera() {
-  focusCurrentSelection();
-}
-
+function resetCamera() { focusCurrentSelection(); }
 function setCameraMode(mode) {
   if (mode === cameraMode) return;
   if (mode === 'fly') {
-    const eye = orbitEye();
-    const toward = normalize([orbitTarget[0] - eye[0], orbitTarget[1] - eye[1], orbitTarget[2] - eye[2]]);
-    flyPosition = eye.slice();
-    flyPitch = Math.asin(clamp(toward[1], -1, 1));
-    flyYaw = Math.atan2(toward[0], toward[2]);
-    cameraMode = 'fly';
+    const eye = orbitEye(); const toward = normalize([orbitTarget[0]-eye[0], orbitTarget[1]-eye[1], orbitTarget[2]-eye[2]]);
+    flyPosition = eye.slice(); flyPitch = Math.asin(clamp(toward[1], -1, 1)); flyYaw = Math.atan2(toward[0], toward[2]); cameraMode = 'fly';
   } else {
-    const forward = flyForward();
-    orbitTarget = add(flyPosition, scale(forward, Math.max(14, orbitDistance * 0.45)));
+    const forward = flyForward(); orbitTarget = add(flyPosition, scale(forward, Math.max(14, orbitDistance * 0.45)));
     orbitDistance = Math.max(24, Math.min(180, orbitDistance));
-    yaw = Math.atan2(flyPosition[0] - orbitTarget[0], flyPosition[2] - orbitTarget[2]);
-    pitch = Math.asin(clamp((flyPosition[1] - orbitTarget[1]) / orbitDistance, -0.98, 0.98));
-    cameraMode = 'orbit';
+    yaw = Math.atan2(flyPosition[0]-orbitTarget[0], flyPosition[2]-orbitTarget[2]);
+    pitch = Math.asin(clamp((flyPosition[1]-orbitTarget[1])/orbitDistance, -0.98, 0.98)); cameraMode = 'orbit';
   }
   document.querySelectorAll('[data-camera]').forEach(button => button.classList.toggle('active', button.dataset.camera === cameraMode));
   flyPad.classList.toggle('visible', cameraMode === 'fly');
@@ -314,7 +390,6 @@ function setCameraMode(mode) {
     : 'ORBIT · drag rotate · right-drag/two fingers pan · WASD/QE move focus · wheel/pinch dolly';
   draw();
 }
-
 function moveCamera(dt) {
   if (!manifest || keys.size === 0) return false;
   const boost = keys.has('ShiftLeft') || keys.has('ShiftRight') ? 3 : 1;
@@ -322,270 +397,99 @@ function moveCamera(dt) {
   const amount = base * boost * dt;
   let moved = false;
   if (cameraMode === 'fly') {
-    const forward = flyForward();
-    const right = normalize(cross([0, 1, 0], forward));
-    let delta = [0, 0, 0];
+    const forward = flyForward(); const right = normalize(cross([0,1,0], forward)); let delta = [0,0,0];
     if (keys.has('KeyW') || keys.has('ArrowUp')) delta = add(delta, forward);
-    if (keys.has('KeyS') || keys.has('ArrowDown')) delta = add(delta, scale(forward, -1));
+    if (keys.has('KeyS') || keys.has('ArrowDown')) delta = add(delta, scale(forward,-1));
     if (keys.has('KeyD') || keys.has('ArrowRight')) delta = add(delta, right);
-    if (keys.has('KeyA') || keys.has('ArrowLeft')) delta = add(delta, scale(right, -1));
-    if (keys.has('KeyE') || keys.has('Space')) delta[1] += 1;
-    if (keys.has('KeyQ')) delta[1] -= 1;
-    if (length(delta) > 0) {
-      flyPosition = add(flyPosition, scale(normalize(delta), amount));
-      moved = true;
-    }
+    if (keys.has('KeyA') || keys.has('ArrowLeft')) delta = add(delta, scale(right,-1));
+    if (keys.has('KeyE') || keys.has('Space')) delta[1] += 1; if (keys.has('KeyQ')) delta[1] -= 1;
+    if (length(delta) > 0) { flyPosition = add(flyPosition, scale(normalize(delta), amount)); moved = true; }
   } else {
-    const forward = orbitForwardHorizontal();
-    const right = normalize(cross([0, 1, 0], forward));
-    let delta = [0, 0, 0];
+    const forward = orbitForwardHorizontal(); const right = normalize(cross([0,1,0], forward)); let delta = [0,0,0];
     if (keys.has('KeyW') || keys.has('ArrowUp')) delta = add(delta, forward);
-    if (keys.has('KeyS') || keys.has('ArrowDown')) delta = add(delta, scale(forward, -1));
+    if (keys.has('KeyS') || keys.has('ArrowDown')) delta = add(delta, scale(forward,-1));
     if (keys.has('KeyD') || keys.has('ArrowRight')) delta = add(delta, right);
-    if (keys.has('KeyA') || keys.has('ArrowLeft')) delta = add(delta, scale(right, -1));
-    if (keys.has('KeyE') || keys.has('Space')) delta[1] += 1;
-    if (keys.has('KeyQ')) delta[1] -= 1;
-    if (length(delta) > 0) {
-      orbitTarget = add(orbitTarget, scale(normalize(delta), amount));
-      moved = true;
-    }
+    if (keys.has('KeyA') || keys.has('ArrowLeft')) delta = add(delta, scale(right,-1));
+    if (keys.has('KeyE') || keys.has('Space')) delta[1] += 1; if (keys.has('KeyQ')) delta[1] -= 1;
+    if (length(delta) > 0) { orbitTarget = add(orbitTarget, scale(normalize(delta), amount)); moved = true; }
   }
   return moved;
 }
-
-function frame(now) {
-  const dt = Math.min(0.05, (now - lastFrame) / 1000 || 0);
-  lastFrame = now;
-  if (moveCamera(dt)) draw();
-  requestAnimationFrame(frame);
-}
+function frame(now) { const dt = Math.min(0.05, (now-lastFrame)/1000 || 0); lastFrame = now; if (moveCamera(dt)) draw(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 
 canvas.addEventListener('contextmenu', event => event.preventDefault());
 canvas.addEventListener('pointerdown', event => {
   if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
-  pointers.set(event.pointerId, [event.clientX, event.clientY]);
-  dragKind = (event.button === 2 || event.shiftKey) ? 'pan' : 'rotate';
-  if (cameraMode === 'fly' && event.pointerType === 'mouse' && canvas.requestPointerLock) {
-    canvas.requestPointerLock().catch(function () {});
-  }
+  pointers.set(event.pointerId, [event.clientX,event.clientY]); dragKind = (event.button === 2 || event.shiftKey) ? 'pan' : 'rotate';
+  if (cameraMode === 'fly' && event.pointerType === 'mouse' && canvas.requestPointerLock) canvas.requestPointerLock().catch(function () {});
 });
 canvas.addEventListener('pointermove', event => {
   if (!pointers.has(event.pointerId)) return;
-  const prior = pointers.get(event.pointerId);
-  pointers.set(event.pointerId, [event.clientX, event.clientY]);
-  const pts = Array.from(pointers.values());
-  const dx = event.clientX - prior[0];
-  const dy = event.clientY - prior[1];
-
-  if (cameraMode === 'fly') {
-    if (document.pointerLockElement !== canvas) {
-      flyYaw -= dx / 220;
-      flyPitch = clamp(flyPitch - dy / 220, -1.52, 1.52);
-      draw();
-    }
-    return;
-  }
-
-  if (pts.length === 1 && dragKind === 'rotate') {
-    yaw -= dx / 160;
-    pitch = clamp(pitch + dy / 160, -1.35, 1.35);
-    draw();
-  } else if (pts.length === 1 && dragKind === 'pan') {
-    const forward = orbitForwardHorizontal();
-    const right = normalize(cross([0, 1, 0], forward));
-    const scalePx = orbitDistance / Math.max(400, innerHeight) * 1.6;
-    orbitTarget = add(orbitTarget, add(scale(right, -dx * scalePx), [0, dy * scalePx, 0]));
-    draw();
+  const prior = pointers.get(event.pointerId); pointers.set(event.pointerId,[event.clientX,event.clientY]);
+  const pts = Array.from(pointers.values()); const dx = event.clientX-prior[0]; const dy = event.clientY-prior[1];
+  if (cameraMode === 'fly') { if (document.pointerLockElement !== canvas) { flyYaw -= dx/220; flyPitch = clamp(flyPitch-dy/220,-1.52,1.52); draw(); } return; }
+  if (pts.length === 1 && dragKind === 'rotate') { yaw -= dx/160; pitch = clamp(pitch+dy/160,-1.35,1.35); draw(); }
+  else if (pts.length === 1 && dragKind === 'pan') {
+    const forward = orbitForwardHorizontal(); const right = normalize(cross([0,1,0],forward)); const s = orbitDistance/Math.max(400,innerHeight)*1.6;
+    orbitTarget = add(orbitTarget, add(scale(right,-dx*s),[0,dy*s,0])); draw();
   } else if (pts.length >= 2) {
-    const a = pts[0], b = pts[1];
-    const dist = Math.hypot(a[0] - b[0], a[1] - b[1]);
-    const center = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-    if (lastPinch !== null) orbitDistance = clamp(orbitDistance - (dist - lastPinch) * 0.18, 2, 500);
-    if (lastCenter) {
-      const forward = orbitForwardHorizontal();
-      const right = normalize(cross([0, 1, 0], forward));
-      const panScale = orbitDistance / Math.max(400, innerHeight) * 1.4;
-      orbitTarget = add(orbitTarget, add(
-        scale(right, -(center[0] - lastCenter[0]) * panScale),
-        [0, (center[1] - lastCenter[1]) * panScale, 0]
-      ));
-    }
-    lastPinch = dist;
-    lastCenter = center;
-    draw();
+    const a=pts[0],b=pts[1]; const dist=Math.hypot(a[0]-b[0],a[1]-b[1]); const center=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+    if (lastPinch !== null) orbitDistance = clamp(orbitDistance-(dist-lastPinch)*0.18,2,500);
+    if (lastCenter) { const forward=orbitForwardHorizontal(); const right=normalize(cross([0,1,0],forward)); const s=orbitDistance/Math.max(400,innerHeight)*1.4;
+      orbitTarget=add(orbitTarget,add(scale(right,-(center[0]-lastCenter[0])*s),[0,(center[1]-lastCenter[1])*s,0])); }
+    lastPinch=dist; lastCenter=center; draw();
   }
 });
-function releasePointer(event) {
-  pointers.delete(event.pointerId);
-  if (pointers.size < 2) { lastPinch = null; lastCenter = null; }
-}
-canvas.addEventListener('pointerup', releasePointer);
-canvas.addEventListener('pointercancel', releasePointer);
-
-document.addEventListener('mousemove', event => {
-  if (cameraMode !== 'fly' || document.pointerLockElement !== canvas) return;
-  flyYaw -= event.movementX / 420;
-  flyPitch = clamp(flyPitch - event.movementY / 420, -1.52, 1.52);
-  draw();
-});
-
-canvas.addEventListener('wheel', event => {
-  event.preventDefault();
-  if (cameraMode === 'fly') {
-    flyPosition = add(flyPosition, scale(flyForward(), -event.deltaY * 0.035));
-  } else {
-    orbitDistance = clamp(orbitDistance + event.deltaY * 0.08, 2, 500);
-  }
-  draw();
-}, { passive: false });
-
+function releasePointer(event) { pointers.delete(event.pointerId); if (pointers.size < 2) { lastPinch=null; lastCenter=null; } }
+canvas.addEventListener('pointerup', releasePointer); canvas.addEventListener('pointercancel', releasePointer);
+document.addEventListener('mousemove', event => { if (cameraMode !== 'fly' || document.pointerLockElement !== canvas) return; flyYaw -= event.movementX/420; flyPitch=clamp(flyPitch-event.movementY/420,-1.52,1.52); draw(); });
+canvas.addEventListener('wheel', event => { event.preventDefault(); if (cameraMode === 'fly') flyPosition=add(flyPosition,scale(flyForward(),-event.deltaY*0.035)); else orbitDistance=clamp(orbitDistance+event.deltaY*0.08,2,500); draw(); }, { passive:false });
 window.addEventListener('keydown', event => {
   if (event.target && /select|input|button/i.test(event.target.tagName)) return;
-  const movement = ['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'];
-  if (movement.includes(event.code)) {
-    event.preventDefault();
-    keys.add(event.code);
-  }
-  if (event.code === 'KeyF') setCameraMode(cameraMode === 'fly' ? 'orbit' : 'fly');
-  if (event.code === 'KeyR') resetCamera();
+  const movement=['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'];
+  if (movement.includes(event.code)) { event.preventDefault(); keys.add(event.code); }
+  if (event.code === 'KeyF') setCameraMode(cameraMode === 'fly' ? 'orbit' : 'fly'); if (event.code === 'KeyR') resetCamera();
 });
-window.addEventListener('keyup', event => keys.delete(event.code));
-window.addEventListener('blur', () => keys.clear());
-
+window.addEventListener('keyup', event => keys.delete(event.code)); window.addEventListener('blur', () => keys.clear());
 for (const button of document.querySelectorAll('[data-move]')) {
-  const code = button.dataset.move;
-  const on = event => { event.preventDefault(); keys.add(code); };
-  const off = event => { event.preventDefault(); keys.delete(code); };
-  button.addEventListener('pointerdown', on);
-  button.addEventListener('pointerup', off);
-  button.addEventListener('pointercancel', off);
-  button.addEventListener('pointerleave', off);
-}
-
-async function localJson(url, label, cacheMode) {
-  const response = await fetch(url, { cache: cacheMode || 'force-cache' });
-  if (!response.ok) throw new Error(label + ' HTTP ' + response.status + ' (' + url + ')');
-  return response.json();
-}
-async function localImage(file, label) {
-  const url = assetBase + file;
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error(label + ' failed (' + url + ')'));
-    image.src = url;
-  });
-}
-
-async function loadResources() {
-  if (resources) return resources;
-  progress(22, 'Loading Minecraft block models', 'Reading pinned viewer assets from this Pages deployment…');
-  const [blockstates, models, uvMap, atlas] = await Promise.all([
-    localJson(assetBase + 'block-definitions.json', 'block definitions'),
-    localJson(assetBase + 'block-models.json', 'block models'),
-    localJson(assetBase + 'atlas-map.json', 'texture atlas map'),
-    localImage('atlas.png', 'Minecraft texture atlas')
-  ]);
-  progress(55, 'Preparing Minecraft textures', 'Building the local block-model resource set…');
-  const blockDefinitions = {};
-  for (const id of Object.keys(blockstates)) blockDefinitions['minecraft:' + id] = BlockDefinition.fromJson(blockstates[id]);
-  const blockModels = {};
-  for (const id of Object.keys(models)) blockModels['minecraft:' + id] = BlockModel.fromJson(models[id]);
-  Object.values(blockModels).forEach(model => model.flatten({ getBlockModel: id => blockModels[id] }));
-  const atlasCanvas = document.createElement('canvas');
-  const atlasSize = upperPowerOfTwo(Math.max(atlas.width, atlas.height));
-  atlasCanvas.width = atlasSize;
-  atlasCanvas.height = atlasSize;
-  const ctx = atlasCanvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('2D canvas unavailable for Minecraft atlas');
-  ctx.drawImage(atlas, 0, 0);
-  const atlasData = ctx.getImageData(0, 0, atlasSize, atlasSize);
-  const idMap = {};
-  for (const id of Object.keys(uvMap)) {
-    const uv = uvMap[id];
-    const u = uv[0], v = uv[1], du = uv[2], dv = uv[3];
-    const dv2 = (du !== dv && id.startsWith('block/')) ? du : dv;
-    idMap[Identifier.create(id).toString()] = [u / atlasSize, v / atlasSize, (u + du) / atlasSize, (v + dv2) / atlasSize];
-  }
-  const textureAtlas = new TextureAtlas(atlasData, idMap);
-  resources = {
-    getBlockDefinition: id => blockDefinitions[id.toString()],
-    getBlockModel: id => blockModels[id.toString()],
-    getTextureUV: id => textureAtlas.getTextureUV(id),
-    getTextureAtlas: () => textureAtlas.getTextureAtlas(),
-    getPixelSize: () => textureAtlas.getPixelSize(),
-    getBlockFlags: () => ({ opaque: false }),
-    getBlockProperties: () => null,
-    getDefaultBlockProperties: () => null
-  };
-  return resources;
+  const code=button.dataset.move; const on=event=>{event.preventDefault();keys.add(code);}; const off=event=>{event.preventDefault();keys.delete(code);};
+  button.addEventListener('pointerdown',on); button.addEventListener('pointerup',off); button.addEventListener('pointercancel',off); button.addEventListener('pointerleave',off);
 }
 
 async function loadBuild(id) {
   const token = ++loadToken;
   const config = registry.builds.find(build => build.id === id) || registry.builds[0];
   if (!config) throw new Error('build registry is empty');
-  currentBuild = config;
-  currentLayer = 'all';
-  currentSpace = '';
-  if (errorBox) errorBox.style.display = 'none';
-  if (loading) loading.style.display = 'grid';
-  progress(8, 'Loading ' + config.name, 'Reading the exact live-server BlockState manifest…');
-  const nextManifest = await localJson(config.manifest, 'exact block manifest', 'no-store');
+  currentBuild = config; currentLayer = 'all'; currentSpace = '';
+  if (errorBox) errorBox.style.display = 'none'; if (loading) loading.style.display = 'grid';
+  progress(8, 'Loading ' + config.name, 'Reading compact server-precomputed review metadata…');
+  const nextManifest = await localJson('build-mesh/' + config.id + '.mesh.json', 'surface mesh descriptor', 'no-store');
   if (token !== loadToken) return;
-  if (nextManifest.geometryAuthority !== 'live_server_final_blockstate_scan') throw new Error('manifest is not live-server authoritative');
-  if (nextManifest.blockCount !== nextManifest.blocks.length) throw new Error('manifest block count mismatch');
-  if (nextManifest.buildId !== config.id) throw new Error('registry/manifest build id mismatch');
-  manifest = nextManifest;
-  buildSelect.value = config.id;
-  fillMetadata();
-  populateLayers();
-  populateSpaces();
-  focusCurrentSelection();
-  await loadResources();
-  if (token !== loadToken) return;
-  progress(82, 'Building exact voxel scene', 'Materializing ' + manifest.blockCount.toLocaleString() + ' Minecraft blocks…');
-  resize();
-  renderer = new StructureRenderer(gl, makeStructure(), resources);
-  progress(100, 'Build ready', 'Use Orbit or First person to inspect the structure.');
-  setTimeout(() => { if (loading) loading.style.display = 'none'; }, 120);
-  const url = new URL(location.href);
-  url.searchParams.set('build', config.id);
-  history.replaceState(null, '', url);
-  draw();
+  if (nextManifest.format !== 'ouros.minecraft.surface-mesh.v1') throw new Error('unsupported surface mesh format');
+  if (nextManifest.geometryAuthority !== 'live_server_final_blockstate_scan') throw new Error('mesh descriptor lost live-server authority');
+  if (nextManifest.buildId !== config.id) throw new Error('registry/mesh build id mismatch');
+  manifest = nextManifest; buildSelect.value = config.id; fillMetadata(); populateLayers(); populateSpaces(); focusCurrentSelection(); resize();
+  const texture = await loadAtlas(); if (token !== loadToken) return;
+  progress(55, 'Streaming optimized 3D surface', 'Uploading only precomputed visible surfaces to the GPU…');
+  const nextRenderer = new SurfaceMeshRenderer(manifest, texture); await nextRenderer.load();
+  if (token !== loadToken) { nextRenderer.dispose(); return; }
+  if (renderer) renderer.dispose(); renderer = nextRenderer;
+  progress(100, 'Build ready', 'Filters now use GPU clipping. No BlockState scene rebuild occurs in this browser.');
+  setTimeout(() => { if (loading) loading.style.display = 'none'; }, 100);
+  const url = new URL(location.href); url.searchParams.set('build', config.id); history.replaceState(null,'',url); draw();
 }
-
-function populateBuilds() {
-  buildSelect.replaceChildren();
-  for (const build of registry.builds) {
-    const option = document.createElement('option');
-    option.value = build.id;
-    option.textContent = build.name;
-    buildSelect.appendChild(option);
-  }
-}
+function populateBuilds() { buildSelect.replaceChildren(); for (const build of registry.builds) { const option=document.createElement('option'); option.value=build.id; option.textContent=build.name; buildSelect.appendChild(option); } }
 
 buildSelect.addEventListener('change', () => loadBuild(buildSelect.value).catch(fail));
-spaceSelect.addEventListener('change', () => {
-  currentSpace = spaceSelect.value;
-  currentLayer = 'all';
-  populateLayers();
-  focusCurrentSelection();
-  rebuild(currentSpace ? 'Isolating ' + activeSpaceConfig().name + ' from the authoritative manifest…' : 'Showing the whole build…');
-});
-slice.addEventListener('input', () => { sliceValue.value = slice.value; });
-slice.addEventListener('change', () => rebuild('Applying vertical slice at Y=' + slice.value + '…'));
+spaceSelect.addEventListener('change', () => { currentSpace=spaceSelect.value; currentLayer='all'; populateLayers(); focusCurrentSelection(); draw(); });
+slice.addEventListener('input', () => { sliceValue.value=slice.value; draw(); });
+slice.addEventListener('change', draw);
 document.getElementById('focus').addEventListener('click', focusCurrentSelection);
 document.getElementById('reset').addEventListener('click', resetCamera);
 document.getElementById('info').addEventListener('click', () => { panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; });
-document.getElementById('hud-toggle').addEventListener('click', () => {
-  hud.classList.toggle('collapsed');
-  document.getElementById('hud-toggle').textContent = hud.classList.contains('collapsed') ? 'Menu' : 'Hide';
-});
-for (const button of document.querySelectorAll('[data-camera]')) {
-  button.addEventListener('click', () => setCameraMode(button.dataset.camera));
-}
+document.getElementById('hud-toggle').addEventListener('click', () => { hud.classList.toggle('collapsed'); document.getElementById('hud-toggle').textContent = hud.classList.contains('collapsed') ? 'Menu' : 'Hide'; });
+for (const button of document.querySelectorAll('[data-camera]')) button.addEventListener('click', () => setCameraMode(button.dataset.camera));
 window.addEventListener('resize', resize);
 
 (async () => {
@@ -597,9 +501,7 @@ window.addEventListener('resize', resize);
     const requested = new URL(location.href).searchParams.get('build');
     const initial = registry.builds.some(build => build.id === requested) ? requested : registry.builds[0].id;
     await loadBuild(initial);
-  } catch (error) {
-    fail(error);
-  }
+  } catch (error) { fail(error); }
 })();
 
 })();
