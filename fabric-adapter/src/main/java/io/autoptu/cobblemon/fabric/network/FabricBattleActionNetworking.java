@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.battlecore.BattleAuthoritativeChoiceExecutor;
 import io.autoptu.cobblemon.battlecore.BattleAuthoritativeLegalChoiceSource;
 import io.autoptu.cobblemon.battlecore.BattleAuthoritativePreparationSource;
 import io.autoptu.cobblemon.battlecore.BattleServerActionPacketHandler;
+import io.autoptu.cobblemon.fabric.battle.FabricBattleChoiceRuntime;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
@@ -38,6 +39,7 @@ public final class FabricBattleActionNetworking {
         Objects.requireNonNull(executor, "executor");
 
         registerPayloadType();
+        FabricBattleChoiceRuntime.configure(legalChoiceSource, executor);
         boolean registered = ServerPlayNetworking.registerGlobalReceiver(
                 FabricBattleActionPayload.ID,
                 (payload, context) -> BattleServerActionPacketHandler.handle(
