@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import com.cobblemon.mod.common.CobblemonBlocks;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -10,10 +11,10 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Live dedicated-server proof that the authored healing-station signature is recognized exactly. */
+/** Live dedicated-server proof that AutoPTU recognizes Cobblemon's actual Healing Machine block. */
 public final class FabricHealingStationRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveHealingStationSmoke";
-    public static final String SUCCESS_LOG = "AutoPTU live healing station interaction signature smoke passed";
+    public static final String SUCCESS_LOG = "AutoPTU live Cobblemon healing machine interaction smoke passed";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
 
@@ -26,30 +27,21 @@ public final class FabricHealingStationRuntimeSmoke {
 
     private static void run(MinecraftServer server) {
         ServerWorld world = server.getOverworld();
-        BlockPos head = world.getSpawnPos().up(24);
-        BlockPos base = head.down();
-        BlockPos power = head.down(2);
-
-        BlockState oldHead = world.getBlockState(head);
-        BlockState oldBase = world.getBlockState(base);
-        BlockState oldPower = world.getBlockState(power);
+        BlockPos pos = world.getSpawnPos().up(24);
+        BlockState old = world.getBlockState(pos);
         try {
-            world.setBlockState(power, Blocks.SEA_LANTERN.getDefaultState(), Block.NOTIFY_ALL);
-            world.setBlockState(base, Blocks.IRON_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
-            world.setBlockState(head, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_ALL);
-            if (!FabricHealingStationRuntime.isHealingStation(world, head)) {
-                throw new IllegalStateException("healing station signature was not recognized in live ServerWorld");
+            world.setBlockState(pos, CobblemonBlocks.HEALING_MACHINE.getDefaultState(), Block.NOTIFY_ALL);
+            if (!FabricHealingStationRuntime.isCobblemonHealingMachine(world, pos)) {
+                throw new IllegalStateException("Cobblemon healing machine was not recognized in live ServerWorld");
             }
 
-            world.setBlockState(power, Blocks.STONE.getDefaultState(), Block.NOTIFY_ALL);
-            if (FabricHealingStationRuntime.isHealingStation(world, head)) {
-                throw new IllegalStateException("incomplete healing station signature was accepted");
+            world.setBlockState(pos, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_ALL);
+            if (FabricHealingStationRuntime.isCobblemonHealingMachine(world, pos)) {
+                throw new IllegalStateException("vanilla lodestone was accepted as a Cobblemon healing machine");
             }
             LOGGER.info(SUCCESS_LOG);
         } finally {
-            world.setBlockState(head, oldHead, Block.NOTIFY_ALL);
-            world.setBlockState(base, oldBase, Block.NOTIFY_ALL);
-            world.setBlockState(power, oldPower, Block.NOTIFY_ALL);
+            world.setBlockState(pos, old, Block.NOTIFY_ALL);
         }
     }
 }
