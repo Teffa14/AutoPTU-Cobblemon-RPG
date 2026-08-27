@@ -29,13 +29,24 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
     private MeridianCanopyGymVerticalLandmarkPass() {}
 
     public static void apply(ServerWorld world, BlockPos origin) {
+        clearHighAirspace(world, origin);
         buildConservatoryLantern(world, origin);
         buildArenaHighCanopy(world, origin);
         buildGatehouseBeacon(world, origin);
     }
 
+    private static void clearHighAirspace(ServerWorld world, BlockPos o) {
+        BlockState air = Blocks.AIR.getDefaultState();
+        for (int x = -33; x <= 33; x++) {
+            for (int y = 23; y <= 46; y++) {
+                for (int z = -33; z <= 33; z++) {
+                    world.setBlockState(o.add(x, y, z), air);
+                }
+            }
+        }
+    }
+
     private static void buildConservatoryLantern(ServerWorld world, BlockPos o) {
-        // Four existing conservatory frame lines are extended upward as the primary load path.
         int[][] lowerPylons = {
                 {-14, -16}, {14, -16}, {-14, 9}, {14, 9}
         };
@@ -46,20 +57,16 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             }
         }
 
-        // A real upper wall plate ties all four pylons together before the structure tapers inward.
         beamX(world, o, -14, 14, 24, -16, TIMBER);
         beamX(world, o, -14, 14, 24, 9, TIMBER);
         beamZ(world, o, -16, 9, 24, -14, TIMBER);
         beamZ(world, o, -16, 9, 24, 14, TIMBER);
 
-        // Stepped flying braces pull the broad conservatory frame into a compact lantern base.
         connectedBrace(world, o, new BlockPos(-14, 24, -16), new BlockPos(-6, 29, -9), OAK);
         connectedBrace(world, o, new BlockPos(14, 24, -16), new BlockPos(6, 29, -9), OAK);
         connectedBrace(world, o, new BlockPos(-14, 24, 9), new BlockPos(-6, 29, 3), OAK);
         connectedBrace(world, o, new BlockPos(14, 24, 9), new BlockPos(6, 29, 3), OAK);
 
-        // Octagonal-ish lantern base. The posts are deliberately few and heavy so the silhouette
-        // has hierarchy instead of turning into another forest of thin poles.
         int[][] lanternPosts = {
                 {-6, -6}, {-4, -9}, {4, -9}, {6, -6},
                 {6, 0}, {4, 3}, {-4, 3}, {-6, 0}
@@ -69,8 +76,9 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
         }
         connectLoop(world, o, lanternPosts, 29, TIMBER);
         connectLoop(world, o, lanternPosts, 35, TIMBER);
+        beamX(world, o, -6, 6, 29, -3, TIMBER);
+        beamZ(world, o, -9, 3, 29, 0, TIMBER);
 
-        // Ventilated glass drum around the lantern. Copper grilles create a readable mechanical band.
         for (int y = 30; y <= 34; y++) {
             BlockState skin = y == 32 ? COPPER_GRATE : GLASS;
             for (OurosVoxelGeometry.Voxel voxel : OurosVoxelGeometry.ellipseRing(7, 6, 6, 5, y)) {
@@ -78,8 +86,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             }
         }
 
-        // Deep layered crown. Each successive ring retreats, producing eaves and shadow rather than
-        // a single stepped pyramid. The final mast makes Meridian legible above the surrounding trees.
         placeEllipseRing(world, o.add(0, 0, -3), 9, 7, 7, 5, 35, DEEPSLATE_SLAB);
         placeEllipseRing(world, o.add(0, 0, -3), 8, 6, 6, 4, 36, COPPER);
         placeEllipseRing(world, o.add(0, 0, -3), 7, 5, 5, 3, 37, DEEPSLATE);
@@ -89,7 +95,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
         column(world, o, 0, 40, -3, 5, OAK);
         world.setBlockState(o.add(0, 45, -3), Blocks.LIGHTNING_ROD.getDefaultState());
 
-        // Interior hanging lights emphasize the vertical void from the ground-floor biosphere.
         for (int[] p : new int[][]{{-3, -3}, {3, -3}, {0, 0}}) {
             for (int y = 29; y >= 25; y--) {
                 world.setBlockState(o.add(p[0], y, p[1]), Blocks.CHAIN.getDefaultState());
@@ -100,8 +105,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
 
     private static void buildArenaHighCanopy(ServerWorld world, BlockPos o) {
         BlockPos c = o.add(0, 0, 22);
-
-        // Six major bowl piers continue upward from the existing roof-ring supports.
         int[][] pylons = {
                 {-22, -5}, {0, -10}, {22, -5},
                 {-22, 5}, {0, 10}, {22, 5}
@@ -112,37 +115,31 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             world.setBlockState(c.add(p[0], 24, p[1]), COPPER);
         }
 
-        // High elliptical compression ring unifies the previously isolated arena roof object.
         placeEllipseRing(world, c, 23, 10, 22, 9, 24, TIMBER);
         placeEllipseRing(world, c, 22, 9, 21, 8, 25, COPPER_GRATE);
 
-        // Three greenhouse-scale ribs span the bowl. A Manhattan-connected arch helper guarantees
-        // every apparent diagonal has real face connectivity for Minecraft and the structural audit.
         for (int z : new int[]{-6, 0, 6}) {
             parabolicRibX(world, c, z, 22, 9, 24, COPPER);
         }
 
-        // Longitudinal ridge and cross ties make the ribs read as one canopy rather than three hoops.
         beamZ(world, c, -7, 7, 33, 0, TIMBER);
         for (int z : new int[]{-6, 0, 6}) {
             connectedBrace(world, c, new BlockPos(-10, 29, z), new BlockPos(0, 33, z), OAK);
             connectedBrace(world, c, new BlockPos(10, 29, z), new BlockPos(0, 33, z), OAK);
         }
 
-        // Suspended botanical baffles sit over spectator zones, leaving the battle field visually open.
+        // These baffles hang directly from the z=+/-6 canopy ribs, not from approximate nearby air.
         for (int x : new int[]{-15, 15}) {
-            for (int z : new int[]{-5, 5}) {
-                column(world, c, x, 24, z, 4, Blocks.CHAIN.getDefaultState());
-                world.setBlockState(c.add(x, 23, z), LANTERN);
-                world.setBlockState(c.add(x + (x < 0 ? 1 : -1), 24, z), Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState());
-                world.setBlockState(c.add(x + (x < 0 ? 2 : -2), 24, z), Blocks.AZALEA_LEAVES.getDefaultState());
+            for (int z : new int[]{-6, 6}) {
+                column(world, c, x, 25, z, 4, Blocks.CHAIN.getDefaultState());
+                world.setBlockState(c.add(x, 24, z), LANTERN);
+                world.setBlockState(c.add(x + (x < 0 ? 1 : -1), 25, z), Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState());
+                world.setBlockState(c.add(x + (x < 0 ? 2 : -2), 25, z), Blocks.AZALEA_LEAVES.getDefaultState());
             }
         }
     }
 
     private static void buildGatehouseBeacon(ServerWorld world, BlockPos o) {
-        // The gate receives a smaller lantern so the arrival has hierarchy without competing with
-        // the conservatory crown. Its feet land directly on the existing gable/ridge structure.
         for (int x : new int[]{-3, 3}) {
             for (int z : new int[]{-23, -19}) {
                 column(world, o, x, 14, z, 10, TIMBER);
@@ -160,7 +157,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             }
         }
 
-        // Compact hipped crown with broad first eave and a thin copper finial.
         fillLayer(world, o, -5, 24, -25, 5, -17, DEEPSLATE_SLAB);
         fillLayer(world, o, -4, 25, -24, 4, -18, DEEPSLATE);
         fillLayer(world, o, -3, 26, -23, 3, -19, COPPER);
