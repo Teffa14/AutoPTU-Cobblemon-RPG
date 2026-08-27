@@ -41,11 +41,14 @@ public final class FabricHealingStationRuntime {
                 return ActionResult.FAIL;
             }
 
-            healCanonicalParty(serverPlayer);
+            CanonicalPartyHealingDecision decision = healCanonicalParty(serverPlayer);
+            sendFeedback(serverPlayer, decision);
 
             // Consume the server interaction here. Cobblemon's block/model remains the world surface,
             // but its party, battle state and native healing outcome are never consulted or executed.
-            return ActionResult.SUCCESS;
+            return decision.outcome() == CanonicalPartyHealingDecision.Outcome.INVALID_REQUEST
+                    ? ActionResult.FAIL
+                    : ActionResult.SUCCESS;
         });
     }
 
@@ -60,14 +63,13 @@ public final class FabricHealingStationRuntime {
         return player.squaredDistanceTo(x, y, z) <= MAX_INTERACTION_DISTANCE_SQUARED;
     }
 
-    private static void healCanonicalParty(ServerPlayerEntity player) {
+    private static CanonicalPartyHealingDecision healCanonicalParty(ServerPlayerEntity player) {
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
         CanonicalPartyHealingService service = new CanonicalPartyHealingService(
                 FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer()),
                 FabricCanonicalPlayerStoreRuntime.requirePokemonRepository(player.getServer())
         );
-        CanonicalPartyHealingDecision decision = service.healParty(playerId);
-        sendFeedback(player, decision);
+        return service.healParty(playerId);
     }
 
     private static void sendFeedback(ServerPlayerEntity player, CanonicalPartyHealingDecision decision) {
