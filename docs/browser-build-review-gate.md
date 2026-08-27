@@ -14,6 +14,16 @@ Temporary hand-maintained preview geometry is allowed only for GAMEPLAY PROTOTYP
 
 A major build with no browser-visible review evidence cannot pass visual approval.
 
+## Shared explorer requirement
+
+Ouros uses one browser explorer for all exact builds. Do not add a new HTML viewer page or a new build-specific JavaScript viewer for each structure. A build enters the explorer through the shared build registry plus its exported manifest and optional review-space metadata.
+
+The shared explorer must let the reviewer change builds without leaving the review surface. When a build publishes authored review spaces, the same interface must expose those spaces through a selector.
+
+A review camera must support more than orbit rotation. Desktop review must provide forward/backward movement, strafing, vertical movement, zoom/dolly and pan. The explorer must also provide a first-person or free-fly inspection mode so interiors, circulation, sightlines and close detailing can be reviewed from player-scale positions. Touch devices must retain practical movement and look controls without depending exclusively on Pointer Lock.
+
+Build-specific legacy URLs may redirect to the shared explorer for compatibility. They must not carry independent rendering logic.
+
 ## Build-doctrine enforcement
 
 `docs/ouros-build-doctrine.md` is part of this gate.
