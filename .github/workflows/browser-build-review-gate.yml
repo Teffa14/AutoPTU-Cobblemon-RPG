@@ -1,0 +1,102 @@
+name: Browser Build Review Gate
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'tools/build-review/**'
+      - 'docs/browser-build-review-gate.md'
+      - '.github/workflows/browser-build-review-gate.yml'
+      - '.github/workflows/build-review-pages.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  unified-explorer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate one-viewer architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+
+          root = pathlib.Path('.')
+          index = (root / 'site/index.html').read_text(encoding='utf-8')
+          assert '<iframe' not in index, 'root review surface must not use per-build iframes'
+          assert 'id="build-select"' in index, 'shared build selector missing'
+          assert 'data-camera="orbit"' in index, 'orbit camera control missing'
+          assert 'data-camera="fly"' in index, 'first-person camera control missing'
+          assert 'ouros-build-review.bundle.js' in index, 'root must load the shared viewer bundle'
+
+          scripts = sorted(p.name for p in (root / 'tools/build-review').glob('*.js'))
+          assert scripts == ['ouros-build-review.js'], f'build-specific viewer runtimes are forbidden: {scripts}'
+
+          legacy_pages = sorted((root / 'site/builds').glob('*.html')) if (root / 'site/builds').exists() else []
+          for page in legacy_pages:
+              text = page.read_text(encoding='utf-8')
+              assert 'location.replace' in text and '?build=' in text, f'{page} must be a compatibility redirect only'
+              assert '<canvas' not in text, f'{page} contains independent renderer UI'
+
+          registry = json.loads((root / 'site/build-data/builds.json').read_text(encoding='utf-8'))
+          assert registry['format'] == 'ouros.build-review.registry.v1'
+          builds = registry.get('builds', [])
+          assert builds, 'shared build registry is empty'
+          ids = [b['id'] for b in builds]
+          assert len(ids) == len(set(ids)), 'duplicate build ids in registry'
+          manifests = [b['manifest'] for b in builds]
+          assert len(manifests) == len(set(manifests)), 'duplicate manifest paths in registry'
+          for build in builds:
+              assert build.get('name')
+              assert build.get('layers') and build['layers'][0]['id'] == 'all'
+              assert build['manifest'].startswith('build-data/')
+          print('Unified explorer architecture passed for:', ', '.join(ids))
+          PY
+
+      - name: Validate shared viewer source syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/build-review/ouros-build-review.js
+          python3 - <<'PY'
+          source = open('tools/build-review/ouros-build-review.js', encoding='utf-8').read()
+          required = [
+              'build-select', 'reviewSpaces', "cameraMode = 'orbit'", "cameraMode === 'fly'",
+              'KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'requestPointerLock',
+              'pointerdown', 'wheel', 'history.replaceState'
+          ]
+          missing = [token for token in required if token not in source]
+          assert not missing, f'missing explorer capabilities: {missing}'
+          print('Shared viewer navigation source passed')
+          PY
+
+      - name: Assemble and parse classic browser bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          deps="$RUNNER_TEMP/ouros-viewer-node"
+          mkdir -p "$deps"
+          npm install --prefix "$deps" --no-save deepslate@0.26.0 gl-matrix@3.4.3
+          deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
+          glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
+          bundle="$RUNNER_TEMP/ouros-build-review.bundle.js"
+          {
+            cat "$glmatrix_umd"
+            printf '\n;\n'
+            cat "$deepslate_umd"
+            printf '\n;\n'
+            cat tools/build-review/ouros-build-review.js
+          } > "$bundle"
+          node - <<'NODE' "$bundle"
+          const fs = require('fs');
+          const source = fs.readFileSync(process.argv[2], 'utf8');
+          new Function(source);
+          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", "from 'gl-matrix'"];
+          for (const token of forbidden) if (source.includes(token)) throw new Error('forbidden runtime dependency: ' + token);
+          if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
+          console.log('Unified classic browser bundle parses:', source.length, 'bytes');
+          NODE
