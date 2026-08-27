@@ -5,16 +5,18 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Fail-closed integration watch for AutoPTU-Java PR #231.
+ * Fail-closed integration watch for the StatusController phase envelope.
  *
- * <p>The upstream draft freezes Python StatusController cross-system phase ordering only. It does
- * not port concrete held-item/food effects or provide an authoritative runtime envelope that the
- * Minecraft adapter may execute.</p>
+ * <p>AutoPTU-Java PR #231 is merged and freezes Python StatusController cross-system phase
+ * ordering. Draft PR #232 makes that envelope executable inside Java core, but it still does not
+ * port concrete held-item or food effects. Neither contract grants Minecraft authority to execute
+ * PTU lifecycle rules.</p>
  */
 public final class StatusControllerPhaseEnvelopeCompatibility {
-    public static final int AUTOPTU_JAVA_PR = 231;
-    public static final String AUTOPTU_JAVA_MAIN_SHA = "57c7c2a9751cf02facf5d176b9d0f95b996a9bd1";
-    public static final String AUTOPTU_JAVA_PR_HEAD_SHA = "74d9e31fcb390531f8837f41985f81923506bcc9";
+    public static final int MERGED_ORDERING_PR = 231;
+    public static final int DRAFT_DISPATCHER_PR = 232;
+    public static final String AUTOPTU_JAVA_MAIN_SHA = "84505214d4bca41610f36f0a178e675ef0ab26ba";
+    public static final String AUTOPTU_JAVA_DRAFT_HEAD_SHA = "fcbded4c966095c24a4f6124a435edcb790f8581";
     public static final String PINNED_PYTHON_ORACLE_SHA = "16d228efa63aabecb67fa788959a359aac7f8f03";
 
     private static final Set<UpstreamCompatibilityMatrix.Capability> DEPENDENCIES = Collections.unmodifiableSet(
@@ -37,10 +39,9 @@ public final class StatusControllerPhaseEnvelopeCompatibility {
     }
 
     public static String boundary() {
-        return "AutoPTU-Java PR #231 is draft/open at 74d9e31fcb390531f8837f41985f81923506bcc9. "
-                + "It freezes pinned-Python StatusController ordering only: START held-item start -> food regen -> food buff start -> combatant phase effects; "
-                + "END combatant phase effects -> held-item end; COMMAND/ACTION combatant phase effects only. "
-                + "Concrete held-item, food, status, ability and Trainer Feature effects remain separate/incomplete, and no merged generic runtime phase-envelope dispatcher grants Minecraft execution authority. "
-                + "Minecraft/Cobblemon may not coordinate PTU phase order, invoke those effects, or synthesize lifecycle events from this draft contract.";
+        return "AutoPTU-Java PR #231 is merged on main at 84505214d4bca41610f36f0a178e675ef0ab26ba and freezes pinned-Python StatusController ordering: "
+                + "START held-item start -> food regen -> food buff start -> combatant phase effects; END combatant phase effects -> held-item end; COMMAND/ACTION combatant phase effects only. "
+                + "Draft PR #232 at fcbded4c966095c24a4f6124a435edcb790f8581 adds a generic Java-core dispatcher for that envelope, while deliberately leaving concrete held-item and food effects unported. "
+                + "Status skip handling remains core-owned inside the combatant phase family. Minecraft/Cobblemon may not coordinate PTU phase order, execute held-item/food/status/ability/Trainer Feature effects, or synthesize lifecycle events from either contract.";
     }
 }
