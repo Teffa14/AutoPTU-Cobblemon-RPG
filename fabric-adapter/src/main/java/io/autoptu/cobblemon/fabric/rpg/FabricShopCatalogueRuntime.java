@@ -18,7 +18,9 @@ public final class FabricShopCatalogueRuntime {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("shop")
-                                .executes(context -> show(context.getSource())))));
+                                .executes(context -> show(context.getSource()))
+                                .then(CommandManager.literal("list")
+                                        .executes(context -> show(context.getSource()))))));
     }
 
     private static int show(ServerCommandSource source) {
