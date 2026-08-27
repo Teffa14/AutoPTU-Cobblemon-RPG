@@ -1,12 +1,15 @@
 package io.autoptu.cobblemon.fabric.presentation;
 
+import io.autoptu.cobblemon.battlecore.BattlePresentationCommand;
 import io.autoptu.cobblemon.battlecore.PresentationEntityPlatformBackend;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CobblemonPresentationEntityBackendTest {
@@ -25,6 +28,59 @@ class CobblemonPresentationEntityBackendTest {
         assertTrue(methodNames.contains("animateMove"));
         assertTrue(methodNames.contains("projectDisplayedHealth"));
         assertTrue(methodNames.contains("showCue"));
-        assertEquals(4, methodNames.stream().distinct().count());
+        assertTrue(methodNames.contains("statusSkipText"));
+        assertEquals(6, methodNames.stream().distinct().count());
+    }
+
+    @Test
+    void statusSkipTextMirrorsOnlyAuthoritativeCueFields() {
+        BattlePresentationCommand cue = new BattlePresentationCommand(
+                12,
+                0,
+                BattlePresentationCommand.Kind.STATUS_SKIP_CUE,
+                "wild-1",
+                Map.of(
+                        "status", "sleep",
+                        "phase", "action",
+                        "reason", "cannot_act"
+                )
+        );
+
+        assertEquals(
+                "sleep · action · cannot_act",
+                CobblemonPresentationEntityBackend.statusSkipText(cue)
+        );
+    }
+
+    @Test
+    void statusSkipTextKeepsMissingOptionalTextPresentationOnly() {
+        BattlePresentationCommand cue = new BattlePresentationCommand(
+                13,
+                0,
+                BattlePresentationCommand.Kind.STATUS_SKIP_CUE,
+                "wild-1",
+                Map.of("phase", "action")
+        );
+
+        assertEquals(
+                "status · action · authoritative skip",
+                CobblemonPresentationEntityBackend.statusSkipText(cue)
+        );
+    }
+
+    @Test
+    void statusSkipTextRejectsNonStatusCue() {
+        BattlePresentationCommand cue = new BattlePresentationCommand(
+                14,
+                0,
+                BattlePresentationCommand.Kind.TURN_START_CUE,
+                "wild-1",
+                Map.of("phase", "action")
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonPresentationEntityBackend.statusSkipText(cue)
+        );
     }
 }
