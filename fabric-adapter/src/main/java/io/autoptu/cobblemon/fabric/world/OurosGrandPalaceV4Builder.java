@@ -21,9 +21,10 @@ public final class OurosGrandPalaceV4Builder {
         // envelope or roof can survive underneath the courtyard plan on rebuild.
         clear(world, origin, MIN_X, MIN_Y, MIN_Z, MAX_X, MAX_Y, MAX_Z);
 
-        // Order is intentional: massing and voids, room program, roofscape, then geometry audit.
+        // Order is intentional: massing and voids, room program, physical support, roofscape, audit.
         OurosGrandPalaceV4ArchitecturePass.apply(world, origin);
         OurosGrandPalaceV4Rooms.buildAll(world, origin);
+        OurosGrandPalaceV4RoomAnchoringPass.apply(world, origin);
         OurosGrandPalaceV4RoofPass.apply(world, origin);
         OurosGrandPalaceV4QualityAudit.assertValid(world, origin);
 
