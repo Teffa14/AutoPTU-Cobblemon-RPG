@@ -12,7 +12,7 @@ import java.util.Map;
 import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.*;
 import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceV4Plan.*;
 
-/** Independent mansard bodies for the courtyard-based V4 massing. */
+/** Independent, face-connected mansard bodies for the courtyard-based V4 massing. */
 final class OurosGrandPalaceV4RoofPass {
     private static final BlockState ROOF = Blocks.DEEPSLATE_TILES.getDefaultState();
     private static final BlockState RIDGE = Blocks.POLISHED_BLACKSTONE_BRICKS.getDefaultState();
@@ -22,7 +22,6 @@ final class OurosGrandPalaceV4RoofPass {
     private OurosGrandPalaceV4RoofPass() {}
 
     static void apply(ServerWorld world, BlockPos o) {
-        // Ground cells define the eight side-wing roof pavilions; their upper rooms share footprint.
         for (Room room : groundSideRooms()) mansard(world, o, room, false);
         for (Room room : ceremonialRooms()) mansard(world, o, room, true);
         buildCentralLantern(world, o, ceremonialRooms().get(1), 42);
@@ -39,7 +38,8 @@ final class OurosGrandPalaceV4RoofPass {
         int z2 = room.maxZ() + 2;
         int layers = ceremonial ? 9 : 8;
 
-        // A stepped perimeter produces a readable Minecraft mansard without a giant universal roof.
+        // Two-block-thick stepped rings overlap vertically with the next inset ring. That keeps the
+        // Minecraft silhouette sloped while preserving real six-neighbor structural connectivity.
         for (int layer = 0; layer < layers; layer++) {
             int ax1 = x1 + layer;
             int ax2 = x2 - layer;
@@ -47,10 +47,10 @@ final class OurosGrandPalaceV4RoofPass {
             int az2 = z2 - layer;
             if (ax1 > ax2 || az1 > az2) break;
             BlockState state = layer == 0 || layer == layers - 1 ? RIDGE : ROOF;
-            fill(world, o, ax1, eaveY + layer, az1, ax2, eaveY + layer, az1, state);
-            fill(world, o, ax1, eaveY + layer, az2, ax2, eaveY + layer, az2, state);
-            fill(world, o, ax1, eaveY + layer, az1, ax1, eaveY + layer, az2, state);
-            fill(world, o, ax2, eaveY + layer, az1, ax2, eaveY + layer, az2, state);
+            fill(world, o, ax1, eaveY + layer, az1, ax2, eaveY + layer, Math.min(az1 + 1, az2), state);
+            fill(world, o, ax1, eaveY + layer, Math.max(az2 - 1, az1), ax2, eaveY + layer, az2, state);
+            fill(world, o, ax1, eaveY + layer, az1, Math.min(ax1 + 1, ax2), eaveY + layer, az2, state);
+            fill(world, o, Math.max(ax2 - 1, ax1), eaveY + layer, az1, ax2, eaveY + layer, az2, state);
         }
 
         int topInset = layers;
@@ -83,12 +83,13 @@ final class OurosGrandPalaceV4RoofPass {
     private static void buildDormers(ServerWorld world, BlockPos o) {
         Map<Integer, Integer> west = pavilionCenters(groundSideRooms(), true);
         Map<Integer, Integer> east = pavilionCenters(groundSideRooms(), false);
-        west.forEach((z, ignored) -> dormerX(world, o, -53, z, Direction.WEST));
-        east.forEach((z, ignored) -> dormerX(world, o, 53, z, Direction.EAST));
 
-        // Court-facing dormers make each pavilion visible from the garden, not only from outside.
-        west.forEach((z, ignored) -> dormerX(world, o, -26, z, Direction.EAST));
-        east.forEach((z, ignored) -> dormerX(world, o, 26, z, Direction.WEST));
+        // At y=33 the mansard's third inset sits on x=-49/+49 outside and -29/+29 toward the courts.
+        // Dormer backs share those exact roof cells, so no façade is visually or structurally floating.
+        west.forEach((z, ignored) -> dormerX(world, o, -49, z, Direction.WEST));
+        east.forEach((z, ignored) -> dormerX(world, o, 49, z, Direction.EAST));
+        west.forEach((z, ignored) -> dormerX(world, o, -29, z, Direction.EAST));
+        east.forEach((z, ignored) -> dormerX(world, o, 29, z, Direction.WEST));
     }
 
     private static Map<Integer, Integer> pavilionCenters(Iterable<Room> rooms, boolean west) {
@@ -108,7 +109,6 @@ final class OurosGrandPalaceV4RoofPass {
     }
 
     private static void buildCourtyardGutters(ServerWorld world, BlockPos o) {
-        // Thin copper lines emphasize the four roof edges that define the two open courts.
         for (int x : new int[]{WEST_WING_MAX_X + 1, CENTRAL_MIN_X - 1, CENTRAL_MAX_X + 1, EAST_WING_MIN_X - 1}) {
             for (int z = -51; z <= 51; z++) {
                 if (Math.floorMod(z + 53, 28) >= 23) continue;
