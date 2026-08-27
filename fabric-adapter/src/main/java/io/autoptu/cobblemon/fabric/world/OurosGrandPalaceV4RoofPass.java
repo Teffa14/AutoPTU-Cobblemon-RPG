@@ -38,38 +38,86 @@ final class OurosGrandPalaceV4RoofPass {
         int z2 = room.maxZ() + 2;
         int layers = roofLayers(room, ceremonial);
 
-        // Two-block-thick stepped rings overlap vertically with the next inset ring. That keeps the
-        // Minecraft silhouette sloped while preserving real six-neighbor structural connectivity.
+        // Two-block-thick stepped rings overlap vertically with the next inset ring. The profile is
+        // intentionally allowed to vary by pavilion row so the skyline does not read as cloned boxes.
         for (int layer = 0; layer < layers; layer++) {
             int ax1 = x1 + layer;
             int ax2 = x2 - layer;
             int az1 = z1 + layer;
             int az2 = z2 - layer;
             if (ax1 > ax2 || az1 > az2) break;
-            BlockState state = layer == 0 || layer == layers - 1 ? RIDGE : ROOF;
-            fill(world, o, ax1, eaveY + layer, az1, ax2, eaveY + layer, Math.min(az1 + 1, az2), state);
-            fill(world, o, ax1, eaveY + layer, Math.max(az2 - 1, az1), ax2, eaveY + layer, az2, state);
-            fill(world, o, ax1, eaveY + layer, az1, Math.min(ax1 + 1, ax2), eaveY + layer, az2, state);
-            fill(world, o, Math.max(ax2 - 1, ax1), eaveY + layer, az1, ax2, eaveY + layer, az2, state);
+            BlockState state = layer == 0 ? RIDGE : ROOF;
+            thickRing(world, o, ax1, ax2, az1, az2, eaveY + layer, state);
         }
 
-        int topInset = layers;
-        fill(world, o, x1 + topInset, eaveY + layers, z1 + topInset,
-                x2 - topInset, eaveY + layers, z2 - topInset, COPPER);
-        world.setBlockState(o.add(room.centerX(), eaveY + layers + 1, room.centerZ()),
+        // The previous V4 ended every intermediate mansard in one broad, flat copper rectangle.
+        // Continue the roof upward through several smaller rings so each pavilion resolves to a real
+        // crown/ridge rather than a square tray visible from the browser's elevated camera.
+        int capX1 = x1 + layers;
+        int capX2 = x2 - layers;
+        int capZ1 = z1 + layers;
+        int capZ2 = z2 - layers;
+        int capY = eaveY + layers;
+        int extra = ceremonial ? 2 : 3;
+        int built = 0;
+        for (int i = 0; i < extra; i++) {
+            int ax1 = capX1 + i;
+            int ax2 = capX2 - i;
+            int az1 = capZ1 + i;
+            int az2 = capZ2 - i;
+            if (ax1 > ax2 || az1 > az2) break;
+            BlockState state = i == extra - 1 ? COPPER : ROOF;
+            singleRing(world, o, ax1, ax2, az1, az2, capY + i, state);
+            built = i + 1;
+        }
+
+        int crownY = capY + built;
+        int crownX1 = capX1 + built;
+        int crownX2 = capX2 - built;
+        int crownZ1 = capZ1 + built;
+        int crownZ2 = capZ2 - built;
+        if (crownX1 <= crownX2 && crownZ1 <= crownZ2) {
+            // A narrow cross ridge is visibly directional and avoids another flat square cap.
+            fill(world, o, crownX1, crownY, room.centerZ(), crownX2, crownY, room.centerZ(), COPPER);
+            fill(world, o, room.centerX(), crownY, crownZ1, room.centerX(), crownY, crownZ2, COPPER);
+        } else {
+            world.setBlockState(o.add(room.centerX(), crownY, room.centerZ()), COPPER);
+        }
+        world.setBlockState(o.add(room.centerX(), crownY + 1, room.centerZ()),
                 Blocks.LIGHTNING_ROD.getDefaultState());
     }
 
+    private static void thickRing(ServerWorld world, BlockPos o,
+                                  int x1, int x2, int z1, int z2, int y, BlockState state) {
+        fill(world, o, x1, y, z1, x2, y, Math.min(z1 + 1, z2), state);
+        fill(world, o, x1, y, Math.max(z2 - 1, z1), x2, y, z2, state);
+        fill(world, o, x1, y, z1, Math.min(x1 + 1, x2), y, z2, state);
+        fill(world, o, Math.max(x2 - 1, x1), y, z1, x2, y, z2, state);
+    }
+
+    private static void singleRing(ServerWorld world, BlockPos o,
+                                   int x1, int x2, int z1, int z2, int y, BlockState state) {
+        fill(world, o, x1, y, z1, x2, y, z1, state);
+        fill(world, o, x1, y, z2, x2, y, z2, state);
+        fill(world, o, x1, y, z1, x1, y, z2, state);
+        fill(world, o, x2, y, z1, x2, y, z2, state);
+    }
+
     private static int roofLayers(Room room, boolean ceremonial) {
-        boolean terminalRow = Math.abs(room.centerZ()) > 30;
+        int z = room.centerZ();
         if (ceremonial) {
-            // The front and garden-end state rooms sit below their flanking corner pavilions, while
-            // the two central state halls retain the taller roof base for their glazed lanterns.
-            return terminalRow ? 8 : 9;
+            // State rooms step through three heights: the central pair carry lanterns, while the
+            // terminal halls sit lower beneath the corner-tower skyline.
+            if (Math.abs(z) > 30) return 8;
+            return z < 0 ? 9 : 10;
         }
-        // Side-wing terminal pavilions carry the skyline; intermediate salons deliberately recede.
-        // This removes the four-identical-roofs rhythm visible in long side elevations.
-        return terminalRow ? 10 : 7;
+
+        // Four side-pavilion rows deliberately use four distinct profiles. Their terminal pavilions
+        // remain tallest; the two inner rows alternate lower/higher to remove cloned roof rhythm.
+        if (z <= -30) return 10;
+        if (z < 0) return 7;
+        if (z < 30) return 9;
+        return 11;
     }
 
     private static void buildCentralLantern(ServerWorld world, BlockPos o, Room room, int topY) {
@@ -96,12 +144,16 @@ final class OurosGrandPalaceV4RoofPass {
         Map<Integer, Integer> west = pavilionCenters(groundSideRooms(), true);
         Map<Integer, Integer> east = pavilionCenters(groundSideRooms(), false);
 
-        // At y=33 the mansard's third inset sits on x=-49/+49 outside and -29/+29 toward the courts.
-        // Dormer backs share those exact roof cells, so no façade is visually or structurally floating.
+        // Every pavilion gets one outward dormer. Court-facing dormers are reserved for the two
+        // inner rows, leaving terminal roofs cleaner and giving the eight roofs distinct elevations.
         west.forEach((z, ignored) -> dormerX(world, o, -49, z, Direction.WEST));
         east.forEach((z, ignored) -> dormerX(world, o, 49, z, Direction.EAST));
-        west.forEach((z, ignored) -> dormerX(world, o, -29, z, Direction.EAST));
-        east.forEach((z, ignored) -> dormerX(world, o, 29, z, Direction.WEST));
+        west.forEach((z, ignored) -> {
+            if (Math.abs(z) < 30) dormerX(world, o, -29, z, Direction.EAST);
+        });
+        east.forEach((z, ignored) -> {
+            if (Math.abs(z) < 30) dormerX(world, o, 29, z, Direction.WEST);
+        });
     }
 
     private static Map<Integer, Integer> pavilionCenters(Iterable<Room> rooms, boolean west) {
