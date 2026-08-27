@@ -52,6 +52,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-011 | LIVE | healing station block interaction | PR #209, commit `81ca566e645f749e7cb6b23cd0714dd91f706094`. Right-clicking an authored station invokes canonical persistent party HP healing. |
 | CUR-012 | LIVE | server-owned wild encounter table | PR #211, implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`. Zone/context selects and freezes an already-authored canonical WILD roster without reading Cobblemon gameplay state. |
 | CUR-013 | LIVE | visible wild actor interaction boundary | Registered visible Pokemon presentation actors can submit an encounter request by entity UUID -> AutoPTU-owned world binding. The adapter never reads Cobblemon Pokemon gameplay data. |
+| CUR-014 | LIVE | `/autoptu party lead <slot>` | PR #219, commit `e0149f97939aec2926d6b828c00851eb86a6a538`. Promotes the selected durable canonical party member to lead with server-side slot resolution and optimistic concurrency. |
 
 ---
 
@@ -67,7 +68,7 @@ Work these point by point.
 | P0-004 | LIVE | `/autoptu pokemon <slot>` | Shipped via PR #207 / commit `b3fed8380f801222d6c549f1695b8bb98789a135`; shows an ownership-safe detailed canonical Pokémon summary and reports missing optional PTU inputs as unavailable. |
 | P0-005 | LIVE | Healing station interaction | Shipped via PR #209 / commit `81ca566e645f749e7cb6b23cd0714dd91f706094`; a real authored Minecraft block signature calls the same canonical healing service as `/autoptu healparty`, with server-side distance/context checks. |
 | P0-006 | LIVE | Server-owned wild encounter table | Shipped via PR #211 / implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`; exact server-owned zone/context selects and freezes an already-authored complete canonical WILD blueprint, with deterministic RPG/world selection separate from battle RNG and no Cobblemon gameplay-state inputs. |
-| P0-007 | NEXT | Visible roaming wild encounter trigger | The visible-actor interaction/request boundary is live via PR #214, but normal server-owned world ecology still needs to provision and publish the exact canonical wild blueprint before this item is complete; Cedar Meadow remains DEV_ONLY. |
+| P0-007 | BLOCKED | Visible roaming wild encounter trigger | Visible actor interaction/request binding is live via PR #214, but normal ecology cannot complete this item until a trusted server-authored source can publish the complete canonical WILD blueprint before the Cobblemon presentation actor is revealed. The adapter must not derive missing PTU stats, moves, HP, statuses, abilities or legality from Cobblemon species/entity data. |
 | P0-008 | BLOCKED | Party-to-encounter handoff | Core immutable handoff service shipped in PR #216 / implementation commit `167b61471893e9b21d9b2630dd65960117178939`: it freezes the authenticated canonical party, consumables, visible actor identity, world context and exact server-owned wild blueprint without rereading mutable client/Cobblemon state. Normal world wiring is blocked only on P0-007 publishing that exact blueprint. |
 | P0-009 | TODO | Normal player-vs-wild battle start | World encounter starts AutoPTU-Java using persistent canonical actors. |
 | P0-010 | TODO | Battle choice UI | Displays authoritative legal choices and submits only choice IDs/targets. |
@@ -100,7 +101,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | ID | Status | Command/service |
 |---|---|---|
 | CMD-020 | LIVE | `/autoptu party` — PR #204 / `ab484b9ebc753668a1271bae27e9f56395584bb1` |
-| CMD-021 | TODO | `/autoptu party lead <slot>` |
+| CMD-021 | LIVE | `/autoptu party lead <slot>` — PR #219 / `e0149f97939aec2926d6b828c00851eb86a6a538` |
 | CMD-022 | TODO | `/autoptu party move <from> <to>` |
 | CMD-023 | LIVE | `/autoptu pokemon <slot>` — PR #207 / `b3fed8380f801222d6c549f1695b8bb98789a135` |
 | CMD-024 | TODO | `/autoptu box` |
@@ -168,7 +169,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | ID | Status | System |
 |---|---|---|
 | PARTY-001 | TODO | Party screen/menu. |
-| PARTY-002 | TODO | Persistent lead-slot mutation. |
+| PARTY-002 | LIVE | Persistent lead-slot mutation — PR #219 / `e0149f97939aec2926d6b828c00851eb86a6a538`. |
 | PARTY-003 | TODO | Persistent party reorder. |
 | PARTY-004 | TODO | Persistent box/storage aggregate. |
 | PARTY-005 | TODO | PC/storage terminal world interaction. |
@@ -195,8 +196,8 @@ These should become the normal gameplay path.
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
-| WORLD-012 | NEXT | Visible wild Pokémon contextual encounter interaction. A registered roaming actor is the encounter surface. |
-| WORLD-013 | TODO | Region/grass ecology provisioning for visible roaming wild Pokémon. This controls population/presence only; it never creates invisible movement encounters. |
+| WORLD-012 | LIVE | Visible wild Pokémon contextual encounter interaction boundary — PR #214. A registered roaming actor is the encounter surface and carries an AutoPTU-owned encounter identity without reading Cobblemon gameplay state. |
+| WORLD-013 | BLOCKED | Region/grass ecology provisioning for visible roaming wild Pokémon. Population/presence must be backed by a trusted server-authored complete canonical WILD blueprint source before reveal; it never creates invisible movement encounters. |
 | WORLD-014 | TODO | Cave ecology provisioning for visible roaming wild Pokémon; no movement-only encounter roll. |
 | WORLD-015 | TODO | Water/fishing ecology provisioning for visible/swimming/fishable wild actors; no context-only battle trigger. |
 | WORLD-016 | TODO | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |
