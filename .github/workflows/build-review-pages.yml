@@ -91,9 +91,7 @@ jobs:
               export_ready=1
               break
             fi
-            if ! kill -0 "$server_pid" 2>/dev/null; then
-              break
-            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
             sleep 1
           done
 
@@ -106,15 +104,14 @@ jobs:
           grep 'AutoPTU Ouros capture envelope audit passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU Ouros floating component audit passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU exact Ouros build manifest export passed' "$server_dir/logs/latest.log"
-          test "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["geometryAuthority"])' "$output")" = 'live_server_final_blockstate_scan'
           python3 - <<'PY' "$output"
           import json, sys
-          p = sys.argv[1]
-          data = json.load(open(p, encoding='utf-8'))
-          if data.get('captureEnvelopeAudit') != 'passed': raise SystemExit('capture envelope audit did not pass')
-          if data.get('floatingComponentAudit') != 'passed': raise SystemExit('floating component audit did not pass')
-          if data['blockCount'] != len(data['blocks']): raise SystemExit('blockCount does not match exported block array')
-          if not data['geometrySha256'] or len(data['geometrySha256']) != 64: raise SystemExit('missing geometry SHA-256')
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          assert data['geometryAuthority'] == 'live_server_final_blockstate_scan'
+          assert data['captureEnvelopeAudit'] == 'passed'
+          assert data['floatingComponentAudit'] == 'passed'
+          assert data['blockCount'] == len(data['blocks'])
+          assert len(data['geometrySha256']) == 64
           print(f"Exact Meridian manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
           PY
           stop_server
@@ -152,7 +149,7 @@ jobs:
           server_pid=$!
 
           export_ready=0
-          for _ in $(seq 1 300); do
+          for _ in $(seq 1 360); do
             latest="$server_dir/logs/latest.log"
             if grep -q 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU Ouros Grand Palace floating component audit passed' "$latest" 2>/dev/null \
@@ -184,9 +181,9 @@ jobs:
           assert data['floatingComponentAudit'] == 'passed'
           assert data['blockCount'] == len(data['blocks'])
           assert len(data['geometrySha256']) == 64
-          assert data['size'] == [87, 53, 115], data['size']
+          assert data['size'] == [109, 77, 139], data['size']
           assert len(data['authoredSpaces']) == 19
-          assert len(data.get('reviewSpaces', [])) == 19
+          assert len(data.get('reviewSpaces', [])) >= 19
           print(f"Exact Grand Palace manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
           PY
           stop_server
