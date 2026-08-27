@@ -3,10 +3,12 @@ package io.autoptu.cobblemon.fabric.persistence;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
+import io.autoptu.cobblemon.authority.FileTrainerActionUsageLedger;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedCanonicalWildEncounterBlueprintRegistry;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedWildEncounterCorrelationRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
 
@@ -30,6 +32,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalPlayerEncounterProfileRepository encounterProfiles,
             FileCanonicalPokemonRepository pokemon,
             FileCanonicalItemReservationRepository assets,
+            FileTrainerActionUsageLedger trainerActionUsage,
             WorldScopedCanonicalWildEncounterBlueprintRegistry wildEncounterBlueprints,
             WorldScopedWildEncounterCorrelationRegistry wildEncounterCorrelations
     ) {}
@@ -43,6 +46,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         if (!REGISTERED.compareAndSet(false, true)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(FabricCanonicalPlayerStoreRuntime::start);
         ServerLifecycleEvents.SERVER_STOPPED.register(FabricCanonicalPlayerStoreRuntime::stop);
+        ServerTickEvents.END_SERVER_TICK.register(FabricCanonicalPlayerStoreRuntime::observeRpgDay);
     }
 
     public static FileVersionedCanonicalStateRepository requireRepository(MinecraftServer server) {
@@ -61,6 +65,10 @@ public final class FabricCanonicalPlayerStoreRuntime {
 
     public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) {
         return requireStores(server).assets();
+    }
+
+    public static FileTrainerActionUsageLedger requireTrainerActionUsageLedger(MinecraftServer server) {
+        return requireStores(server).trainerActionUsage();
     }
 
     public static WorldScopedCanonicalWildEncounterBlueprintRegistry requireWildEncounterBlueprintRegistry(
@@ -99,11 +107,14 @@ public final class FabricCanonicalPlayerStoreRuntime {
     private static void start(MinecraftServer server) {
         Path root = storageRoot(server);
         FileCanonicalPokemonRepository pokemon = new FileCanonicalPokemonRepository(root);
+        FileTrainerActionUsageLedger trainerActionUsage = new FileTrainerActionUsageLedger(root);
+        trainerActionUsage.observeOverworldDay(FabricRpgDayClock.observedOverworldDay(server));
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root),
                 new FileCanonicalPlayerEncounterProfileRepository(root),
                 pokemon,
                 new FileCanonicalItemReservationRepository(root, pokemon::findPokemon),
+                trainerActionUsage,
                 new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
                 new WorldScopedWildEncounterCorrelationRegistry()
         );
@@ -112,6 +123,15 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 throw new IllegalStateException("canonical stores already initialized for server");
             }
         }
+    }
+
+    private static void observeRpgDay(MinecraftServer server) {
+        Stores stores;
+        synchronized (STORES) {
+            stores = STORES.get(server);
+        }
+        if (stores == null) return;
+        stores.trainerActionUsage().observeOverworldDay(FabricRpgDayClock.observedOverworldDay(server));
     }
 
     private static void stop(MinecraftServer server) {
