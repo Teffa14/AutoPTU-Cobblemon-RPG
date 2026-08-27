@@ -62,7 +62,7 @@ jobs:
           server_pid=$!
 
           ready=0
-          for _ in $(seq 1 300); do
+          for _ in $(seq 1 360); do
             latest="$server_dir/logs/latest.log"
             if grep -q 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU Ouros Grand Palace floating component audit passed' "$latest" 2>/dev/null \
@@ -96,9 +96,9 @@ jobs:
           assert data['floatingComponentAudit'] == 'passed'
           assert data['blockCount'] == len(data['blocks'])
           assert len(data['geometrySha256']) == 64
-          assert data['size'] == [87, 53, 115], data['size']
+          assert data['size'] == [109, 77, 139], data['size']
           assert len(data['authoredSpaces']) == 19, len(data['authoredSpaces'])
-          assert data['blockCount'] > 30000, data['blockCount']
+          assert data['blockCount'] > 50000, data['blockCount']
           assert len(data['palette']) > 60, len(data['palette'])
           print(
               'Ouros Grand Palace gate passed:',
