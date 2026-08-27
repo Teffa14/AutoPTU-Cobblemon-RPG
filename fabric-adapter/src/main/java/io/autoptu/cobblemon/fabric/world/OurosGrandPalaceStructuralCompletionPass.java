@@ -10,9 +10,10 @@ import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.fill;
 /**
  * Final authored support/composition pass for the Grand Palace.
  *
- * Exterior architecture is rebuilt first. The reference-driven interior pass then composes every
- * room with wall architecture, ceiling architecture, furniture, lighting and focal objects before
- * the final grounding/support sweep. The floating-component audit remains strict.
+ * V3 constructs the exterior before the room program, so interior completion is now separately
+ * invokable. The legacy apply method remains for older call sites while exact OI-107 review uses
+ * {@link #finishInterior(ServerWorld, BlockPos)} after the V3 exterior-first builder has established
+ * the silhouette, foundations, courtyard and roofscape.
  */
 final class OurosGrandPalaceStructuralCompletionPass {
     private OurosGrandPalaceStructuralCompletionPass() {}
@@ -22,6 +23,10 @@ final class OurosGrandPalaceStructuralCompletionPass {
         OurosGrandPalaceExteriorCleanupPass.apply(world, origin);
         OurosGrandPalaceRoofSupportPass.apply(world, origin);
         OurosGrandPalaceCourDHonneurPass.apply(world, origin);
+        finishInterior(world, origin);
+    }
+
+    static void finishInterior(ServerWorld world, BlockPos origin) {
         OurosGrandPalaceReferenceInteriorPass.apply(world, origin);
         groundFurnitureFeet(world, origin, 2, 0);
         groundFurnitureFeet(world, origin, 17, 15);
