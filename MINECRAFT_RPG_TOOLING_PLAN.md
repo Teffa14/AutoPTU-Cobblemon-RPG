@@ -24,6 +24,7 @@ Every AutoPTU-Cobblemon-RPG work run must read this file after the short read-on
 - `NEXT/PARTIAL`: highest-priority safe implementation with a production subset already shipped on the current bounded PR/commit; continue the same item before advancing the queue.
 - `TODO`: required but not implemented.
 - `BLOCKED`: dependency or upstream authority missing.
+- `BLOCKED/PARTIAL`: a production subset is live, but the remaining authoritative contract is blocked upstream; immediately advance another safe Minecraft item.
 - `DEV_ONLY`: test/build/debug surface, not final gameplay.
 
 ## Namespace doctrine
@@ -75,7 +76,7 @@ Work these point by point.
 | P0-008 | BLOCKED | Party-to-encounter handoff | Core immutable handoff service shipped in PR #216 / implementation commit `167b61471893e9b21d9b2630dd65960117178939`: it freezes the authenticated canonical party, consumables, visible actor identity, world context and exact server-owned wild blueprint without rereading mutable client/Cobblemon state. Normal world wiring is blocked only on P0-007 publishing that exact blueprint. |
 | P0-009 | BLOCKED | Normal player-vs-wild battle start | The battle-start boundary exists, but the normal world path cannot start AutoPTU-Java until P0-007 publishes the trusted complete WILD blueprint and P0-008 can wire that exact immutable handoff. Do not substitute Cobblemon BattleState or entity Pokémon data. |
 | P0-010 | LIVE | Battle choice UI | Shipped via PR #220 / implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; the server binds player -> reservation/actor, displays only a fresh authoritative legal-choice set, accepts only a stable choice ID, re-fetches the action space, and executes the exact still-legal choice. |
-| P0-011 | NEXT/PARTIAL | Normal semantic battle playback | PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` adds attack animation, HP and relocation projection. PR #222 / `0d261c11027a0f715aee3fac8c6bd5adaa1fd9e4` makes authoritative `status_skip` visible with generic particles and action-bar text copied from the event. Continue with authoritative faint/result events when those contracts exist; Minecraft must not infer faint/result from HP or local state. |
+| P0-011 | BLOCKED/PARTIAL | Normal semantic battle playback | PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` adds attack animation, HP and relocation projection. PR #222 / `0d261c11027a0f715aee3fac8c6bd5adaa1fd9e4` makes authoritative `status_skip` visible. Faint/result presentation is blocked until AutoPTU-Java emits an explicit authoritative semantic faint/result contract; Minecraft must not infer either from HP or local state. |
 | P0-012 | TODO | Post-battle commit | Supported authoritative HP/status/injury/item changes commit exactly once to durable RPG state. |
 | P0-013 | TODO | Return-to-world transition | Battle session/reservations clean up and the player resumes world control. |
 | P0-014 | TODO | Reconnect/restart recovery | No duplicate items, lost party state, or stranded battle session after disconnect/restart. |
@@ -98,6 +99,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-005 | TODO | `/autoptu trainer features` |
 | CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
 | CMD-007 | LIVE | `/autoptu starter choose <species>` — PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d` |
+| CMD-008 | NEXT/PARTIAL | `/autoptu trainer actions` — PR #224. Shows the server-owned monotonic RPG day and the Trainer Feature count; the same runtime exposes a server-only daily reservation API. Final action list awaits authoritative PTU action/frequency definitions and must not classify every Feature as Daily. |
 
 ## Party and Pokémon
 
@@ -256,7 +258,8 @@ These should become the normal gameplay path.
 | RPG-011 | TODO | Trainer records: wins/losses/badges/tournaments. |
 | RPG-012 | TODO | World story flags and choice consequences. |
 | RPG-013 | TODO | Mail/message system with idempotent rewards. |
-| RPG-014 | TODO | Calendar/world-time hooks for events. |
+| RPG-014 | NEXT/PARTIAL | Calendar/world-time hooks for events. PR #224 adds a durable monotonic RPG day derived only from forward Minecraft day transitions; rollback/restart cannot create extra daily windows. Broader calendar/event scheduling remains TODO. |
+| RPG-015 | NEXT/PARTIAL | Trainer PTU world-action usage ledger. PR #224 persists per-Trainer/per-action Daily usage and exposes a server-only atomic reservation boundary. Bind concrete Standard/Swift/etc action costs and Daily/Scene/Encounter policy only from authoritative PTU definitions; do not treat every Trainer Feature as Daily. |
 
 ---
 
@@ -300,6 +303,7 @@ These should become the normal gameplay path.
 | SVC-017 | TODO | Quest reward commit/idempotency. |
 | SVC-018 | TODO | Persistent world-object mutation/idempotency. |
 | SVC-019 | TODO | Reconnect/restart active-session recovery. |
+| SVC-020 | NEXT/PARTIAL | Server-only PTU world-action usage reservation. PR #224 atomically caps canonical Daily usage by Trainer/action/RPG-day and rejects unknown canonical Trainers before consumption; Scene/Encounter/turn/round integration waits on authoritative PTU lifecycle/policy contracts. |
 
 ---
 
@@ -357,6 +361,7 @@ These are required for operations, testing and recovery. They must never be norm
 | TODO | Active encounter session journal. |
 | TODO | Active battle checkpoint/recovery journal. |
 | TODO | Post-battle result commit ledger/idempotency keys. |
+| NEXT/PARTIAL | Trainer PTU Daily action usage and monotonic RPG-day state — PR #224; stored under the server world save and durable through reconnect/restart. |
 
 ---
 
@@ -369,7 +374,7 @@ When any of these are incomplete upstream, skip them and continue with another s
 - Incomplete status lifecycle rules.
 - Ability rules not executed/emitted authoritatively by AutoPTU-Java.
 - Held-item or consumable battle rules not executed/emitted authoritatively by AutoPTU-Java.
-- Trainer Feature/perk rules not executed/emitted authoritatively by AutoPTU-Java.
+- Trainer Feature/perk rules, action costs, frequency classification, usage limits or effects not executed/emitted or otherwise supplied as authoritative PTU content.
 - Capture legality/RNG/outcome until an authoritative contract exists.
 - PTU evolution, level-up and move-learning legality until an authoritative contract exists.
 - Tactical AI policy until upstream owns it.
