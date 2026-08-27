@@ -57,6 +57,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-014 | LIVE | `/autoptu party lead <slot>` | PR #219, commit `e0149f97939aec2926d6b828c00851eb86a6a538`. Promotes the selected durable canonical party member to lead with server-side slot resolution and optimistic concurrency. |
 | CUR-015 | LIVE | authoritative battle choice menu/fallback | PR #220, implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`. Displays only fresh AutoPTU-Java legal-choice stable keys and submits the exact revalidated choice without client-supplied battle scope or PTU legality. |
 | CUR-016 | LIVE/PARTIAL | Fabric semantic battle playback runtime | PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` projects authoritative move animation, HP and relocation. PR #222 / `0d261c11027a0f715aee3fac8c6bd5adaa1fd9e4` adds visible authoritative `status_skip` particles/action-bar cues; semantic faint/result remain upstream-contract work. |
+| CUR-017 | NEXT/PARTIAL | capability-sensitive world task assessment | PR #226 adds server-authored graded quality curves and `/autoptu cancraft <recipe>` backed only by persistent canonical Trainer skill ranks. It previews no RNG and consumes no materials. |
 
 ---
 
@@ -99,7 +100,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-005 | TODO | `/autoptu trainer features` |
 | CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
 | CMD-007 | LIVE | `/autoptu starter choose <species>` — PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d` |
-| CMD-008 | NEXT/PARTIAL | `/autoptu trainer actions` — PR #224. Shows the server-owned monotonic RPG day and the Trainer Feature count; the same runtime exposes a server-only daily reservation API. Final action list awaits authoritative PTU action/frequency definitions and must not classify every Feature as Daily. |
+| CMD-008 | BLOCKED/PARTIAL | `/autoptu trainer actions` — PR #224. Server-owned monotonic RPG day and Daily reservation are live; the final action list is blocked on authoritative PTU action-cost/frequency definitions and must not classify every Feature as Daily. |
 
 ## Party and Pokémon
 
@@ -140,8 +141,8 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-081 | TODO | `/autoptu shop list` |
 | CMD-082 | TODO | `/autoptu shop buy <offer> [qty]` |
 | CMD-083 | TODO | `/autoptu shop sell <item> [qty]` |
-| CMD-084 | TODO | `/autoptu cancraft <recipe>` |
-| CMD-085 | TODO | `/autoptu craft <recipe> [qty]` |
+| CMD-084 | NEXT/PARTIAL | `/autoptu cancraft <recipe>` — PR #226. Resolves an authenticated persistent Trainer against a server-owned recipe/task definition and shows only authored graded quality probabilities. It never pre-rolls the craft. |
+| CMD-085 | TODO | `/autoptu craft <recipe> [qty]` — requires durable attempt identity plus atomic ingredient reservation/consumption/output commit before any outcome RNG is allowed. |
 
 ## Quests, journal and travel
 
@@ -197,7 +198,7 @@ These should become the normal gameplay path.
 | WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | WORLD-006 | TODO | PC/storage terminal. |
 | WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
-| WORLD-008 | TODO | Crafting workstation/menu. |
+| WORLD-008 | TODO | Crafting workstation/menu backed by the same capability-sensitive `canCraft` service and later atomic craft transaction. |
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
@@ -259,7 +260,7 @@ These should become the normal gameplay path.
 | RPG-012 | TODO | World story flags and choice consequences. |
 | RPG-013 | TODO | Mail/message system with idempotent rewards. |
 | RPG-014 | NEXT/PARTIAL | Calendar/world-time hooks for events. PR #224 adds a durable monotonic RPG day derived only from forward Minecraft day transitions; rollback/restart cannot create extra daily windows. Broader calendar/event scheduling remains TODO. |
-| RPG-015 | NEXT/PARTIAL | Trainer PTU world-action usage ledger. PR #224 persists per-Trainer/per-action Daily usage and exposes a server-only atomic reservation boundary. Bind concrete Standard/Swift/etc action costs and Daily/Scene/Encounter policy only from authoritative PTU definitions; do not treat every Trainer Feature as Daily. |
+| RPG-015 | BLOCKED/PARTIAL | Trainer PTU world-action usage ledger. PR #224 persists per-Trainer/per-action Daily usage and exposes a server-only atomic reservation boundary. Concrete Standard/Swift/etc action costs and Daily/Scene/Encounter policy remain blocked on authoritative PTU definitions; Minecraft must not synthesize them. |
 
 ---
 
@@ -270,8 +271,8 @@ These should become the normal gameplay path.
 | FAC-001 | LIVE | Pokémon Center/healer backed by canonical healing service — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | FAC-002 | TODO | Shop catalogue/stock/price service. |
 | FAC-003 | TODO | Canonical wallet/currency transactions. |
-| FAC-004 | TODO | Crafting recipe registry. |
-| FAC-005 | TODO | Atomic ingredient reservation/consumption/output commit. |
+| FAC-004 | NEXT/PARTIAL | Crafting recipe registry. PR #226 adds the first server-owned capability-sensitive world-task recipes and graded quality curves; ingredients/outputs/workstations remain TODO. |
+| FAC-005 | TODO | Atomic ingredient reservation/consumption/output commit with durable attempt identity so reconnect/restart/retry cannot reroll or duplicate a craft. |
 | FAC-006 | TODO | Move tutor/relearner service shell. |
 | FAC-007 | TODO | Inn/rest service. |
 | FAC-008 | TODO | Fast-travel unlock and destination service. |
@@ -287,7 +288,7 @@ These should become the normal gameplay path.
 | SVC-001 | TODO | `canPerform(player, action, context)` |
 | SVC-002 | TODO | `canInteract(player, object, context)` |
 | SVC-003 | TODO | `canUse(player, item, target, context)` |
-| SVC-004 | TODO | `canCraft(player, recipe, context)` |
+| SVC-004 | NEXT/PARTIAL | `canCraft(player, recipe, context)` — PR #226 resolves authenticated persistent canonical skill ranks against server-owned task definitions and exposes only eligibility plus authored quality probabilities; no craft RNG/material mutation yet. |
 | SVC-005 | TODO | `canTravel(player, destination, context)` |
 | SVC-006 | TODO | `canStartEncounter(player, source)` |
 | SVC-007 | TODO | `canStartBattle(player, reservation)` |
@@ -303,7 +304,8 @@ These should become the normal gameplay path.
 | SVC-017 | TODO | Quest reward commit/idempotency. |
 | SVC-018 | TODO | Persistent world-object mutation/idempotency. |
 | SVC-019 | TODO | Reconnect/restart active-session recovery. |
-| SVC-020 | NEXT/PARTIAL | Server-only PTU world-action usage reservation. PR #224 atomically caps canonical Daily usage by Trainer/action/RPG-day and rejects unknown canonical Trainers before consumption; Scene/Encounter/turn/round integration waits on authoritative PTU lifecycle/policy contracts. |
+| SVC-020 | BLOCKED/PARTIAL | Server-only PTU world-action usage reservation. PR #224 atomically caps canonical Daily usage by Trainer/action/RPG-day and rejects unknown canonical Trainers before consumption; Scene/Encounter/turn/round integration waits on authoritative PTU lifecycle/policy contracts. |
+| SVC-021 | NEXT/PARTIAL | `assessWorldTask(player, task, context)` — PR #226 reads canonical Trainer capabilities and applies server-authored Ouros task quality curves. Reuse this boundary for cooking, technology, medicine, research, occultism, survival, repairs and other non-battle world interactions. |
 
 ---
 
@@ -362,6 +364,7 @@ These are required for operations, testing and recovery. They must never be norm
 | TODO | Active battle checkpoint/recovery journal. |
 | TODO | Post-battle result commit ledger/idempotency keys. |
 | NEXT/PARTIAL | Trainer PTU Daily action usage and monotonic RPG-day state — PR #224; stored under the server world save and durable through reconnect/restart. |
+| TODO | Durable world-task/craft attempt ledger with stable attempt IDs, reserved ingredients, resolved outcome and exactly-once output commit. |
 
 ---
 
@@ -380,6 +383,8 @@ When any of these are incomplete upstream, skip them and continue with another s
 - Tactical AI policy until upstream owns it.
 - Any battle hit, crit, damage, target legality, resource consumption or result supplied as trusted client truth.
 - Any Cobblemon Pokemon/BattleState/gameplay field used as canonical encounter or battle input.
+
+World-task probability curves for Ouros-authored non-battle activities are Minecraft RPG content, not PTU battle rules. They may consume canonical Trainer capability ranks, but must not claim to be PTU skill-check formulas or synthesize missing Trainer Feature effects.
 
 ---
 
