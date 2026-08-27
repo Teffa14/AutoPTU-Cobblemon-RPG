@@ -72,6 +72,7 @@ jobs:
               -Dautoptu.liveHealthSmoke=true \
               -Dautoptu.liveBattleInterceptionSmoke=true \
               -Dautoptu.liveAuthenticatedPlayerContextSmoke=true \
+              -Dautoptu.liveHealingStationSmoke=true \
               -Dautoptu.liveCanonicalStoreRestartSmoke=seed \
               -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke-first.log 2>&1
           ) &
@@ -86,6 +87,7 @@ jobs:
               && grep -q 'AutoPTU live Cobblemon HP projection smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live Cobblemon battle interception smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live authenticated player context smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live healing station interaction signature smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live canonical player store seed smoke passed' "$latest" 2>/dev/null \
               && grep -q 'Done (' "$latest" 2>/dev/null; then
               first_ready=1
@@ -142,6 +144,7 @@ jobs:
           grep 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live authenticated player context smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live healing station interaction signature smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live canonical player store restart smoke passed' "$server_dir/autoptu-second-boot-latest.log"
       - name: Collect runtime evidence
         if: always()
@@ -174,6 +177,7 @@ jobs:
           record_marker "$first" 'AutoPTU live Cobblemon HP projection smoke passed'
           record_marker "$first" 'AutoPTU live Cobblemon battle interception smoke passed'
           record_marker "$first" 'AutoPTU live authenticated player context smoke passed'
+          record_marker "$first" 'AutoPTU live healing station interaction signature smoke passed'
           record_marker "$first" 'AutoPTU live canonical player store seed smoke passed'
           record_marker "$first" 'Done ('
           record_marker "$second" 'AutoPTU Fabric server adapter initialized'
