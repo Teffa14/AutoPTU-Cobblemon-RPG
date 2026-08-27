@@ -45,14 +45,14 @@ public final class OurosBuildManifestExportRuntime {
     private static final int MIN_X = -33;
     private static final int MAX_X = 33;
     private static final int MIN_Y = -4;
-    private static final int MAX_Y = 22;
+    private static final int MAX_Y = 46;
     private static final int MIN_Z = -33;
     private static final int MAX_Z = 33;
 
     private static final int GUARD_MIN_X = -40;
     private static final int GUARD_MAX_X = 40;
     private static final int GUARD_MIN_Y = -4;
-    private static final int GUARD_MAX_Y = 30;
+    private static final int GUARD_MAX_Y = 54;
     private static final int GUARD_MIN_Z = -40;
     private static final int GUARD_MAX_Z = 40;
 
@@ -79,6 +79,7 @@ public final class OurosBuildManifestExportRuntime {
         MeridianCanopyGymRebuildStructuralPass.apply(world, origin);
         MeridianCanopyGymRebuildDetailPass.apply(world, origin);
         MeridianCanopyGymRebuildAnchoringPass.apply(world, origin);
+        MeridianCanopyGymVerticalLandmarkPass.apply(world, origin);
 
         validateCaptureEnvelope(world, origin);
         LOGGER.info(ENVELOPE_AUDIT_MARKER);
@@ -197,7 +198,7 @@ public final class OurosBuildManifestExportRuntime {
         JsonObject root = new JsonObject();
         root.addProperty("format", "ouros.minecraft.block-manifest.v1");
         root.addProperty("buildId", "meridian_canopy_gym");
-        root.addProperty("displayName", "Meridian Canopy Gym - Zero-base Rebuild");
+        root.addProperty("displayName", "Meridian Canopy Gym - Vertical Landmark Rebuild V2");
         root.addProperty("minecraftVersion", "1.21.1");
         root.addProperty("geometryAuthority", "live_server_final_blockstate_scan");
         root.addProperty("geometrySha256", hash);
@@ -214,6 +215,7 @@ public final class OurosBuildManifestExportRuntime {
         sources.add("MeridianCanopyGymRebuildStructuralPass");
         sources.add("MeridianCanopyGymRebuildDetailPass");
         sources.add("MeridianCanopyGymRebuildAnchoringPass");
+        sources.add("MeridianCanopyGymVerticalLandmarkPass");
         root.add("productionSources", sources);
         JsonArray paletteJson = new JsonArray();
         palette.forEach(paletteJson::add);
