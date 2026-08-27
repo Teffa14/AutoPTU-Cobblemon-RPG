@@ -14,6 +14,7 @@ import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyHealingRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricPartyLeadRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartySummaryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPlayerStatusRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPokemonDetailRuntime;
@@ -47,6 +48,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricHealingStationRuntime.register();
         FabricHealingStationRuntimeSmoke.registerIfEnabled();
         FabricPartySummaryRuntime.register();
+        FabricPartyLeadRuntime.register();
         FabricPlayerStatusRuntime.register();
         FabricPokemonDetailRuntime.register();
         FabricStarterCatalogueRuntime.register();
