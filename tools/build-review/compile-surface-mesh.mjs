@@ -252,8 +252,12 @@ function compileBuild(build) {
     if (emittedForBlock) exposedBlocks++; else culledInteriorBlocks++;
   }
 
-  const opaqueName = `${build.id}.opaque.bin`;
-  const translucentName = `${build.id}.translucent.bin`;
+  // Binary meshes are immutable assets. Tie their filenames to the authoritative Fabric geometry
+  // SHA so a fresh descriptor can never be paired with a stale CDN/browser-cached binary from an
+  // earlier Pages deployment.
+  const assetRevision = manifest.geometrySha256.slice(0, 16);
+  const opaqueName = `${build.id}.${assetRevision}.opaque.bin`;
+  const translucentName = `${build.id}.${assetRevision}.translucent.bin`;
   fs.writeFileSync(path.join(outputDir, opaqueName), opaque.data());
   fs.writeFileSync(path.join(outputDir, translucentName), translucent.data());
 
@@ -264,6 +268,7 @@ function compileBuild(build) {
     minecraftVersion: manifest.minecraftVersion,
     geometryAuthority: manifest.geometryAuthority,
     sourceGeometrySha256: manifest.geometrySha256,
+    assetRevision,
     blockCount: manifest.blockCount,
     paletteCount: manifest.palette.length,
     captureEnvelopeAudit: manifest.captureEnvelopeAudit,
