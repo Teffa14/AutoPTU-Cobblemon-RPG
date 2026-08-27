@@ -12,6 +12,7 @@ import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyHealingRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricPartySummaryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterCatalogueRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterSelectionRuntime;
 import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
@@ -38,6 +39,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         }
         PlayableBattleTestRuntime.register();
         FabricPartyHealingRuntime.register();
+        FabricPartySummaryRuntime.register();
         FabricStarterCatalogueRuntime.register();
         FabricStarterSelectionRuntime.register();
         CedarMeadowRuntime.register();
