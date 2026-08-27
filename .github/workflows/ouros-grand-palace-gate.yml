@@ -101,6 +101,39 @@ jobs:
           assert len(data['authoredSpaces']) == 19, len(data['authoredSpaces'])
           assert data['blockCount'] > 50000, data['blockCount']
           assert len(data['palette']) > 60, len(data['palette'])
+
+          # Reference-room density gate. A named room may not pass merely because walls/floor exist.
+          # Measure occupied interior volume, material variety, low furniture-zone content and
+          # upper-wall/ceiling ornament separately for every authored review space.
+          palette_ids = [entry['id'] for entry in data['palette']]
+          blocks = [(b[0], b[1], b[2], palette_ids[b[3]]) for b in data['blocks']]
+          room_reports = []
+          for space in data['reviewSpaces']:
+              minx, miny, minz = space['min']
+              maxx, maxy, maxz = space['max']
+              interior = [b for b in blocks
+                          if minx + 1 <= b[0] <= maxx - 1
+                          and miny + 1 <= b[1] <= maxy - 1
+                          and minz + 1 <= b[2] <= maxz - 1]
+              volume = max(1, (maxx - minx - 1) * (maxy - miny - 1) * (maxz - minz - 1))
+              ratio = len(interior) / volume
+              ids = {b[3] for b in interior}
+              furniture = [b for b in interior
+                           if minx + 3 <= b[0] <= maxx - 3
+                           and minz + 3 <= b[2] <= maxz - 3
+                           and miny + 1 <= b[1] <= min(miny + 5, maxy - 1)]
+              upper = [b for b in interior if miny + 6 <= b[1] <= maxy - 1]
+              room_height = maxy - miny
+              min_ratio = 0.055 if room_height > 20 else 0.075
+              assert ratio >= min_ratio, f"{space['name']} too sparse: {ratio:.3f} < {min_ratio:.3f}"
+              assert len(ids) >= 10, f"{space['name']} lacks material/detail variety: {len(ids)} block ids"
+              assert len(furniture) >= 30, f"{space['name']} furniture zone too empty: {len(furniture)} blocks"
+              assert len(upper) >= 80, f"{space['name']} upper architecture too empty: {len(upper)} blocks"
+              room_reports.append((space['name'], ratio, len(ids), len(furniture), len(upper)))
+
+          for name, ratio, ids, furniture, upper in room_reports:
+              print(f"ROOM DENSITY {name}: {ratio:.1%}, {ids} ids, {furniture} furniture-zone, {upper} upper-detail")
+
           print(
               'Ouros Grand Palace gate passed:',
               data['blockCount'], 'blocks,',
