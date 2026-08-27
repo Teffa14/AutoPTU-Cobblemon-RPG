@@ -15,6 +15,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyHealingRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartySummaryRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricPlayerStatusRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPokemonDetailRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterCatalogueRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterSelectionRuntime;
@@ -46,6 +47,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricHealingStationRuntime.register();
         FabricHealingStationRuntimeSmoke.registerIfEnabled();
         FabricPartySummaryRuntime.register();
+        FabricPlayerStatusRuntime.register();
         FabricPokemonDetailRuntime.register();
         FabricStarterCatalogueRuntime.register();
         FabricStarterSelectionRuntime.register();
