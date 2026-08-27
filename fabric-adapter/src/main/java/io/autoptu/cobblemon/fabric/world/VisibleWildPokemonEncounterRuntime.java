@@ -10,6 +10,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,8 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Visible-wild encounter surface.
  *
  * Cobblemon's PokemonEntity is used only as a rendered/walking Minecraft actor. AutoPTU owns the
- * binding from that actor UUID to canonical world context. This runtime never reads PokemonEntity's
- * Pokemon payload, species, HP, moves, statuses, battle state, ownership or any Cobblemon result.
+ * binding from that actor UUID to canonical encounter identity and world context. This runtime never
+ * reads PokemonEntity's Pokemon payload, species, HP, moves, statuses, battle state, ownership or any
+ * Cobblemon result.
  */
 public final class VisibleWildPokemonEncounterRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
@@ -46,8 +48,10 @@ public final class VisibleWildPokemonEncounterRuntime {
 
             String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(serverPlayer.getUuid());
             String dimensionId = serverPlayer.getServerWorld().getRegistryKey().getValue().toString();
-            WorldEncounterTriggerRequestService.Decision decision = REQUESTS.request(
+            WorldEncounterTriggerRequestService.Decision decision = REQUESTS.requestBoundEncounter(
+                    binding.canonicalEncounterId(),
                     canonicalPlayerId,
+                    entity.getUuidAsString(),
                     binding.zoneId(),
                     binding.contextId(),
                     dimensionId,
@@ -67,9 +71,21 @@ public final class VisibleWildPokemonEncounterRuntime {
         });
     }
 
-    public static void bind(PokemonEntity presentationEntity, String zoneId, String contextId) {
+    public static void bind(
+            PokemonEntity presentationEntity,
+            String canonicalEncounterId,
+            String zoneId,
+            String contextId
+    ) {
         if (presentationEntity == null) throw new IllegalArgumentException("presentationEntity is required");
-        BINDINGS.put(presentationEntity.getUuid(), new Binding(requireId(zoneId, "zoneId"), requireId(contextId, "contextId")));
+        BINDINGS.put(
+                presentationEntity.getUuid(),
+                new Binding(
+                        requireId(canonicalEncounterId, "canonicalEncounterId"),
+                        requireId(zoneId, "zoneId"),
+                        requireId(contextId, "contextId")
+                )
+        );
     }
 
     public static boolean unbind(UUID entityUuid) {
@@ -84,10 +100,15 @@ public final class VisibleWildPokemonEncounterRuntime {
         return entityUuid != null && BINDINGS.containsKey(entityUuid);
     }
 
+    static Optional<Binding> binding(UUID entityUuid) {
+        if (entityUuid == null) return Optional.empty();
+        return Optional.ofNullable(BINDINGS.get(entityUuid));
+    }
+
     private static String requireId(String value, String field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
         return value.strip();
     }
 
-    private record Binding(String zoneId, String contextId) {}
+    record Binding(String canonicalEncounterId, String zoneId, String contextId) {}
 }
