@@ -22,13 +22,14 @@ public final class OurosGrandPalaceV4Builder {
         clear(world, origin, MIN_X, MIN_Y, MIN_Z, MAX_X, MAX_Y, MAX_Z);
 
         // Order is intentional: massing, front facade, authored rooms, visual cleanup, structural
-        // joins, low mansards, silhouette accents, audit. The visual pass runs after room themes so it
-        // can remove diagnostic fixtures without erasing the room program; anchoring then validates
-        // the final authored interior instead of the temporary density scaffolding.
+        // joins, low mansards, silhouette accents, audit. Visual refinement runs after room themes so
+        // it can remove diagnostic fixtures and hash-selected accent bands without erasing the room
+        // program; anchoring then validates the final authored interior.
         OurosGrandPalaceV4ArchitecturePass.apply(world, origin);
         OurosGrandPalaceV4FacadeRefinementPass.apply(world, origin);
         OurosGrandPalaceV4Rooms.buildAll(world, origin);
         OurosGrandPalaceV4InteriorRefinementPass.apply(world, origin);
+        OurosGrandPalaceV4AccentRefinementPass.apply(world, origin);
         OurosGrandPalaceV4RoomAnchoringPass.apply(world, origin);
         OurosGrandPalaceV4ConnectivityPass.apply(world, origin);
         OurosGrandPalaceV4AuthoredRoofPass.apply(world, origin);
