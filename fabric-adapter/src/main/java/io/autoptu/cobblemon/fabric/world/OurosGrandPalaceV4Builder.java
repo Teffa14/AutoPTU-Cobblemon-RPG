@@ -22,9 +22,10 @@ public final class OurosGrandPalaceV4Builder {
         clear(world, origin, MIN_X, MIN_Y, MIN_Z, MAX_X, MAX_Y, MAX_Z);
 
         // Order is intentional: massing, front facade, authored rooms, visual cleanup, structural
-        // joins, low mansards, silhouette accents, audit. Visual refinement runs after room themes so
-        // it can remove diagnostic fixtures and hash-selected accent bands without erasing the room
-        // program; anchoring then validates the final authored interior.
+        // joins, low mansards, silhouette accents, audits. Visual refinement runs after room themes
+        // so it can remove diagnostic fixtures and hash-selected accent bands without erasing the
+        // room program; anchoring then validates the final authored interior. The visual audit keeps
+        // browser-review failures from returning even when structural and density gates still pass.
         OurosGrandPalaceV4ArchitecturePass.apply(world, origin);
         OurosGrandPalaceV4FacadeRefinementPass.apply(world, origin);
         OurosGrandPalaceV4Rooms.buildAll(world, origin);
@@ -35,6 +36,7 @@ public final class OurosGrandPalaceV4Builder {
         OurosGrandPalaceV4AuthoredRoofPass.apply(world, origin);
         OurosGrandPalaceV4SilhouettePass.apply(world, origin);
         OurosGrandPalaceV4QualityAudit.assertValid(world, origin);
+        OurosGrandPalaceV4VisualQualityAudit.assertValid(world, origin);
 
         return new OurosGrandPalace.BuildResult(
                 origin,
