@@ -49,8 +49,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
     }
 
     private static void buildConservatoryClerestory(ServerWorld world, BlockPos o) {
-        // The lantern is centered over the existing conservatory void at z=-3. Four heavy posts
-        // continue through the lower conservatory frame so the tower reads as part of the building.
         int centerZ = -3;
         int[][] posts = {
                 {-6, centerZ - 5}, {6, centerZ - 5},
@@ -62,7 +60,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             world.setBlockState(o.add(p[0], 26, p[1]), WEATHERED_COPPER);
         }
 
-        // A deep timber cornice at the roof line creates a clear base instead of an exposed frame.
         rectangleRing(world, o, -8, centerZ - 7, 8, centerZ + 7, 20, DEEPSLATE_SLAB);
         rectangleRing(world, o, -7, centerZ - 6, 7, centerZ + 6, 21, TIMBER);
         beamX(world, o, -6, 6, 27, centerZ - 5, TIMBER);
@@ -70,8 +67,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
         beamZ(world, o, centerZ - 5, centerZ + 5, 27, -6, TIMBER);
         beamZ(world, o, centerZ - 5, centerZ + 5, 27, 6, TIMBER);
 
-        // Tall clerestory walls. The darker glass corners and copper ventilation band give the
-        // lantern depth without turning every bay into another wooden post.
         for (int y = 21; y <= 26; y++) {
             BlockState wall = y == 24 ? COPPER_GRATE : GLASS;
             for (int x = -5; x <= 5; x++) {
@@ -86,8 +81,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             }
         }
 
-        // Vertical mullions are intentionally sparse. Copper bulbs sit inside the frame and become
-        // nighttime landmarks without changing the external silhouette.
         for (int x : new int[]{-2, 2}) {
             column(world, o, x, 21, centerZ - 5, 6, COPPER_GRATE);
             column(world, o, x, 21, centerZ + 5, 6, COPPER_GRATE);
@@ -100,15 +93,19 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             world.setBlockState(o.add(p[0], 23, p[1]), Blocks.OXIDIZED_COPPER_BULB.getDefaultState());
         }
 
-        // The roof is a compact hipped lantern rather than stacked ellipses. Broad eaves at the
-        // first layer, then a controlled retreat to a small ventilation cupola.
+        // Four visible roof rafters extend the y=27 wall plate into the broad y=28 eave. They make
+        // the roof both structurally connected and visually believable instead of a hovering cap.
+        beamX(world, o, -8, 8, 28, centerZ - 5, TIMBER);
+        beamX(world, o, -8, 8, 28, centerZ + 5, TIMBER);
+        beamZ(world, o, centerZ - 7, centerZ + 7, 28, -6, TIMBER);
+        beamZ(world, o, centerZ - 7, centerZ + 7, 28, 6, TIMBER);
+
         roofPlate(world, o, -8, centerZ - 7, 8, centerZ + 7, 28, DEEPSLATE_SLAB);
         roofPlate(world, o, -7, centerZ - 6, 7, centerZ + 6, 29, DEEPSLATE);
         roofPlate(world, o, -6, centerZ - 5, 6, centerZ + 5, 30, WEATHERED_COPPER);
         roofPlate(world, o, -5, centerZ - 4, 5, centerZ + 4, 31, DEEPSLATE);
         roofPlate(world, o, -4, centerZ - 3, 4, centerZ + 3, 32, COPPER);
 
-        // Open ventilation cupola and a short finial. This is the only true spire on the complex.
         for (int x : new int[]{-3, 3}) {
             for (int z : new int[]{centerZ - 2, centerZ + 2}) {
                 column(world, o, x, 33, z, 3, TIMBER);
@@ -125,8 +122,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
         column(world, o, 0, 38, centerZ, 3, OAK);
         world.setBlockState(o.add(0, 41, centerZ), Blocks.LIGHTNING_ROD.getDefaultState());
 
-        // Three hanging fixtures make the interior volume legible from ground level. Each chain is
-        // attached directly to the y=27 timber plate.
         for (int x : new int[]{-3, 0, 3}) {
             for (int y = 26; y >= 23; y--) {
                 world.setBlockState(o.add(x, y, centerZ), Blocks.CHAIN.getDefaultState());
@@ -137,9 +132,6 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
 
     private static void buildArenaCanopy(ServerWorld world, BlockPos o) {
         BlockPos c = o.add(0, 0, 22);
-
-        // Extend only six existing arena piers by a few blocks. The roof starts close to the bowl,
-        // so the canopy reads as part of the arena instead of a second building balanced above it.
         int[][] piers = {
                 {-22, -5}, {0, -10}, {22, -5},
                 {-22, 5}, {0, 10}, {22, 5}
@@ -149,12 +141,9 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             world.setBlockState(c.add(p[0], 18, p[1]), Blocks.CHISELED_TUFF_BRICKS.getDefaultState());
         }
 
-        // Deep spectator eave and copper gutter bind the old roof ring to the new greenhouse canopy.
         placeEllipseRing(world, c, 25, 11, 23, 9, 17, DEEPSLATE_SLAB);
         placeEllipseRing(world, c, 24, 10, 23, 9, 18, COPPER_GRATE);
 
-        // Five primary copper ribs rise directly out of the eaves. Alternate glass strips sit one
-        // block between them so the canopy has a continuous body while still exposing the structure.
         for (int z : new int[]{-8, -4, 0, 4, 8}) {
             parabolicRibX(world, c, z, 22, 11, 17, COPPER);
         }
@@ -162,19 +151,15 @@ public final class MeridianCanopyGymVerticalLandmarkPass {
             parabolicInfillX(world, c, z, 21, 10, 18, GLASS);
         }
 
-        // Dark longitudinal ridge and short secondary ties provide visual hierarchy. There are no
-        // exposed diagonal flying braces in this version.
         beamZ(world, c, -9, 9, 28, 0, TIMBER);
         beamZ(world, c, -8, 8, 24, -14, TIMBER);
         beamZ(world, c, -8, 8, 24, 14, TIMBER);
 
-        // Two narrow clerestory strips close the gap between bowl and canopy without forming walls.
         for (int z = -7; z <= 7; z++) {
             world.setBlockState(c.add(-22, 19, z), Math.floorMod(z, 3) == 0 ? COPPER_GRATE : GLASS);
             world.setBlockState(c.add(22, 19, z), Math.floorMod(z, 3) == 0 ? COPPER_GRATE : GLASS);
         }
 
-        // Hanging botanical lights are attached to known rib locations at x=±14, z=±4.
         for (int x : new int[]{-14, 14}) {
             for (int z : new int[]{-4, 4}) {
                 for (int y = 23; y >= 21; y--) {
