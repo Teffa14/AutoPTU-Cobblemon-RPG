@@ -258,3 +258,15 @@ The next Ouros construction slices should separate reusable primitives from show
 Small code tests may continue for block placement, spawn binding, schedules, pathing, structure loading and world-state mutation. They must be labelled MICRO TEST or GAMEPLAY PROTOTYPE.
 
 When the project begins its first SIGNATURE STRUCTURE, the work should use a proper authored build pipeline with reference study, large geometry or structure-template support, terrain integration, interiors, traversal, behavior zones and repeat-visit state. It should be evaluated visually before it is called finished.
+
+## Mandatory build-doctrine linkage
+
+`docs/ouros-build-doctrine.md` is mandatory for AUTHORED LOCATION, SIGNATURE STRUCTURE and REGIONAL SET PIECE work.
+
+When this quality bar and the build doctrine overlap, apply the stricter requirement.
+
+In particular, signature work must not inherit an arbitrary project-specific height cap. The exact capture envelope must expand to include the complete authored structure, subject only to Minecraft world limits, placement safety and performance.
+
+SIGNATURE STRUCTURE and REGIONAL SET PIECE approval requires the applicable items in the doctrine's mandatory pre-approval checklist to be satisfied before the work is described as finished or showcase-ready.
+
+Structural CI proves that geometry is legal and connected. It does not prove architectural quality. Browser review must still reject exposed scaffolding silhouettes, weak enclosure, under-detailed surfaces, visually unsupported masses, simplistic arenas, procedural-looking vegetation or other doctrine failures even when automated checks are green.
