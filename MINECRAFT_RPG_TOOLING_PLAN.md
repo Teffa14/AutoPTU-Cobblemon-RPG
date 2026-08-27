@@ -43,6 +43,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-004 | DEV_ONLY | `/ouros world cedar_meadow` | Places the Cedar Meadow wildlife prototype. |
 | CUR-005 | DEV_ONLY | `/ouros build meridian_canopy_gym` | Places Meridian for build review. |
 | CUR-006 | DEV_ONLY | `/ouros build grand_palace` | Places the Grand Palace for build review. |
+| CUR-007 | LIVE | `/autoptu starter list` | PR #202, commit `e86b1d2144a1faa35be19bb408f1e301033c4863`. Shows only server-configured starter choices. |
 
 ---
 
@@ -52,8 +53,8 @@ Work these point by point.
 
 | ID | Status | Minecraft implementation | Done when |
 |---|---|---|---|
-| P0-001 | NEXT | Starter catalogue + `/autoptu starter list` | Server exposes only configured starter choices. |
-| P0-002 | TODO | `/autoptu starter choose <species>` | One-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
+| P0-001 | LIVE | Starter catalogue + `/autoptu starter list` | Shipped via PR #202 / commit `e86b1d2144a1faa35be19bb408f1e301033c4863`; server exposes only configured starter choices. |
+| P0-002 | NEXT | `/autoptu starter choose <species>` | Implementation PR #203. One-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
 | P0-003 | TODO | `/autoptu party` | Shows canonical slot order, species, level, HP and status summary. |
 | P0-004 | TODO | `/autoptu pokemon <slot>` | Shows a detailed canonical Pokémon summary. |
 | P0-005 | TODO | Healing station interaction | A real block/NPC/facility calls the same server healing service as `/autoptu healparty`. |
@@ -83,8 +84,8 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-003 | TODO | `/autoptu trainer skills` |
 | CMD-004 | TODO | `/autoptu trainer classes` |
 | CMD-005 | TODO | `/autoptu trainer features` |
-| CMD-006 | NEXT | `/autoptu starter list` |
-| CMD-007 | TODO | `/autoptu starter choose <species>` |
+| CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
+| CMD-007 | NEXT | `/autoptu starter choose <species>` — implementation PR #203 |
 
 ## Party and Pokémon
 
