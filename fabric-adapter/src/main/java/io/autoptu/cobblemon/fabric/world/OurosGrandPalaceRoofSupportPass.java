@@ -41,6 +41,10 @@ final class OurosGrandPalaceRoofSupportPass {
                 support(x - 6, x + 6, z - 6, z + 6, 33, 10, world, o);
             }
         }
+
+        // Closed central glazed lantern roof. The finial at its ridge is then connected through this
+        // backed roof into the clerestory walls and the main Themis Hall roof mass.
+        support(-9, 9, 5, 23, 57, 8, world, o);
     }
 
     private static void support(int x1, int x2, int z1, int z2, int baseY, int maxRise,
@@ -51,11 +55,8 @@ final class OurosGrandPalaceRoofSupportPass {
         int maxZ = Math.max(z1, z2);
         int layers = Math.min(maxRise, Math.min((maxX - minX) / 2, (maxZ - minZ) / 2));
 
-        // Wall plate directly beneath the first visible stair course.
         perimeter(world, o, minX, maxX, minZ, maxZ, baseY - 1, PLATE);
 
-        // Every higher visible course gets a backing perimeter one block below it. The backing is
-        // horizontally face-adjacent to the previous course and vertically supports the next one.
         for (int layer = 1; layer <= layers; layer++) {
             int lx1 = minX + layer;
             int lx2 = maxX - layer;
