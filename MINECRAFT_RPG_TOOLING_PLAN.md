@@ -45,6 +45,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-006 | DEV_ONLY | `/ouros build grand_palace` | Places the Grand Palace for build review. |
 | CUR-007 | LIVE | `/autoptu starter list` | PR #202, commit `e86b1d2144a1faa35be19bb408f1e301033c4863`. Shows only server-configured starter choices. |
 | CUR-008 | LIVE | `/autoptu starter choose <species>` | PR #203, commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. Persists one server-authoritative starter and party binding. |
+| CUR-009 | LIVE | `/autoptu party` | PR #204, commit `ab484b9ebc753668a1271bae27e9f56395584bb1`. Shows the durable canonical party without trusting Cobblemon stats. |
 
 ---
 
@@ -56,8 +57,8 @@ Work these point by point.
 |---|---|---|---|
 | P0-001 | LIVE | Starter catalogue + `/autoptu starter list` | Shipped via PR #202 / commit `e86b1d2144a1faa35be19bb408f1e301033c4863`; server exposes only configured starter choices. |
 | P0-002 | LIVE | `/autoptu starter choose <species>` | Shipped via PR #203 / commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`; one-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
-| P0-003 | NEXT | `/autoptu party` | Shows canonical slot order, species, level, HP and status summary. |
-| P0-004 | TODO | `/autoptu pokemon <slot>` | Shows a detailed canonical Pokémon summary. |
+| P0-003 | LIVE | `/autoptu party` | Shipped via PR #204 / commit `ab484b9ebc753668a1271bae27e9f56395584bb1`; shows canonical slot order, species, level, HP when available, and status summary. |
+| P0-004 | NEXT | `/autoptu pokemon <slot>` | Shows a detailed canonical Pokémon summary. |
 | P0-005 | TODO | Healing station interaction | A real block/NPC/facility calls the same server healing service as `/autoptu healparty`. |
 | P0-006 | TODO | Server-owned wild encounter table | Zone/context selects a server-owned wild blueprint without using Cobblemon stats as PTU truth. |
 | P0-007 | TODO | World encounter trigger | Walking/interacting in a configured context can request a wild encounter. |
@@ -92,10 +93,10 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-020 | NEXT | `/autoptu party` |
+| CMD-020 | LIVE | `/autoptu party` — PR #204 / `ab484b9ebc753668a1271bae27e9f56395584bb1` |
 | CMD-021 | TODO | `/autoptu party lead <slot>` |
 | CMD-022 | TODO | `/autoptu party move <from> <to>` |
-| CMD-023 | TODO | `/autoptu pokemon <slot>` |
+| CMD-023 | NEXT | `/autoptu pokemon <slot>` |
 | CMD-024 | TODO | `/autoptu box` |
 | CMD-025 | TODO | `/autoptu box deposit <partySlot>` |
 | CMD-026 | TODO | `/autoptu box withdraw <boxSlot>` |
