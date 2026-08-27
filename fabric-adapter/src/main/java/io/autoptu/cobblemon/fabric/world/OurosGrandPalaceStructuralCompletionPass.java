@@ -12,7 +12,8 @@ import static io.autoptu.cobblemon.fabric.world.OurosGrandPalaceBuildKit.fill;
  *
  * The pass closes small visual/support gaps that are easy to miss when dense furniture and
  * ornament are composed room-by-room. It adds only visible Minecraft structure: furniture feet,
- * gallery pilasters and trellis brackets. The floating-component audit remains strict afterwards.
+ * gallery pilasters, trellis brackets and relief joinery. The floating-component audit remains
+ * strict afterwards.
  */
 final class OurosGrandPalaceStructuralCompletionPass {
     private OurosGrandPalaceStructuralCompletionPass() {}
@@ -22,6 +23,8 @@ final class OurosGrandPalaceStructuralCompletionPass {
         groundFurnitureFeet(world, origin, 17, 15);
         supportGalleryRibs(world, origin);
         supportBloomingSalonTrellis(world, origin);
+        supportHarpsichordBench(world, origin);
+        supportHuntingTrophyAntlers(world, origin);
     }
 
     private static void groundFurnitureFeet(ServerWorld world, BlockPos o, int furnitureBaseY, int floorY) {
@@ -52,10 +55,26 @@ final class OurosGrandPalaceStructuralCompletionPass {
     private static void supportBloomingSalonTrellis(ServerWorld world, BlockPos o) {
         BlockState bracket = Blocks.BAMBOO_MOSAIC.getDefaultState();
         for (int z : new int[]{-21, -17, -13, -9}) {
-            // West foliage plane sits two blocks in from the shell. These brackets make the
-            // trellis visibly structural instead of six-block leaf columns suspended in air.
             world.setBlockState(o.add(-38, 5, z), bracket);
             world.setBlockState(o.add(-18, 5, z), bracket);
+        }
+    }
+
+    private static void supportHarpsichordBench(ServerWorld world, BlockPos o) {
+        OurosGrandPalaceBuildKit.Room room = OurosGrandPalace.MUSIC_CHAMBER;
+        int x = room.centerX();
+        int z = room.minZ() + 3;
+        int y = room.floorY() + 3;
+        world.setBlockState(o.add(x, y, z), Blocks.DARK_OAK_FENCE.getDefaultState());
+    }
+
+    private static void supportHuntingTrophyAntlers(ServerWorld world, BlockPos o) {
+        OurosGrandPalaceBuildKit.Room room = OurosGrandPalace.HUNTING_SALON;
+        int x = room.maxX() - 2;
+        BlockState joinery = Blocks.SPRUCE_FENCE.getDefaultState();
+        for (int centerZ = room.minZ() + 4; centerZ <= room.maxZ() - 4; centerZ += 6) {
+            world.setBlockState(o.add(x, 10, centerZ - 2), joinery);
+            world.setBlockState(o.add(x, 10, centerZ + 2), joinery);
         }
     }
 }
