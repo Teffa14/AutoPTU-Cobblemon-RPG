@@ -58,16 +58,16 @@ public final class OurosSignatureBuildRuntime {
 
         ServerWorld world = player.getServerWorld();
         BlockPos origin = player.getBlockPos().add(0, -1, 74);
-        OurosGrandPalace.BuildResult result = OurosGrandPalaceV3Builder.build(world, origin);
+        OurosGrandPalace.BuildResult result = OurosGrandPalaceV4Builder.build(world, origin);
 
-        player.sendMessage(Text.literal("Ouros Grand Palace EXTERIOR-FIRST V3 built 74 blocks ahead."), false);
+        player.sendMessage(Text.literal("Ouros Grand Palace COURTYARD V4 built 74 blocks ahead."), false);
         player.sendMessage(Text.literal(
                 "Review envelope " + result.width() + "x" + result.depth() + "x" + result.height()
                         + ", authored spaces " + result.authoredSpaces() + "."), false);
         player.sendMessage(Text.literal(
-                "V3 starts from an articulated foundation and exterior massing: deep transverse notches, unequal side-loggia projections, a court portico, independent roof bodies and a rear garden gallery. The old rectangular foundation/envelope is not invoked."), false);
+                "V4 separates west wing, ceremonial spine and east wing with two open longitudinal garden courts. Only authored loggias and three transverse bridge bands cross those voids; no universal rectangular foundation, wall envelope or roof is used."), false);
         player.sendMessage(Text.literal(
-                "After the exterior is established, the 19 reference rooms receive their room-specific wall architecture, ceiling composition, furniture, lighting and focal decoration. Exact live-server BlockState export and browser visual review remain mandatory."), false);
+                "The 15 side rooms are physically relocated into the wings, the four double-height ceremonial halls remain on axis, every pavilion has an independent mansard body, and the anti-box audit rejects blocked courts before review."), false);
         return 1;
     }
 }
