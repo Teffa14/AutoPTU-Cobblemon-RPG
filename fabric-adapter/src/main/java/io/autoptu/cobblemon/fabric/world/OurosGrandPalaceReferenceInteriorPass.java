@@ -83,7 +83,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         ceilingCoffers(world, o, r, DARK, GOLD, Blocks.RED_TERRACOTTA.getDefaultState(), 5);
         processionalCarpet(world, o, r, 5, Blocks.RED_CARPET.getDefaultState());
 
-        // Monumental throne composition with layered canopy and paired state columns.
         int z = r.maxZ() - 2;
         fill(world, o, r.centerX() - 7, r.floorY() + 1, z - 3,
                 r.centerX() + 7, r.floorY() + 2, z, Blocks.POLISHED_DEEPSLATE.getDefaultState());
@@ -118,7 +117,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
                 Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState(), Blocks.LIME_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 5, Blocks.RED_CARPET.getDefaultState());
 
-        // Dense formal seating and tribunal composition from the reference hall.
         for (int z = r.minZ() + 5; z <= r.centerZ() + 3; z += 4) {
             for (int x : new int[]{r.minX() + 5, r.minX() + 9, r.maxX() - 9, r.maxX() - 5}) {
                 chair(world, o, x, r.floorY() + 2, z, Direction.SOUTH,
@@ -168,8 +166,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
                 Blocks.RED_TERRACOTTA.getDefaultState(), 4);
         ceilingCoffers(world, o, r, DARK, GOLD, Blocks.RED_NETHER_BRICKS.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
-        // Near-continuous fitted cabinetry with display breaks rather than four isolated cupboards.
         cabinetZ(world, o, r.minX() + 2, r.maxX() - 2, r.floorY() + 1, r.minZ() + 1, 10, DARK, GOLD, true);
         cabinetZ(world, o, r.minX() + 2, r.maxX() - 2, r.floorY() + 1, r.maxZ() - 1, 10, DARK, GOLD, true);
         cabinetX(world, o, r.minX() + 1, r.floorY() + 1, r.minZ() + 3, r.maxZ() - 3, 10, DARK, GOLD, true);
@@ -194,7 +190,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         glazedCofferGrid(world, o, r, OXIDIZED, GOLD,
                 Blocks.WHITE_STAINED_GLASS.getDefaultState(), Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 5) {
             indoorTree(world, o, r.minX() + 5, r.floorY() + 1, z, Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState());
             indoorTree(world, o, r.maxX() - 5, r.floorY() + 1, z, Blocks.AZALEA_LEAVES.getDefaultState());
@@ -213,7 +208,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         architecturalFrame(world, o, r, PALE, COPPER, Blocks.DEEPSLATE_BRICKS.getDefaultState(), 4);
         ceilingCoffers(world, o, r, PALE, COPPER, Blocks.POLISHED_DEEPSLATE.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         coatOfArms(world, o, r.centerX(), r.floorY() + 4, r.maxZ() - 1);
         framedReliefZ(world, o, r.centerX() - 7, r.floorY() + 5, r.maxZ() - 1, 5, 6,
                 COPPER, PALE, Blocks.RED_GLAZED_TERRACOTTA.getDefaultState());
@@ -233,8 +227,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         ceilingCoffers(world, o, r, Blocks.WHITE_TERRACOTTA.getDefaultState(), OXIDIZED,
                 Blocks.CYAN_TERRACOTTA.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
-        // Dense indoor garden: tree rhythm, hanging foliage, pots and lattice rather than sparse leaf strips.
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 5) {
             indoorTree(world, o, r.minX() + 5, r.floorY() + 1, z, Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState());
             indoorTree(world, o, r.maxX() - 5, r.floorY() + 1, z, Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState());
@@ -260,7 +252,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         ceilingCoffers(world, o, r, DARK, Blocks.STRIPPED_SPRUCE_WOOD.getDefaultState(),
                 Blocks.GREEN_TERRACOTTA.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 5) {
             trophyMountX(world, o, r.maxX() - 2, r.floorY() + 6, z, Direction.WEST);
             trophyMountX(world, o, r.minX() + 2, r.floorY() + 6, z, Direction.EAST);
@@ -285,8 +276,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         glazedCofferGrid(world, o, r, OXIDIZED, GOLD,
                 Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState(), Blocks.PURPLE_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
-        // Full-height book walls with a real mezzanine band and ladders.
         for (int z = r.minZ() + 2; z <= r.maxZ() - 5; z += 4) {
             bookBayX(world, o, r.minX() + 1, r.floorY() + 1, z, Direction.EAST, 10);
             bookBayX(world, o, r.maxX() - 1, r.floorY() + 1, z, Direction.WEST, 10);
@@ -315,7 +304,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         glazedCofferGrid(world, o, r, OXIDIZED, GOLD,
                 Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState(), Blocks.LIME_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         cabinetX(world, o, r.minX() + 1, r.floorY() + 1, r.minZ() + 2, r.maxZ() - 2, 10, DARK, GOLD, true);
         cabinetX(world, o, r.maxX() - 1, r.floorY() + 1, r.minZ() + 2, r.maxZ() - 2, 10, DARK, GOLD, true);
         cabinetZ(world, o, r.minX() + 2, r.maxX() - 2, r.floorY() + 1, r.maxZ() - 1, 10, DARK, GOLD, true);
@@ -332,7 +320,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
                 Blocks.CYAN_TERRACOTTA.getDefaultState(), 4);
         ceilingCoffers(world, o, r, DARK, GOLD, Blocks.BLUE_TERRACOTTA.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         mapWallZ(world, o, r.centerX(), r.floorY() + 4, r.maxZ() - 1, 15, 8);
         globe(world, o, r.centerX() + 5, r.floorY() + 2, r.centerZ() - 2);
         globe(world, o, r.centerX() - 5, r.floorY() + 2, r.centerZ() + 3);
@@ -353,7 +340,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         glazedCofferGrid(world, o, r, PALE, GOLD,
                 Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState(), Blocks.WHITE_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 5) {
             porcelainVitrineX(world, o, r.minX() + 2, r.floorY() + 1, z, Direction.EAST);
             porcelainVitrineX(world, o, r.maxX() - 2, r.floorY() + 1, z, Direction.WEST);
@@ -371,7 +357,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         ceilingCoffers(world, o, r, Blocks.CALCITE.getDefaultState(), Blocks.AMETHYST_BLOCK.getDefaultState(),
                 Blocks.PURPLE_TERRACOTTA.getDefaultState(), 5);
         processionalCarpet(world, o, r, 5, Blocks.RED_CARPET.getDefaultState());
-
         for (int z = r.minZ() + 5; z <= r.maxZ() - 5; z += 6) {
             ornateColumn(world, o, r.minX() + 3, r.floorY() + 1, z, 17, PALE, GOLD);
             ornateColumn(world, o, r.maxX() - 3, r.floorY() + 1, z, 17, PALE, GOLD);
@@ -393,7 +378,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         glazedCofferGrid(world, o, r, PALE, GOLD,
                 Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState(), Blocks.LIME_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         int variant = 0;
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 6) {
             artPanelX(world, o, r.minX() + 1, r.floorY() + 4, z, variant++);
@@ -411,7 +395,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         architecturalFrame(world, o, r, DARK, GOLD, Blocks.WARPED_PLANKS.getDefaultState(), 4);
         ceilingCoffers(world, o, r, DARK, GOLD, Blocks.RED_TERRACOTTA.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 5) {
             officeDesk(world, o, r.minX() + 5, r.floorY() + 2, z, Direction.EAST);
             officeDesk(world, o, r.maxX() - 5, r.floorY() + 2, z, Direction.WEST);
@@ -432,7 +415,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         ceilingCoffers(world, o, r, Blocks.SMOOTH_SANDSTONE.getDefaultState(), GOLD,
                 Blocks.ORANGE_TERRACOTTA.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         fill(world, o, r.minX() + 3, r.floorY() + 1, r.minZ() + 3,
                 r.maxX() - 3, r.floorY() + 2, r.minZ() + 10, DARK);
         harpsichord(world, o, r.centerX(), r.floorY() + 4, r.minZ() + 7, Direction.SOUTH);
@@ -458,7 +440,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         ceilingCoffers(world, o, r, Blocks.DARK_PRISMARINE.getDefaultState(), GOLD,
                 Blocks.LIGHT_BLUE_TERRACOTTA.getDefaultState(), 4);
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 5) {
             framedReliefX(world, o, r.minX() + 1, r.floorY() + 4, z, 5, 7,
                     GOLD, Blocks.CYAN_TERRACOTTA.getDefaultState(), Blocks.LIGHT_BLUE_GLAZED_TERRACOTTA.getDefaultState());
@@ -483,8 +464,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         glazedCofferGrid(world, o, r, GOLD, PALE,
                 Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState(), Blocks.PURPLE_STAINED_GLASS.getDefaultState());
         processionalCarpet(world, o, r, 3, Blocks.RED_CARPET.getDefaultState());
-
-        // A fully dressed state table. The reference reads through repetition, not one generic table.
         int z1 = r.minZ() + 4;
         int z2 = r.maxZ() - 4;
         fill(world, o, r.centerX() - 5, r.floorY() + 3, z1,
@@ -503,8 +482,6 @@ final class OurosGrandPalaceReferenceInteriorPass {
         chandelierRow(world, o, r, 5, GOLD, Blocks.WHITE_STAINED_GLASS.getDefaultState());
     }
 
-    // ---- Reusable professional decoration primitives ------------------------------------------
-
     private static void architecturalFrame(ServerWorld world, BlockPos o, Room r,
                                            BlockState wallAccent, BlockState trim, BlockState pilaster,
                                            int spacing) {
@@ -512,14 +489,12 @@ final class OurosGrandPalaceReferenceInteriorPass {
         int top = r.ceilingY() - 1;
         int lowBand = Math.min(top - 2, y0 + 3);
         int highBand = Math.max(lowBand + 2, top - 3);
-
         for (int y : new int[]{lowBand, highBand, top}) {
             fill(world, o, r.minX() + 1, y, r.minZ() + 1, r.maxX() - 1, y, r.minZ() + 1, trim);
             fill(world, o, r.minX() + 1, y, r.maxZ() - 1, r.maxX() - 1, y, r.maxZ() - 1, trim);
             fill(world, o, r.minX() + 1, y, r.minZ() + 1, r.minX() + 1, y, r.maxZ() - 1, trim);
             fill(world, o, r.maxX() - 1, y, r.minZ() + 1, r.maxX() - 1, y, r.maxZ() - 1, trim);
         }
-
         for (int x = r.minX() + 3; x <= r.maxX() - 3; x += spacing) {
             ornateColumn(world, o, x, y0, r.minZ() + 2, Math.max(5, top - y0 - 1), pilaster, trim);
             ornateColumn(world, o, x, y0, r.maxZ() - 2, Math.max(5, top - y0 - 1), pilaster, trim);
@@ -566,9 +541,7 @@ final class OurosGrandPalaceReferenceInteriorPass {
         for (int x = r.minX() + 2; x <= r.maxX() - 2; x++) {
             for (int z = r.minZ() + 2; z <= r.maxZ() - 2; z++) {
                 boolean beam = Math.floorMod(x - r.minX(), 4) == 0 || Math.floorMod(z - r.minZ(), 4) == 0;
-                BlockState state;
-                if (beam) state = frame;
-                else state = Math.floorMod(x * 7 + z * 11, 9) == 0 ? glassB : glassA;
+                BlockState state = beam ? frame : (Math.floorMod(x * 7 + z * 11, 9) == 0 ? glassB : glassA);
                 world.setBlockState(o.add(x, y, z), state);
             }
         }
@@ -587,9 +560,7 @@ final class OurosGrandPalaceReferenceInteriorPass {
 
     private static void chandelierRow(ServerWorld world, BlockPos o, Room r, int spacing,
                                       BlockState metal, BlockState glass) {
-        int start = r.minZ() + 5;
-        int end = r.maxZ() - 5;
-        for (int z = start; z <= end; z += spacing) {
+        for (int z = r.minZ() + 5; z <= r.maxZ() - 5; z += spacing) {
             chandelier(world, o, r.centerX(), r.ceilingY() - 1, z,
                     Math.max(4, Math.min(7, (r.ceilingY() - r.floorY()) / 3)), metal, glass);
         }
@@ -736,7 +707,7 @@ final class OurosGrandPalaceReferenceInteriorPass {
 
     private static void displayPedestal(ServerWorld world, BlockPos o, int x, int y, int z, BlockState display) {
         fill(world, o, x - 1, y, z - 1, x + 1, y, z + 1, PALE);
-        world.setBlockState(o.add(x, y + 1, z), Blocks.POLISHED_DIORITE_WALL.getDefaultState());
+        world.setBlockState(o.add(x, y + 1, z), Blocks.DIORITE_WALL.getDefaultState());
         world.setBlockState(o.add(x, y + 2, z), display);
         world.setBlockState(o.add(x, y + 3, z), Blocks.WHITE_STAINED_GLASS.getDefaultState());
     }
