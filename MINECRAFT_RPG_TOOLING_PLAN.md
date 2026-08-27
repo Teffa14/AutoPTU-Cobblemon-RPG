@@ -14,6 +14,8 @@ Every AutoPTU-Cobblemon-RPG work run must read this file after the short read-on
 4. When an item ships, change its status here and add its PR/commit reference.
 5. Minecraft may request, persist, present, animate, and interact. It must not invent PTU legality, RNG, damage, statuses, abilities, Trainer Features, capture results, or battle outcomes.
 6. Clients submit requests and selections only. The server re-resolves player identity, party, inventory, target, eligibility, progression, and canonical state.
+7. Normal wild encounters must originate from visible roaming Pokemon actors registered by AutoPTU. Never create invisible random encounters from walking on grass, entering caves, swimming, fishing context alone, or other movement-only rolls. Environment/context may select which canonical wild actors are provisioned into the world, but combat starts only from an explicit visible actor interaction/engagement.
+8. Cobblemon Pokemon entities may be used only as rendered/walking presentation actors. AutoPTU must never trust or read their Pokemon payload, species, level, HP, moves, statuses, ownership, BattleState, battle participants, RNG, faint/capture/healing eligibility or results. Presentation data is projected one-way from AutoPTU canonical state.
 
 ## Status
 
@@ -49,7 +51,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-010 | LIVE | `/autoptu pokemon <slot>` | PR #207, commit `b3fed8380f801222d6c549f1695b8bb98789a135`. Shows detailed durable canonical Pokemon state while leaving unavailable PTU inputs unavailable. |
 | CUR-011 | LIVE | healing station block interaction | PR #209, commit `81ca566e645f749e7cb6b23cd0714dd91f706094`. Right-clicking an authored station invokes canonical persistent party HP healing. |
 | CUR-012 | LIVE | server-owned wild encounter table | PR #211, implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`. Zone/context selects and freezes an already-authored canonical WILD roster without reading Cobblemon gameplay state. |
-| CUR-013 | LIVE | world encounter movement trigger | PR #212, implementation head `fd2b88912cae3bec3c4166ddce38335642eb226c`. Walking across server-recognized grass creates one pending canonical encounter request and visible action-bar cue without starting a battle. |
+| CUR-013 | LIVE | visible wild actor interaction boundary | Registered visible Pokemon presentation actors can submit an encounter request by entity UUID -> AutoPTU-owned world binding. The adapter never reads Cobblemon Pokemon gameplay data. |
 
 ---
 
@@ -65,8 +67,8 @@ Work these point by point.
 | P0-004 | LIVE | `/autoptu pokemon <slot>` | Shipped via PR #207 / commit `b3fed8380f801222d6c549f1695b8bb98789a135`; shows an ownership-safe detailed canonical Pokémon summary and reports missing optional PTU inputs as unavailable. |
 | P0-005 | LIVE | Healing station interaction | Shipped via PR #209 / commit `81ca566e645f749e7cb6b23cd0714dd91f706094`; a real authored Minecraft block signature calls the same canonical healing service as `/autoptu healparty`, with server-side distance/context checks. |
 | P0-006 | LIVE | Server-owned wild encounter table | Shipped via PR #211 / implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`; exact server-owned zone/context selects and freezes an already-authored complete canonical WILD blueprint, with deterministic RPG/world selection separate from battle RNG and no Cobblemon gameplay-state inputs. |
-| P0-007 | LIVE | World encounter trigger | PR #212 / implementation head `fd2b88912cae3bec3c4166ddce38335642eb226c`; walking into the configured grass context creates a deduplicated canonical encounter request from authenticated player identity and server-owned Minecraft position only. |
-| P0-008 | NEXT | Party-to-encounter handoff | Active canonical party + wild blueprint become an immutable reservation. |
+| P0-007 | NEXT | Visible roaming wild encounter trigger | Server-owned world ecology provisions a visible roaming Pokemon presentation actor, binds its entity UUID to an AutoPTU canonical wild context/encounter identity, and player interaction/engagement with that visible actor creates the encounter request. No hidden grass/cave/water movement roll and no Cobblemon Pokemon gameplay state. |
+| P0-008 | TODO | Party-to-encounter handoff | Active canonical party + the interacted visible wild actor's frozen canonical blueprint become an immutable reservation. |
 | P0-009 | TODO | Normal player-vs-wild battle start | World encounter starts AutoPTU-Java using persistent canonical actors. |
 | P0-010 | TODO | Battle choice UI | Displays authoritative legal choices and submits only choice IDs/targets. |
 | P0-011 | TODO | Normal semantic battle playback | Movement, attacks, HP, statuses, faint and result are projected from authoritative events/results. |
@@ -193,10 +195,10 @@ These should become the normal gameplay path.
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
-| WORLD-012 | TODO | Wild Pokémon contextual encounter interaction. |
-| WORLD-013 | LIVE | Grass/region movement encounter trigger — PR #212 / `fd2b88912cae3bec3c4166ddce38335642eb226c`. |
-| WORLD-014 | TODO | Cave encounter trigger. |
-| WORLD-015 | TODO | Water/fishing encounter trigger. |
+| WORLD-012 | NEXT | Visible wild Pokémon contextual encounter interaction. A registered roaming actor is the encounter surface. |
+| WORLD-013 | TODO | Region/grass ecology provisioning for visible roaming wild Pokémon. This controls population/presence only; it never creates invisible movement encounters. |
+| WORLD-014 | TODO | Cave ecology provisioning for visible roaming wild Pokémon; no movement-only encounter roll. |
+| WORLD-015 | TODO | Water/fishing ecology provisioning for visible/swimming/fishable wild actors; no context-only battle trigger. |
 | WORLD-016 | TODO | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |
 | WORLD-017 | TODO | Fast-travel point. |
 | WORLD-018 | TODO | Inn/rest point. |
@@ -368,6 +370,7 @@ When any of these are incomplete upstream, skip them and continue with another s
 - PTU evolution, level-up and move-learning legality until an authoritative contract exists.
 - Tactical AI policy until upstream owns it.
 - Any battle hit, crit, damage, target legality, resource consumption or result supplied as trusted client truth.
+- Any Cobblemon Pokemon/BattleState/gameplay field used as canonical encounter or battle input.
 
 ---
 
@@ -380,9 +383,9 @@ This milestone is complete only when a fresh player can do all of the following 
 3. Choose a starter from a server-owned list.
 4. See the starter in a persistent party.
 5. Inspect and heal the party through normal Minecraft UI/world interaction.
-6. Walk into a configured encounter context.
-7. Trigger a server-owned wild encounter.
-8. Start an AutoPTU-Java battle from the persistent party.
+6. See wild Pokemon physically roaming appropriate world habitats.
+7. Approach/interact with a visible wild Pokemon and create a server-owned canonical encounter from that actor's AutoPTU binding.
+8. Start an AutoPTU-Java battle from the persistent party and that visible wild actor's canonical blueprint.
 9. Choose legal actions through Minecraft UI.
 10. See movement, attacks, HP loss, statuses/fainting when authoritative, and winner/loser presentation.
 11. Exit to the world.
