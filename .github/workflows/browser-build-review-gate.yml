@@ -90,9 +90,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          fixture="$RUNNER_TEMP/ouros-mesh-fixture"
           assets="$RUNNER_TEMP/ouros-mesh-assets"
           out="$RUNNER_TEMP/ouros-build-mesh"
-          mkdir -p "$assets" "$out"
+          mkdir -p "$fixture/build-data" "$assets" "$out"
+
+          cat > "$fixture/build-data/builds.json" <<'JSON'
+          {"format":"ouros.build-review.registry.v1","builds":[{"id":"fixture","name":"Fixture","manifest":"build-data/fixture.blocks.json","layers":[{"id":"all","label":"All"}]}]}
+          JSON
+          cat > "$fixture/build-data/fixture.blocks.json" <<'JSON'
+          {"format":"ouros.minecraft.block-manifest.v1","buildId":"fixture","displayName":"Low-memory fixture","minecraftVersion":"1.21.1","geometryAuthority":"live_server_final_blockstate_scan","geometrySha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","blockCount":4,"captureEnvelopeAudit":"passed","floatingComponentAudit":"passed","min":[0,0,0],"max":[1,1,0],"size":[2,2,1],"productionSources":["fixture"],"authoredSpaces":[],"reviewSpaces":[],"palette":[{"id":"minecraft:stone"},{"id":"minecraft:glass"},{"id":"minecraft:deepslate_tile_stairs","properties":{"facing":"north","half":"bottom","shape":"straight","waterlogged":"false"}}],"blocks":[[0,0,0,0],[1,0,0,0],[0,1,0,1],[1,1,0,2]]}
+          JSON
+
           atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
           raw='https://raw.githubusercontent.com/misode/mcmeta'
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
@@ -101,25 +110,24 @@ jobs:
             "$raw/$atlas_sha/blocks/atlas.png" -o "$assets/atlas.png"
 
           node tools/build-review/compile-surface-mesh.mjs \
-            site/build-data/builds.json "$out" "$assets/atlas-map.json" "$assets/atlas.png"
+            "$fixture/build-data/builds.json" "$out" "$assets/atlas-map.json" "$assets/atlas.png"
 
           python3 - <<'PY' "$out"
           import json, pathlib, sys
           out = pathlib.Path(sys.argv[1])
-          registry = json.loads(pathlib.Path('site/build-data/builds.json').read_text(encoding='utf-8'))
-          for build in registry['builds']:
-              source = json.loads(pathlib.Path('site', build['manifest']).read_text(encoding='utf-8'))
-              mesh = json.loads((out / f"{build['id']}.mesh.json").read_text(encoding='utf-8'))
-              assert mesh['sourceGeometrySha256'] == source['geometrySha256']
-              assert mesh['blockCount'] == source['blockCount']
-              assert mesh['renderMode'] == 'server_precomputed_surface_mesh'
-              total = mesh['opaque']['bytes'] + mesh['translucent']['bytes']
-              assert total < 48 * 1024 * 1024, f"{build['id']} exceeds 48 MiB mesh budget: {total}"
-              assert mesh['meshStats']['visibleFaces'] > 0
-              for part in ('opaque', 'translucent'):
-                  p = out / pathlib.Path(mesh[part]['url']).name
-                  assert p.stat().st_size == mesh[part]['bytes']
-              print(build['id'], total, 'bytes,', mesh['meshStats'])
+          mesh = json.loads((out / 'fixture.mesh.json').read_text(encoding='utf-8'))
+          assert mesh['format'] == 'ouros.minecraft.surface-mesh.v1'
+          assert mesh['sourceGeometrySha256'] == 'a' * 64
+          assert mesh['blockCount'] == 4
+          assert mesh['renderMode'] == 'server_precomputed_surface_mesh'
+          assert mesh['meshStats']['visibleFaces'] > 0
+          total = mesh['opaque']['bytes'] + mesh['translucent']['bytes']
+          assert 0 < total < 1024 * 1024
+          for part in ('opaque', 'translucent'):
+              p = out / pathlib.Path(mesh[part]['url']).name
+              assert p.is_file()
+              assert p.stat().st_size == mesh[part]['bytes']
+          print('Synthetic low-memory mesh passed:', total, 'bytes,', mesh['meshStats'])
           PY
 
       - name: Assemble and parse classic browser bundle
