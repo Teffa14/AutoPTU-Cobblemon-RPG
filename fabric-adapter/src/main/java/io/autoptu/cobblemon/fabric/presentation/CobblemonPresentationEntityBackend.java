@@ -4,6 +4,9 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.battlecore.BattlePresentationCommand;
 import io.autoptu.cobblemon.battlecore.PresentationEntityPlatformBackend;
 import io.autoptu.cobblemon.battlecore.WorldBlockCoordinate;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 
 import java.util.Objects;
 
@@ -64,9 +67,52 @@ public final class CobblemonPresentationEntityBackend
         Objects.requireNonNull(entity, "entity");
         Objects.requireNonNull(command, "command");
 
-        // Semantic cues are authoritative rendering inputs. Until a concrete visual renderer is
-        // attached, accepting the cue is intentionally side-effect free. This keeps the Fabric
-        // entity stream ordered without interpreting ability, item, status, terrain, reaction or
-        // Trainer Feature semantics inside Minecraft.
+        if (command.kind() != BattlePresentationCommand.Kind.STATUS_SKIP_CUE) {
+            // Other semantic cues stay accepted but presentation-neutral until their bounded UX
+            // slices ship. Minecraft must not invent meanings for generic upstream effects.
+            return;
+        }
+        if (!(entity.getWorld() instanceof ServerWorld serverWorld)) {
+            return;
+        }
+
+        // status_skip is already an authoritative AutoPTU-Java outcome. Fabric only mirrors that
+        // fact with a generic particle cue and nearby action-bar text. It never decides whether the
+        // status exists, whether an action is skipped, or what the status mechanically does.
+        serverWorld.spawnParticles(
+                ParticleTypes.EFFECT,
+                entity.getX(),
+                entity.getBodyY(0.75D),
+                entity.getZ(),
+                8,
+                0.35D,
+                0.25D,
+                0.35D,
+                0.02D
+        );
+
+        Text cueText = Text.literal(statusSkipText(command));
+        for (var player : serverWorld.getPlayers()) {
+            if (player.squaredDistanceTo(entity) <= 1024.0D) {
+                player.sendMessage(cueText, true);
+            }
+        }
+    }
+
+    static String statusSkipText(BattlePresentationCommand command) {
+        Objects.requireNonNull(command, "command");
+        if (command.kind() != BattlePresentationCommand.Kind.STATUS_SKIP_CUE) {
+            throw new IllegalArgumentException("STATUS_SKIP_CUE command is required");
+        }
+
+        String status = displayValue(command.data().get("status"), "status");
+        String phase = displayValue(command.data().get("phase"), "phase");
+        String reason = displayValue(command.data().get("reason"), "authoritative skip");
+        return status + " · " + phase + " · " + reason;
+    }
+
+    private static String displayValue(String value, String fallback) {
+        if (value == null || value.isBlank()) return fallback;
+        return value.strip();
     }
 }
