@@ -1,0 +1,123 @@
+name: Ouros Grand Palace Gate
+
+on:
+  pull_request:
+    paths:
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/OurosGrandPalace*.java'
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/OurosSignatureBuildRuntime.java'
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/AutoPtuCobblemonFabricAdapter.java'
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/build/**'
+      - '.github/workflows/ouros-grand-palace-gate.yml'
+      - '.github/workflows/build-review-pages.yml'
+
+jobs:
+  exact-grand-palace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Build production Fabric + Cobblemon mod set
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
+
+      - name: Export and audit exact Ouros Grand Palace
+        shell: bash
+        run: |
+          set -euo pipefail
+          server_dir="$PWD/ouros-grand-palace-gate-server"
+          output="$PWD/ouros-grand-palace-gate/ouros-grand-palace.blocks.json"
+          mkdir -p "$server_dir/mods" "$(dirname "$output")"
+          cp fabric-adapter/build/production-smoke/mods/*.jar "$server_dir/mods/"
+          printf 'eula=true\n' > "$server_dir/eula.txt"
+
+          curl -fsSL \
+            -o "$server_dir/fabric-server-launch.jar" \
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+
+          server_pid=""
+          stop_server() {
+            if [ -n "$server_pid" ]; then
+              kill "$server_pid" 2>/dev/null || true
+              wait "$server_pid" 2>/dev/null || true
+              server_pid=""
+            fi
+          }
+          trap stop_server EXIT
+
+          (
+            cd "$server_dir"
+            exec java \
+              -Dautoptu.ourosGrandPalaceManifestOutput="$output" \
+              -Xms768M -Xmx3G -jar fabric-server-launch.jar nogui > ../ouros-grand-palace-gate.log 2>&1
+          ) &
+          server_pid=$!
+
+          ready=0
+          for _ in $(seq 1 300); do
+            latest="$server_dir/logs/latest.log"
+            if grep -q 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU Ouros Grand Palace floating component audit passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU exact Ouros Grand Palace manifest export passed' "$latest" 2>/dev/null \
+              && [ -s "$output" ]; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat ouros-grand-palace-gate.log || true
+            cat "$server_dir/logs/latest.log" 2>/dev/null || true
+            exit 1
+          fi
+
+          grep 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$server_dir/logs/latest.log"
+          grep 'AutoPTU Ouros Grand Palace floating component audit passed' "$server_dir/logs/latest.log"
+          grep 'AutoPTU exact Ouros Grand Palace manifest export passed' "$server_dir/logs/latest.log"
+
+          python3 - <<'PY' "$output"
+          import json, sys
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          assert data['buildId'] == 'ouros_grand_palace'
+          assert data['geometryAuthority'] == 'live_server_final_blockstate_scan'
+          assert data['captureEnvelopeAudit'] == 'passed'
+          assert data['floatingComponentAudit'] == 'passed'
+          assert data['blockCount'] == len(data['blocks'])
+          assert len(data['geometrySha256']) == 64
+          assert data['size'] == [87, 51, 115], data['size']
+          assert len(data['authoredSpaces']) == 19, len(data['authoredSpaces'])
+          assert data['blockCount'] > 30000, data['blockCount']
+          assert len(data['palette']) > 60, len(data['palette'])
+          print(
+              'Ouros Grand Palace gate passed:',
+              data['blockCount'], 'blocks,',
+              len(data['palette']), 'states,',
+              data['structuralComponentCount'], 'components,',
+              data['geometrySha256']
+          )
+          PY
+          stop_server
+
+      - name: Upload Grand Palace exact evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ouros-grand-palace-gate-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ouros-grand-palace-gate/**
+            ouros-grand-palace-gate.log
+            ouros-grand-palace-gate-server/logs/latest.log
