@@ -263,6 +263,7 @@ jobs:
               assert mesh['captureEnvelopeAudit'] == 'passed'
               assert mesh['floatingComponentAudit'] == 'passed'
               assert mesh['renderMode'] == 'server_precomputed_surface_mesh'
+              assert mesh['vertexFormat']['coordinates'] == 'capture_local'
               total = mesh['opaque']['bytes'] + mesh['translucent']['bytes']
               assert total < 48 * 1024 * 1024, f"{build['id']} review mesh exceeds 48 MiB browser budget: {total}"
               assert mesh['meshStats']['exposedBlocks'] <= source['blockCount']
@@ -271,7 +272,7 @@ jobs:
                   p = site / mesh[part]['url']
                   assert p.is_file(), p
                   assert p.stat().st_size == mesh[part]['bytes'], (p, p.stat().st_size, mesh[part]['bytes'])
-              print(build['id'], 'low-memory mesh:', total, 'bytes,', mesh['meshStats']['visibleFaces'], 'faces,', mesh['meshStats']['culledInteriorBlocks'], 'fully interior blocks removed')
+              print(build['id'], 'low-memory mesh:', f"{total / 1024 / 1024:.2f} MiB,", mesh['meshStats']['visibleFaces'], 'faces,', mesh['meshStats']['culledInteriorBlocks'], 'fully interior blocks removed')
           PY
 
       - name: Assemble unified low-memory browser runtime
@@ -304,7 +305,7 @@ jobs:
           new Function(source);
           const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', 'deepslate', 'StructureRenderer', 'manifest.blocks', 'block-definitions.json', 'block-models.json'];
           for (const token of forbidden) if (source.includes(token)) throw new Error('low-memory viewer contains forbidden browser voxel token: ' + token);
-          for (const token of ['build-select', 'cameraMode', 'requestPointerLock', 'reviewSpaces', 'SurfaceMeshRenderer', 'uClipMin', 'uClipMax', 'uSliceMax']) {
+          for (const token of ['build-select', 'cameraMode', 'requestPointerLock', 'reviewSpaces', 'SurfaceMeshRenderer', 'uClipMin', 'uClipMax', 'uSliceMax', 'getReader', 'bufferSubData']) {
             if (!source.includes(token)) throw new Error('unified explorer capability missing: ' + token);
           }
           if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
