@@ -37,11 +37,6 @@ public final class WorldTaskCompetenceService {
         Objects.requireNonNull(skillRanks, "skillRanks");
         Objects.requireNonNull(requiredSkillId, "requiredSkillId");
 
-        Integer exact = skillRanks.get(requiredSkillId);
-        if (exact != null) {
-            return exact;
-        }
-
         String normalizedRequired = normalizeSkillId(requiredSkillId);
         int resolved = 0;
         boolean found = false;
