@@ -96,7 +96,7 @@ jobs:
           assert data['floatingComponentAudit'] == 'passed'
           assert data['blockCount'] == len(data['blocks'])
           assert len(data['geometrySha256']) == 64
-          assert data['size'] == [87, 51, 115], data['size']
+          assert data['size'] == [87, 53, 115], data['size']
           assert len(data['authoredSpaces']) == 19, len(data['authoredSpaces'])
           assert data['blockCount'] > 30000, data['blockCount']
           assert len(data['palette']) > 60, len(data['palette'])
