@@ -37,19 +37,22 @@ public final class OurosGrandPalaceManifestExportRuntime {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-ouros-grand-palace-export");
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
-    private static final int MIN_X = OurosGrandPalace.MIN_X;
-    private static final int MAX_X = OurosGrandPalace.MAX_X;
-    private static final int MIN_Y = OurosGrandPalace.MIN_Y;
-    private static final int MAX_Y = OurosGrandPalace.MAX_Y;
-    private static final int MIN_Z = OurosGrandPalace.MIN_Z;
-    private static final int MAX_Z = OurosGrandPalace.MAX_Z;
+    // The nineteen authored rooms retain their original coordinates. The exact viewer envelope is
+    // deliberately larger than that room grid so exterior architecture, courtyards and vertical
+    // landmarks are free to grow around the interior program instead of being clipped to a box.
+    private static final int MIN_X = -54;
+    private static final int MAX_X = 54;
+    private static final int MIN_Y = -4;
+    private static final int MAX_Y = 72;
+    private static final int MIN_Z = -72;
+    private static final int MAX_Z = 66;
 
-    private static final int GUARD_MIN_X = MIN_X - 7;
-    private static final int GUARD_MAX_X = MAX_X + 7;
+    private static final int GUARD_MIN_X = MIN_X - 8;
+    private static final int GUARD_MAX_X = MAX_X + 8;
     private static final int GUARD_MIN_Y = MIN_Y;
     private static final int GUARD_MAX_Y = MAX_Y + 8;
-    private static final int GUARD_MIN_Z = MIN_Z - 7;
-    private static final int GUARD_MAX_Z = MAX_Z + 7;
+    private static final int GUARD_MIN_Z = MIN_Z - 8;
+    private static final int GUARD_MAX_Z = MAX_Z + 8;
 
     private OurosGrandPalaceManifestExportRuntime() {}
 
@@ -180,6 +183,8 @@ public final class OurosGrandPalaceManifestExportRuntime {
         sources.add("OurosGrandPalaceCeremonialRooms");
         sources.add("OurosGrandPalaceSalonRooms");
         sources.add("OurosGrandPalaceUpperRooms");
+        sources.add("OurosGrandPalaceExteriorRebuildPass");
+        sources.add("OurosGrandPalaceRoofSupportPass");
         sources.add("OurosGrandPalaceStructuralCompletionPass");
         root.add("productionSources", sources);
 
