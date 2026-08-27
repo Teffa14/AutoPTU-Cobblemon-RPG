@@ -110,10 +110,14 @@ function textureKey(id) {
 
 function uvRect(texture) {
   const [x, y, w, h] = atlasMap[texture];
+  // Animated block textures are stored as vertical strips. A static review mesh samples only the
+  // first square frame, matching the old Deepslate viewer's stable-frame behavior instead of
+  // stretching every animation frame over one face.
+  const frameH = h !== w && texture.startsWith('block/') ? w : h;
   const inset = 0.35;
   return [
     (x + inset) / atlasWidth,
-    1 - (y + h - inset) / atlasHeight,
+    1 - (y + frameH - inset) / atlasHeight,
     (x + w - inset) / atlasWidth,
     1 - (y + inset) / atlasHeight
   ];
@@ -221,19 +225,26 @@ function compileBuild(build) {
     const texture = textureKey(state.id);
     const uv = uvRect(texture);
     const writer = isTranslucent(state.id) ? translucent : opaque;
+    const localBlock = [
+      b[0] - manifest.min[0],
+      b[1] - manifest.min[1],
+      b[2] - manifest.min[2]
+    ];
     let emittedForBlock = 0;
 
     for (const box of boxes) {
       const full = isFullBox(box);
       for (const dir of DIRECTIONS) {
         if (full) {
+          // Adjacency remains in the exact live-server coordinate system. Only packed vertex
+          // positions are translated into non-negative capture-local coordinates for uint16 storage.
           const ni = occupancy.get(key(b[0] + dir.d[0], b[1] + dir.d[1], b[2] + dir.d[2]));
           if (ni !== undefined) {
             const neighbor = states[ni];
             if ((isOccluder(state) && isOccluder(neighbor)) || (neighbor.id === state.id && isFullBox(geometryBoxes(neighbor)[0]))) continue;
           }
         }
-        emitFace(writer, b, box, dir, uv);
+        emitFace(writer, localBlock, box, dir, uv);
         emittedForBlock++;
         faceCount++;
       }
@@ -266,7 +277,7 @@ function compileBuild(build) {
     paletteCounts: Array.from(paletteCounts.entries()).sort((a,b) => b[1] - a[1]),
     renderMode: 'server_precomputed_surface_mesh',
     visualContract: 'Exact block count, bounds and source SHA come from the Fabric live-server manifest. Browser geometry is a non-interactive precomputed surface mesh and does not materialize BlockState objects.',
-    vertexFormat: { stride: 16, positionScale: 16, uvNormalizedU16: true, normalNormalizedI8: true },
+    vertexFormat: { stride: 16, positionScale: 16, coordinates: 'capture_local', uvNormalizedU16: true, normalNormalizedI8: true },
     atlas: 'minecraft-assets/atlas.png',
     opaque: { url: `build-mesh/${opaqueName}`, vertices: opaque.vertices, bytes: opaque.offset },
     translucent: { url: `build-mesh/${translucentName}`, vertices: translucent.vertices, bytes: translucent.offset },
