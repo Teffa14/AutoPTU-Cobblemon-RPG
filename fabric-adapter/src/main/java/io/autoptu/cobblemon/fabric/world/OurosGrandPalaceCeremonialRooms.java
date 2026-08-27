@@ -35,7 +35,6 @@ final class OurosGrandPalaceCeremonialRooms {
         grandDoorFrameNorth(world, o, r, gold);
         insetCeiling(world, o, r, gold, Blocks.DARK_PRISMARINE.getDefaultState(), pale);
 
-        // Triple-height wall articulation inspired by the reference's red ceremonial antechamber.
         for (int yBand : new int[]{4, 11, 18, 25}) {
             fill(world, o, r.minX() + 1, yBand, r.minZ() + 1, r.maxX() - 1, yBand, r.minZ() + 1, gold);
             fill(world, o, r.minX() + 1, yBand, r.maxZ() - 1, r.maxX() - 1, yBand, r.maxZ() - 1, gold);
@@ -49,7 +48,6 @@ final class OurosGrandPalaceCeremonialRooms {
             wallCandelabra(world, o, r.maxX() - 3, 9, z, Direction.WEST, gold);
         }
 
-        // Upper overlook openings connect the room to the palace gallery rather than enclosing a void.
         for (int z : new int[]{r.centerZ() - 6, r.centerZ(), r.centerZ() + 6}) {
             clear(world, o, r.minX(), 16, z - 1, r.minX(), 21, z + 1);
             clear(world, o, r.maxX(), 16, z - 1, r.maxX(), 21, z + 1);
@@ -57,7 +55,6 @@ final class OurosGrandPalaceCeremonialRooms {
             fill(world, o, r.maxX() - 1, 16, z - 1, r.maxX() - 1, 17, z + 1, Blocks.BAMBOO_FENCE.getDefaultState());
         }
 
-        // Processional carpet and low furniture keep the center legible.
         fill(world, o, -2, 1, r.minZ() + 1, 2, 1, r.maxZ() - 1, Blocks.RED_CARPET.getDefaultState());
         for (int z : new int[]{r.minZ() + 5, r.maxZ() - 5}) {
             bench(world, o, r.minX() + 4, z, r.minX() + 8, z, 2,
@@ -90,7 +87,6 @@ final class OurosGrandPalaceCeremonialRooms {
         insetCeiling(world, o, r, bamboo, Blocks.DARK_OAK_PLANKS.getDefaultState(), gold);
         fill(world, o, -2, 1, r.minZ() + 1, 2, 1, r.maxZ() - 1, Blocks.RED_CARPET.getDefaultState());
 
-        // Throne dais and canopy form the room's unmistakable destination.
         fill(world, o, -7, 1, r.maxZ() - 6, 7, 1, r.maxZ() - 2, Blocks.POLISHED_DEEPSLATE.getDefaultState());
         fill(world, o, -5, 2, r.maxZ() - 5, 5, 2, r.maxZ() - 2, Blocks.RED_CARPET.getDefaultState());
         fill(world, o, -4, 3, r.maxZ() - 3, 4, 3, r.maxZ() - 2, Blocks.BAMBOO_MOSAIC_SLAB.getDefaultState());
@@ -105,7 +101,6 @@ final class OurosGrandPalaceCeremonialRooms {
                 Blocks.DARK_OAK_STAIRS.getDefaultState(), Blocks.BAMBOO_FENCE.getDefaultState());
         world.setBlockState(o.add(0, 4, r.maxZ() - 5), Blocks.RED_BANNER.getDefaultState());
 
-        // Side audience benches, paired columns and glass lanterns.
         for (int z = r.minZ() + 4; z <= r.maxZ() - 8; z += 5) {
             bench(world, o, r.minX() + 3, z, r.minX() + 7, z, 2,
                     Blocks.DARK_OAK_SLAB.getDefaultState(), Blocks.BAMBOO_FENCE.getDefaultState());
@@ -115,7 +110,6 @@ final class OurosGrandPalaceCeremonialRooms {
             fill(world, o, r.maxX() - 3, 1, z + 2, r.maxX() - 2, 25, z + 2, bamboo);
         }
 
-        // Upper gallery apertures with real railings.
         for (int z : new int[]{r.centerZ() - 5, r.centerZ() + 5}) {
             clear(world, o, r.minX(), 16, z - 2, r.minX(), 22, z + 2);
             clear(world, o, r.maxX(), 16, z - 2, r.maxX(), 22, z + 2);
@@ -146,7 +140,6 @@ final class OurosGrandPalaceCeremonialRooms {
                 Blocks.LIME_STAINED_GLASS.getDefaultState());
         fill(world, o, -2, 1, r.minZ() + 1, 2, 1, r.maxZ() - 1, Blocks.RED_CARPET.getDefaultState());
 
-        // Dense green/gold articulation from the reference, organized into structural bays.
         for (int z = r.minZ() + 3; z <= r.maxZ() - 3; z += 4) {
             fill(world, o, r.minX() + 1, 1, z, r.minX() + 2, 27, z, oxidized);
             fill(world, o, r.maxX() - 2, 1, z, r.maxX() - 1, 27, z, oxidized);
@@ -158,7 +151,6 @@ final class OurosGrandPalaceCeremonialRooms {
             fill(world, o, r.maxX() - 2, y, r.minZ() + 1, r.maxX() - 1, y, r.maxZ() - 1, gold);
         }
 
-        // Themis relief: abstract balance scales rather than a textual sign.
         int z = r.maxZ() - 1;
         fill(world, o, 0, 6, z - 1, 0, 19, z - 1, pale);
         fill(world, o, -6, 17, z - 1, 6, 18, z - 1, gold);
@@ -169,7 +161,6 @@ final class OurosGrandPalaceCeremonialRooms {
         }
         steppedArchZ(world, o, 0, 20, z - 1, 8, 5, gold);
 
-        // Tribunal tables and symmetrical seating.
         table(world, o, -7, r.maxZ() - 6, 7, r.maxZ() - 4, 3,
                 Blocks.DARK_OAK_SLAB.getDefaultState(), Blocks.DARK_OAK_FENCE.getDefaultState());
         for (int x = -6; x <= 6; x += 3) {
@@ -202,7 +193,6 @@ final class OurosGrandPalaceCeremonialRooms {
         insetCeiling(world, o, r, amethyst, marble, purple);
         fill(world, o, -2, 1, r.minZ() + 1, 2, 1, r.maxZ() - 1, Blocks.RED_CARPET.getDefaultState());
 
-        // Purple marble wall fields with carved pale frames.
         for (int z = r.minZ() + 4; z <= r.maxZ() - 4; z += 6) {
             wallPanelX(world, o, r.minX() + 1, 4, z, 5, 10, diorite, amethyst, gold);
             wallPanelX(world, o, r.maxX() - 1, 4, z, 5, 10, diorite, amethyst, gold);
@@ -211,12 +201,11 @@ final class OurosGrandPalaceCeremonialRooms {
             corniceRing(world, o, r, y == 16 ? purple : gold, y);
         }
 
-        // Formal salon groupings leave the central carpet open.
         for (int z : new int[]{r.minZ() + 6, r.centerZ(), r.maxZ() - 6}) {
             bench(world, o, r.minX() + 3, z, r.minX() + 7, z, 2,
-                    Blocks.PALE_OAK_SLAB.getDefaultState(), Blocks.POLISHED_DIORITE_WALL.getDefaultState());
+                    Blocks.BIRCH_SLAB.getDefaultState(), Blocks.DIORITE_WALL.getDefaultState());
             bench(world, o, r.maxX() - 7, z, r.maxX() - 3, z, 2,
-                    Blocks.PALE_OAK_SLAB.getDefaultState(), Blocks.POLISHED_DIORITE_WALL.getDefaultState());
+                    Blocks.BIRCH_SLAB.getDefaultState(), Blocks.DIORITE_WALL.getDefaultState());
             table(world, o, r.minX() + 5, z + 2, r.minX() + 6, z + 3, 2,
                     Blocks.POLISHED_DIORITE_SLAB.getDefaultState(), Blocks.DARK_OAK_FENCE.getDefaultState());
             table(world, o, r.maxX() - 6, z + 2, r.maxX() - 5, z + 3, 2,
