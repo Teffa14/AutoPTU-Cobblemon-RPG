@@ -27,25 +27,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Exact live-server exporter for the OI-107 Ouros Grand Palace. */
-public final class OurosGrandPalaceManifestExportRuntime {
+import static io.autoptu.cobblemon.fabric.world.OurosGrandPalace.*;
+
+/** Exact live-server exporter for the courtyard-based Ouros Grand Palace V4. */
+public final class OurosGrandPalaceV4ManifestExportRuntime {
     public static final String OUTPUT_PROPERTY = "autoptu.ourosGrandPalaceManifestOutput";
     public static final String SUCCESS_MARKER = "AutoPTU exact Ouros Grand Palace manifest export passed";
     public static final String STRUCTURAL_AUDIT_MARKER = "AutoPTU Ouros Grand Palace floating component audit passed";
     public static final String ENVELOPE_AUDIT_MARKER = "AutoPTU Ouros Grand Palace capture envelope audit passed";
+    public static final String V4_SHAPE_MARKER = "AutoPTU Ouros Grand Palace V4 anti-box audit passed";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-ouros-grand-palace-export");
+    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-ouros-grand-palace-v4-export");
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
-    // The nineteen authored rooms retain their original coordinates. The exact viewer envelope is
-    // deliberately larger than that room grid so exterior architecture, courtyards and vertical
-    // landmarks are free to grow around the interior program instead of being clipped to a box.
-    private static final int MIN_X = -54;
-    private static final int MAX_X = 54;
-    private static final int MIN_Y = -4;
-    private static final int MAX_Y = 72;
-    private static final int MIN_Z = -72;
-    private static final int MAX_Z = 66;
+    private static final int MIN_X = OurosGrandPalaceV4Builder.MIN_X;
+    private static final int MAX_X = OurosGrandPalaceV4Builder.MAX_X;
+    private static final int MIN_Y = OurosGrandPalaceV4Builder.MIN_Y;
+    private static final int MAX_Y = OurosGrandPalaceV4Builder.MAX_Y;
+    private static final int MIN_Z = OurosGrandPalaceV4Builder.MIN_Z;
+    private static final int MAX_Z = OurosGrandPalaceV4Builder.MAX_Z;
 
     private static final int GUARD_MIN_X = MIN_X - 8;
     private static final int GUARD_MAX_X = MAX_X + 8;
@@ -54,7 +54,7 @@ public final class OurosGrandPalaceManifestExportRuntime {
     private static final int GUARD_MIN_Z = MIN_Z - 8;
     private static final int GUARD_MAX_Z = MAX_Z + 8;
 
-    private OurosGrandPalaceManifestExportRuntime() {}
+    private OurosGrandPalaceV4ManifestExportRuntime() {}
 
     public static void registerIfEnabled() {
         String output = System.getProperty(OUTPUT_PROPERTY);
@@ -65,11 +65,16 @@ public final class OurosGrandPalaceManifestExportRuntime {
 
     private static void export(MinecraftServer server, Path outputPath) {
         ServerWorld world = server.getOverworld();
-        if (world == null) throw new IllegalStateException("Overworld is unavailable for Grand Palace export");
+        if (world == null) throw new IllegalStateException("Overworld is unavailable for Grand Palace V4 export");
 
         BlockPos origin = new BlockPos(0, 100, 0);
         clearGuardVolume(world, origin);
-        OurosGrandPalace.build(world, origin);
+        OurosGrandPalaceV4Builder.build(world, origin);
+        OurosGrandPalaceV4QualityAudit.Report shape = OurosGrandPalaceV4QualityAudit.assertValid(world, origin);
+        LOGGER.info("{}: west/east ground {:.1f}%/{:.1f}%, west/east roof {:.1f}%/{:.1f}%",
+                V4_SHAPE_MARKER,
+                shape.westGroundOpen() * 100.0, shape.eastGroundOpen() * 100.0,
+                shape.westSkyOpen() * 100.0, shape.eastSkyOpen() * 100.0);
 
         validateCaptureEnvelope(world, origin);
         LOGGER.info(ENVELOPE_AUDIT_MARKER);
@@ -81,19 +86,19 @@ public final class OurosGrandPalaceManifestExportRuntime {
                 1
         );
         if (!audit.passed()) {
-            throw new IllegalStateException("Ouros Grand Palace contains disconnected floating geometry: "
+            throw new IllegalStateException("Ouros Grand Palace V4 contains disconnected floating geometry: "
                     + OurosFloatingBlockAudit.describeFailures(audit));
         }
         LOGGER.info("{}: {} connected components, all {} anchored",
                 STRUCTURAL_AUDIT_MARKER, audit.componentCount(), audit.anchoredComponentCount());
 
-        Manifest manifest = capture(world, origin, audit);
+        Manifest manifest = capture(world, origin, audit, shape);
         try {
             Path parent = outputPath.getParent();
             if (parent != null) Files.createDirectories(parent);
             Files.writeString(outputPath, GSON.toJson(manifest.json()), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new IllegalStateException("Could not write Grand Palace manifest to " + outputPath, e);
+            throw new IllegalStateException("Could not write Grand Palace V4 manifest to " + outputPath, e);
         }
 
         LOGGER.info("{}: {} blocks, {} palette states, sha256={}, output={}",
@@ -116,22 +121,25 @@ public final class OurosGrandPalaceManifestExportRuntime {
         for (int x = GUARD_MIN_X; x <= GUARD_MAX_X; x++) {
             for (int y = GUARD_MIN_Y; y <= GUARD_MAX_Y; y++) {
                 for (int z = GUARD_MIN_Z; z <= GUARD_MAX_Z; z++) {
-                    boolean inside = x >= MIN_X && x <= MAX_X && y >= MIN_Y && y <= MAX_Y && z >= MIN_Z && z <= MAX_Z;
+                    boolean inside = x >= MIN_X && x <= MAX_X && y >= MIN_Y && y <= MAX_Y
+                            && z >= MIN_Z && z <= MAX_Z;
                     if (inside || world.getBlockState(origin.add(x, y, z)).isAir()) continue;
                     if (overflow.size() < 20) {
-                        overflow.add(x + "," + y + "," + z + "="
-                                + Registries.BLOCK.getId(world.getBlockState(origin.add(x, y, z)).getBlock()));
+                        BlockState state = world.getBlockState(origin.add(x, y, z));
+                        overflow.add(x + "," + y + "," + z + "=" + Registries.BLOCK.getId(state.getBlock()));
                     }
                 }
             }
         }
         if (!overflow.isEmpty()) {
-            throw new IllegalStateException("Grand Palace wrote blocks outside the exact viewer envelope; first entries: "
+            throw new IllegalStateException("Grand Palace V4 wrote outside the exact viewer envelope: "
                     + String.join("; ", overflow));
         }
     }
 
-    private static Manifest capture(ServerWorld world, BlockPos origin, OurosFloatingBlockAudit.Report audit) {
+    private static Manifest capture(ServerWorld world, BlockPos origin,
+                                    OurosFloatingBlockAudit.Report audit,
+                                    OurosGrandPalaceV4QualityAudit.Report shape) {
         Map<String, Integer> paletteIndices = new LinkedHashMap<>();
         List<JsonObject> palette = new ArrayList<>();
         JsonArray blocks = new JsonArray();
@@ -155,7 +163,8 @@ public final class OurosGrandPalaceManifestExportRuntime {
                     encoded.add(paletteIndex);
                     blocks.add(encoded);
                     blockCount++;
-                    digest.update((x + "," + y + "," + z + "=" + snapshot.key() + "\n").getBytes(StandardCharsets.UTF_8));
+                    digest.update((x + "," + y + "," + z + "=" + snapshot.key() + "\n")
+                            .getBytes(StandardCharsets.UTF_8));
                 }
             }
         }
@@ -164,28 +173,35 @@ public final class OurosGrandPalaceManifestExportRuntime {
         JsonObject root = new JsonObject();
         root.addProperty("format", "ouros.minecraft.block-manifest.v1");
         root.addProperty("buildId", "ouros_grand_palace");
-        root.addProperty("displayName", "Ouros Grand Palace - OI-107 Reference Suite");
+        root.addProperty("buildRevision", "courtyard-v4");
+        root.addProperty("displayName", "Ouros Grand Palace - Courtyard V4");
         root.addProperty("minecraftVersion", "1.21.1");
         root.addProperty("geometryAuthority", "live_server_final_blockstate_scan");
         root.addProperty("geometrySha256", hash);
         root.addProperty("blockCount", blockCount);
         root.addProperty("captureEnvelopeAudit", "passed");
         root.addProperty("floatingComponentAudit", "passed");
+        root.addProperty("antiBoxAudit", "passed");
         root.addProperty("structuralComponentCount", audit.componentCount());
         root.addProperty("anchoredStructuralComponentCount", audit.anchoredComponentCount());
+        root.addProperty("westCourtGroundOpenRatio", shape.westGroundOpen());
+        root.addProperty("eastCourtGroundOpenRatio", shape.eastGroundOpen());
+        root.addProperty("westCourtRoofOpenRatio", shape.westSkyOpen());
+        root.addProperty("eastCourtRoofOpenRatio", shape.eastSkyOpen());
         root.add("min", vector(MIN_X, MIN_Y, MIN_Z));
         root.add("max", vector(MAX_X, MAX_Y, MAX_Z));
         root.add("size", vector(MAX_X - MIN_X + 1, MAX_Y - MIN_Y + 1, MAX_Z - MIN_Z + 1));
 
         JsonArray sources = new JsonArray();
-        sources.add("OurosGrandPalace");
-        sources.add("OurosGrandPalaceBuildKit");
-        sources.add("OurosGrandPalaceCeremonialRooms");
-        sources.add("OurosGrandPalaceSalonRooms");
-        sources.add("OurosGrandPalaceUpperRooms");
-        sources.add("OurosGrandPalaceExteriorRebuildPass");
-        sources.add("OurosGrandPalaceRoofSupportPass");
-        sources.add("OurosGrandPalaceStructuralCompletionPass");
+        for (String source : new String[]{
+                "OurosGrandPalaceV4Plan",
+                "OurosGrandPalaceV4Builder",
+                "OurosGrandPalaceV4ArchitecturePass",
+                "OurosGrandPalaceV4Rooms",
+                "OurosGrandPalaceV4RoofPass",
+                "OurosGrandPalaceV4QualityAudit",
+                "OurosGrandPalaceBuildKit"
+        }) sources.add(source);
         root.add("productionSources", sources);
 
         JsonArray spaces = new JsonArray();
@@ -198,25 +214,25 @@ public final class OurosGrandPalaceManifestExportRuntime {
         root.add("authoredSpaces", spaces);
 
         JsonArray reviewSpaces = new JsonArray();
-        addReviewSpace(reviewSpaces, "antechamber", "Antechamber", OurosGrandPalace.ANTECHAMBER);
-        addReviewSpace(reviewSpaces, "audience", "Audience Chamber", OurosGrandPalace.AUDIENCE_CHAMBER);
-        addReviewSpace(reviewSpaces, "themis", "Themis Hall", OurosGrandPalace.THEMIS_HALL);
-        addReviewSpace(reviewSpaces, "railings", "Railings, Tables and Chairs", OurosGrandPalace.RAILING_SALON);
-        addReviewSpace(reviewSpaces, "cabinet", "Cabinet", OurosGrandPalace.CABINET);
-        addReviewSpace(reviewSpaces, "salla", "Salla Terrena", OurosGrandPalace.SALLA_TERRENA);
-        addReviewSpace(reviewSpaces, "relief", "Coat of Arms Relief Hall", OurosGrandPalace.COAT_OF_ARMS_HALL);
-        addReviewSpace(reviewSpaces, "blooming", "Blooming Salon", OurosGrandPalace.BLOOMING_SALON);
-        addReviewSpace(reviewSpaces, "hunting", "Hunting Salon", OurosGrandPalace.HUNTING_SALON);
-        addReviewSpace(reviewSpaces, "library", "Library", OurosGrandPalace.LIBRARY);
-        addReviewSpace(reviewSpaces, "globe", "Book Cabinet and Globe Room", OurosGrandPalace.GLOBE_BOOK_CABINET);
-        addReviewSpace(reviewSpaces, "geography", "Geography Cabinet", OurosGrandPalace.GEOGRAPHY_CABINET);
-        addReviewSpace(reviewSpaces, "porcelain", "Porcelain Hall", OurosGrandPalace.PORCELAIN_HALL);
-        addReviewSpace(reviewSpaces, "marble", "Marble Salon", OurosGrandPalace.MARBLE_SALON);
-        addReviewSpace(reviewSpaces, "gallery", "Gallery of Art", OurosGrandPalace.GALLERY_OF_ART);
-        addReviewSpace(reviewSpaces, "accounting", "Accounting Office", OurosGrandPalace.ACCOUNTING_OFFICE);
-        addReviewSpace(reviewSpaces, "music", "Music Chamber with Harpsichord", OurosGrandPalace.MUSIC_CHAMBER);
-        addReviewSpace(reviewSpaces, "blue", "Blue Salon", OurosGrandPalace.BLUE_SALON);
-        addReviewSpace(reviewSpaces, "banquet", "Banquet Hall", OurosGrandPalace.BANQUET_HALL);
+        addReviewSpace(reviewSpaces, "antechamber", "Antechamber", ANTECHAMBER);
+        addReviewSpace(reviewSpaces, "audience", "Audience Chamber", AUDIENCE_CHAMBER);
+        addReviewSpace(reviewSpaces, "themis", "Themis Hall", THEMIS_HALL);
+        addReviewSpace(reviewSpaces, "railings", "Railings, Tables and Chairs", v4(RAILING_SALON));
+        addReviewSpace(reviewSpaces, "cabinet", "Cabinet", v4(CABINET));
+        addReviewSpace(reviewSpaces, "salla", "Salla Terrena", v4(SALLA_TERRENA));
+        addReviewSpace(reviewSpaces, "relief", "Coat of Arms Relief Hall", v4(COAT_OF_ARMS_HALL));
+        addReviewSpace(reviewSpaces, "blooming", "Blooming Salon", v4(BLOOMING_SALON));
+        addReviewSpace(reviewSpaces, "hunting", "Hunting Salon", v4(HUNTING_SALON));
+        addReviewSpace(reviewSpaces, "library", "Library", v4(LIBRARY));
+        addReviewSpace(reviewSpaces, "globe", "Book Cabinet and Globe Room", v4(GLOBE_BOOK_CABINET));
+        addReviewSpace(reviewSpaces, "geography", "Geography Cabinet", v4(GEOGRAPHY_CABINET));
+        addReviewSpace(reviewSpaces, "porcelain", "Porcelain Hall", v4(PORCELAIN_HALL));
+        addReviewSpace(reviewSpaces, "marble", "Marble Salon", MARBLE_SALON);
+        addReviewSpace(reviewSpaces, "gallery", "Gallery of Art", v4(GALLERY_OF_ART));
+        addReviewSpace(reviewSpaces, "accounting", "Accounting Office", v4(ACCOUNTING_OFFICE));
+        addReviewSpace(reviewSpaces, "music", "Music Chamber with Harpsichord", v4(MUSIC_CHAMBER));
+        addReviewSpace(reviewSpaces, "blue", "Blue Salon", v4(BLUE_SALON));
+        addReviewSpace(reviewSpaces, "banquet", "Banquet Hall", v4(BANQUET_HALL));
         root.add("reviewSpaces", reviewSpaces);
 
         JsonArray paletteJson = new JsonArray();
@@ -226,7 +242,12 @@ public final class OurosGrandPalaceManifestExportRuntime {
         return new Manifest(root, blockCount, palette.size(), hash);
     }
 
-    private static void addReviewSpace(JsonArray target, String id, String displayName, OurosGrandPalaceBuildKit.Room room) {
+    private static OurosGrandPalaceBuildKit.Room v4(OurosGrandPalaceBuildKit.Room room) {
+        return OurosGrandPalaceV4Plan.physical(room);
+    }
+
+    private static void addReviewSpace(JsonArray target, String id, String displayName,
+                                       OurosGrandPalaceBuildKit.Room room) {
         JsonObject review = new JsonObject();
         review.addProperty("id", id);
         review.addProperty("name", displayName);
@@ -267,7 +288,9 @@ public final class OurosGrandPalaceManifestExportRuntime {
 
     private static JsonArray vector(int x, int y, int z) {
         JsonArray result = new JsonArray();
-        result.add(x); result.add(y); result.add(z);
+        result.add(x);
+        result.add(y);
+        result.add(z);
         return result;
     }
 

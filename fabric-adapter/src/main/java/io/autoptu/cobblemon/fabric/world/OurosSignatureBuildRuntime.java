@@ -58,16 +58,16 @@ public final class OurosSignatureBuildRuntime {
 
         ServerWorld world = player.getServerWorld();
         BlockPos origin = player.getBlockPos().add(0, -1, 74);
-        OurosGrandPalace.BuildResult result = OurosGrandPalace.build(world, origin);
+        OurosGrandPalace.BuildResult result = OurosGrandPalaceV4Builder.build(world, origin);
 
-        player.sendMessage(Text.literal("Ouros Grand Palace OI-107 built 74 blocks ahead."), false);
+        player.sendMessage(Text.literal("Ouros Grand Palace COURTYARD V4 built 74 blocks ahead."), false);
         player.sendMessage(Text.literal(
-                "Footprint " + result.width() + "x" + result.depth() + ", capture height " + result.height()
+                "Review envelope " + result.width() + "x" + result.depth() + "x" + result.height()
                         + ", authored spaces " + result.authoredSpaces() + "."), false);
         player.sendMessage(Text.literal(
-                "The palace includes the 19-space reference program: four double-height ceremonial halls, side salons/cabinets, two upper galleries, a glazed mansard roof and seven distinct upper rooms."), false);
+                "V4 separates west wing, ceremonial spine and east wing with two open longitudinal garden courts. Only authored loggias and three transverse bridge bands cross those voids; no universal rectangular foundation, wall envelope or roof is used."), false);
         player.sendMessage(Text.literal(
-                "OI-107 is a SIGNATURE STRUCTURE candidate under docs/ouros-build-doctrine.md. Exact live-server BlockState export and browser visual review remain mandatory."), false);
+                "The 15 side rooms are physically relocated into the wings, the four double-height ceremonial halls remain on axis, every pavilion has an independent mansard body, and the anti-box audit rejects blocked courts before review."), false);
         return 1;
     }
 }

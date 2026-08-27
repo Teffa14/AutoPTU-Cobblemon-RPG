@@ -91,9 +91,7 @@ jobs:
               export_ready=1
               break
             fi
-            if ! kill -0 "$server_pid" 2>/dev/null; then
-              break
-            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
             sleep 1
           done
 
@@ -106,15 +104,14 @@ jobs:
           grep 'AutoPTU Ouros capture envelope audit passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU Ouros floating component audit passed' "$server_dir/logs/latest.log"
           grep 'AutoPTU exact Ouros build manifest export passed' "$server_dir/logs/latest.log"
-          test "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["geometryAuthority"])' "$output")" = 'live_server_final_blockstate_scan'
           python3 - <<'PY' "$output"
           import json, sys
-          p = sys.argv[1]
-          data = json.load(open(p, encoding='utf-8'))
-          if data.get('captureEnvelopeAudit') != 'passed': raise SystemExit('capture envelope audit did not pass')
-          if data.get('floatingComponentAudit') != 'passed': raise SystemExit('floating component audit did not pass')
-          if data['blockCount'] != len(data['blocks']): raise SystemExit('blockCount does not match exported block array')
-          if not data['geometrySha256'] or len(data['geometrySha256']) != 64: raise SystemExit('missing geometry SHA-256')
+          data = json.load(open(sys.argv[1], encoding='utf-8'))
+          assert data['geometryAuthority'] == 'live_server_final_blockstate_scan'
+          assert data['captureEnvelopeAudit'] == 'passed'
+          assert data['floatingComponentAudit'] == 'passed'
+          assert data['blockCount'] == len(data['blocks'])
+          assert len(data['geometrySha256']) == 64
           print(f"Exact Meridian manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
           PY
           stop_server
@@ -152,7 +149,7 @@ jobs:
           server_pid=$!
 
           export_ready=0
-          for _ in $(seq 1 300); do
+          for _ in $(seq 1 360); do
             latest="$server_dir/logs/latest.log"
             if grep -q 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU Ouros Grand Palace floating component audit passed' "$latest" 2>/dev/null \
@@ -184,9 +181,9 @@ jobs:
           assert data['floatingComponentAudit'] == 'passed'
           assert data['blockCount'] == len(data['blocks'])
           assert len(data['geometrySha256']) == 64
-          assert data['size'] == [87, 53, 115], data['size']
+          assert data['size'] == [109, 77, 139], data['size']
           assert len(data['authoredSpaces']) == 19
-          assert len(data.get('reviewSpaces', [])) == 19
+          assert len(data.get('reviewSpaces', [])) >= 19
           print(f"Exact Grand Palace manifest: {data['blockCount']} blocks, {len(data['palette'])} states, sha256={data['geometrySha256']}")
           PY
           stop_server
@@ -214,21 +211,15 @@ jobs:
           print('Shared build registry validated:', ', '.join(sorted(ids)))
           PY
 
-      - name: Stage pinned Minecraft viewer assets
+      - name: Stage pinned Minecraft surface assets
         shell: bash
         run: |
           set -euo pipefail
           out="$PWD/site/minecraft-assets"
           mkdir -p "$out"
-
-          summary_sha='483c3f2f70a78e61127b68f3ee2416b58aeecacc'
           atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
           raw='https://raw.githubusercontent.com/misode/mcmeta'
 
-          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$raw/$summary_sha/assets/block_definition/data.min.json" -o "$out/block-definitions.json"
-          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$raw/$summary_sha/assets/model/data.min.json" -o "$out/block-models.json"
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
             "$raw/$atlas_sha/blocks/data.min.json" -o "$out/atlas-map.json"
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
@@ -237,16 +228,54 @@ jobs:
           python3 - <<'PY' "$out"
           import json, pathlib, sys
           root = pathlib.Path(sys.argv[1])
-          for name in ('block-definitions.json', 'block-models.json', 'atlas-map.json'):
-              path = root / name
-              with path.open(encoding='utf-8') as fh: data = json.load(fh)
-              if not isinstance(data, dict) or not data: raise SystemExit(f'{name} is empty or invalid')
+          with (root / 'atlas-map.json').open(encoding='utf-8') as fh: atlas = json.load(fh)
+          if not isinstance(atlas, dict) or not atlas: raise SystemExit('atlas-map.json is empty or invalid')
           png = (root / 'atlas.png').read_bytes()
           if not png.startswith(b'\x89PNG\r\n\x1a\n'): raise SystemExit('atlas.png is not a valid PNG')
-          print('Pinned Minecraft viewer assets staged:', *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
+          print('Pinned low-memory viewer assets staged:', *(f'{p.name}={p.stat().st_size}' for p in sorted(root.iterdir())))
           PY
 
-      - name: Assemble unified classic Safari viewer runtime
+      - name: Compile server-side low-memory surface meshes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/build-review/compile-surface-mesh.mjs
+          node tools/build-review/compile-surface-mesh.mjs \
+            site/build-data/builds.json \
+            site/build-mesh \
+            site/minecraft-assets/atlas-map.json \
+            site/minecraft-assets/atlas.png
+
+          python3 - <<'PY'
+          import json, pathlib
+          site = pathlib.Path('site')
+          registry = json.loads((site / 'build-data/builds.json').read_text(encoding='utf-8'))
+          for build in registry['builds']:
+              source = json.loads((site / build['manifest']).read_text(encoding='utf-8'))
+              mesh_path = site / 'build-mesh' / f"{build['id']}.mesh.json"
+              mesh = json.loads(mesh_path.read_text(encoding='utf-8'))
+              assert mesh['format'] == 'ouros.minecraft.surface-mesh.v1'
+              assert mesh['buildId'] == source['buildId']
+              assert mesh['geometryAuthority'] == 'live_server_final_blockstate_scan'
+              assert mesh['sourceGeometrySha256'] == source['geometrySha256']
+              assert mesh['blockCount'] == source['blockCount']
+              assert mesh['size'] == source['size']
+              assert mesh['captureEnvelopeAudit'] == 'passed'
+              assert mesh['floatingComponentAudit'] == 'passed'
+              assert mesh['renderMode'] == 'server_precomputed_surface_mesh'
+              assert mesh['vertexFormat']['coordinates'] == 'capture_local'
+              total = mesh['opaque']['bytes'] + mesh['translucent']['bytes']
+              assert total < 48 * 1024 * 1024, f"{build['id']} review mesh exceeds 48 MiB browser budget: {total}"
+              assert mesh['meshStats']['exposedBlocks'] <= source['blockCount']
+              assert mesh['meshStats']['visibleFaces'] > 0
+              for part in ('opaque', 'translucent'):
+                  p = site / mesh[part]['url']
+                  assert p.is_file(), p
+                  assert p.stat().st_size == mesh[part]['bytes'], (p, p.stat().st_size, mesh[part]['bytes'])
+              print(build['id'], 'low-memory mesh:', f"{total / 1024 / 1024:.2f} MiB,", mesh['meshStats']['visibleFaces'], 'faces,', mesh['meshStats']['culledInteriorBlocks'], 'fully interior blocks removed')
+          PY
+
+      - name: Assemble unified low-memory browser runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -254,29 +283,16 @@ jobs:
           out="$PWD/site/assets"
           mkdir -p "$deps" "$out"
 
-          npm install --prefix "$deps" --no-save deepslate@0.26.0 gl-matrix@3.4.3
-          deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
+          npm install --prefix "$deps" --no-save gl-matrix@3.4.3
           glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
           entry="$PWD/tools/build-review/ouros-build-review.js"
           bundle="$out/ouros-build-review.bundle.js"
-          test -s "$deepslate_umd"
           test -s "$glmatrix_umd"
           test -s "$entry"
-
-          node - <<'NODE' "$glmatrix_umd" "$deepslate_umd"
-          const fs = require('fs'); const vm = require('vm'); const ctx = {};
-          ctx.window = ctx; ctx.self = ctx; ctx.globalThis = ctx; vm.createContext(ctx);
-          vm.runInContext(fs.readFileSync(process.argv[2], 'utf8'), ctx, { filename: 'gl-matrix-min.js' });
-          vm.runInContext(fs.readFileSync(process.argv[3], 'utf8'), ctx, { filename: 'deepslate.umd.js' });
-          if (!ctx.glMatrix || !ctx.glMatrix.mat4) throw new Error('gl-matrix UMD did not expose glMatrix.mat4');
-          if (!ctx.deepslate || !ctx.deepslate.StructureRenderer || !ctx.deepslate.Structure) throw new Error('Deepslate UMD did not expose renderer globals');
-          console.log('Classic UMD globals verified before concatenation');
-          NODE
+          node --check "$entry"
 
           {
             cat "$glmatrix_umd"
-            printf '\n;\n'
-            cat "$deepslate_umd"
             printf '\n;\n'
             cat "$entry"
           } > "$bundle"
@@ -287,9 +303,9 @@ jobs:
           const fs = require('fs');
           const source = fs.readFileSync(process.argv[2], 'utf8');
           new Function(source);
-          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", 'from "deepslate"', "from 'gl-matrix'", 'from "gl-matrix"'];
-          for (const token of forbidden) if (source.includes(token)) throw new Error('classic viewer bundle contains forbidden modular runtime token: ' + token);
-          for (const token of ['build-select', 'cameraMode', 'requestPointerLock', 'reviewSpaces']) {
+          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', 'deepslate', 'StructureRenderer', 'manifest.blocks', 'block-definitions.json', 'block-models.json'];
+          for (const token of forbidden) if (source.includes(token)) throw new Error('low-memory viewer contains forbidden browser voxel token: ' + token);
+          for (const token of ['build-select', 'cameraMode', 'requestPointerLock', 'reviewSpaces', 'SurfaceMeshRenderer', 'uClipMin', 'uClipMax', 'uSliceMax', 'getReader', 'bufferSubData']) {
             if (!source.includes(token)) throw new Error('unified explorer capability missing: ' + token);
           }
           if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
@@ -303,7 +319,7 @@ jobs:
             echo 'Unified viewer regressed to per-build iframe gallery' >&2
             exit 1
           fi
-          echo "Unified Ouros viewer: $(wc -c < "$bundle") bytes"
+          echo "Unified low-memory Ouros viewer: $(wc -c < "$bundle") bytes"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

@@ -7,6 +7,7 @@ on:
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/OurosSignatureBuildRuntime.java'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/AutoPtuCobblemonFabricAdapter.java'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/build/**'
+      - 'tools/build-review/compile-surface-mesh.mjs'
       - '.github/workflows/ouros-grand-palace-gate.yml'
       - '.github/workflows/build-review-pages.yml'
 
@@ -62,7 +63,7 @@ jobs:
           server_pid=$!
 
           ready=0
-          for _ in $(seq 1 300); do
+          for _ in $(seq 1 360); do
             latest="$server_dir/logs/latest.log"
             if grep -q 'AutoPTU Ouros Grand Palace capture envelope audit passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU Ouros Grand Palace floating component audit passed' "$latest" 2>/dev/null \
@@ -96,10 +97,43 @@ jobs:
           assert data['floatingComponentAudit'] == 'passed'
           assert data['blockCount'] == len(data['blocks'])
           assert len(data['geometrySha256']) == 64
-          assert data['size'] == [87, 53, 115], data['size']
+          assert data['size'] == [109, 77, 139], data['size']
           assert len(data['authoredSpaces']) == 19, len(data['authoredSpaces'])
-          assert data['blockCount'] > 30000, data['blockCount']
+          assert data['blockCount'] > 50000, data['blockCount']
           assert len(data['palette']) > 60, len(data['palette'])
+
+          # Reference-room density gate. A named room may not pass merely because walls/floor exist.
+          # Measure occupied interior volume, material variety, low furniture-zone content and
+          # upper-wall/ceiling ornament separately for every authored review space.
+          palette_ids = [entry['id'] for entry in data['palette']]
+          blocks = [(b[0], b[1], b[2], palette_ids[b[3]]) for b in data['blocks']]
+          room_reports = []
+          for space in data['reviewSpaces']:
+              minx, miny, minz = space['min']
+              maxx, maxy, maxz = space['max']
+              interior = [b for b in blocks
+                          if minx + 1 <= b[0] <= maxx - 1
+                          and miny + 1 <= b[1] <= maxy - 1
+                          and minz + 1 <= b[2] <= maxz - 1]
+              volume = max(1, (maxx - minx - 1) * (maxy - miny - 1) * (maxz - minz - 1))
+              ratio = len(interior) / volume
+              ids = {b[3] for b in interior}
+              furniture = [b for b in interior
+                           if minx + 3 <= b[0] <= maxx - 3
+                           and minz + 3 <= b[2] <= maxz - 3
+                           and miny + 1 <= b[1] <= min(miny + 5, maxy - 1)]
+              upper = [b for b in interior if miny + 6 <= b[1] <= maxy - 1]
+              room_height = maxy - miny
+              min_ratio = 0.055 if room_height > 20 else 0.075
+              assert ratio >= min_ratio, f"{space['name']} too sparse: {ratio:.3f} < {min_ratio:.3f}"
+              assert len(ids) >= 10, f"{space['name']} lacks material/detail variety: {len(ids)} block ids"
+              assert len(furniture) >= 30, f"{space['name']} furniture zone too empty: {len(furniture)} blocks"
+              assert len(upper) >= 80, f"{space['name']} upper architecture too empty: {len(upper)} blocks"
+              room_reports.append((space['name'], ratio, len(ids), len(furniture), len(upper)))
+
+          for name, ratio, ids, furniture, upper in room_reports:
+              print(f"ROOM DENSITY {name}: {ratio:.1%}, {ids} ids, {furniture} furniture-zone, {upper} upper-detail")
+
           print(
               'Ouros Grand Palace gate passed:',
               data['blockCount'], 'blocks,',
@@ -109,6 +143,59 @@ jobs:
           )
           PY
           stop_server
+
+      - name: Compile and budget low-memory Palace review mesh
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$PWD/ouros-grand-palace-gate"
+          input="$root/mesh-input"
+          assets="$root/mesh-assets"
+          mesh="$root/build-mesh"
+          mkdir -p "$input/build-data" "$assets" "$mesh"
+          cp "$root/ouros-grand-palace.blocks.json" "$input/build-data/ouros-grand-palace.blocks.json"
+
+          cat > "$input/build-data/builds.json" <<'JSON'
+          {"format":"ouros.build-review.registry.v1","builds":[{"id":"ouros_grand_palace","name":"Ouros Grand Palace","manifest":"build-data/ouros-grand-palace.blocks.json","layers":[{"id":"all","label":"All"}]}]}
+          JSON
+
+          atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
+          raw='https://raw.githubusercontent.com/misode/mcmeta'
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/data.min.json" -o "$assets/atlas-map.json"
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/atlas.png" -o "$assets/atlas.png"
+
+          node tools/build-review/compile-surface-mesh.mjs \
+            "$input/build-data/builds.json" "$mesh" "$assets/atlas-map.json" "$assets/atlas.png"
+
+          python3 - <<'PY' "$root/ouros-grand-palace.blocks.json" "$mesh/ouros_grand_palace.mesh.json" "$mesh"
+          import json, pathlib, sys
+          source = json.load(open(sys.argv[1], encoding='utf-8'))
+          descriptor = json.load(open(sys.argv[2], encoding='utf-8'))
+          mesh_root = pathlib.Path(sys.argv[3])
+          assert descriptor['format'] == 'ouros.minecraft.surface-mesh.v1'
+          assert descriptor['geometryAuthority'] == 'live_server_final_blockstate_scan'
+          assert descriptor['sourceGeometrySha256'] == source['geometrySha256']
+          assert descriptor['blockCount'] == source['blockCount']
+          assert descriptor['size'] == source['size']
+          assert descriptor['vertexFormat']['coordinates'] == 'capture_local'
+          assert descriptor['renderMode'] == 'server_precomputed_surface_mesh'
+          total = descriptor['opaque']['bytes'] + descriptor['translucent']['bytes']
+          assert total < 48 * 1024 * 1024, f'Grand Palace browser mesh exceeds 48 MiB hard budget: {total}'
+          for part in ('opaque', 'translucent'):
+              p = mesh_root / pathlib.Path(descriptor[part]['url']).name
+              assert p.is_file(), p
+              assert p.stat().st_size == descriptor[part]['bytes']
+          stats = descriptor['meshStats']
+          print(
+              'Grand Palace low-memory review mesh passed:',
+              f"{total / 1024 / 1024:.2f} MiB,",
+              f"{stats['visibleFaces']} visible faces,",
+              f"{stats['culledInteriorBlocks']} fully interior blocks removed,",
+              f"{stats['exposedBlocks']} source blocks represented on visible surfaces"
+          )
+          PY
 
       - name: Upload Grand Palace exact evidence
         if: always()

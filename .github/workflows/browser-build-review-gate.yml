@@ -35,6 +35,7 @@ jobs:
 
           scripts = sorted(p.name for p in (root / 'tools/build-review').glob('*.js'))
           assert scripts == ['ouros-build-review.js'], f'build-specific viewer runtimes are forbidden: {scripts}'
+          assert (root / 'tools/build-review/compile-surface-mesh.mjs').is_file(), 'server-side surface mesh compiler missing'
 
           legacy_pages = sorted((root / 'site/builds').glob('*.html')) if (root / 'site/builds').exists() else []
           for page in legacy_pages:
@@ -57,21 +58,88 @@ jobs:
           print('Unified explorer architecture passed for:', ', '.join(ids))
           PY
 
-      - name: Validate shared viewer source syntax
+      - name: Validate low-memory viewer source syntax
         shell: bash
         run: |
           set -euo pipefail
           node --check tools/build-review/ouros-build-review.js
+          node --check tools/build-review/compile-surface-mesh.mjs
           python3 - <<'PY'
           source = open('tools/build-review/ouros-build-review.js', encoding='utf-8').read()
           required = [
               'build-select', 'reviewSpaces', "cameraMode = 'orbit'", "cameraMode === 'fly'",
               'KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'requestPointerLock',
-              'pointerdown', 'wheel', 'history.replaceState'
+              'pointerdown', 'wheel', 'history.replaceState', 'SurfaceMeshRenderer',
+              'build-mesh/', 'uClipMin', 'uClipMax', 'uSliceMax', 'gl.deleteBuffer',
+              'getReader', 'bufferSubData', "coordinates !== 'capture_local'",
+              'this.opaque = await this.loadPart', 'this.translucent = await this.loadPart'
           ]
           missing = [token for token in required if token not in source]
           assert not missing, f'missing explorer capabilities: {missing}'
-          print('Shared viewer navigation source passed')
+          forbidden = [
+              'StructureRenderer', 'new Structure(', 'manifest.blocks', 'block-definitions.json',
+              'block-models.json', 'window.deepslate', 'TextureAtlas', 'getImageData('
+          ]
+          leaked = [token for token in forbidden if token in source]
+          assert not leaked, f'viewer regressed to browser voxel/model materialization: {leaked}'
+          compiler = open('tools/build-review/compile-surface-mesh.mjs', encoding='utf-8').read()
+          for token in ['live_server_final_blockstate_scan', 'culledInteriorBlocks', 'visibleFaces', 'VertexWriter', "coordinates: 'capture_local'", 'localBlock']:
+              assert token in compiler, f'surface mesh compiler missing {token}'
+          print('Low-memory streamed viewer source contract passed')
+          PY
+
+      - name: Exercise server-side surface mesh compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="$RUNNER_TEMP/ouros-mesh-fixture"
+          assets="$RUNNER_TEMP/ouros-mesh-assets"
+          out="$RUNNER_TEMP/ouros-build-mesh"
+          mkdir -p "$fixture/build-data" "$assets" "$out"
+
+          cat > "$fixture/build-data/builds.json" <<'JSON'
+          {"format":"ouros.build-review.registry.v1","builds":[{"id":"fixture","name":"Fixture","manifest":"build-data/fixture.blocks.json","layers":[{"id":"all","label":"All"}]}]}
+          JSON
+          cat > "$fixture/build-data/fixture.blocks.json" <<'JSON'
+          {"format":"ouros.minecraft.block-manifest.v1","buildId":"fixture","displayName":"Low-memory fixture","minecraftVersion":"1.21.1","geometryAuthority":"live_server_final_blockstate_scan","geometrySha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","blockCount":4,"captureEnvelopeAudit":"passed","floatingComponentAudit":"passed","min":[-2,-1,-3],"max":[-1,0,-3],"size":[2,2,1],"productionSources":["fixture"],"authoredSpaces":[],"reviewSpaces":[],"palette":[{"id":"minecraft:stone"},{"id":"minecraft:glass"},{"id":"minecraft:deepslate_tile_stairs","properties":{"facing":"north","half":"bottom","shape":"straight","waterlogged":"false"}}],"blocks":[[-2,-1,-3,0],[-1,-1,-3,0],[-2,0,-3,1],[-1,0,-3,2]]}
+          JSON
+
+          atlas_sha='104ada7d63893dcfe08355d6d7c2f157ebbddc42'
+          raw='https://raw.githubusercontent.com/misode/mcmeta'
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/data.min.json" -o "$assets/atlas-map.json"
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$raw/$atlas_sha/blocks/atlas.png" -o "$assets/atlas.png"
+
+          node tools/build-review/compile-surface-mesh.mjs \
+            "$fixture/build-data/builds.json" "$out" "$assets/atlas-map.json" "$assets/atlas.png"
+
+          python3 - <<'PY' "$out"
+          import json, pathlib, struct, sys
+          out = pathlib.Path(sys.argv[1])
+          mesh = json.loads((out / 'fixture.mesh.json').read_text(encoding='utf-8'))
+          assert mesh['format'] == 'ouros.minecraft.surface-mesh.v1'
+          assert mesh['sourceGeometrySha256'] == 'a' * 64
+          assert mesh['blockCount'] == 4
+          assert mesh['renderMode'] == 'server_precomputed_surface_mesh'
+          assert mesh['vertexFormat']['coordinates'] == 'capture_local'
+          assert mesh['meshStats']['visibleFaces'] > 0
+          total = mesh['opaque']['bytes'] + mesh['translucent']['bytes']
+          assert 0 < total < 1024 * 1024
+          coords = [[], [], []]
+          for part in ('opaque', 'translucent'):
+              p = out / pathlib.Path(mesh[part]['url']).name
+              assert p.is_file()
+              raw = p.read_bytes()
+              assert len(raw) == mesh[part]['bytes']
+              assert len(raw) % 16 == 0
+              for off in range(0, len(raw), 16):
+                  x, y, z = struct.unpack_from('<HHH', raw, off)
+                  coords[0].append(x); coords[1].append(y); coords[2].append(z)
+          assert min(coords[0]) == 0 and max(coords[0]) == 32, (min(coords[0]), max(coords[0]))
+          assert min(coords[1]) == 0 and max(coords[1]) == 32, (min(coords[1]), max(coords[1]))
+          assert min(coords[2]) == 0 and max(coords[2]) == 16, (min(coords[2]), max(coords[2]))
+          print('Synthetic negative-coordinate low-memory mesh passed:', total, 'bytes,', mesh['meshStats'])
           PY
 
       - name: Assemble and parse classic browser bundle
@@ -80,14 +148,11 @@ jobs:
           set -euo pipefail
           deps="$RUNNER_TEMP/ouros-viewer-node"
           mkdir -p "$deps"
-          npm install --prefix "$deps" --no-save deepslate@0.26.0 gl-matrix@3.4.3
-          deepslate_umd="$deps/node_modules/deepslate/dist/deepslate.umd.cjs"
+          npm install --prefix "$deps" --no-save gl-matrix@3.4.3
           glmatrix_umd="$deps/node_modules/gl-matrix/gl-matrix-min.js"
           bundle="$RUNNER_TEMP/ouros-build-review.bundle.js"
           {
             cat "$glmatrix_umd"
-            printf '\n;\n'
-            cat "$deepslate_umd"
             printf '\n;\n'
             cat tools/build-review/ouros-build-review.js
           } > "$bundle"
@@ -95,8 +160,10 @@ jobs:
           const fs = require('fs');
           const source = fs.readFileSync(process.argv[2], 'utf8');
           new Function(source);
-          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', "from 'deepslate'", "from 'gl-matrix'"];
-          for (const token of forbidden) if (source.includes(token)) throw new Error('forbidden runtime dependency: ' + token);
+          const forbidden = ['esm.sh', 'index.mjs', 'NbtFile.ts', 'deepslate', 'StructureRenderer', 'manifest.blocks'];
+          for (const token of forbidden) if (source.includes(token)) throw new Error('forbidden low-memory runtime token: ' + token);
           if (!source.includes('__ourosViewerBooted')) throw new Error('viewer boot marker missing');
-          console.log('Unified classic browser bundle parses:', source.length, 'bytes');
+          if (!source.includes('SurfaceMeshRenderer')) throw new Error('surface mesh renderer missing');
+          if (!source.includes('bufferSubData')) throw new Error('streamed GPU upload missing');
+          console.log('Unified low-memory browser bundle parses:', source.length, 'bytes');
           NODE
