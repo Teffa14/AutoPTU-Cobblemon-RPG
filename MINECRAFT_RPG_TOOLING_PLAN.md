@@ -49,6 +49,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-010 | LIVE | `/autoptu pokemon <slot>` | PR #207, commit `b3fed8380f801222d6c549f1695b8bb98789a135`. Shows detailed durable canonical Pokemon state while leaving unavailable PTU inputs unavailable. |
 | CUR-011 | LIVE | healing station block interaction | PR #209, commit `81ca566e645f749e7cb6b23cd0714dd91f706094`. Right-clicking an authored station invokes canonical persistent party HP healing. |
 | CUR-012 | LIVE | server-owned wild encounter table | PR #211, implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`. Zone/context selects and freezes an already-authored canonical WILD roster without reading Cobblemon gameplay state. |
+| CUR-013 | LIVE | world encounter movement trigger | PR #212, implementation head `fd2b88912cae3bec3c4166ddce38335642eb226c`. Walking across server-recognized grass creates one pending canonical encounter request and visible action-bar cue without starting a battle. |
 
 ---
 
@@ -64,8 +65,8 @@ Work these point by point.
 | P0-004 | LIVE | `/autoptu pokemon <slot>` | Shipped via PR #207 / commit `b3fed8380f801222d6c549f1695b8bb98789a135`; shows an ownership-safe detailed canonical Pokémon summary and reports missing optional PTU inputs as unavailable. |
 | P0-005 | LIVE | Healing station interaction | Shipped via PR #209 / commit `81ca566e645f749e7cb6b23cd0714dd91f706094`; a real authored Minecraft block signature calls the same canonical healing service as `/autoptu healparty`, with server-side distance/context checks. |
 | P0-006 | LIVE | Server-owned wild encounter table | Shipped via PR #211 / implementation commit `705d4ab98a2e61b967c59447c957be765e7009e5`; exact server-owned zone/context selects and freezes an already-authored complete canonical WILD blueprint, with deterministic RPG/world selection separate from battle RNG and no Cobblemon gameplay-state inputs. |
-| P0-007 | NEXT | World encounter trigger | Walking/interacting in a configured context can request a wild encounter. |
-| P0-008 | TODO | Party-to-encounter handoff | Active canonical party + wild blueprint become an immutable reservation. |
+| P0-007 | LIVE | World encounter trigger | PR #212 / implementation head `fd2b88912cae3bec3c4166ddce38335642eb226c`; walking into the configured grass context creates a deduplicated canonical encounter request from authenticated player identity and server-owned Minecraft position only. |
+| P0-008 | NEXT | Party-to-encounter handoff | Active canonical party + wild blueprint become an immutable reservation. |
 | P0-009 | TODO | Normal player-vs-wild battle start | World encounter starts AutoPTU-Java using persistent canonical actors. |
 | P0-010 | TODO | Battle choice UI | Displays authoritative legal choices and submits only choice IDs/targets. |
 | P0-011 | TODO | Normal semantic battle playback | Movement, attacks, HP, statuses, faint and result are projected from authoritative events/results. |
@@ -193,7 +194,7 @@ These should become the normal gameplay path.
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
 | WORLD-012 | TODO | Wild Pokémon contextual encounter interaction. |
-| WORLD-013 | TODO | Grass/region movement encounter trigger. |
+| WORLD-013 | LIVE | Grass/region movement encounter trigger — PR #212 / `fd2b88912cae3bec3c4166ddce38335642eb226c`. |
 | WORLD-014 | TODO | Cave encounter trigger. |
 | WORLD-015 | TODO | Water/fishing encounter trigger. |
 | WORLD-016 | TODO | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |
