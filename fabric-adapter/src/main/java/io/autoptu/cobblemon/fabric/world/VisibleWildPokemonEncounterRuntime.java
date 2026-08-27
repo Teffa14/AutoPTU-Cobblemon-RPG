@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -17,10 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Visible-wild encounter surface.
  *
- * Cobblemon's PokemonEntity is used only as a rendered/walking Minecraft actor. AutoPTU owns the
- * binding from that actor UUID to canonical encounter identity and world context. This runtime never
- * reads PokemonEntity's Pokemon payload, species, HP, moves, statuses, battle state, ownership or any
- * Cobblemon result.
+ * Cobblemon's PokemonEntity is only the rendered/walking Minecraft actor. AutoPTU owns its canonical
+ * encounter identity, visible species identity and world context. Registered interactions never use
+ * Cobblemon Pokemon gameplay payload as RPG or battle truth.
  */
 public final class VisibleWildPokemonEncounterRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
@@ -52,6 +52,7 @@ public final class VisibleWildPokemonEncounterRuntime {
                     binding.canonicalEncounterId(),
                     canonicalPlayerId,
                     entity.getUuidAsString(),
+                    binding.canonicalWildSpeciesId(),
                     binding.zoneId(),
                     binding.contextId(),
                     dimensionId,
@@ -65,27 +66,52 @@ public final class VisibleWildPokemonEncounterRuntime {
                 serverPlayer.sendMessage(Text.literal("You approach the wild Pokemon."), true);
             }
 
-            // Consume registered wild-actor interaction so Cobblemon gameplay logic cannot become
-            // encounter or battle authority for this actor.
+            // Registered actors never fall through into Cobblemon's normal entity-use gameplay path.
             return ActionResult.SUCCESS;
+        });
+
+        // Capture remains blocked until AutoPTU owns capture legality, RNG and result. The only
+        // Cobblemon value inspected here is the presentation entity UUID used to find our binding.
+        CobblemonEvents.THROWN_POKEBALL_HIT.subscribe(event -> {
+            if (isBound(event.getPokemon().getUuid())) {
+                event.cancel();
+            }
         });
     }
 
     public static void bind(
             PokemonEntity presentationEntity,
             String canonicalEncounterId,
+            String canonicalWildSpeciesId,
             String zoneId,
             String contextId
     ) {
         if (presentationEntity == null) throw new IllegalArgumentException("presentationEntity is required");
-        BINDINGS.put(
-                presentationEntity.getUuid(),
-                new Binding(
-                        requireId(canonicalEncounterId, "canonicalEncounterId"),
-                        requireId(zoneId, "zoneId"),
-                        requireId(contextId, "contextId")
-                )
+        UUID entityUuid = presentationEntity.getUuid();
+        Binding binding = new Binding(
+                requireId(canonicalEncounterId, "canonicalEncounterId"),
+                requireId(canonicalWildSpeciesId, "canonicalWildSpeciesId"),
+                requireId(zoneId, "zoneId"),
+                requireId(contextId, "contextId")
         );
+
+        Binding existing = BINDINGS.putIfAbsent(entityUuid, binding);
+        if (existing != null) {
+            if (!existing.equals(binding)) {
+                throw new IllegalStateException("visible wild presentation actor already has a different canonical binding");
+            }
+            return;
+        }
+
+        // Keep this boundary on Cobblemon's public entity API. Do not reach into private data-tracker
+        // fields to falsify level or battleability. Native entity-use is consumed above, thrown-ball
+        // capture is cancelled, and canonical encounter/battle authority remains outside Cobblemon.
+        presentationEntity.setInvulnerable(true);
+        presentationEntity.setDrops(null);
+
+        // Cobblemon owns normal entity lifecycle. AutoPTU only releases UUID correlation when the
+        // visual actor disappears; entity removal cannot delete canonical encounter state.
+        presentationEntity.getRemovalObservable().subscribe(ignored -> BINDINGS.remove(entityUuid, binding));
     }
 
     public static boolean unbind(UUID entityUuid) {
@@ -110,5 +136,5 @@ public final class VisibleWildPokemonEncounterRuntime {
         return value.strip();
     }
 
-    record Binding(String canonicalEncounterId, String zoneId, String contextId) {}
+    record Binding(String canonicalEncounterId, String canonicalWildSpeciesId, String zoneId, String contextId) {}
 }

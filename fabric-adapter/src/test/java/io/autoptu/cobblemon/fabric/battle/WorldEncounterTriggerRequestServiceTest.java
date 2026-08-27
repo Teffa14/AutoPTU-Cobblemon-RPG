@@ -6,13 +6,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 final class WorldEncounterTriggerRequestServiceTest {
     @Test
-    void preservesPreboundEncounterAndVisibleActorIdentity() {
+    void preservesCanonicalEncounterVisibleSpeciesAndOpaqueActorCorrelationSeparately() {
         WorldEncounterTriggerRequestService service = new WorldEncounterTriggerRequestService();
 
         WorldEncounterTriggerRequestService.Decision first = service.requestBoundEncounter(
-                "world-wild:actor-42",
+                "world-wild:cedar-001",
                 "player:abc",
-                "actor-42",
+                "minecraft-entity-42",
+                "sentret",
                 "cedar_meadow",
                 "visible_roaming_wild",
                 "minecraft:overworld",
@@ -22,9 +23,10 @@ final class WorldEncounterTriggerRequestServiceTest {
                 100L
         );
         WorldEncounterTriggerRequestService.Decision duplicate = service.requestBoundEncounter(
-                "world-wild:actor-99",
+                "world-wild:cedar-002",
                 "player:abc",
-                "actor-99",
+                "minecraft-entity-99",
+                "hoppip",
                 "cedar_meadow",
                 "visible_roaming_wild",
                 "minecraft:overworld",
@@ -37,8 +39,10 @@ final class WorldEncounterTriggerRequestServiceTest {
         assertEquals(WorldEncounterTriggerRequestService.Outcome.CREATED, first.outcome());
         assertEquals(WorldEncounterTriggerRequestService.Outcome.ALREADY_PENDING, duplicate.outcome());
         assertEquals(first.request(), duplicate.request());
-        assertEquals("world-wild:actor-42", first.request().canonicalEncounterId());
-        assertEquals("actor-42", first.request().externalWildActorId());
+        assertEquals("world-wild:cedar-001", first.request().canonicalEncounterId());
+        assertEquals("minecraft-entity-42", first.request().externalWildActorId());
+        assertNotEquals(first.request().canonicalEncounterId(), first.request().externalWildActorId());
+        assertEquals("sentret", first.request().canonicalWildSpeciesId());
         assertEquals("player:abc", first.request().canonicalPlayerId());
         assertEquals("cedar_meadow", first.request().zoneId());
         assertEquals("visible_roaming_wild", first.request().contextId());
@@ -58,15 +62,30 @@ final class WorldEncounterTriggerRequestServiceTest {
 
         assertEquals(WorldEncounterTriggerRequestService.Outcome.CREATED, decision.outcome());
         assertNull(decision.request().externalWildActorId());
+        assertNull(decision.request().canonicalWildSpeciesId());
         assertTrue(decision.request().canonicalEncounterId().startsWith("world-encounter:player:abc:"));
     }
 
     @Test
-    void rejectsMissingServerOwnedVisibleActorIdentity() {
+    void rejectsMissingServerOwnedVisibleActorOrSpeciesIdentity() {
         WorldEncounterTriggerRequestService service = new WorldEncounterTriggerRequestService();
         assertThrows(IllegalArgumentException.class, () -> service.requestBoundEncounter(
-                "world-wild:actor-42",
+                "world-wild:cedar-001",
                 "player:abc",
+                " ",
+                "sentret",
+                "cedar_meadow",
+                "visible_roaming_wild",
+                "minecraft:overworld",
+                0,
+                64,
+                0,
+                1L
+        ));
+        assertThrows(IllegalArgumentException.class, () -> service.requestBoundEncounter(
+                "world-wild:cedar-001",
+                "player:abc",
+                "minecraft-entity-42",
                 " ",
                 "cedar_meadow",
                 "visible_roaming_wild",
