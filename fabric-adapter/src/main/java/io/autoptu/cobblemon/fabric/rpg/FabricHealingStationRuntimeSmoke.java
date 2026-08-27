@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Live proof that AutoPTU recognizes only Cobblemon's visual Healing Machine block surface. */
+/** Live proof that AutoPTU recognizes Cobblemon's Healing Machine only as a presentation surface. */
 public final class FabricHealingStationRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveHealingStationSmoke";
     public static final String SUCCESS_LOG = "AutoPTU live healing station interaction signature smoke passed";
@@ -32,7 +32,7 @@ public final class FabricHealingStationRuntimeSmoke {
         try {
             world.setBlockState(pos, CobblemonBlocks.HEALING_MACHINE.getDefaultState(), Block.NOTIFY_ALL);
             if (!FabricHealingStationRuntime.isCobblemonHealingMachine(world, pos)) {
-                throw new IllegalStateException("Cobblemon healing machine visual surface was not recognized");
+                throw new IllegalStateException("Cobblemon healing machine presentation surface was not recognized");
             }
 
             world.setBlockState(pos, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_ALL);
