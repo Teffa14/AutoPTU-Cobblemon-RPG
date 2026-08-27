@@ -159,21 +159,50 @@ class SurfaceMeshRenderer {
     this.uSliceMax = gl.getUniformLocation(this.program, 'uSliceMax');
     this.uAlphaMode = gl.getUniformLocation(this.program, 'uAlphaMode');
   }
+  async loadPart(part) {
+    if (!part || !part.vertices || !part.bytes) return null;
+    const response = await fetch(part.url, { cache: 'force-cache' });
+    if (!response.ok) throw new Error('surface mesh HTTP ' + response.status + ' (' + part.url + ')');
+
+    const buffer = gl.createBuffer();
+    if (!buffer) throw new Error('WebGL could not allocate surface mesh buffer');
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, part.bytes, gl.STATIC_DRAW);
+    let received = 0;
+
+    try {
+      // Stream network chunks directly into the already-sized GPU VBO. This prevents JavaScript
+      // from retaining a full second copy of a large Palace mesh during upload on memory-limited
+      // browsers. Older browsers fall back to one temporary Uint8Array.
+      if (response.body && typeof response.body.getReader === 'function') {
+        const reader = response.body.getReader();
+        while (true) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          const value = chunk.value;
+          if (!value || value.byteLength === 0) continue;
+          if (received + value.byteLength > part.bytes) throw new Error('surface mesh exceeded declared byte count for ' + part.url);
+          gl.bufferSubData(gl.ARRAY_BUFFER, received, value);
+          received += value.byteLength;
+        }
+      } else {
+        const data = new Uint8Array(await response.arrayBuffer());
+        if (data.byteLength > part.bytes) throw new Error('surface mesh exceeded declared byte count for ' + part.url);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
+        received = data.byteLength;
+      }
+      if (received !== part.bytes) throw new Error('surface mesh byte count mismatch for ' + part.url + ': expected ' + part.bytes + ', received ' + received);
+    } catch (error) {
+      gl.deleteBuffer(buffer);
+      throw error;
+    }
+
+    return { buffer, vertices: part.vertices, bytes: part.bytes };
+  }
   async load() {
-    const loadPart = async part => {
-      if (!part || !part.vertices) return null;
-      const response = await fetch(part.url, { cache: 'force-cache' });
-      if (!response.ok) throw new Error('surface mesh HTTP ' + response.status + ' (' + part.url + ')');
-      const data = await response.arrayBuffer();
-      if (data.byteLength !== part.bytes) throw new Error('surface mesh byte count mismatch for ' + part.url);
-      const buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-      return { buffer, vertices: part.vertices };
-    };
-    [this.opaque, this.translucent] = await Promise.all([
-      loadPart(this.descriptor.opaque), loadPart(this.descriptor.translucent)
-    ]);
+    // Load sequentially to keep the transient network/decoder peak bounded to one mesh part.
+    this.opaque = await this.loadPart(this.descriptor.opaque);
+    this.translucent = await this.loadPart(this.descriptor.translucent);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
   dispose() {
@@ -208,8 +237,9 @@ class SurfaceMeshRenderer {
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.uniform1i(this.uAtlas, 0);
     gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
+    // Surface faces are intentionally visible from both sides. This keeps first-person room review
+    // and shader cutaways stable even when a baked face's winding differs from Minecraft's model.
+    gl.disable(gl.CULL_FACE);
     gl.disable(gl.BLEND);
     gl.depthMask(true);
     this.drawPart(this.opaque, 0);
@@ -469,13 +499,30 @@ async function loadBuild(id) {
   if (nextManifest.format !== 'ouros.minecraft.surface-mesh.v1') throw new Error('unsupported surface mesh format');
   if (nextManifest.geometryAuthority !== 'live_server_final_blockstate_scan') throw new Error('mesh descriptor lost live-server authority');
   if (nextManifest.buildId !== config.id) throw new Error('registry/mesh build id mismatch');
+  if (!nextManifest.vertexFormat || nextManifest.vertexFormat.coordinates !== 'capture_local') throw new Error('surface mesh coordinates are not capture-local');
+
+  // Free the prior build before allocating any VBO for the next one. Holding both scenes at once was
+  // a major source of avoidable peak memory when switching between the Gym and the Palace.
+  if (renderer) {
+    renderer.dispose();
+    renderer = null;
+    gl.clearColor(0.027, 0.063, 0.047, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  }
+
   manifest = nextManifest; buildSelect.value = config.id; fillMetadata(); populateLayers(); populateSpaces(); focusCurrentSelection(); resize();
   const texture = await loadAtlas(); if (token !== loadToken) return;
-  progress(55, 'Streaming optimized 3D surface', 'Uploading only precomputed visible surfaces to the GPU…');
-  const nextRenderer = new SurfaceMeshRenderer(manifest, texture); await nextRenderer.load();
+  progress(55, 'Streaming optimized 3D surface', 'Streaming precomputed visible surfaces directly into GPU buffers…');
+  const nextRenderer = new SurfaceMeshRenderer(manifest, texture);
+  try {
+    await nextRenderer.load();
+  } catch (error) {
+    nextRenderer.dispose();
+    throw error;
+  }
   if (token !== loadToken) { nextRenderer.dispose(); return; }
-  if (renderer) renderer.dispose(); renderer = nextRenderer;
-  progress(100, 'Build ready', 'Filters now use GPU clipping. No BlockState scene rebuild occurs in this browser.');
+  renderer = nextRenderer;
+  progress(100, 'Build ready', 'Filters use GPU clipping. No BlockState scene rebuild occurs in this browser.');
   setTimeout(() => { if (loading) loading.style.display = 'none'; }, 100);
   const url = new URL(location.href); url.searchParams.set('build', config.id); history.replaceState(null,'',url); draw();
 }
