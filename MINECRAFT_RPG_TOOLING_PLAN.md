@@ -44,6 +44,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-005 | DEV_ONLY | `/ouros build meridian_canopy_gym` | Places Meridian for build review. |
 | CUR-006 | DEV_ONLY | `/ouros build grand_palace` | Places the Grand Palace for build review. |
 | CUR-007 | LIVE | `/autoptu starter list` | PR #202, commit `e86b1d2144a1faa35be19bb408f1e301033c4863`. Shows only server-configured starter choices. |
+| CUR-008 | LIVE | `/autoptu starter choose <species>` | PR #203, commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. Persists one server-authoritative starter and party binding. |
 
 ---
 
@@ -54,8 +55,8 @@ Work these point by point.
 | ID | Status | Minecraft implementation | Done when |
 |---|---|---|---|
 | P0-001 | LIVE | Starter catalogue + `/autoptu starter list` | Shipped via PR #202 / commit `e86b1d2144a1faa35be19bb408f1e301033c4863`; server exposes only configured starter choices. |
-| P0-002 | NEXT | `/autoptu starter choose <species>` | Implementation PR #203. One-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
-| P0-003 | TODO | `/autoptu party` | Shows canonical slot order, species, level, HP and status summary. |
+| P0-002 | LIVE | `/autoptu starter choose <species>` | Shipped via PR #203 / commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`; one-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
+| P0-003 | NEXT | `/autoptu party` | Shows canonical slot order, species, level, HP and status summary. |
 | P0-004 | TODO | `/autoptu pokemon <slot>` | Shows a detailed canonical Pokémon summary. |
 | P0-005 | TODO | Healing station interaction | A real block/NPC/facility calls the same server healing service as `/autoptu healparty`. |
 | P0-006 | TODO | Server-owned wild encounter table | Zone/context selects a server-owned wild blueprint without using Cobblemon stats as PTU truth. |
@@ -85,13 +86,13 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-004 | TODO | `/autoptu trainer classes` |
 | CMD-005 | TODO | `/autoptu trainer features` |
 | CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
-| CMD-007 | NEXT | `/autoptu starter choose <species>` — implementation PR #203 |
+| CMD-007 | LIVE | `/autoptu starter choose <species>` — PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d` |
 
 ## Party and Pokémon
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-020 | TODO | `/autoptu party` |
+| CMD-020 | NEXT | `/autoptu party` |
 | CMD-021 | TODO | `/autoptu party lead <slot>` |
 | CMD-022 | TODO | `/autoptu party move <from> <to>` |
 | CMD-023 | TODO | `/autoptu pokemon <slot>` |
@@ -332,7 +333,7 @@ These are required for operations, testing and recovery. They must never be norm
 | LIVE | Canonical encounter-profile/party-selection persistence. |
 | LIVE | Canonical item-instance/reservation infrastructure. |
 | TODO | Explicit long-term active-party + box/storage aggregate if encounter profile is not sufficient. |
-| TODO | Starter/onboarding claim state. |
+| LIVE | Starter/onboarding claim state via PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. |
 | TODO | Trainer presentation/profile data. |
 | TODO | Trainer XP/level/progression. |
 | TODO | Pokémon XP/progression/evolution choices. |
