@@ -21,6 +21,7 @@ Every AutoPTU-Cobblemon-RPG work run must read this file after the short read-on
 
 - `LIVE`: merged and usable.
 - `NEXT`: highest-priority safe implementation.
+- `NEXT/PARTIAL`: highest-priority safe implementation with a production subset already shipped on the current bounded PR/commit; continue the same item before advancing the queue.
 - `TODO`: required but not implemented.
 - `BLOCKED`: dependency or upstream authority missing.
 - `DEV_ONLY`: test/build/debug surface, not final gameplay.
@@ -54,6 +55,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-013 | LIVE | visible wild actor interaction boundary | Registered visible Pokemon presentation actors can submit an encounter request by entity UUID -> AutoPTU-owned world binding. The adapter never reads Cobblemon Pokemon gameplay data. |
 | CUR-014 | LIVE | `/autoptu party lead <slot>` | PR #219, commit `e0149f97939aec2926d6b828c00851eb86a6a538`. Promotes the selected durable canonical party member to lead with server-side slot resolution and optimistic concurrency. |
 | CUR-015 | LIVE | authoritative battle choice menu/fallback | PR #220, implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`. Displays only fresh AutoPTU-Java legal-choice stable keys and submits the exact revalidated choice without client-supplied battle scope or PTU legality. |
+| CUR-016 | LIVE/PARTIAL | Fabric semantic battle playback runtime | PR #221, implementation commit `22871146a187d9dc54f687112ff8483ac1f39067`. Projects authoritative move animation, HP and world relocation through exact reservation-scoped Cobblemon presentation bindings; semantic faint/result remain upstream-contract work. |
 
 ---
 
@@ -73,7 +75,7 @@ Work these point by point.
 | P0-008 | BLOCKED | Party-to-encounter handoff | Core immutable handoff service shipped in PR #216 / implementation commit `167b61471893e9b21d9b2630dd65960117178939`: it freezes the authenticated canonical party, consumables, visible actor identity, world context and exact server-owned wild blueprint without rereading mutable client/Cobblemon state. Normal world wiring is blocked only on P0-007 publishing that exact blueprint. |
 | P0-009 | BLOCKED | Normal player-vs-wild battle start | The battle-start boundary exists, but the normal world path cannot start AutoPTU-Java until P0-007 publishes the trusted complete WILD blueprint and P0-008 can wire that exact immutable handoff. Do not substitute Cobblemon BattleState or entity Pokémon data. |
 | P0-010 | LIVE | Battle choice UI | Shipped via PR #220 / implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; the server binds player -> reservation/actor, displays only a fresh authoritative legal-choice set, accepts only a stable choice ID, re-fetches the action space, and executes the exact still-legal choice. |
-| P0-011 | NEXT | Normal semantic battle playback | Movement, attacks, HP, statuses, faint and result are projected from authoritative events/results. |
+| P0-011 | NEXT/PARTIAL | Normal semantic battle playback | PR #221 / implementation commit `22871146a187d9dc54f687112ff8483ac1f39067` adds the production Fabric projection runtime for authoritative attack animation, HP and relocation using the existing semantic event projectors and exact entity bindings. Continue this item with visible semantic status cues and authoritative faint/result events when those contracts exist; Minecraft must not infer faint/result from HP or local state. |
 | P0-012 | TODO | Post-battle commit | Supported authoritative HP/status/injury/item changes commit exactly once to durable RPG state. |
 | P0-013 | TODO | Return-to-world transition | Battle session/reservations clean up and the player resumes world control. |
 | P0-014 | TODO | Reconnect/restart recovery | No duplicate items, lost party state, or stranded battle session after disconnect/restart. |
@@ -225,8 +227,8 @@ These should become the normal gameplay path.
 | BUI-005 | TODO | Battle item menu from authoritative item choices. |
 | BUI-006 | TODO | Trainer Feature menu from authoritative usable Features. |
 | BUI-007 | TODO | Battle camera framing. |
-| BUI-008 | TODO | Semantic move animation registry: event -> visuals/sound only. |
-| BUI-009 | TODO | Damage/HP feedback and nameplates. |
+| BUI-008 | LIVE/PARTIAL | Semantic move animation registry: PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` routes authoritative move IDs through the generic Fabric presentation gateway; richer move-specific visuals remain presentation-only follow-up work. |
+| BUI-009 | LIVE/PARTIAL | Damage/HP feedback and nameplates: PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` projects authoritative target HP/damage into the bound Cobblemon entity; HUD/nameplate polish remains TODO. |
 | BUI-010 | TODO | Status icon/particle/text registry. |
 | BUI-011 | TODO | Faint/KO presentation. |
 | BUI-012 | TODO | Winner/loser/result screen. |
