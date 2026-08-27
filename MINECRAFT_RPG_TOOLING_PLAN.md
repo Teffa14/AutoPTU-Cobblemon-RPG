@@ -14,6 +14,7 @@ Every AutoPTU-Cobblemon-RPG work run must read this file after the short read-on
 4. When an item ships, change its status here and add its PR/commit reference.
 5. Minecraft may request, persist, present, animate, and interact. It must not invent PTU legality, RNG, damage, statuses, abilities, Trainer Features, capture results, or battle outcomes.
 6. Clients submit requests and selections only. The server re-resolves player identity, party, inventory, target, eligibility, progression, and canonical state.
+7. Cobblemon may supply blocks, models, entities, structures, animations and screens as presentation surfaces only. AutoPTU-Cobblemon-RPG must never use Cobblemon battle state, party HP, move data, status data, battle eligibility, damage, RNG, results, capture outcomes, healing eligibility or any other Cobblemon gameplay state as RPG authority. Existing Cobblemon facilities must be intercepted/adapted so AutoPTU services decide their RPG behavior.
 
 ## Status
 
@@ -31,6 +32,8 @@ Every AutoPTU-Cobblemon-RPG work run must read this file after the short read-on
 
 Slash commands are not the final UX. Normal play should move to screens, keybinds, NPC dialogue, right-click interactions, blocks, menus, world triggers, and contextual prompts backed by the same server-authoritative services.
 
+Cobblemon integration doctrine: reuse Pokémon-world presentation when it exists, but never reuse Cobblemon gameplay authority. A Cobblemon Healing Machine, PC, Mart, Pokémon entity or UI can be the thing the player sees and clicks; all trusted RPG state and all battle decisions must come from AutoPTU-Cobblemon-RPG or AutoPTU-Java as appropriate.
+
 ---
 
 # Current live tools
@@ -47,7 +50,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-008 | LIVE | `/autoptu starter choose <species>` | PR #203, commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. Persists one server-authoritative starter and party binding. |
 | CUR-009 | LIVE | `/autoptu party` | PR #204, commit `ab484b9ebc753668a1271bae27e9f56395584bb1`. Shows the durable canonical party without trusting Cobblemon stats. |
 | CUR-010 | LIVE | `/autoptu pokemon <slot>` | PR #207, commit `b3fed8380f801222d6c549f1695b8bb98789a135`. Shows detailed durable canonical Pokemon state while leaving unavailable PTU inputs unavailable. |
-| CUR-011 | LIVE | healing station block interaction | PR #209, commit `81ca566e645f749e7cb6b23cd0714dd91f706094`. Right-clicking an authored station invokes canonical persistent party HP healing. |
+| CUR-011 | LIVE | healing station block interaction | PR #209, commit `81ca566e645f749e7cb6b23cd0714dd91f706094`. Right-clicking an authored station invokes canonical persistent party HP healing. Corrective PR #210 replaces the vanilla proxy with Cobblemon's Healing Machine visual surface while keeping all healing authority in AutoPTU. |
 
 ---
 
@@ -61,7 +64,7 @@ Work these point by point.
 | P0-002 | LIVE | `/autoptu starter choose <species>` | Shipped via PR #203 / commit `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`; one-time choice creates a canonical Pokémon, assigns ownership, persists it, and puts it in the persistent party. Duplicate claims fail closed. |
 | P0-003 | LIVE | `/autoptu party` | Shipped via PR #204 / commit `ab484b9ebc753668a1271bae27e9f56395584bb1`; shows canonical slot order, species, level, HP when available, and status summary. |
 | P0-004 | LIVE | `/autoptu pokemon <slot>` | Shipped via PR #207 / commit `b3fed8380f801222d6c549f1695b8bb98789a135`; shows an ownership-safe detailed canonical Pokémon summary and reports missing optional PTU inputs as unavailable. |
-| P0-005 | LIVE | Healing station interaction | Shipped via PR #209 / commit `81ca566e645f749e7cb6b23cd0714dd91f706094`; a real authored Minecraft block signature calls the same canonical healing service as `/autoptu healparty`, with server-side distance/context checks. |
+| P0-005 | LIVE | Healing station interaction | PR #209 shipped the first world interaction. Corrective PR #210 uses Cobblemon's real Healing Machine strictly as a presentation/interact surface; AutoPTU owns player identity, range validation, canonical party HP mutation and persistence, and suppresses Cobblemon healing/battle-state authority. |
 | P0-006 | NEXT | Server-owned wild encounter table | Zone/context selects a server-owned wild blueprint without using Cobblemon stats as PTU truth. |
 | P0-007 | TODO | World encounter trigger | Walking/interacting in a configured context can request a wild encounter. |
 | P0-008 | TODO | Party-to-encounter handoff | Active canonical party + wild blueprint become an immutable reservation. |
@@ -167,7 +170,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | PARTY-002 | TODO | Persistent lead-slot mutation. |
 | PARTY-003 | TODO | Persistent party reorder. |
 | PARTY-004 | TODO | Persistent box/storage aggregate. |
-| PARTY-005 | TODO | PC/storage terminal world interaction. |
+| PARTY-005 | TODO | PC/storage terminal world interaction using Cobblemon's PC surface only; all storage state/mutations are canonical AutoPTU state. |
 | PARTY-006 | TODO | Deposit/withdraw atomic ownership-safe mutations. |
 | PARTY-007 | BLOCKED | Capture request legality/RNG/result until upstream authority exists. |
 | PARTY-008 | BLOCKED | Successful capture ownership commit until authoritative capture result exists. |
@@ -184,14 +187,14 @@ These should become the normal gameplay path.
 | WORLD-002 | TODO | Starter-selection screen with Pokémon preview. |
 | WORLD-003 | TODO | Party HUD and party management screen. |
 | WORLD-004 | TODO | Pokémon summary screen. |
-| WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
-| WORLD-006 | TODO | PC/storage terminal. |
-| WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
+| WORLD-005 | LIVE | Cobblemon Healing Machine surface -> canonical AutoPTU healing. Cobblemon HP, party state, battle state and native healing result are ignored. Corrective PR #210. |
+| WORLD-006 | TODO | Cobblemon PC/storage terminal surface -> canonical AutoPTU storage service. |
+| WORLD-007 | TODO | Cobblemon Mart/shop surface where available -> canonical AutoPTU catalogue/wallet/transaction service. |
 | WORLD-008 | TODO | Crafting workstation/menu. |
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
-| WORLD-012 | TODO | Wild Pokémon contextual encounter interaction. |
+| WORLD-012 | TODO | Wild Pokémon contextual encounter interaction. Cobblemon entity identity/presentation may be correlated, but its HP/stats/battle state/outcomes are never trusted. |
 | WORLD-013 | TODO | Grass/region movement encounter trigger. |
 | WORLD-014 | TODO | Cave encounter trigger. |
 | WORLD-015 | TODO | Water/fishing encounter trigger. |
@@ -219,9 +222,9 @@ These should become the normal gameplay path.
 | BUI-005 | TODO | Battle item menu from authoritative item choices. |
 | BUI-006 | TODO | Trainer Feature menu from authoritative usable Features. |
 | BUI-007 | TODO | Battle camera framing. |
-| BUI-008 | TODO | Semantic move animation registry: event -> visuals/sound only. |
-| BUI-009 | TODO | Damage/HP feedback and nameplates. |
-| BUI-010 | TODO | Status icon/particle/text registry. |
+| BUI-008 | TODO | Semantic move animation registry: AutoPTU-Java event -> visuals/sound only. Cobblemon battle events are not accepted as authority. |
+| BUI-009 | TODO | Damage/HP feedback and nameplates sourced from AutoPTU-Java events/state only. |
+| BUI-010 | TODO | Status icon/particle/text registry sourced from AutoPTU-Java events/state only. |
 | BUI-011 | TODO | Faint/KO presentation. |
 | BUI-012 | TODO | Winner/loser/result screen. |
 | BUI-013 | TODO | Post-battle result/reward screen. |
@@ -256,8 +259,8 @@ These should become the normal gameplay path.
 
 | ID | Status | Facility/service |
 |---|---|---|
-| FAC-001 | LIVE | Pokémon Center/healer backed by canonical healing service — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
-| FAC-002 | TODO | Shop catalogue/stock/price service. |
+| FAC-001 | LIVE | Pokémon Center/healer backed by canonical healing service. Cobblemon Healing Machine is presentation only; corrective PR #210. |
+| FAC-002 | TODO | Shop catalogue/stock/price service. Cobblemon Mart/shop presentation may be reused without trusting its economy state. |
 | FAC-003 | TODO | Canonical wallet/currency transactions. |
 | FAC-004 | TODO | Crafting recipe registry. |
 | FAC-005 | TODO | Atomic ingredient reservation/consumption/output commit. |
@@ -336,7 +339,7 @@ These are required for operations, testing and recovery. They must never be norm
 | LIVE | Canonical encounter-profile/party-selection persistence. |
 | LIVE | Canonical item-instance/reservation infrastructure. |
 | TODO | Explicit long-term active-party + box/storage aggregate if encounter profile is not sufficient. |
-| LIVE | Starter/onboarding claim state via PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. |
+| TODO | Starter/onboarding claim state. |
 | TODO | Trainer presentation/profile data. |
 | TODO | Trainer XP/level/progression. |
 | TODO | Pokémon XP/progression/evolution choices. |
@@ -366,6 +369,7 @@ When any of these are incomplete upstream, skip them and continue with another s
 - PTU evolution, level-up and move-learning legality until an authoritative contract exists.
 - Tactical AI policy until upstream owns it.
 - Any battle hit, crit, damage, target legality, resource consumption or result supplied as trusted client truth.
+- Any Cobblemon battle/party gameplay state, including Cobblemon battle membership, HP, moves, statuses, damage, legality, RNG, faint state, winner/loser, capture result, healer eligibility or battle result. Cobblemon may only project identity/presentation unless a future server-owned adapter explicitly maps a non-authoritative visual surface.
 
 ---
 
