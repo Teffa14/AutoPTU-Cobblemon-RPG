@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AreaSecondaryStatusCompatibilityTest {
     @Test
     void pinsFreshReadOnlyUpstreamHeadsAndFrozenOracle() {
-        assertEquals("b66fcb4dac909c2f44bf6caf54a15f8da82e3e0a",
+        assertEquals("57c7c2a9751cf02facf5d176b9d0f95b996a9bd1",
                 AreaSecondaryStatusCompatibility.AUTOPTU_JAVA_MAIN_SHA);
-        assertEquals("231c50e4f2e7c4c0442123b1ba2221b7d07384eb",
+        assertEquals("ab57fef84387759fa8b959b4bd024c78a7d349bb",
                 AreaSecondaryStatusCompatibility.AUTOPTU_PYTHON_MAIN_SHA);
         assertEquals("16d228efa63aabecb67fa788959a359aac7f8f03",
                 AreaSecondaryStatusCompatibility.PINNED_PYTHON_BATTLE_ORACLE_SHA);
@@ -25,27 +25,21 @@ class AreaSecondaryStatusCompatibilityTest {
     }
 
     @Test
-    void mergedStageContractsRemainFailClosedWithoutLiveRuntimeWiring() {
-        assertEquals(216, AreaSecondaryStatusCompatibility.MERGED_EFFECTIVE_ACCURACY_EVASION_PROJECTION_CONTRACT_PR);
-        assertEquals(217, AreaSecondaryStatusCompatibility.MERGED_EFFECTIVE_ACCURACY_PROJECTION_PR);
-        assertFalse(AreaSecondaryStatusCompatibility.secondaryCombatStageMayBeProjected());
-        assertFalse(AreaSecondaryStatusCompatibility.accuracyEvasionCombatStageMayBeProjected());
+    void mergedPr230DoesNotPromoteEffectiveAccuracyWhilePublicMovePathsBypassIt() {
+        assertEquals(230, AreaSecondaryStatusCompatibility.MERGED_EFFECTIVE_ACCURACY_RUNTIME_PREPARATION_PR);
         assertFalse(AreaSecondaryStatusCompatibility.effectiveAccuracyEvasionArithmeticMayBeProjected());
-
-        String boundary = AreaSecondaryStatusCompatibility.combatStageBoundary();
-        assertTrue(boundary.contains("PR #217 is merged"));
-        assertTrue(boundary.contains("EffectiveAccuracyStageProjection"));
-        assertTrue(boundary.contains("does not wire the primitive into live hit resolution"));
-        assertTrue(boundary.contains("grants no adapter authority"));
+        assertFalse(AreaSecondaryStatusCompatibility.accuracyEvasionCombatStageMayBeProjected());
+        String boundary = AreaSecondaryStatusCompatibility.accuracyBoundary();
+        assertTrue(boundary.contains("PR #230 is merged"));
+        assertTrue(boundary.contains("authoritativeStateBoundInput"));
+        assertTrue(boundary.contains("actor.accuracyStage() only"));
+        assertTrue(boundary.contains("remain fail-closed"));
     }
 
     @Test
     void currentPythonHeadDoesNotReplaceFrozenBattleOracle() {
         String observation = AreaSecondaryStatusCompatibility.pythonOracleObservation();
-        assertTrue(observation.contains("231c50e4f2e7c4c0442123b1ba2221b7d07384eb"));
-        assertTrue(observation.contains("rival-timeline validation"));
+        assertTrue(observation.contains("ab57fef84387759fa8b959b4bd024c78a7d349bb"));
         assertTrue(observation.contains("16d228efa63aabecb67fa788959a359aac7f8f03"));
-        assertTrue(observation.contains("combat_stages['accuracy']"));
-        assertTrue(observation.contains("does not consume combat_stages['evasion']"));
     }
 }
