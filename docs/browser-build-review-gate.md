@@ -13,3 +13,24 @@ The preferred end state is one geometry source feeding Minecraft placement and e
 Temporary hand-maintained preview geometry is allowed only for GAMEPLAY PROTOTYPE review and must say that exact block parity is pending.
 
 A major build with no browser-visible review evidence cannot pass visual approval.
+
+## Build-doctrine enforcement
+
+`docs/ouros-build-doctrine.md` is part of this gate.
+
+The browser capture must contain the complete authored structure. Do not clip a tower, roof, basement, terrain transition, service wing or other meaningful geometry because an older review envelope was smaller.
+
+There is no fixed Ouros review-height cap. Capture bounds must follow the actual build, within Minecraft world limits and safe implementation constraints.
+
+For SIGNATURE STRUCTURE review, inspect at minimum:
+
+- distant or three-quarter silhouette;
+- opposite/service-side three-quarter view;
+- high roof-composition view;
+- ground or cutaway circulation view;
+- primary gameplay destination such as the leader arena;
+- representative close-detail areas when the viewer supports useful inspection at that scale.
+
+A technically valid build must still fail visual approval when the review shows doctrine violations such as dominant exposed scaffolding, unfinished roof enclosure, visually unsupported masses, simplistic arena composition, flat facade treatment, repeated procedural vegetation, obvious terrain plates or insufficient close-range detailing.
+
+Automated structural evidence and browser visual approval are separate required gates.
