@@ -26,6 +26,8 @@ import io.autoptu.cobblemon.fabric.rpg.FabricPartySummaryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPlayerStatusRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPokemonDetailRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPokemonStorageRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricPokemonStorageTerminalRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricPokemonStorageTerminalRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgCalendarRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricShopRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterCatalogueRuntime;
@@ -67,6 +69,8 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricWalletRuntime.register();
         FabricShopRuntime.register();
         FabricPokemonStorageRuntime.register();
+        FabricPokemonStorageTerminalRuntime.register();
+        FabricPokemonStorageTerminalRuntimeSmoke.registerIfEnabled();
         FabricPokemonDetailRuntime.register();
         FabricStarterCatalogueRuntime.register();
         FabricStarterSelectionRuntime.register();

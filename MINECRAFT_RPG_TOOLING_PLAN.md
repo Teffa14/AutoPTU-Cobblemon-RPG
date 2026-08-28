@@ -68,6 +68,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-025 | LIVE | canonical Pokemon box read surface | PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa`. `/autoptu box` reads a world-save-scoped owner-only boxed Pokemon aggregate, validates each reference against canonical Pokemon ownership, and fails closed on party/storage overlap. |
 | CUR-026 | LIVE | crash-recoverable party/box transfer fallback | PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. `/autoptu box deposit <partySlot>` and `/autoptu box withdraw <boxSlot>` resolve the source slot and Pokemon ownership on the server, journal source removal/target addition, and resume incomplete transfers on server start without duplicating or losing the Pokemon. |
 | CUR-027 | LIVE | restart-safe canonical shop sale fallback | PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e`. `/autoptu shop sell <item> [qty]` accepts only an authored item template and quantity selection, reserves/consumes an owned canonical stack, credits the canonical wallet through an idempotent receipt, journals each stage, and resumes pending sales on server start. Retail stock is not replenished implicitly. |
+| CUR-028 | LIVE | physical canonical Cobblemon PC terminal | PR #255 / implementation head `1dd990700e40205cf495779585cec87507c9d2c4`. Right-clicking the real `cobblemon:pc` opens a server-authored party/box menu; every deposit/withdraw re-resolves canonical slot/ownership and delegates to the existing restart-safe transfer service without reading Cobblemon PC or Pokemon gameplay state. |
 
 ---
 
@@ -188,7 +189,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | PARTY-002 | LIVE | Persistent lead-slot mutation — PR #219 / `e0149f97939aec2926d6b828c00851eb86a6a538`. |
 | PARTY-003 | TODO | Persistent party reorder. |
 | PARTY-004 | LIVE | Persistent box/storage aggregate. PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa` adds the owner-scoped durable box; PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767` closes durable movement between the active party and box with ownership checks, revisioned source/target mutations and restart recovery. |
-| PARTY-005 | TODO | PC/storage terminal world interaction. |
+| PARTY-005 | LIVE | PC/storage terminal world interaction — PR #255 / implementation head `1dd990700e40205cf495779585cec87507c9d2c4`. The real Cobblemon PC is presentation-only; interaction opens an AutoPTU server-authored 9x6 party/box menu with paging, range/block revalidation and stale-slot checks before invoking SVC-031. |
 | PARTY-006 | LIVE | Deposit/withdraw atomic ownership-safe mutations — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. Source removal and destination addition are journaled as separate idempotent stages; server restart resumes any incomplete transfer and terminal validation requires the Pokemon to exist in exactly the intended aggregate. |
 | PARTY-007 | BLOCKED | Capture request legality/RNG/result until upstream authority exists. |
 | PARTY-008 | BLOCKED | Successful capture ownership commit until authoritative capture result exists. |
@@ -206,7 +207,7 @@ These should become the normal gameplay path.
 | WORLD-003 | TODO | Party HUD and party management screen. |
 | WORLD-004 | TODO | Pokémon summary screen. |
 | WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
-| WORLD-006 | TODO | PC/storage terminal. |
+| WORLD-006 | LIVE | Physical PC/storage terminal — PR #255 / implementation head `1dd990700e40205cf495779585cec87507c9d2c4`. Right-clicking `cobblemon:pc` opens the canonical party/box selector; the native Cobblemon PC store is never read or written as RPG truth. |
 | WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
 | WORLD-008 | LIVE | Crafting workstation/menu. PR #227 adds the physical workstation, PR #228 shows server-owned ingredient/output contracts, PR #229 supplies the restart-safe transaction, PR #230 shows canonical material readiness, PR #231 adds server-observed ingredient deposit, PR #233 / `f12bca736699739fc9cdd67bedf640cc3b4f6f10` wires durable normal-use crafting, PR #235 / `a4f763dade77a5aaa9f315eb7b8f3d369363afd3` adds explicit server-authoritative recipe selection through `/autoptu craft`, and PR #236 / `38a3b230a5bb9ca4a3d9313065678b3a617afaa1` makes normal workstation use show an explicit selector with ready/unready state derived from canonical materials. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` makes ingredient transfer crash-recoverable through a durable cross-store journal and reconnect recovery. |
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
