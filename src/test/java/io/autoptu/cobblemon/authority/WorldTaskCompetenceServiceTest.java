@@ -27,6 +27,20 @@ class WorldTaskCompetenceServiceTest {
     }
 
     @Test
+    void fieldCampUsesTheSameCanonicalTrainerBoundaryWithoutBecomingACraftingRecipe() {
+        CanonicalPlayerState trainer = trainer(Map.of("Survival", 4));
+        WorldTaskCatalogue catalogue = new WorldTaskCatalogue();
+        WorldTaskDefinition task = catalogue.find(WorldTaskCatalogue.FIELD_CAMP_SETUP).orElseThrow();
+
+        WorldTaskCompetenceService.Assessment assessment = service.assess(trainer, task);
+
+        assertTrue(assessment.understood());
+        assertEquals(4, assessment.canonicalSkillRank());
+        assertEquals(new WorldTaskDefinition.QualityDistribution(20, 50, 30), assessment.distribution());
+        assertTrue(catalogue.findRecipe(WorldTaskCatalogue.FIELD_CAMP_SETUP).isEmpty());
+    }
+
+    @Test
     void normalizedCanonicalSkillIdDoesNotRequireASecondClientSuppliedRank() {
         CanonicalPlayerState trainer = trainer(Map.of("technology_education", 3));
         WorldTaskDefinition task = new WorldTaskCatalogue().find("precision_poketech_parts").orElseThrow();

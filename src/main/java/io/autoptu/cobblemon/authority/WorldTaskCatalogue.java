@@ -14,8 +14,10 @@ import static io.autoptu.cobblemon.authority.WorldTaskRecipeDefinition.CraftQual
 /** Server-owned initial catalogue for capability-sensitive Ouros world tasks and crafting contracts. */
 public final class WorldTaskCatalogue {
     public static final String GENERAL_CRAFTING_WORKSTATION = "ouros:general_crafting_workstation";
+    public static final String FIELD_CAMP_SETUP = "field_camp_setup";
 
     private final Map<String, WorldTaskRecipeDefinition> recipes;
+    private final Map<String, WorldTaskDefinition> tasks;
 
     public WorldTaskCatalogue() {
         this.recipes = Map.of(
@@ -87,10 +89,27 @@ public final class WorldTaskCatalogue {
                         output("ouros:occult_lure_excellent", 1)
                 )
         );
+
+        TreeMap<String, WorldTaskDefinition> taskIndex = new TreeMap<>();
+        recipes.values().forEach(recipe -> taskIndex.put(recipe.taskId(), recipe.task()));
+        taskIndex.put(FIELD_CAMP_SETUP, new WorldTaskDefinition(
+                FIELD_CAMP_SETUP,
+                "Field Camp Setup",
+                "Survival",
+                0,
+                curve(
+                        0, quality(65, 30, 5),
+                        2, quality(40, 45, 15),
+                        4, quality(20, 50, 30),
+                        6, quality(5, 45, 50)
+                )
+        ));
+        this.tasks = Map.copyOf(taskIndex);
     }
 
     public Optional<WorldTaskDefinition> find(String taskId) {
-        return findRecipe(taskId).map(WorldTaskRecipeDefinition::task);
+        if (taskId == null || taskId.isBlank()) return Optional.empty();
+        return Optional.ofNullable(tasks.get(taskId.trim().toLowerCase()));
     }
 
     public Optional<WorldTaskRecipeDefinition> findRecipe(String taskId) {
@@ -99,7 +118,9 @@ public final class WorldTaskCatalogue {
     }
 
     public List<WorldTaskDefinition> all() {
-        return allRecipes().stream().map(WorldTaskRecipeDefinition::task).toList();
+        return tasks.values().stream()
+                .sorted(java.util.Comparator.comparing(WorldTaskDefinition::taskId))
+                .toList();
     }
 
     public List<WorldTaskRecipeDefinition> allRecipes() {
