@@ -39,15 +39,15 @@ final class CanonicalBagQueryServiceTest {
         FileCanonicalItemReservationRepository repository = new FileCanonicalItemReservationRepository(tempDirectory);
         assertTrue(repository.createItemIfAbsent(new CanonicalItemInstance("stack-a", "player-1", "field_ration", 2, 7)));
         assertTrue(repository.tryReserveItem(new ItemReservation(
-                "reservation-a", "player-1", "stack-a", "field_ration", 2, 7)));
+                "reservation-a", "player-1", "stack-a", "field_ration", 1, 7)));
         assertTrue(repository.consumeReservationRetainingLock("reservation-a", "player-1"));
 
         CanonicalBagQueryService.BagSnapshot bag = new CanonicalBagQueryService(repository).inspect("player-1");
 
         assertEquals(1, bag.entries().size());
         CanonicalBagQueryService.BagEntry entry = bag.entries().get(0);
-        assertEquals(0, entry.quantity());
-        assertEquals(0, entry.availableQuantity());
+        assertEquals(1, entry.quantity());
+        assertEquals(1, entry.availableQuantity());
         assertEquals(0, entry.reservedQuantity());
         assertTrue(entry.reservationConsumed());
         assertTrue(entry.transactionLocked());
