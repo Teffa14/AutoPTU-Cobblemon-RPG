@@ -5,8 +5,11 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import io.autoptu.cobblemon.fabric.rpg.FabricNpcDialogueRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -23,11 +26,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * First real Ouros overworld runtime slice.
  *
- * The command builds a small authored habitat and materializes persistent Cobblemon presentation
- * actors. AutoPTU assigns every spawned actor a canonical encounter identity before players can
- * engage it. Cobblemon species data is used only to choose the rendered model; no gameplay state is
- * read back from the entity. A coarse server-owned behavior controller makes the lookout react to
- * nearby players and moves the feeding group toward shelter after an alarm.
+ * The command builds a small authored habitat and materializes persistent presentation actors.
+ * AutoPTU assigns every spawned wild actor a canonical encounter identity before players can
+ * engage it. Cobblemon species data is used only to choose rendered Pokemon models; no gameplay
+ * state is read back from those entities. The authored Cedar Ranger is a presentation/identity
+ * actor bound one-way to the server-owned dialogue catalogue.
  */
 public final class CedarMeadowRuntime {
     private static final String WILD_ZONE_ID = "cedar_meadow";
@@ -71,16 +74,19 @@ public final class CedarMeadowRuntime {
         feeders.add(spawn(world, "hoppip", origin.add(-2, 1, 2)));
         feeders.add(spawn(world, "hoppip", origin.add(1, 1, 3)));
         feeders.add(spawn(world, "skwovet", origin.add(3, 1, 1)));
+        VillagerEntity ranger = spawnRanger(world, origin.add(-5, 1, -3));
 
-        if (lookout == null || feeders.stream().anyMatch(entity -> entity == null)) {
+        if (lookout == null || ranger == null || feeders.stream().anyMatch(entity -> entity == null)) {
             discard(lookout);
             feeders.forEach(CedarMeadowRuntime::discard);
-            source.sendError(Text.literal("Cobblemon species data was not ready. Meadow blocks remain for inspection."));
+            if (ranger != null && !ranger.isRemoved()) ranger.discard();
+            source.sendError(Text.literal("Cedar Meadow presentation actors were not ready. Meadow blocks remain for inspection."));
             return 0;
         }
 
         bindVisibleWild(lookout);
         feeders.forEach(CedarMeadowRuntime::bindVisibleWild);
+        FabricNpcDialogueRuntime.bind(ranger, "cedar-ranger");
 
         lookout.setCustomName(Text.literal("Cedar Lookout"));
         lookout.setPersistent();
@@ -88,21 +94,26 @@ public final class CedarMeadowRuntime {
 
         INSTANCES.add(new Instance(world, layout, lookout, feeders));
         player.sendMessage(Text.literal("Ouros Cedar Meadow built 20 blocks ahead."), false);
-        player.sendMessage(Text.literal("Approach slowly and watch the wild Pokemon react to distance."), false);
+        player.sendMessage(Text.literal("Talk to the Cedar Ranger, then approach slowly and watch the wild Pokemon react."), false);
         return 1;
     }
 
     private static PokemonEntity spawn(ServerWorld world, String speciesId, BlockPos position) {
         Species species = PokemonSpecies.INSTANCE.getByName(speciesId);
-        if (species == null) {
-            return null;
-        }
+        if (species == null) return null;
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
         PokemonEntity entity = new PokemonEntity(world, pokemon, CobblemonEntities.POKEMON);
         entity.setPersistent();
         entity.refreshPositionAndAngles(position.getX() + 0.5D, position.getY(), position.getZ() + 0.5D, 0.0F, 0.0F);
         return world.spawnEntity(entity) ? entity : null;
+    }
+
+    private static VillagerEntity spawnRanger(ServerWorld world, BlockPos position) {
+        VillagerEntity ranger = new VillagerEntity(EntityType.VILLAGER, world);
+        ranger.refreshPositionAndAngles(position.getX() + 0.5D, position.getY(), position.getZ() + 0.5D, 180.0F, 0.0F);
+        ranger.setPersistent();
+        return world.spawnEntity(ranger) ? ranger : null;
     }
 
     private static void bindVisibleWild(PokemonEntity entity) {
@@ -130,12 +141,7 @@ public final class CedarMeadowRuntime {
         private CedarMeadowBehavior.State priorState = CedarMeadowBehavior.State.CALM;
         private int tickCounter;
 
-        private Instance(
-                ServerWorld world,
-                CedarMeadowBuilder.BuildResult layout,
-                PokemonEntity lookout,
-                List<PokemonEntity> feeders
-        ) {
+        private Instance(ServerWorld world, CedarMeadowBuilder.BuildResult layout, PokemonEntity lookout, List<PokemonEntity> feeders) {
             this.world = world;
             this.layout = layout;
             this.lookout = lookout;
@@ -148,9 +154,7 @@ public final class CedarMeadowRuntime {
                 return false;
             }
             tickCounter++;
-            if (tickCounter % 10 != 0) {
-                return true;
-            }
+            if (tickCounter % 10 != 0) return true;
 
             PlayerEntity closestPlayer = world.getClosestPlayer(
                     layout.origin().getX() + 0.5D,
@@ -160,9 +164,7 @@ public final class CedarMeadowRuntime {
                     false
             );
             ServerPlayerEntity nearest = closestPlayer instanceof ServerPlayerEntity serverPlayer ? serverPlayer : null;
-            double distance = nearest == null
-                    ? Double.POSITIVE_INFINITY
-                    : Math.sqrt(nearest.squaredDistanceTo(lookout));
+            double distance = nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(nearest.squaredDistanceTo(lookout));
             CedarMeadowBehavior.State state = behavior.update(distance, nearest != null);
 
             switch (state) {
@@ -171,10 +173,7 @@ public final class CedarMeadowRuntime {
                 case ALARMED -> alarm(nearest);
                 case RECOVERING -> recover();
             }
-
-            if (state != priorState && nearest != null) {
-                announce(nearest, state);
-            }
+            if (state != priorState && nearest != null) announce(nearest, state);
             priorState = state;
             return true;
         }
@@ -189,9 +188,7 @@ public final class CedarMeadowRuntime {
             lookout.getNavigation().startMovingTo(perch.getX() + 0.5D, perch.getY(), perch.getZ() + 0.5D, 0.8D);
             for (int i = 0; i < feeders.size(); i++) {
                 PokemonEntity feeder = feeders.get(i);
-                if (feeder.isRemoved()) {
-                    continue;
-                }
+                if (feeder.isRemoved()) continue;
                 double x = layout.origin().getX() + (i * 2.5D) - 2.0D;
                 double z = layout.origin().getZ() + 2.0D + (i % 2);
                 feeder.getNavigation().startMovingTo(x, layout.origin().getY() + 1.0D, z, 0.55D);
@@ -199,33 +196,19 @@ public final class CedarMeadowRuntime {
         }
 
         private void watch(ServerPlayerEntity player) {
-            if (player != null) {
-                lookout.getLookControl().lookAt(player, 30.0F, 30.0F);
-            }
+            if (player != null) lookout.getLookControl().lookAt(player, 30.0F, 30.0F);
             feeders.forEach(entity -> entity.getNavigation().stop());
         }
 
         private void alarm(ServerPlayerEntity player) {
-            if (player != null) {
-                lookout.getLookControl().lookAt(player, 40.0F, 40.0F);
-            }
+            if (player != null) lookout.getLookControl().lookAt(player, 40.0F, 40.0F);
             BlockPos shelter = layout.shelter();
             for (PokemonEntity feeder : feeders) {
                 if (!feeder.isRemoved()) {
-                    feeder.getNavigation().startMovingTo(
-                            shelter.getX() + 0.5D,
-                            shelter.getY(),
-                            shelter.getZ() + 0.5D,
-                            1.15D
-                    );
+                    feeder.getNavigation().startMovingTo(shelter.getX() + 0.5D, shelter.getY(), shelter.getZ() + 0.5D, 1.15D);
                 }
             }
-            lookout.getNavigation().startMovingTo(
-                    shelter.getX() - 1.0D,
-                    shelter.getY(),
-                    shelter.getZ() - 1.0D,
-                    1.1D
-            );
+            lookout.getNavigation().startMovingTo(shelter.getX() - 1.0D, shelter.getY(), shelter.getZ() - 1.0D, 1.1D);
         }
 
         private void recover() {
