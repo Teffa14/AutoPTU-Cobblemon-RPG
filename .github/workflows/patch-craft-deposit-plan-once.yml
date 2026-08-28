@@ -1,0 +1,83 @@
+name: Patch Craft Deposit Plan Once
+
+on:
+  push:
+    branches:
+      - agent/craft-deposit-handoff-journal
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/craft-deposit-handoff-journal
+          fetch-depth: 0
+      - name: Record shipped crafting handoff
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          commit = '317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8'
+
+          lines = text.splitlines()
+          out = []
+          inserted_persistence = False
+          for line in lines:
+              if line.startswith('| CUR-018 |'):
+                  line = line.replace('| CUR-018 | NEXT/PARTIAL |', '| CUR-018 | LIVE |', 1)
+                  line = line.replace(
+                      'Crash-recoverable Minecraft-stack-to-canonical deposit handoff remains NEXT.',
+                      f'PR #238 / implementation commit `{commit}` adds the durable Minecraft-stack-to-canonical handoff journal, persisted withdrawal checkpoint, reconnect reconciliation, and idempotent canonical receipt.'
+                  )
+              elif line.startswith('| WORLD-008 |'):
+                  line = line.replace('| WORLD-008 | NEXT/PARTIAL |', '| WORLD-008 | LIVE |', 1)
+                  line = line.replace(
+                      'Crash-recoverable cross-store ingredient handoff remains NEXT.',
+                      f'PR #238 / implementation commit `{commit}` makes ingredient transfer crash-recoverable through a durable cross-store journal and reconnect recovery.'
+                  )
+              elif line.startswith('| SVC-024 |'):
+                  line = line.replace('| SVC-024 | LIVE/PARTIAL |', '| SVC-024 | LIVE |', 1)
+                  line = line.replace(
+                      'A durable cross-store handoff journal is still required to make a crash between Minecraft inventory persistence and canonical item persistence fully recoverable.',
+                      f'PR #238 / implementation commit `{commit}` adds PREPARED/WITHDRAWN/CANONICAL_APPLIED/COMMITTED journaling, forces server-owned player inventory persistence after withdrawal, reconciles pending transfers on reconnect, and uses an idempotent canonical handoff receipt so retries cannot double-credit.'
+                  )
+              elif line.startswith('| NEXT/PARTIAL | Canonical inventory quantities and wallet.'):
+                  line = line.replace(
+                      'General bag semantics, transfer/use/equipment, wallet, and crash-recoverable Minecraft-to-canonical ingredient handoff remain TODO/NEXT.',
+                      f'PR #238 / implementation commit `{commit}` closes the crash-recoverable Minecraft-to-canonical ingredient handoff. General bag semantics, transfer/use/equipment, and wallet remain TODO/NEXT.'
+                  )
+                  out.append(line)
+                  out.append(
+                      f'| LIVE | Durable Minecraft-to-canonical crafting ingredient handoff journal — PR #238 / implementation commit `{commit}`. Pending withdrawals survive restart/reconnect, reconcile only against server-persisted inventory state, and canonical retries are idempotent. |'
+                  )
+                  inserted_persistence = True
+                  continue
+              out.append(line)
+
+          updated = '\n'.join(out) + '\n'
+          required = [
+              '| CUR-018 | LIVE |',
+              '| WORLD-008 | LIVE |',
+              '| SVC-024 | LIVE |',
+              'PR #238 / implementation commit',
+          ]
+          missing = [needle for needle in required if needle not in updated]
+          if missing or not inserted_persistence:
+              raise SystemExit(f'plan patch incomplete; missing={missing}, inserted_persistence={inserted_persistence}')
+          path.write_text(updated, encoding='utf-8')
+          PY
+      - name: Commit canonical plan update
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git diff --cached --quiet && exit 0
+          git commit -m "Plan: record recoverable crafting ingredient handoff"
+          git push origin HEAD:agent/craft-deposit-handoff-journal
