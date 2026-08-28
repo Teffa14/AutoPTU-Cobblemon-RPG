@@ -58,6 +58,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-015 | LIVE | authoritative battle choice menu/fallback | PR #220, implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`. Displays only fresh AutoPTU-Java legal-choice stable keys and submits the exact revalidated choice without client-supplied battle scope or PTU legality. |
 | CUR-016 | LIVE/PARTIAL | Fabric semantic battle playback runtime | PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` projects authoritative move animation, HP and relocation. PR #222 / `0d261c11027a0f715aee3fac8c6bd5adaa1fd9e4` adds visible authoritative `status_skip` particles/action-bar cues; semantic faint/result remain upstream-contract work. |
 | CUR-017 | LIVE/PARTIAL | capability-sensitive world task assessment | Shipped via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`. Server-authored graded quality curves and `/autoptu cancraft <recipe>` read only persistent canonical Trainer skill ranks; preview performs no RNG and consumes no materials. |
+| CUR-018 | NEXT/PARTIAL | crafting workstation interaction | PR #227 adds an authored physical workstation that resolves the authenticated persistent Trainer against the same server-owned recipe/capability service and displays understood/locked recipes plus quality distributions. No craft RNG or material mutation occurs. |
 
 ---
 
@@ -141,7 +142,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-081 | TODO | `/autoptu shop list` |
 | CMD-082 | TODO | `/autoptu shop buy <offer> [qty]` |
 | CMD-083 | TODO | `/autoptu shop sell <item> [qty]` |
-| CMD-084 | NEXT/PARTIAL | `/autoptu cancraft <recipe>` — shipped via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`. Resolves an authenticated persistent Trainer against a server-owned recipe/task definition and shows only authored graded quality probabilities. It never pre-rolls the craft. |
+| CMD-084 | NEXT/PARTIAL | `/autoptu cancraft <recipe>` — shipped via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`; PR #227 reuses the same server-owned capability assessment from a physical crafting workstation. Preview never rolls outcomes or consumes materials. |
 | CMD-085 | TODO | `/autoptu craft <recipe> [qty]` — requires durable attempt identity plus atomic ingredient reservation/consumption/output commit before any outcome RNG is allowed. |
 
 ## Quests, journal and travel
@@ -198,7 +199,7 @@ These should become the normal gameplay path.
 | WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | WORLD-006 | TODO | PC/storage terminal. |
 | WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
-| WORLD-008 | TODO | Crafting workstation/menu backed by the same capability-sensitive `canCraft` service and later atomic craft transaction. |
+| WORLD-008 | NEXT/PARTIAL | Crafting workstation/menu. PR #227 adds a physical authored workstation interaction backed by the same capability-sensitive assessment service; a real menu plus atomic ingredient/output transaction remain TODO. |
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
@@ -271,7 +272,7 @@ These should become the normal gameplay path.
 | FAC-001 | LIVE | Pokémon Center/healer backed by canonical healing service — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | FAC-002 | TODO | Shop catalogue/stock/price service. |
 | FAC-003 | TODO | Canonical wallet/currency transactions. |
-| FAC-004 | NEXT/PARTIAL | Crafting recipe registry. Shipped subset via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`: first server-owned capability-sensitive world-task recipes and graded quality curves; ingredients/outputs/workstations remain TODO. |
+| FAC-004 | NEXT/PARTIAL | Crafting recipe registry. PR #226 / `2de8d720428b98a6d7375e793a89b5ff20e9c14c` adds the first server-owned capability-sensitive world-task recipes; PR #227 exposes them through a physical workstation. Ingredients/outputs remain TODO. |
 | FAC-005 | TODO | Atomic ingredient reservation/consumption/output commit with durable attempt identity so reconnect/restart/retry cannot reroll or duplicate a craft. |
 | FAC-006 | TODO | Move tutor/relearner service shell. |
 | FAC-007 | TODO | Inn/rest service. |
@@ -288,7 +289,7 @@ These should become the normal gameplay path.
 | SVC-001 | TODO | `canPerform(player, action, context)` |
 | SVC-002 | TODO | `canInteract(player, object, context)` |
 | SVC-003 | TODO | `canUse(player, item, target, context)` |
-| SVC-004 | NEXT/PARTIAL | `canCraft(player, recipe, context)` — shipped subset via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`: authenticated persistent canonical skill ranks resolve against server-owned task definitions and expose only eligibility plus authored quality probabilities; no craft RNG/material mutation yet. |
+| SVC-004 | NEXT/PARTIAL | `canCraft(player, recipe, context)` — PR #226 / `2de8d720428b98a6d7375e793a89b5ff20e9c14c` resolves authenticated persistent canonical skill ranks against server-owned task definitions; PR #227 reuses this boundary from a server-validated physical workstation. No craft RNG/material mutation yet. |
 | SVC-005 | TODO | `canTravel(player, destination, context)` |
 | SVC-006 | TODO | `canStartEncounter(player, source)` |
 | SVC-007 | TODO | `canStartBattle(player, reservation)` |
@@ -305,7 +306,7 @@ These should become the normal gameplay path.
 | SVC-018 | TODO | Persistent world-object mutation/idempotency. |
 | SVC-019 | TODO | Reconnect/restart active-session recovery. |
 | SVC-020 | BLOCKED/PARTIAL | Server-only PTU world-action usage reservation. PR #224 atomically caps canonical Daily usage by Trainer/action/RPG-day and rejects unknown canonical Trainers before consumption; Scene/Encounter/turn/round integration waits on authoritative PTU lifecycle/policy contracts. |
-| SVC-021 | NEXT/PARTIAL | `assessWorldTask(player, task, context)` — shipped subset via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`: reads canonical Trainer capabilities and applies server-authored Ouros task quality curves. Reuse this boundary for cooking, technology, medicine, research, occultism, survival, repairs and other non-battle world interactions. |
+| SVC-021 | NEXT/PARTIAL | `assessWorldTask(player, task, context)` — PR #226 / `2de8d720428b98a6d7375e793a89b5ff20e9c14c` reads canonical Trainer capabilities and applies server-authored Ouros task quality curves; PR #227 adds the normal-world crafting workstation consumer. Reuse this boundary for cooking, technology, medicine, research, occultism, survival, repairs and other non-battle world interactions. |
 
 ---
 
