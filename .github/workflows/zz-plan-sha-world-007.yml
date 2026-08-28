@@ -1,0 +1,37 @@
+name: Finalize WORLD-007 implementation reference
+
+on:
+  push:
+    branches:
+      - minecraft/world-007-shop-counter
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: minecraft/world-007-shop-counter
+      - name: Replace implementation head exactly
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old = '5e5d50df2ed422c76360cc6d2a80aabe2b9db66d'
+          new = 'b483936f4bae43dd8c1eca77a1ecbd2d8ee8a6f6'
+          if text.count(old) != 3:
+              raise SystemExit(f'expected exactly three WORLD-007 implementation references, found {text.count(old)}')
+          path.write_text(text.replace(old, new))
+      - name: Commit plan and remove helper workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/zz-plan-sha-world-007.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "Plan: finalize WORLD-007 implementation head"
+          git push origin HEAD:minecraft/world-007-shop-counter
