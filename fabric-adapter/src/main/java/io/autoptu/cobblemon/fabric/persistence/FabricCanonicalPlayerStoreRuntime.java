@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepository;
+import io.autoptu.cobblemon.authority.FileFieldCampSetupAttemptRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
 import io.autoptu.cobblemon.authority.FileWorldTaskCraftAttemptRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedCanonicalWildEncounterBlueprintRegistry;
@@ -34,6 +35,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalItemReservationRepository assets,
             FileWorldTaskCraftAttemptRepository craftAttempts,
             FileCraftIngredientDepositHandoffRepository craftDepositHandoffs,
+            FileFieldCampSetupAttemptRepository fieldCampAttempts,
             WorldScopedCanonicalWildEncounterBlueprintRegistry wildEncounterBlueprints,
             WorldScopedWildEncounterCorrelationRegistry wildEncounterCorrelations
     ) {}
@@ -75,6 +77,12 @@ public final class FabricCanonicalPlayerStoreRuntime {
             MinecraftServer server
     ) {
         return requireStores(server).craftDepositHandoffs();
+    }
+
+    public static FileFieldCampSetupAttemptRepository requireFieldCampSetupAttemptRepository(
+            MinecraftServer server
+    ) {
+        return requireStores(server).fieldCampAttempts();
     }
 
     public static WorldScopedCanonicalWildEncounterBlueprintRegistry requireWildEncounterBlueprintRegistry(
@@ -120,6 +128,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 new FileCanonicalItemReservationRepository(root, pokemon::findPokemon),
                 new FileWorldTaskCraftAttemptRepository(root),
                 new FileCraftIngredientDepositHandoffRepository(root),
+                new FileFieldCampSetupAttemptRepository(root),
                 new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
                 new WorldScopedWildEncounterCorrelationRegistry()
         );

@@ -1,8 +1,9 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalPlayerState;
+import io.autoptu.cobblemon.authority.FieldCampSetupAttempt;
+import io.autoptu.cobblemon.authority.FieldCampSetupService;
 import io.autoptu.cobblemon.authority.WorldTaskCatalogue;
-import io.autoptu.cobblemon.authority.WorldTaskCompetenceService;
 import io.autoptu.cobblemon.authority.WorldTaskDefinition;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -15,11 +16,10 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/** Physical Ouros field-camp surface backed only by canonical Trainer capability state. */
+/** Physical Ouros field-camp surface backed only by server-owned world and canonical Trainer state. */
 public final class FabricFieldCampRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 25.0D;
     private static final WorldTaskCatalogue CATALOGUE = new WorldTaskCatalogue();
-    private static final WorldTaskCompetenceService COMPETENCE = new WorldTaskCompetenceService();
 
     private FabricFieldCampRuntime() {}
 
@@ -35,7 +35,7 @@ public final class FabricFieldCampRuntime {
             BlockPos campfire = hitResult.getBlockPos();
             if (!isFieldCamp(world, campfire)) return ActionResult.PASS;
             if (!withinInteractionDistance(serverPlayer, campfire)) {
-                serverPlayer.sendMessage(Text.literal("You are too far away to assess this AutoPTU field camp."), false);
+                serverPlayer.sendMessage(Text.literal("You are too far away to establish this AutoPTU field camp."), false);
                 return ActionResult.FAIL;
             }
 
@@ -49,22 +49,38 @@ public final class FabricFieldCampRuntime {
                 return ActionResult.FAIL;
             }
 
+            String campId = campId(world, campfire);
+            String attemptId = "field-camp:" + campId;
             WorldTaskDefinition task = CATALOGUE.find(WorldTaskCatalogue.FIELD_CAMP_SETUP).orElseThrow();
-            WorldTaskCompetenceService.Assessment assessment = COMPETENCE.assess(canonicalPlayer, task);
-            serverPlayer.sendMessage(Text.literal(assessmentMessage(assessment)), false);
+            FieldCampSetupService service = new FieldCampSetupService(
+                    FabricCanonicalPlayerStoreRuntime.requireFieldCampSetupAttemptRepository(serverPlayer.getServer())
+            );
+            FieldCampSetupService.SetupResult result = service.establish(attemptId, campId, canonicalPlayer, task);
+            if (!result.established()) {
+                serverPlayer.sendMessage(Text.literal("Field camp setup could not commit: " + result.detail()), false);
+                return ActionResult.FAIL;
+            }
+
+            FieldCampSetupAttempt attempt = result.attempt();
+            String prefix = result.status() == FieldCampSetupService.Status.ALREADY_ESTABLISHED
+                    ? "Field camp already established"
+                    : "Field camp established";
             serverPlayer.sendMessage(Text.literal(
-                    "Assessment only: no PTU action cost, frequency, roll, healing, reward, encounter result, or battle state was created."), false);
+                    prefix
+                            + " | quality " + attempt.quality().name().toLowerCase()
+                            + " | Survival rank " + attempt.canonicalSkillRank()
+                            + " | established by " + attempt.establishedByPlayerId()), false);
+            serverPlayer.sendMessage(Text.literal(
+                    "Ouros world result only: no PTU action cost, frequency, healing, reward, encounter result, or battle state was created."), false);
             return ActionResult.SUCCESS;
         });
     }
 
-    static String assessmentMessage(WorldTaskCompetenceService.Assessment assessment) {
-        WorldTaskDefinition.QualityDistribution distribution = assessment.distribution();
-        return assessment.displayName()
-                + " | " + assessment.canonicalSkillId() + " rank " + assessment.canonicalSkillRank()
-                + " | quality readiness: improvised " + distribution.improvisedPercent() + "%"
-                + ", standard " + distribution.standardPercent() + "%"
-                + ", excellent " + distribution.excellentPercent() + "%";
+    static String campId(World world, BlockPos campfire) {
+        return world.getRegistryKey().getValue()
+                + ":" + campfire.getX()
+                + ":" + campfire.getY()
+                + ":" + campfire.getZ();
     }
 
     static boolean isFieldCamp(World world, BlockPos campfire) {
