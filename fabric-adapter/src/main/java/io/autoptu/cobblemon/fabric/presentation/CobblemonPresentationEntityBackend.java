@@ -6,7 +6,10 @@ import io.autoptu.cobblemon.battlecore.PresentationEntityPlatformBackend;
 import io.autoptu.cobblemon.battlecore.WorldBlockCoordinate;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.Objects;
 
@@ -26,13 +29,36 @@ public final class CobblemonPresentationEntityBackend
         Objects.requireNonNull(target, "target");
         if (moveId == null || moveId.isBlank()) throw new IllegalArgumentException("moveId is required");
 
-        // Presentation-only lunge. Runtime/grid position is unchanged; callers return the entity to
-        // its authoritative presentation anchor after the cue. No range or movement legality is
-        // inferred from this visual displacement.
-        double nextX = attacker.getX() + (target.getX() - attacker.getX()) * 0.45D;
+        // Presentation-only facing/lunge. Runtime/grid position is unchanged; callers return the
+        // entity to its authoritative presentation anchor after the cue. No range, hit chance,
+        // movement legality or move-specific effect is inferred here.
+        double dx = target.getX() - attacker.getX();
+        double dz = target.getZ() - attacker.getZ();
+        if (dx != 0.0D || dz != 0.0D) {
+            float yaw = (float) (MathHelper.atan2(dz, dx) * (180.0D / Math.PI)) - 90.0F;
+            attacker.setYaw(yaw);
+            attacker.setHeadYaw(yaw);
+            attacker.setBodyYaw(yaw);
+        }
+
+        double nextX = attacker.getX() + dx * 0.45D;
         double nextY = attacker.getY();
-        double nextZ = attacker.getZ() + (target.getZ() - attacker.getZ()) * 0.45D;
+        double nextZ = attacker.getZ() + dz * 0.45D;
         attacker.requestTeleport(nextX, nextY, nextZ);
+
+        if (attacker.getWorld() instanceof ServerWorld serverWorld) {
+            serverWorld.spawnParticles(
+                    ParticleTypes.SWEEP_ATTACK,
+                    target.getX(),
+                    target.getBodyY(0.55D),
+                    target.getZ(),
+                    1,
+                    0.0D,
+                    0.0D,
+                    0.0D,
+                    0.0D
+            );
+        }
     }
 
     @Override
@@ -47,6 +73,30 @@ public final class CobblemonPresentationEntityBackend
             throw new IllegalStateException(
                     "Cobblemon cannot exactly mirror authoritative PTU HP " + targetHp
                             + " for presentation; projected " + projectedHp);
+        }
+
+        // Damage is already authoritative upstream. Fabric only mirrors that committed result with
+        // generic audiovisual impact feedback. Zero-damage projections stay presentation-neutral.
+        if (damage > 0 && entity.getWorld() instanceof ServerWorld serverWorld) {
+            serverWorld.spawnParticles(
+                    ParticleTypes.DAMAGE_INDICATOR,
+                    entity.getX(),
+                    entity.getBodyY(0.65D),
+                    entity.getZ(),
+                    Math.min(12, Math.max(2, damage / 5 + 2)),
+                    0.35D,
+                    0.25D,
+                    0.35D,
+                    0.08D
+            );
+            serverWorld.playSound(
+                    null,
+                    entity.getBlockPos(),
+                    SoundEvents.ENTITY_PLAYER_ATTACK_STRONG,
+                    SoundCategory.PLAYERS,
+                    0.45F,
+                    1.15F
+            );
         }
     }
 
