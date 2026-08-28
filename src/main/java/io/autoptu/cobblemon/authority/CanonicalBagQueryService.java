@@ -56,6 +56,37 @@ public final class CanonicalBagQueryService {
         );
     }
 
+    /**
+     * Resolves a read-only item request against one player's canonical bag.
+     * The key may be an exact item-instance id or a template id; foreign stacks can never match.
+     */
+    public ItemInspection inspectItem(String playerId, String itemKey) {
+        if (itemKey == null || itemKey.isBlank()) {
+            throw new IllegalArgumentException("itemKey must not be blank");
+        }
+        String requested = itemKey.trim();
+        BagSnapshot bag = inspect(playerId);
+        List<BagEntry> exactInstance = bag.entries().stream()
+                .filter(entry -> entry.itemInstanceId().equals(requested))
+                .toList();
+        List<BagEntry> matches = exactInstance.isEmpty()
+                ? bag.entries().stream().filter(entry -> entry.templateId().equals(requested)).toList()
+                : exactInstance;
+
+        int totalQuantity = matches.stream().mapToInt(BagEntry::quantity).sum();
+        int totalAvailable = matches.stream().mapToInt(BagEntry::availableQuantity).sum();
+        int totalReserved = matches.stream().mapToInt(BagEntry::reservedQuantity).sum();
+        return new ItemInspection(
+                bag.playerId(),
+                requested,
+                !exactInstance.isEmpty(),
+                matches,
+                totalQuantity,
+                totalAvailable,
+                totalReserved
+        );
+    }
+
     public record BagSnapshot(
             String playerId,
             List<BagEntry> entries,
@@ -70,6 +101,29 @@ public final class CanonicalBagQueryService {
             if (totalQuantity < 0 || totalAvailable < 0 || totalReserved < 0 || transactionLocks < 0) {
                 throw new IllegalArgumentException("bag totals must not be negative");
             }
+        }
+    }
+
+    public record ItemInspection(
+            String playerId,
+            String requestedKey,
+            boolean exactInstanceMatch,
+            List<BagEntry> entries,
+            int totalQuantity,
+            int totalAvailable,
+            int totalReserved
+    ) {
+        public ItemInspection {
+            if (playerId == null || playerId.isBlank()) throw new IllegalArgumentException("playerId must not be blank");
+            if (requestedKey == null || requestedKey.isBlank()) throw new IllegalArgumentException("requestedKey must not be blank");
+            entries = entries == null ? List.of() : List.copyOf(entries);
+            if (totalQuantity < 0 || totalAvailable < 0 || totalReserved < 0) {
+                throw new IllegalArgumentException("inspection totals must not be negative");
+            }
+        }
+
+        public boolean found() {
+            return !entries.isEmpty();
         }
     }
 
