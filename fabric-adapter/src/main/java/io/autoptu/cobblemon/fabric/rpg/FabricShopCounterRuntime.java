@@ -232,7 +232,7 @@ public final class FabricShopCounterRuntime {
             for (CanonicalBagQueryService.BagEntry entry : bagQuery.inspect(playerId).entries()) {
                 if (entry.availableQuantity() <= 0) continue;
                 if (CanonicalShopSellCatalogue.DEFAULT.offer(SHOP_ID, entry.templateId()).isEmpty()) continue;
-                availableByTemplate.merge(entry.templateId(), entry.availableQuantity(), Long::sum);
+                availableByTemplate.merge(entry.templateId(), (long) entry.availableQuantity(), Long::sum);
             }
             int sellSlot = SELL_START_SLOT;
             for (var entry : availableByTemplate.entrySet()) {
