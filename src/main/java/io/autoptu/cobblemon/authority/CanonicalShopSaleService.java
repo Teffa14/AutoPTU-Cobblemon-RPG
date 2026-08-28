@@ -24,6 +24,17 @@ public final class CanonicalShopSaleService {
 
     public SaleResult sell(String saleId, String playerId, String shopId, String itemTemplateId, int quantity) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity must be positive");
+        FileCanonicalShopSaleRepository.SaleAttempt existing = sales.find(saleId).orElse(null);
+        if (existing != null) {
+            if (!existing.playerId().equals(playerId)
+                    || !existing.shopId().equals(shopId)
+                    || !existing.itemTemplateId().equals(itemTemplateId)
+                    || existing.quantity() != quantity) {
+                throw new IllegalStateException("saleId already belongs to a different immutable sale request");
+            }
+            return resume(existing);
+        }
+
         CanonicalShopSellCatalogue.SellOffer offer = catalogue.offer(shopId, itemTemplateId)
                 .orElseThrow(() -> new IllegalArgumentException("shop does not author a sell price for that item"));
         CanonicalItemInstance selected = items.findReservableItems(playerId, offer.itemTemplateId()).stream()
@@ -55,8 +66,8 @@ public final class CanonicalShopSaleService {
                     attempt.quantity(), attempt.itemRevision());
             boolean reserved = items.tryReserveItem(reservation);
             if (!reserved) {
-                ItemReservation existing = items.findReservation(reservationId).orElse(null);
-                if (existing == null || !existing.equals(reservation)) {
+                ItemReservation active = items.findReservation(reservationId).orElse(null);
+                if (active == null || !active.equals(reservation)) {
                     advance(attempt, FileCanonicalShopSaleRepository.Stage.FAILED_ITEM_UNAVAILABLE);
                     return project(attempt.saleId(), Status.ITEM_UNAVAILABLE);
                 }
