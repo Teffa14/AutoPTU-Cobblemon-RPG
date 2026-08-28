@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalBagQueryService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -20,27 +21,56 @@ public final class FabricBagRuntime {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("bag")
-                                .executes(context -> show(context.getSource())))));
+                                .executes(context -> show(context.getSource()))
+                                .then(CommandManager.literal("inspect")
+                                        .then(CommandManager.argument("item", StringArgumentType.word())
+                                                .executes(context -> inspect(
+                                                        context.getSource(),
+                                                        StringArgumentType.getString(context, "item"))))))));
     }
 
     private static int show(ServerCommandSource source) {
-        ServerPlayerEntity player = source.getPlayer();
-        if (player == null) {
-            source.sendError(Text.literal("AutoPTU bag must be requested by an authenticated player."));
-            return 0;
-        }
+        ServerPlayerEntity player = requireCanonicalPlayer(source);
+        if (player == null) return 0;
 
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
-            source.sendError(Text.literal("Canonical Trainer state is not loaded."));
-            return 0;
-        }
-
-        CanonicalBagQueryService service = new CanonicalBagQueryService(
-                FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()));
+        CanonicalBagQueryService service = service(player);
         CanonicalBagQueryService.BagSnapshot bag = service.inspect(playerId);
         for (String line : formatLines(bag)) player.sendMessage(Text.literal(line), false);
         return 1;
+    }
+
+    private static int inspect(ServerCommandSource source, String itemKey) {
+        ServerPlayerEntity player = requireCanonicalPlayer(source);
+        if (player == null) return 0;
+
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        CanonicalBagQueryService.ItemInspection inspection = service(player).inspectItem(playerId, itemKey);
+        if (!inspection.found()) {
+            source.sendError(Text.literal("No canonical bag item matches '" + inspection.requestedKey() + "'."));
+            return 0;
+        }
+        for (String line : formatInspectionLines(inspection)) player.sendMessage(Text.literal(line), false);
+        return 1;
+    }
+
+    private static ServerPlayerEntity requireCanonicalPlayer(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("AutoPTU bag must be requested by an authenticated player."));
+            return null;
+        }
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
+            source.sendError(Text.literal("Canonical Trainer state is not loaded."));
+            return null;
+        }
+        return player;
+    }
+
+    private static CanonicalBagQueryService service(ServerPlayerEntity player) {
+        return new CanonicalBagQueryService(
+                FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()));
     }
 
     static List<String> formatLines(CanonicalBagQueryService.BagSnapshot bag) {
@@ -71,6 +101,33 @@ public final class FabricBagRuntime {
                 + ", available " + bag.totalAvailable()
                 + ", reserved " + bag.totalReserved()
                 + ", locks " + bag.transactionLocks());
+        return List.copyOf(lines);
+    }
+
+    static List<String> formatInspectionLines(CanonicalBagQueryService.ItemInspection inspection) {
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add("AutoPTU bag inspect " + inspection.requestedKey());
+        for (CanonicalBagQueryService.BagEntry entry : inspection.entries()) {
+            StringBuilder line = new StringBuilder()
+                    .append(entry.templateId())
+                    .append(" | stack ").append(entry.itemInstanceId())
+                    .append(" | quantity ").append(entry.quantity())
+                    .append(" | available ").append(entry.availableQuantity())
+                    .append(" | revision ").append(entry.revision());
+            if (entry.reservedQuantity() > 0) {
+                line.append(" | reserved ").append(entry.reservedQuantity());
+            }
+            if (entry.transactionLocked()) {
+                line.append(" | reservation ").append(entry.reservationId());
+                if (entry.reservationConsumed()) line.append(" (consumed, lock retained)");
+            }
+            lines.add(line.toString());
+        }
+        if (!inspection.exactInstanceMatch() && inspection.entries().size() > 1) {
+            lines.add("Template totals: quantity " + inspection.totalQuantity()
+                    + ", available " + inspection.totalAvailable()
+                    + ", reserved " + inspection.totalReserved());
+        }
         return List.copyOf(lines);
     }
 }
