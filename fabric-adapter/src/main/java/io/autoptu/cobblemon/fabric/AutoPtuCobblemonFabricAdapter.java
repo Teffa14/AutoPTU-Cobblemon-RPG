@@ -23,6 +23,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricPartyLeadRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartySummaryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPlayerStatusRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPokemonDetailRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricRpgCalendarRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterCatalogueRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterSelectionRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricTrainerPtuActionRuntime;
@@ -61,6 +62,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricStarterCatalogueRuntime.register();
         FabricStarterSelectionRuntime.register();
         FabricTrainerPtuActionRuntime.register();
+        FabricRpgCalendarRuntime.register();
         FabricCraftingAssessmentRuntime.register();
         FabricCraftingCommandRuntime.register();
         FabricCraftIngredientDepositRuntime.register();
