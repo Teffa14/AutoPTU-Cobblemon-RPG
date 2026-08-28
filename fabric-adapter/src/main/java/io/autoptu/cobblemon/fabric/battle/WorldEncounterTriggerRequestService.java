@@ -7,14 +7,16 @@ import java.util.Optional;
 /**
  * Server-owned queue for world encounter requests.
  *
- * Normal visible-wild requests arrive with a canonical encounter ID and external presentation actor
- * ID that were assigned before the player interacts. The service never inspects Cobblemon state.
+ * Normal visible-wild requests arrive with canonical encounter identity, canonical visible species,
+ * and the external presentation actor ID that AutoPTU assigned before player interaction. Cobblemon
+ * Pokemon state never enters this service.
  */
 public final class WorldEncounterTriggerRequestService {
     public record Request(
             String canonicalEncounterId,
             String canonicalPlayerId,
             String externalWildActorId,
+            String canonicalWildSpeciesId,
             String zoneId,
             String contextId,
             String dimensionId,
@@ -32,8 +34,8 @@ public final class WorldEncounterTriggerRequestService {
     private long sequence;
 
     /**
-     * Legacy/server fallback for callers that do not already own a visible encounter identity.
-     * Normal wild gameplay should use requestBoundEncounter.
+     * Legacy/server fallback for callers without a visible actor. Normal wild gameplay must use
+     * requestBoundEncounter so the exact visible species and actor identity are preserved.
      */
     public synchronized Decision request(
             String canonicalPlayerId,
@@ -50,6 +52,7 @@ public final class WorldEncounterTriggerRequestService {
                 "world-encounter:" + playerId + ":" + (++sequence),
                 playerId,
                 null,
+                null,
                 zoneId,
                 contextId,
                 dimensionId,
@@ -60,14 +63,12 @@ public final class WorldEncounterTriggerRequestService {
         );
     }
 
-    /**
-     * Creates a request for the exact visible wild actor the player engaged.
-     * The encounter ID and actor ID come from AutoPTU's server-owned world binding.
-     */
+    /** Creates a request for the exact AutoPTU-owned visible wild actor the player engaged. */
     public synchronized Decision requestBoundEncounter(
             String canonicalEncounterId,
             String canonicalPlayerId,
             String externalWildActorId,
+            String canonicalWildSpeciesId,
             String zoneId,
             String contextId,
             String dimensionId,
@@ -80,6 +81,7 @@ public final class WorldEncounterTriggerRequestService {
                 requireId(canonicalEncounterId, "canonicalEncounterId"),
                 requireId(canonicalPlayerId, "canonicalPlayerId"),
                 requireId(externalWildActorId, "externalWildActorId"),
+                requireId(canonicalWildSpeciesId, "canonicalWildSpeciesId"),
                 zoneId,
                 contextId,
                 dimensionId,
@@ -94,6 +96,7 @@ public final class WorldEncounterTriggerRequestService {
             String canonicalEncounterId,
             String canonicalPlayerId,
             String externalWildActorId,
+            String canonicalWildSpeciesId,
             String zoneId,
             String contextId,
             String dimensionId,
@@ -109,6 +112,7 @@ public final class WorldEncounterTriggerRequestService {
                 canonicalEncounterId,
                 canonicalPlayerId,
                 externalWildActorId,
+                canonicalWildSpeciesId,
                 requireId(zoneId, "zoneId"),
                 requireId(contextId, "contextId"),
                 requireId(dimensionId, "dimensionId"),

@@ -79,8 +79,10 @@ public final class CedarMeadowRuntime {
             return 0;
         }
 
-        bindVisibleWild(lookout);
-        feeders.forEach(CedarMeadowRuntime::bindVisibleWild);
+        bindVisibleWild(lookout, "sentret", encounterId(origin, "lookout"));
+        bindVisibleWild(feeders.get(0), "hoppip", encounterId(origin, "feeder-0"));
+        bindVisibleWild(feeders.get(1), "hoppip", encounterId(origin, "feeder-1"));
+        bindVisibleWild(feeders.get(2), "skwovet", encounterId(origin, "feeder-2"));
 
         lookout.setCustomName(Text.literal("Cedar Lookout"));
         lookout.setPersistent();
@@ -105,10 +107,20 @@ public final class CedarMeadowRuntime {
         return world.spawnEntity(entity) ? entity : null;
     }
 
-    private static void bindVisibleWild(PokemonEntity entity) {
+    private static String encounterId(BlockPos origin, String role) {
+        return "world-wild:cedar-meadow:"
+                + origin.getX() + ":" + origin.getY() + ":" + origin.getZ() + ":" + role;
+    }
+
+    private static void bindVisibleWild(
+            PokemonEntity entity,
+            String canonicalSpeciesId,
+            String canonicalEncounterId
+    ) {
         VisibleWildPokemonEncounterRuntime.bind(
                 entity,
-                "world-wild:" + entity.getUuidAsString(),
+                canonicalEncounterId,
+                canonicalSpeciesId,
                 WILD_ZONE_ID,
                 WILD_CONTEXT_ID
         );
