@@ -22,7 +22,7 @@ final class WorldTaskCraftServiceTest {
     void committedCraftConsumesCanonicalIngredientsAndCreatesOneQualityOutput() {
         FileCanonicalItemReservationRepository items = new FileCanonicalItemReservationRepository(tempDirectory);
         FileWorldTaskCraftAttemptRepository attempts = new FileWorldTaskCraftAttemptRepository(tempDirectory);
-        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().find("field_ration").orElseThrow();
+        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().findRecipe("field_ration").orElseThrow();
         seedIngredients(items, "player-1", recipe, 1);
         AtomicInteger rolls = new AtomicInteger();
         WorldTaskCraftService service = new WorldTaskCraftService(
@@ -51,7 +51,7 @@ final class WorldTaskCraftServiceTest {
     void retryAfterRepositoryRestartReusesOutcomeAndDoesNotDuplicateOutput() {
         FileCanonicalItemReservationRepository firstItems = new FileCanonicalItemReservationRepository(tempDirectory);
         FileWorldTaskCraftAttemptRepository firstAttempts = new FileWorldTaskCraftAttemptRepository(tempDirectory);
-        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().find("field_ration").orElseThrow();
+        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().findRecipe("field_ration").orElseThrow();
         seedIngredients(firstItems, "player-2", recipe, 1);
         WorldTaskCraftService first = new WorldTaskCraftService(
                 firstItems, firstAttempts, new WorldTaskCompetenceService(), () -> 85);
@@ -78,7 +78,7 @@ final class WorldTaskCraftServiceTest {
     void restartAfterPartialIngredientConsumptionRecoversWithoutReroll() {
         FileCanonicalItemReservationRepository items = new FileCanonicalItemReservationRepository(tempDirectory);
         FileWorldTaskCraftAttemptRepository attempts = new FileWorldTaskCraftAttemptRepository(tempDirectory);
-        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().find("field_ration").orElseThrow();
+        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().findRecipe("field_ration").orElseThrow();
         seedIngredients(items, "player-3", recipe, 1);
         CanonicalPlayerState trainer = trainer("player-3", Map.of("Survival", 4));
         WorldTaskDefinition.QualityDistribution distribution = new WorldTaskCompetenceService()
@@ -92,7 +92,7 @@ final class WorldTaskCraftServiceTest {
             assertTrue(items.tryReserveItem(reservation.asItemReservation("player-3")));
         }
         WorldTaskRecipeDefinition.CraftQuality frozenQuality = WorldTaskRecipeDefinition.CraftQuality.STANDARD;
-        WorldTaskCraftAttempt resolved = planned.resolved(80, frozenQuality, recipe.outputFor(frozenQuality));
+        WorldTaskCraftAttempt resolved = planned.resolved(50, frozenQuality, recipe.outputFor(frozenQuality));
         assertTrue(attempts.replaceIfPhase("recover", WorldTaskCraftAttempt.Phase.PLANNED, resolved));
         assertTrue(items.consumeReservationRetainingLock(plan.get(0).reservationId(), "player-3"));
 
@@ -104,7 +104,7 @@ final class WorldTaskCraftServiceTest {
         WorldTaskCraftService.CraftResult recovered = restarted.craft("recover", trainer, recipe, 1);
 
         assertTrue(recovered.committed());
-        assertEquals(80, recovered.attempt().rollPercent());
+        assertEquals(50, recovered.attempt().rollPercent());
         assertEquals(frozenQuality, recovered.attempt().quality());
         assertTrue(restartedItems.findItem("craft-output:recover").isPresent());
         for (WorldTaskCraftAttempt.PlannedReservation reservation : plan) {
@@ -116,7 +116,7 @@ final class WorldTaskCraftServiceTest {
     void insufficientCanonicalMaterialsNeverCreateAttemptOrRoll() {
         FileCanonicalItemReservationRepository items = new FileCanonicalItemReservationRepository(tempDirectory);
         FileWorldTaskCraftAttemptRepository attempts = new FileWorldTaskCraftAttemptRepository(tempDirectory);
-        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().find("field_ration").orElseThrow();
+        WorldTaskRecipeDefinition recipe = new WorldTaskCatalogue().findRecipe("field_ration").orElseThrow();
         AtomicInteger rolls = new AtomicInteger();
         WorldTaskCraftService service = new WorldTaskCraftService(
                 items, attempts, new WorldTaskCompetenceService(), () -> {
