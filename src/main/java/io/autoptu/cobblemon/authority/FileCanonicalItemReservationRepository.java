@@ -18,6 +18,9 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -27,17 +30,14 @@ import java.util.function.Function;
 /**
  * Durable canonical item-instance and reservation store.
  *
- * <p>Each item file contains the server-owned item state plus at most one active reservation.
- * Reservation creation, commit and release all replace that one file atomically while holding an
- * in-process lock and an OS file lock. A reservation therefore survives process restart without
- * allowing a second reservation to overbook the same item revision.</p>
- *
- * <p>Pokemon lookup remains an injected read-only dependency for now. This slice deliberately does
- * not claim durable Pokemon persistence; callers may compose this repository with the current
- * canonical Pokemon source until that separate aggregate store is implemented.</p>
+ * <p>Each item file contains server-owned item state plus at most one reservation. Version 2 adds a
+ * consumed-but-retained reservation state used by recoverable multi-item transactions such as
+ * crafting. In that state quantity has already been deducted, but the reservation continues to lock
+ * the item until the transaction journal reaches its durable commit point.</p>
  */
 public final class FileCanonicalItemReservationRepository implements CanonicalAssetRepository {
-    static final int SCHEMA_VERSION = 1;
+    static final int SCHEMA_VERSION = 2;
+    private static final int LEGACY_SCHEMA_VERSION = 1;
     private static final int MAGIC = 0x41504952; // APIR
     private static final ConcurrentMap<Path, ReentrantLock> PROCESS_LOCKS = new ConcurrentHashMap<>();
 
@@ -50,7 +50,7 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
     ) {
         if (rootDirectory == null) throw new IllegalArgumentException("rootDirectory is required");
         if (pokemonLookup == null) throw new IllegalArgumentException("pokemonLookup is required");
-        this.itemsDirectory = rootDirectory.toAbsolutePath().normalize().resolve("items");
+        itemsDirectory = rootDirectory.toAbsolutePath().normalize().resolve("items");
         this.pokemonLookup = pokemonLookup;
         try {
             Files.createDirectories(itemsDirectory);
@@ -79,21 +79,44 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
         return Optional.of(stored.item());
     }
 
-    @Override
-    public Optional<ItemReservation> findReservation(String reservationId) {
-        String normalizedReservationId = requireId("reservationId", reservationId);
+    /** Returns unreserved positive-quantity canonical stacks for one owner/template in stable order. */
+    public List<CanonicalItemInstance> findReservableItems(String playerId, String itemTemplateId) {
+        String owner = requireId("playerId", playerId);
+        String template = requireId("itemTemplateId", itemTemplateId);
+        List<CanonicalItemInstance> matches = new ArrayList<>();
         try (DirectoryStream<Path> files = Files.newDirectoryStream(itemsDirectory, "*.bin")) {
             for (Path path : files) {
                 StoredItem stored = readStored(path);
-                ItemReservation reservation = stored.reservation();
-                if (reservation != null && reservation.reservationId().equals(normalizedReservationId)) {
-                    return Optional.of(reservation);
+                CanonicalItemInstance item = stored.item();
+                if (stored.reservation() == null
+                        && item.quantity() > 0
+                        && item.ownerPlayerId().equals(owner)
+                        && item.templateId().equals(template)) {
+                    matches.add(item);
                 }
             }
-            return Optional.empty();
         } catch (IOException error) {
-            throw new UncheckedIOException("failed to scan canonical item reservations", error);
+            throw new UncheckedIOException("failed to scan canonical item inventory", error);
         }
+        matches.sort(Comparator.comparing(CanonicalItemInstance::itemInstanceId));
+        return List.copyOf(matches);
+    }
+
+    @Override
+    public Optional<ItemReservation> findReservation(String reservationId) {
+        String normalizedReservationId = requireId("reservationId", reservationId);
+        StoredItem located = findStoredReservation(normalizedReservationId).orElse(null);
+        return located == null ? Optional.empty() : Optional.of(located.reservation());
+    }
+
+    /** True when the reservation exists and its quantity has already been durably deducted. */
+    public boolean isReservationConsumed(String reservationId, String playerId) {
+        String id = requireId("reservationId", reservationId);
+        String owner = requireId("playerId", playerId);
+        StoredItem located = findStoredReservation(id).orElse(null);
+        return located != null
+                && located.reservation().playerId().equals(owner)
+                && located.reservationConsumed();
     }
 
     /** Creates a new server-owned item instance only when its canonical ID does not already exist. */
@@ -103,15 +126,12 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
         return withItemLock(itemId, () -> {
             Path path = statePath(itemId);
             if (Files.exists(path)) return false;
-            writeAtomically(path, new StoredItem(initialItem, null));
+            writeAtomically(path, new StoredItem(initialItem, null, false));
             return true;
         });
     }
 
-    /**
-     * Replaces unreserved item truth through revision CAS. Reserved item state is frozen until the
-     * reservation is committed or released.
-     */
+    /** Replaces unreserved item truth through revision CAS. */
     public boolean replaceItemIfRevision(
             String itemInstanceId,
             long expectedRevision,
@@ -128,15 +148,13 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
         if (replacement.revision() != expectedRevision + 1) {
             throw new IllegalArgumentException("replacement revision must advance expectedRevision exactly once");
         }
-
         return withItemLock(itemId, () -> {
             Path path = statePath(itemId);
             if (!Files.exists(path)) return false;
             StoredItem current = readStored(path);
             requireStoredIdentity(itemId, current);
-            if (current.reservation() != null) return false;
-            if (current.item().revision() != expectedRevision) return false;
-            writeAtomically(path, new StoredItem(replacement, null));
+            if (current.reservation() != null || current.item().revision() != expectedRevision) return false;
+            writeAtomically(path, new StoredItem(replacement, null, false));
             return true;
         });
     }
@@ -156,7 +174,58 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
             if (!item.templateId().equals(reservation.itemTemplateId())) return false;
             if (item.revision() != reservation.itemRevision()) return false;
             if (item.quantity() < reservation.quantity()) return false;
-            writeAtomically(path, new StoredItem(item, reservation));
+            writeAtomically(path, new StoredItem(item, reservation, false));
+            return true;
+        });
+    }
+
+    /**
+     * Deducts a reservation exactly once while retaining its lock for a larger recoverable
+     * transaction. Repeated calls return true without consuming again.
+     */
+    public boolean consumeReservationRetainingLock(String reservationId, String playerId) {
+        String id = requireId("reservationId", reservationId);
+        String owner = requireId("playerId", playerId);
+        StoredItem located = findStoredReservation(id).orElse(null);
+        if (located == null || !located.reservation().playerId().equals(owner)) return false;
+        String itemId = located.reservation().itemInstanceId();
+        return withItemLock(itemId, () -> {
+            Path path = statePath(itemId);
+            if (!Files.exists(path)) return false;
+            StoredItem current = readStored(path);
+            ItemReservation active = current.reservation();
+            if (active == null || !active.reservationId().equals(id) || !active.playerId().equals(owner)) return false;
+            if (current.reservationConsumed()) return true;
+            CanonicalItemInstance item = current.item();
+            if (item.revision() != active.itemRevision() || item.quantity() < active.quantity()) return false;
+            CanonicalItemInstance consumed = new CanonicalItemInstance(
+                    item.itemInstanceId(), item.ownerPlayerId(), item.templateId(),
+                    item.quantity() - active.quantity(), item.revision() + 1);
+            ItemReservation retained = new ItemReservation(
+                    active.reservationId(), active.playerId(), active.itemInstanceId(), active.itemTemplateId(),
+                    active.quantity(), consumed.revision());
+            writeAtomically(path, new StoredItem(consumed, retained, true));
+            return true;
+        });
+    }
+
+    /** Removes a consumed transaction lock without changing the already-deducted quantity. */
+    public boolean releaseConsumedReservationLock(String reservationId, String playerId) {
+        String id = requireId("reservationId", reservationId);
+        String owner = requireId("playerId", playerId);
+        StoredItem located = findStoredReservation(id).orElse(null);
+        if (located == null) return true;
+        if (!located.reservation().playerId().equals(owner)) return false;
+        String itemId = located.reservation().itemInstanceId();
+        return withItemLock(itemId, () -> {
+            Path path = statePath(itemId);
+            if (!Files.exists(path)) return false;
+            StoredItem current = readStored(path);
+            if (current.reservation() == null) return true;
+            if (!current.reservation().reservationId().equals(id)
+                    || !current.reservation().playerId().equals(owner)
+                    || !current.reservationConsumed()) return false;
+            writeAtomically(path, new StoredItem(current.item(), null, false));
             return true;
         });
     }
@@ -172,41 +241,49 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
     }
 
     private boolean finishReservation(String reservationId, String playerId, boolean commit) {
-        String normalizedReservationId = requireId("reservationId", reservationId);
-        String normalizedPlayerId = requireId("playerId", playerId);
-        ItemReservation located = findReservation(normalizedReservationId).orElse(null);
-        if (located == null || !located.playerId().equals(normalizedPlayerId)) return false;
-        String itemId = located.itemInstanceId();
-
+        String id = requireId("reservationId", reservationId);
+        String owner = requireId("playerId", playerId);
+        StoredItem located = findStoredReservation(id).orElse(null);
+        if (located == null || !located.reservation().playerId().equals(owner)) return false;
+        String itemId = located.reservation().itemInstanceId();
         return withItemLock(itemId, () -> {
             Path path = statePath(itemId);
             if (!Files.exists(path)) return false;
             StoredItem current = readStored(path);
-            requireStoredIdentity(itemId, current);
             ItemReservation active = current.reservation();
-            if (active == null
-                    || !active.reservationId().equals(normalizedReservationId)
-                    || !active.playerId().equals(normalizedPlayerId)) {
-                return false;
+            if (active == null || !active.reservationId().equals(id) || !active.playerId().equals(owner)) return false;
+            if (current.reservationConsumed()) {
+                if (!commit) return false;
+                writeAtomically(path, new StoredItem(current.item(), null, false));
+                return true;
             }
             CanonicalItemInstance item = current.item();
             if (item.revision() != active.itemRevision()) return false;
-
             if (!commit) {
-                writeAtomically(path, new StoredItem(item, null));
+                writeAtomically(path, new StoredItem(item, null, false));
                 return true;
             }
             if (item.quantity() < active.quantity()) return false;
             CanonicalItemInstance committed = new CanonicalItemInstance(
-                    item.itemInstanceId(),
-                    item.ownerPlayerId(),
-                    item.templateId(),
-                    item.quantity() - active.quantity(),
-                    item.revision() + 1
-            );
-            writeAtomically(path, new StoredItem(committed, null));
+                    item.itemInstanceId(), item.ownerPlayerId(), item.templateId(),
+                    item.quantity() - active.quantity(), item.revision() + 1);
+            writeAtomically(path, new StoredItem(committed, null, false));
             return true;
         });
+    }
+
+    private Optional<StoredItem> findStoredReservation(String reservationId) {
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(itemsDirectory, "*.bin")) {
+            for (Path path : files) {
+                StoredItem stored = readStored(path);
+                if (stored.reservation() != null && stored.reservation().reservationId().equals(reservationId)) {
+                    return Optional.of(stored);
+                }
+            }
+            return Optional.empty();
+        } catch (IOException error) {
+            throw new UncheckedIOException("failed to scan canonical item reservations", error);
+        }
     }
 
     private StoredItem readStored(Path path) {
@@ -215,7 +292,7 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(bytes))) {
                 if (input.readInt() != MAGIC) throw new IllegalStateException("invalid canonical item file magic");
                 int schema = input.readInt();
-                if (schema != SCHEMA_VERSION) {
+                if (schema != LEGACY_SCHEMA_VERSION && schema != SCHEMA_VERSION) {
                     throw new IllegalStateException("unsupported canonical item schema version: " + schema);
                 }
                 CanonicalItemInstance item = new CanonicalItemInstance(
@@ -225,8 +302,9 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
                     reservation = new ItemReservation(
                             input.readUTF(), input.readUTF(), input.readUTF(), input.readUTF(), input.readInt(), input.readLong());
                 }
+                boolean consumed = schema >= 2 && input.readBoolean();
                 if (input.available() != 0) throw new IllegalStateException("unexpected trailing canonical item data");
-                return new StoredItem(item, reservation);
+                return new StoredItem(item, reservation, consumed);
             }
         } catch (IOException error) {
             throw new UncheckedIOException("failed to read canonical item state", error);
@@ -284,6 +362,7 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
                     output.writeInt(reservation.quantity());
                     output.writeLong(reservation.itemRevision());
                 }
+                output.writeBoolean(stored.reservationConsumed());
                 output.flush();
             }
             return bytes.toByteArray();
@@ -310,8 +389,7 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
         if (!stored.item().itemInstanceId().equals(requestedItemId)) {
             throw new IllegalStateException("canonical item file identity mismatch");
         }
-        if (stored.reservation() != null
-                && !stored.reservation().itemInstanceId().equals(requestedItemId)) {
+        if (stored.reservation() != null && !stored.reservation().itemInstanceId().equals(requestedItemId)) {
             throw new IllegalStateException("canonical reservation item identity mismatch");
         }
     }
@@ -337,12 +415,15 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
 
     private static String requireId(String field, String value) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " must not be blank");
-        return value;
+        return value.trim();
     }
 
-    private record StoredItem(CanonicalItemInstance item, ItemReservation reservation) {
+    private record StoredItem(CanonicalItemInstance item, ItemReservation reservation, boolean reservationConsumed) {
         private StoredItem {
             if (item == null) throw new IllegalArgumentException("item is required");
+            if (reservation == null && reservationConsumed) {
+                throw new IllegalArgumentException("consumed marker requires reservation");
+            }
             if (reservation != null) {
                 if (!reservation.itemInstanceId().equals(item.itemInstanceId())) {
                     throw new IllegalArgumentException("reservation item identity must match item");
@@ -352,6 +433,9 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
                 }
                 if (!reservation.itemTemplateId().equals(item.templateId())) {
                     throw new IllegalArgumentException("reservation template identity must match item");
+                }
+                if (reservationConsumed && reservation.itemRevision() != item.revision()) {
+                    throw new IllegalArgumentException("consumed reservation revision must match item");
                 }
             }
         }
