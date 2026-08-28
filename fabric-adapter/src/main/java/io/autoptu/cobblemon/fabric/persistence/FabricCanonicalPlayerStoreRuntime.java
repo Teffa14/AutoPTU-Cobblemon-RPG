@@ -1,8 +1,11 @@
 package io.autoptu.cobblemon.fabric.persistence;
 
+import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalShopPurchaseService;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalShopPurchaseRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWalletRepository;
 import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepository;
@@ -30,6 +33,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalItemReservationRepository assets,
             FileCanonicalWalletRepository wallets,
             FileCanonicalShopStockRepository shopStock,
+            FileCanonicalShopPurchaseRepository shopPurchases,
             FileWorldTaskCraftAttemptRepository craftAttempts,
             FileCraftIngredientDepositHandoffRepository craftDepositHandoffs,
             FileFieldCampSetupAttemptRepository fieldCampAttempts,
@@ -54,6 +58,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) { return requireStores(server).assets(); }
     public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
+    public static FileCanonicalShopPurchaseRepository requireShopPurchaseRepository(MinecraftServer server) { return requireStores(server).shopPurchases(); }
     public static FileWorldTaskCraftAttemptRepository requireCraftAttemptRepository(MinecraftServer server) { return requireStores(server).craftAttempts(); }
     public static FileCraftIngredientDepositHandoffRepository requireCraftDepositHandoffRepository(MinecraftServer server) { return requireStores(server).craftDepositHandoffs(); }
     public static FileFieldCampSetupAttemptRepository requireFieldCampSetupAttemptRepository(MinecraftServer server) { return requireStores(server).fieldCampAttempts(); }
@@ -82,13 +87,18 @@ public final class FabricCanonicalPlayerStoreRuntime {
     private static void start(MinecraftServer server) {
         Path root = storageRoot(server);
         FileCanonicalPokemonRepository pokemon = new FileCanonicalPokemonRepository(root);
+        FileCanonicalItemReservationRepository assets = new FileCanonicalItemReservationRepository(root, pokemon::findPokemon);
+        FileCanonicalWalletRepository wallets = new FileCanonicalWalletRepository(root);
+        FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
+        FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root),
                 new FileCanonicalPlayerEncounterProfileRepository(root),
                 pokemon,
-                new FileCanonicalItemReservationRepository(root, pokemon::findPokemon),
-                new FileCanonicalWalletRepository(root),
-                new FileCanonicalShopStockRepository(root),
+                assets,
+                wallets,
+                shopStock,
+                shopPurchases,
                 new FileWorldTaskCraftAttemptRepository(root),
                 new FileCraftIngredientDepositHandoffRepository(root),
                 new FileFieldCampSetupAttemptRepository(root),
@@ -98,6 +108,13 @@ public final class FabricCanonicalPlayerStoreRuntime {
         synchronized (STORES) {
             if (STORES.putIfAbsent(server, stores) != null) throw new IllegalStateException("canonical stores already initialized for server");
         }
+        new CanonicalShopPurchaseService(
+                CanonicalShopCatalogue.DEFAULT,
+                wallets,
+                shopStock,
+                assets,
+                shopPurchases
+        ).recoverPending();
     }
 
     private static void stop(MinecraftServer server) {
