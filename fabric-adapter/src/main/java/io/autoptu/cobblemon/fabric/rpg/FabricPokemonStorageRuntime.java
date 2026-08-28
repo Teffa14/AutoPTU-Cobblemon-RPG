@@ -19,7 +19,7 @@ public final class FabricPokemonStorageRuntime {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("storage")
+                        .then(CommandManager.literal("box")
                                 .executes(context -> show(context.getSource())))));
     }
 
@@ -42,9 +42,9 @@ public final class FabricPokemonStorageRuntime {
             source.sendError(Text.literal("AutoPTU Pokemon storage is inconsistent and cannot be displayed safely."));
             return 0;
         }
-        player.sendMessage(Text.literal("AutoPTU storage — " + storage.members().size() + " boxed Pokemon | rev " + storage.storageRevision()), false);
+        player.sendMessage(Text.literal("AutoPTU box — " + storage.members().size() + " stored Pokemon | rev " + storage.storageRevision()), false);
         if (storage.members().isEmpty()) {
-            player.sendMessage(Text.literal("Storage is empty."), false);
+            player.sendMessage(Text.literal("Box is empty."), false);
             return 1;
         }
         for (CanonicalPokemonStorageSummary.Member member : storage.members()) {
