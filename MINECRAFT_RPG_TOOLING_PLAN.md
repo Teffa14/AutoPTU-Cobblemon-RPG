@@ -62,6 +62,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-019 | LIVE | Ouros RPG calendar/world-event surface | PR #239 / implementation commit `7b888c957f1e4457dd3c0c5d86286879afde27ad`. Players can inspect the current durable calendar with `/autoptu calendar`; online players receive server-authored day-transition/event announcements. Stable event keys are world hooks only and carry no PTU rules or rewards by themselves. |
 | CUR-020 | LIVE | durable physical field camp setup | PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23`. Normal campfire-over-barrel interaction establishes one server-owned Ouros camp result keyed by dimension/block position and reuses the persisted result after reconnect/restart. |
 | CUR-021 | LIVE | canonical bag read surface | PR #243 / implementation head `a5667c5b6f482f3aae73c77694a47467fb4c7db1`. `/autoptu bag` projects only durable server-owned item stacks, available quantity, active reservations and retained transaction locks for the authenticated Trainer. PR #244 / implementation head `74c9341ab8cc13e3445f133220e8fd0763dbbfdc` adds owner-scoped exact stack/template inspection with revisions and lock detail. |
+| CUR-022 | LIVE | canonical wallet read surface | PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f`. `/autoptu money` resolves the authenticated Trainer to a world-save-scoped canonical wallet, creates a durable zero-balance wallet on first read, and reports server-owned currency, balance and revision without inventing starter funds, shop prices or rewards. |
 
 ---
 
@@ -141,12 +142,12 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-080 | TODO | `/autoptu money` |
+| CMD-080 | LIVE | `/autoptu money` — PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f`; reads only the authenticated Trainer's durable world-save-scoped wallet and reports server-owned currency ID, balance and revision. |
 | CMD-081 | TODO | `/autoptu shop list` |
 | CMD-082 | TODO | `/autoptu shop buy <offer> [qty]` |
 | CMD-083 | TODO | `/autoptu shop sell <item> [qty]` |
 | CMD-084 | LIVE | `/autoptu cancraft <recipe>` — PR #226 adds Trainer capability assessment, PR #228 adds server-owned workstation/ingredient/output contracts, and PR #230 reads only the authenticated player's unreserved durable canonical item stacks to report exact required/available/missing materials. It performs no reservation, RNG, or consumption. |
-| CMD-085 | LIVE | `/autoptu craft <recipe> [qty]` — PR #229 supplies the durable server transaction, PR #231 supplies normal server-authoritative ingredient acquisition, PR #233 / `f12bca736699739fc9cdd67bedf640cc3b4f6f10` wires normal workstation execution, PR #235 / `a4f763dade77a5aaa9f315eb7b8f3d369363afd3` adds the explicit fallback command. PR #236 / `38a3b230a5bb9ca4a3d9313065678b3a617afaa1` exposes that same request path from the workstation selector. The client supplies only a recipe key and bounded quantity; the server re-resolves Trainer identity, authored recipe, knowledge, canonical materials, quality roll, reservations and output. |
+| CMD-085 | LIVE | `/autoptu craft <recipe> [qty]` — PR #229 supplies the durable server transaction, PR #231 supplies normal server-authoritative ingredient acquisition, PR #233 / `f12bca736699739fc9cdd67bedf640cc3b4f6f10` wires durable workstation crafting, PR #235 / `a4f763dade77a5aaa9f315eb7b8f3d369363afd3` adds the explicit fallback command. PR #236 / `38a3b230a5bb9ca4a3d9313065678b3a617afaa1` exposes that same request path from the workstation selector. The client supplies only a recipe key and bounded quantity; the server re-resolves Trainer identity, authored recipe, knowledge, canonical materials, quality roll, reservations and output. |
 
 ## Quests, journal and travel
 
@@ -274,7 +275,7 @@ These should become the normal gameplay path.
 |---|---|---|
 | FAC-001 | LIVE | Pokémon Center/healer backed by canonical healing service — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | FAC-002 | TODO | Shop catalogue/stock/price service. |
-| FAC-003 | TODO | Canonical wallet/currency transactions. |
+| FAC-003 | NEXT/PARTIAL | Canonical wallet/currency transactions. PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f` establishes durable owner-scoped wallet state, first-read provisioning, revision-CAS persistence and a read-only player projection. Mutation idempotency, authored credits/debits and shop transaction integration remain NEXT. |
 | FAC-004 | LIVE | Crafting recipe registry. PR #226 adds capability-sensitive task recipes, PR #227 exposes them through the physical workstation, and PR #228 completes the initial server-owned recipe contract with workstation IDs, canonical ingredients, and quality-specific canonical outputs. |
 | FAC-005 | LIVE | Restart-safe craft transaction — PR #229. A durable attempt freezes canonical ingredient reservations and Trainer-derived Ouros quality odds before the roll, persists one outcome before consumption, retains ingredient locks through partial consumption, creates a deterministic canonical output exactly once, and resumes safely after reconnect/restart/retry. |
 | FAC-006 | TODO | Move tutor/relearner service shell. |
@@ -304,7 +305,7 @@ These should become the normal gameplay path.
 | SVC-013 | LIVE/PARTIAL | Item reservation/commit/rollback infrastructure exists. PR #229 adds schema-compatible consumed-but-retained reservations so multi-item craft recovery cannot expose partially consumed stacks before the durable transaction commit; expand to complete RPG inventory use. |
 | SVC-014 | LIVE/PARTIAL | Encounter reservation infrastructure exists; wire it to normal world encounters. |
 | SVC-015 | LIVE/PARTIAL | Battle outcome commit infrastructure exists; wire it to the normal battle loop. |
-| SVC-016 | TODO | Currency transaction commit/idempotency. |
+| SVC-016 | NEXT | Currency transaction commit/idempotency. |
 | SVC-017 | TODO | Quest reward commit/idempotency. |
 | SVC-018 | TODO | Persistent world-object mutation/idempotency. |
 | SVC-019 | TODO | Reconnect/restart active-session recovery. |
@@ -315,6 +316,7 @@ These should become the normal gameplay path.
 | SVC-024 | LIVE | `depositCraftIngredient(player, serverObservedStack)` — PR #231 / `1648de45c7cd58ab6a2232d7a0c7e744cf5b986a` accepts only authored recipe ingredient templates, persists them into stable per-player/template canonical stacks through revision CAS, and is invoked from a server-observed held Minecraft stack. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` adds PREPARED/WITHDRAWN/CANONICAL_APPLIED/COMMITTED journaling, forces server-owned player inventory persistence after withdrawal, reconciles pending transfers on reconnect, and uses an idempotent canonical handoff receipt so retries cannot double-credit. |
 | SVC-025 | LIVE | `establishFieldCamp(attemptId, campId, player, task)` — PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23`. The server derives physical camp identity, freezes canonical Trainer capability plus authored Ouros quality odds before resolution, persists one result exactly once, and reuses it after retry/reconnect/restart without creating PTU Feature policy or battle state. |
 | SVC-026 | LIVE | `inspectBag(player)` / `inspectItem(player, itemKey)` — PR #243 / implementation head `a5667c5b6f482f3aae73c77694a47467fb4c7db1` supplies the owner-scoped durable bag projection; PR #244 / implementation head `74c9341ab8cc13e3445f133220e8fd0763dbbfdc` adds exact instance/template inspection with reservation and revision detail. Neither boundary applies item legality or effects. |
+| SVC-027 | LIVE | `inspectWallet(player)` — PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f`; resolves only owner-scoped durable canonical wallet state and exposes currency, balance and revision without performing a transaction. |
 
 ---
 
@@ -363,7 +365,7 @@ These are required for operations, testing and recovery. They must never be norm
 | TODO | Trainer presentation/profile data. |
 | TODO | Trainer XP/level/progression. |
 | TODO | Pokémon XP/progression/evolution choices. |
-| NEXT/PARTIAL | Canonical inventory quantities and wallet. PR #231 persists authored crafting ingredient quantities in canonical item stacks, PR #233 consumes those canonical quantities into exactly-once durable craft outputs from the normal workstation, PR #235 exposes the same canonical mutation through explicit recipe fallback requests, and PR #236 exposes recipe selection/readiness through the normal workstation. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` closes the crash-recoverable Minecraft-to-canonical ingredient handoff. PR #243 / implementation head `a5667c5b6f482f3aae73c77694a47467fb4c7db1` adds owner-scoped general bag reads with exact stack quantities, availability and reservation/retained-lock visibility. PR #244 / implementation head `74c9341ab8cc13e3445f133220e8fd0763dbbfdc` adds exact stack/template inspection without mutation. Item use/equipment, transfers and wallet remain TODO/NEXT. |
+| NEXT/PARTIAL | Canonical inventory quantities and wallet. PR #231 persists authored crafting ingredient quantities in canonical item stacks, PR #233 consumes those canonical quantities into exactly-once durable craft outputs from the normal workstation, PR #235 exposes the same canonical mutation through explicit recipe fallback requests, and PR #236 exposes recipe selection/readiness through the normal workstation. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` closes the crash-recoverable Minecraft-to-canonical ingredient handoff. PR #243 / implementation head `a5667c5b6f482f3aae73c77694a47467fb4c7db1` adds owner-scoped general bag reads with exact stack quantities, availability and reservation/retained-lock visibility. PR #244 / implementation head `74c9341ab8cc13e3445f133220e8fd0763dbbfdc` adds exact stack/template inspection without mutation. PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f` adds durable world-save-scoped wallet state, zero-balance first-read provisioning, revision-CAS storage and `/autoptu money`. Item use/equipment, transfers and idempotent currency transactions remain NEXT/TODO. |
 | LIVE | Durable Minecraft-to-canonical crafting ingredient handoff journal — PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8`. Pending withdrawals survive restart/reconnect, reconcile only against server-persisted inventory state, and canonical retries are idempotent. |
 | TODO | Quest journal/objectives/reward claims. |
 | TODO | NPC relationships/factions/rivals. |
