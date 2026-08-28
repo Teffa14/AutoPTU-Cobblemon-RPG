@@ -22,27 +22,28 @@ public final class FabricShopRuntime {
     private FabricShopRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("shop")
-                                .executes(context -> show(context.getSource(), DEFAULT_SHOP_ID))
-                                .then(CommandManager.literal("list")
-                                        .executes(context -> show(context.getSource(), DEFAULT_SHOP_ID))
-                                        .then(CommandManager.argument("shop", StringArgumentType.word())
-                                                .executes(context -> show(
-                                                        context.getSource(),
-                                                        StringArgumentType.getString(context, "shop")))))
-                                .then(CommandManager.literal("buy")
-                                        .then(CommandManager.argument("offer", StringArgumentType.word())
-                                                .executes(context -> buy(
-                                                        context.getSource(),
-                                                        StringArgumentType.getString(context, "offer"),
-                                                        1))
-                                                .then(CommandManager.argument("qty", IntegerArgumentType.integer(1))
-                                                        .executes(context -> buy(
-                                                                context.getSource(),
-                                                                StringArgumentType.getString(context, "offer"),
-                                                                IntegerArgumentType.getInteger(context, "qty"))))))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var shop = CommandManager.literal("shop")
+                    .executes(context -> show(context.getSource(), DEFAULT_SHOP_ID))
+                    .then(CommandManager.literal("list")
+                            .executes(context -> show(context.getSource(), DEFAULT_SHOP_ID))
+                            .then(CommandManager.argument("shop", StringArgumentType.word())
+                                    .executes(context -> show(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "shop")))))
+                    .then(CommandManager.literal("buy")
+                            .then(CommandManager.argument("offer", StringArgumentType.word())
+                                    .executes(context -> buy(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "offer"),
+                                            1))
+                                    .then(CommandManager.argument("qty", IntegerArgumentType.integer(1))
+                                            .executes(context -> buy(
+                                                    context.getSource(),
+                                                    StringArgumentType.getString(context, "offer"),
+                                                    IntegerArgumentType.getInteger(context, "qty"))))));
+            dispatcher.register(CommandManager.literal("autoptu").then(shop));
+        });
     }
 
     private static int show(ServerCommandSource source, String shopId) {
