@@ -1,0 +1,58 @@
+name: Patch RPG Calendar Plan Once
+
+on:
+  push:
+    branches:
+      - automation/rpg-calendar-events-20260828
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: automation/rpg-calendar-events-20260828
+          fetch-depth: 0
+      - name: Record shipped RPG calendar
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          commit = '7b888c957f1e4457dd3c0c5d86286879afde27ad'
+
+          lines = text.splitlines()
+          out = []
+          inserted_current = False
+          for line in lines:
+              if line.startswith('| RPG-014 |'):
+                  line = f'| RPG-014 | LIVE | Calendar/world-time hooks for events. PR #224 supplies the durable monotonic RPG day. PR #239 / implementation commit `{commit}` projects that day into server-authored Ouros year/season/week/day coordinates, publishes stable authored world-event keys, announces forward day transitions/events in Minecraft, and exposes `/autoptu calendar` as a fallback view. Calendar hooks grant no PTU frequency, Feature cost, battle legality, RNG, or outcomes. |'
+              out.append(line)
+              if line.startswith('| CUR-018 |'):
+                  out.append(f'| CUR-019 | LIVE | Ouros RPG calendar/world-event surface | PR #239 / implementation commit `{commit}`. Players can inspect the current durable calendar with `/autoptu calendar`; online players receive server-authored day-transition/event announcements. Stable event keys are world hooks only and carry no PTU rules or rewards by themselves. |')
+                  inserted_current = True
+
+          updated = '\n'.join(out) + '\n'
+          required = [
+              '| RPG-014 | LIVE |',
+              '| CUR-019 | LIVE |',
+              'PR #239 / implementation commit',
+          ]
+          missing = [needle for needle in required if needle not in updated]
+          if missing or not inserted_current:
+              raise SystemExit(f'plan patch incomplete; missing={missing}, inserted_current={inserted_current}')
+          path.write_text(updated, encoding='utf-8')
+          PY
+      - name: Commit canonical plan update
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git diff --cached --quiet && exit 0
+          git commit -m "Plan: record live Ouros RPG calendar"
+          git push origin HEAD:automation/rpg-calendar-events-20260828
