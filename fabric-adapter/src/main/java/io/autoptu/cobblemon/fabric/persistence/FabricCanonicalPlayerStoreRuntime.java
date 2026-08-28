@@ -3,12 +3,15 @@ package io.autoptu.cobblemon.fabric.persistence;
 import io.autoptu.cobblemon.authority.CanonicalPokemonStorageTransferService;
 import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalShopPurchaseService;
+import io.autoptu.cobblemon.authority.CanonicalShopSaleService;
+import io.autoptu.cobblemon.authority.CanonicalShopSellCatalogue;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonStorageRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonTransferRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopPurchaseRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalShopSaleRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWalletRepository;
 import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepository;
@@ -39,6 +42,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalWalletRepository wallets,
             FileCanonicalShopStockRepository shopStock,
             FileCanonicalShopPurchaseRepository shopPurchases,
+            FileCanonicalShopSaleRepository shopSales,
             FileWorldTaskCraftAttemptRepository craftAttempts,
             FileCraftIngredientDepositHandoffRepository craftDepositHandoffs,
             FileFieldCampSetupAttemptRepository fieldCampAttempts,
@@ -66,6 +70,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
     public static FileCanonicalShopPurchaseRepository requireShopPurchaseRepository(MinecraftServer server) { return requireStores(server).shopPurchases(); }
+    public static FileCanonicalShopSaleRepository requireShopSaleRepository(MinecraftServer server) { return requireStores(server).shopSales(); }
     public static FileWorldTaskCraftAttemptRepository requireCraftAttemptRepository(MinecraftServer server) { return requireStores(server).craftAttempts(); }
     public static FileCraftIngredientDepositHandoffRepository requireCraftDepositHandoffRepository(MinecraftServer server) { return requireStores(server).craftDepositHandoffs(); }
     public static FileFieldCampSetupAttemptRepository requireFieldCampSetupAttemptRepository(MinecraftServer server) { return requireStores(server).fieldCampAttempts(); }
@@ -101,6 +106,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         FileCanonicalWalletRepository wallets = new FileCanonicalWalletRepository(root);
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
         FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
+        FileCanonicalShopSaleRepository shopSales = new FileCanonicalShopSaleRepository(root);
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root),
                 encounterProfiles,
@@ -111,6 +117,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 wallets,
                 shopStock,
                 shopPurchases,
+                shopSales,
                 new FileWorldTaskCraftAttemptRepository(root),
                 new FileCraftIngredientDepositHandoffRepository(root),
                 new FileFieldCampSetupAttemptRepository(root),
@@ -126,6 +133,12 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 shopStock,
                 assets,
                 shopPurchases
+        ).recoverPending();
+        new CanonicalShopSaleService(
+                CanonicalShopSellCatalogue.DEFAULT,
+                wallets,
+                assets,
+                shopSales
         ).recoverPending();
         new CanonicalPokemonStorageTransferService(
                 encounterProfiles,
