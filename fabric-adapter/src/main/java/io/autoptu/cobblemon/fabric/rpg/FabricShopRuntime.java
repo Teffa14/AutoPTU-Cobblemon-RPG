@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.rpg;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalShopOffer;
+import io.autoptu.cobblemon.authority.CanonicalShopQueryService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -11,12 +12,11 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.List;
-
 /** Read-only fallback surface for the server-authored Ouros shop catalogue. */
 public final class FabricShopRuntime {
     private static final String DEFAULT_SHOP_ID = "cedar-mart";
-    private static final CanonicalShopCatalogue CATALOGUE = CanonicalShopCatalogue.DEFAULT;
+    private static final CanonicalShopQueryService SHOP_QUERY =
+            new CanonicalShopQueryService(CanonicalShopCatalogue.DEFAULT);
 
     private FabricShopRuntime() {}
 
@@ -45,20 +45,20 @@ public final class FabricShopRuntime {
             return 0;
         }
 
-        List<CanonicalShopOffer> offers;
+        CanonicalShopQueryService.ShopSnapshot shop;
         try {
-            offers = CATALOGUE.offers(shopId);
+            shop = SHOP_QUERY.inspectShop(playerId, shopId);
         } catch (RuntimeException invalidId) {
             source.sendError(Text.literal("Invalid shop id."));
             return 0;
         }
-        if (offers.isEmpty()) {
-            source.sendError(Text.literal("Unknown or empty AutoPTU shop: " + shopId));
+        if (shop.offers().isEmpty()) {
+            source.sendError(Text.literal("Unknown or empty AutoPTU shop: " + shop.shopId()));
             return 0;
         }
 
-        player.sendMessage(Text.literal("AutoPTU shop: " + shopId), false);
-        for (CanonicalShopOffer offer : offers) {
+        player.sendMessage(Text.literal("AutoPTU shop: " + shop.shopId()), false);
+        for (CanonicalShopOffer offer : shop.offers()) {
             player.sendMessage(Text.literal(formatOffer(offer)), false);
         }
         player.sendMessage(Text.literal("Catalogue only. Purchases are resolved separately by server authority."), false);
