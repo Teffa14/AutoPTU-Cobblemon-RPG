@@ -59,7 +59,7 @@ class FabricCraftingWorkstationRuntimeTest {
     }
 
     @Test
-    void selectorDoesNotExposeRecipesTheTrainerDoesNotUnderstand() {
+    void selectorDoesNotExposeRecipesAboveTheTrainersKnowledgeRank() {
         FileCanonicalItemReservationRepository items = new FileCanonicalItemReservationRepository(tempDirectory);
         CanonicalPlayerState player = trainer("player-3", Map.of());
 
@@ -69,7 +69,10 @@ class FabricCraftingWorkstationRuntimeTest {
                 new WorldTaskCraftMaterialAssessmentService(items)
         );
 
-        assertTrue(options.isEmpty());
+        assertEquals(1, options.size());
+        assertEquals("field_ration", options.getFirst().recipe().taskId());
+        assertTrue(options.stream().noneMatch(option -> "occult_lure".equals(option.recipe().taskId())));
+        assertTrue(options.stream().noneMatch(option -> "precision_poketech_parts".equals(option.recipe().taskId())));
     }
 
     private static CanonicalPlayerState trainer(String playerId, Map<String, Integer> skillRanks) {
