@@ -4,21 +4,21 @@ import io.autoptu.cobblemon.authority.CanonicalPlayerState;
 import io.autoptu.cobblemon.authority.WorldTaskCatalogue;
 import io.autoptu.cobblemon.authority.WorldTaskCompetenceService;
 import io.autoptu.cobblemon.authority.WorldTaskCraftMaterialAssessmentService;
-import io.autoptu.cobblemon.authority.WorldTaskCraftService;
 import io.autoptu.cobblemon.authority.WorldTaskRecipeDefinition;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /** Normal-world crafting workstation backed by canonical Trainer, item and craft-attempt state. */
 public final class FabricCraftingWorkstationRuntime {
@@ -58,53 +58,33 @@ public final class FabricCraftingWorkstationRuntime {
             WorldTaskCraftMaterialAssessmentService materialAssessment =
                     new WorldTaskCraftMaterialAssessmentService(
                             FabricCanonicalPlayerStoreRuntime.requireAssetRepository(serverPlayer.getServer()));
-            Optional<WorldTaskRecipeDefinition> selected = firstReadyRecipe(
-                    canonicalPlayer,
-                    playerId,
-                    materialAssessment
-            );
-            if (selected.isEmpty()) {
+            List<RecipeOption> options = recipeOptions(canonicalPlayer, playerId, materialAssessment);
+            if (options.isEmpty()) {
                 serverPlayer.sendMessage(Text.literal(
-                        "No understood AutoPTU recipe at this workstation currently has enough canonical materials. "
-                                + "Sneak-use while holding an authored ingredient to deposit one item."), false);
+                        "This Trainer does not currently understand any recipe authored for this workstation."), false);
                 return ActionResult.FAIL;
             }
 
-            WorldTaskRecipeDefinition recipe = selected.get();
-            String attemptId = "minecraft-craft:" + serverPlayer.getUuid() + ":" + UUID.randomUUID();
-            WorldTaskCraftService craftService = new WorldTaskCraftService(
-                    FabricCanonicalPlayerStoreRuntime.requireAssetRepository(serverPlayer.getServer()),
-                    FabricCanonicalPlayerStoreRuntime.requireCraftAttemptRepository(serverPlayer.getServer())
-            );
-            WorldTaskCraftService.CraftResult result = craftService.craft(
-                    attemptId,
-                    canonicalPlayer,
-                    recipe,
-                    1
-            );
-
-            if (result.committed() && result.attempt() != null) {
-                serverPlayer.sendMessage(Text.literal(
-                        "Crafted " + result.attempt().outputQuantity() + "x "
-                                + result.attempt().outputTemplateId()
-                                + " at " + result.attempt().quality().name().toLowerCase()
-                                + " quality. Result is stored in canonical AutoPTU inventory."), false);
-                if (result.status() == WorldTaskCraftService.Status.COMMITTED_CLEANUP_PENDING) {
-                    serverPlayer.sendMessage(Text.literal(
-                            "Craft committed safely; reservation cleanup remains pending for attempt "
-                                    + attemptId + "."), false);
+            serverPlayer.sendMessage(Text.literal("AutoPTU crafting workstation — choose a recipe:"), false);
+            for (RecipeOption option : options) {
+                WorldTaskRecipeDefinition recipe = option.recipe();
+                Text line = Text.literal(recipe.task().displayName() + " — ");
+                if (option.materials().ready()) {
+                    line = line.copy().append(Text.literal("[CRAFT]").styled(style -> style.withClickEvent(
+                            new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/autoptu craft " + recipe.taskId())
+                    )));
+                } else {
+                    line = line.copy().append(Text.literal("missing " + missingMaterials(option.materials())));
                 }
-                return ActionResult.SUCCESS;
+                serverPlayer.sendMessage(line, false);
             }
-
             serverPlayer.sendMessage(Text.literal(
-                    "AutoPTU craft did not commit (" + result.status().name().toLowerCase() + "): "
-                            + result.detail() + ". Attempt: " + attemptId), false);
-            return ActionResult.FAIL;
+                    "Sneak-use while holding an authored ingredient to deposit one item."), false);
+            return ActionResult.SUCCESS;
         });
     }
 
-    static Optional<WorldTaskRecipeDefinition> firstReadyRecipe(
+    static List<RecipeOption> recipeOptions(
             CanonicalPlayerState player,
             String playerId,
             WorldTaskCraftMaterialAssessmentService materialAssessment
@@ -112,8 +92,15 @@ public final class FabricCraftingWorkstationRuntime {
         return CATALOGUE.allRecipes().stream()
                 .filter(recipe -> WORKSTATION_ID.equals(recipe.workstationId()))
                 .filter(recipe -> COMPETENCE.assess(player, recipe.task()).understood())
-                .filter(recipe -> materialAssessment.assess(playerId, recipe, 1).ready())
-                .findFirst();
+                .map(recipe -> new RecipeOption(recipe, materialAssessment.assess(playerId, recipe, 1)))
+                .toList();
+    }
+
+    static String missingMaterials(WorldTaskCraftMaterialAssessmentService.Assessment assessment) {
+        return assessment.ingredients().stream()
+                .filter(ingredient -> ingredient.missing() > 0)
+                .map(ingredient -> ingredient.missing() + "x " + ingredient.itemTemplateId())
+                .collect(Collectors.joining(", "));
     }
 
     static boolean isCraftingWorkstation(World world, BlockPos head) {
@@ -128,4 +115,9 @@ public final class FabricCraftingWorkstationRuntime {
         double z = stationHead.getZ() + 0.5D;
         return player.squaredDistanceTo(x, y, z) <= MAX_INTERACTION_DISTANCE_SQUARED;
     }
+
+    record RecipeOption(
+            WorldTaskRecipeDefinition recipe,
+            WorldTaskCraftMaterialAssessmentService.Assessment materials
+    ) {}
 }
