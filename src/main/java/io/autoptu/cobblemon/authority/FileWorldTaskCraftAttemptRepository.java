@@ -29,7 +29,6 @@ public final class FileWorldTaskCraftAttemptRepository {
     static final int SCHEMA_VERSION = 1;
     private static final int MAGIC = 0x41504341; // APCA
     private static final ConcurrentMap<Path, ReentrantLock> PROCESS_LOCKS = new ConcurrentHashMap<>();
-
     private final Path attemptsDirectory;
 
     public FileWorldTaskCraftAttemptRepository(Path rootDirectory) {
@@ -76,7 +75,6 @@ public final class FileWorldTaskCraftAttemptRepository {
             Path path = statePath(id);
             if (!Files.exists(path)) return false;
             WorldTaskCraftAttempt current = read(path);
-            if (!current.attemptId().equals(id)) throw new IllegalStateException("craft attempt identity mismatch");
             if (current.phase() != expectedPhase) return false;
             requireStableIdentity(current, replacement);
             writeAtomically(path, replacement);
@@ -89,6 +87,9 @@ public final class FileWorldTaskCraftAttemptRepository {
                 || !current.recipeId().equals(replacement.recipeId())
                 || current.quantity() != replacement.quantity()
                 || !current.ingredientReservations().equals(replacement.ingredientReservations())
+                || current.improvisedPercent() != replacement.improvisedPercent()
+                || current.standardPercent() != replacement.standardPercent()
+                || current.excellentPercent() != replacement.excellentPercent()
                 || !current.outputItemInstanceId().equals(replacement.outputItemInstanceId())) {
             throw new IllegalArgumentException("craft attempt immutable identity changed");
         }
@@ -99,50 +100,33 @@ public final class FileWorldTaskCraftAttemptRepository {
             byte[] bytes = Files.readAllBytes(path);
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(bytes))) {
                 if (input.readInt() != MAGIC) throw new IllegalStateException("invalid craft attempt file magic");
-                int schema = input.readInt();
-                if (schema != SCHEMA_VERSION) {
-                    throw new IllegalStateException("unsupported craft attempt schema version: " + schema);
-                }
+                if (input.readInt() != SCHEMA_VERSION) throw new IllegalStateException("unsupported craft attempt schema version");
                 String attemptId = input.readUTF();
                 String playerId = input.readUTF();
                 String recipeId = input.readUTF();
                 int quantity = input.readInt();
                 WorldTaskCraftAttempt.Phase phase = WorldTaskCraftAttempt.Phase.valueOf(input.readUTF());
                 int reservationCount = input.readInt();
-                if (reservationCount <= 0 || reservationCount > 4096) {
-                    throw new IllegalStateException("invalid craft reservation count");
-                }
+                if (reservationCount <= 0 || reservationCount > 4096) throw new IllegalStateException("invalid craft reservation count");
                 List<WorldTaskCraftAttempt.PlannedReservation> reservations = new ArrayList<>(reservationCount);
                 for (int index = 0; index < reservationCount; index++) {
                     reservations.add(new WorldTaskCraftAttempt.PlannedReservation(
-                            input.readUTF(),
-                            input.readUTF(),
-                            input.readUTF(),
-                            input.readInt(),
-                            input.readLong()
-                    ));
+                            input.readUTF(), input.readUTF(), input.readUTF(), input.readInt(), input.readLong()));
                 }
+                int improvisedPercent = input.readInt();
+                int standardPercent = input.readInt();
+                int excellentPercent = input.readInt();
                 int rollPercent = input.readInt();
                 WorldTaskRecipeDefinition.CraftQuality quality = input.readBoolean()
-                        ? WorldTaskRecipeDefinition.CraftQuality.valueOf(input.readUTF())
-                        : null;
+                        ? WorldTaskRecipeDefinition.CraftQuality.valueOf(input.readUTF()) : null;
                 String outputItemInstanceId = input.readUTF();
                 String outputTemplateId = input.readBoolean() ? input.readUTF() : null;
                 int outputQuantity = input.readInt();
                 if (input.available() != 0) throw new IllegalStateException("unexpected trailing craft attempt data");
                 return new WorldTaskCraftAttempt(
-                        attemptId,
-                        playerId,
-                        recipeId,
-                        quantity,
-                        phase,
-                        reservations,
-                        rollPercent,
-                        quality,
-                        outputItemInstanceId,
-                        outputTemplateId,
-                        outputQuantity
-                );
+                        attemptId, playerId, recipeId, quantity, phase, reservations,
+                        improvisedPercent, standardPercent, excellentPercent,
+                        rollPercent, quality, outputItemInstanceId, outputTemplateId, outputQuantity);
             }
         } catch (IOException error) {
             throw new UncheckedIOException("failed to read craft attempt", error);
@@ -154,8 +138,7 @@ public final class FileWorldTaskCraftAttemptRepository {
         Path temporary = null;
         try {
             temporary = Files.createTempFile(attemptsDirectory, target.getFileName().toString() + ".", ".tmp");
-            try (FileChannel channel = FileChannel.open(
-                    temporary, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            try (FileChannel channel = FileChannel.open(temporary, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
                 ByteBuffer buffer = ByteBuffer.wrap(encoded);
                 while (buffer.hasRemaining()) channel.write(buffer);
                 channel.force(true);
@@ -172,7 +155,7 @@ public final class FileWorldTaskCraftAttemptRepository {
                 try {
                     Files.deleteIfExists(temporary);
                 } catch (IOException ignored) {
-                    // Best-effort cleanup only. The target is authoritative.
+                    // Best-effort cleanup only.
                 }
             }
         }
@@ -197,6 +180,9 @@ public final class FileWorldTaskCraftAttemptRepository {
                     output.writeInt(reservation.quantity());
                     output.writeLong(reservation.itemRevision());
                 }
+                output.writeInt(attempt.improvisedPercent());
+                output.writeInt(attempt.standardPercent());
+                output.writeInt(attempt.excellentPercent());
                 output.writeInt(attempt.rollPercent());
                 output.writeBoolean(attempt.quality() != null);
                 if (attempt.quality() != null) output.writeUTF(attempt.quality().name());
