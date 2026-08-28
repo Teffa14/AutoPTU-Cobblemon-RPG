@@ -6,10 +6,9 @@ import java.util.Objects;
 /**
  * Durable server-owned journal entry for one capability-sensitive world-task craft.
  *
- * <p>The attempt freezes ingredient reservations before any outcome roll. Once resolved, the
- * quality and output are immutable so reconnect, restart, or request retry cannot reroll the craft.
- * The output item instance id is deterministic per attempt and can therefore be created exactly
- * once.</p>
+ * <p>The attempt freezes ingredient reservations and the server-authored quality distribution before
+ * any outcome roll. Once resolved, quality and output are immutable so reconnect, restart, skill
+ * changes, or request retry cannot improve the same attempt.</p>
  */
 public record WorldTaskCraftAttempt(
         String attemptId,
@@ -18,6 +17,9 @@ public record WorldTaskCraftAttempt(
         int quantity,
         Phase phase,
         List<PlannedReservation> ingredientReservations,
+        int improvisedPercent,
+        int standardPercent,
+        int excellentPercent,
         int rollPercent,
         WorldTaskRecipeDefinition.CraftQuality quality,
         String outputItemInstanceId,
@@ -35,22 +37,24 @@ public record WorldTaskCraftAttempt(
         if (ingredientReservations.isEmpty()) {
             throw new IllegalArgumentException("ingredientReservations must not be empty");
         }
+        if (improvisedPercent < 0 || standardPercent < 0 || excellentPercent < 0
+                || improvisedPercent + standardPercent + excellentPercent != 100) {
+            throw new IllegalArgumentException("frozen quality percentages must be nonnegative and sum to 100");
+        }
 
+        outputItemInstanceId = requireText(outputItemInstanceId, "outputItemInstanceId");
         if (phase == Phase.PLANNED) {
             if (rollPercent != 0 || quality != null || outputTemplateId != null || outputQuantity != 0) {
                 throw new IllegalArgumentException("planned attempt must not contain a resolved outcome");
             }
-            outputItemInstanceId = requireText(outputItemInstanceId, "outputItemInstanceId");
         } else if (phase == Phase.RESOLVED || phase == Phase.COMMITTED) {
             if (rollPercent < 1 || rollPercent > 100) {
                 throw new IllegalArgumentException("resolved rollPercent must be 1..100");
             }
             quality = Objects.requireNonNull(quality, "quality");
-            outputItemInstanceId = requireText(outputItemInstanceId, "outputItemInstanceId");
             outputTemplateId = requireText(outputTemplateId, "outputTemplateId");
             if (outputQuantity <= 0) throw new IllegalArgumentException("outputQuantity must be > 0");
         } else if (phase == Phase.ABORTED) {
-            outputItemInstanceId = requireText(outputItemInstanceId, "outputItemInstanceId");
             if (rollPercent != 0 && (rollPercent < 1 || rollPercent > 100)) {
                 throw new IllegalArgumentException("aborted rollPercent must be 0 or 1..100");
             }
@@ -62,8 +66,10 @@ public record WorldTaskCraftAttempt(
             String playerId,
             String recipeId,
             int quantity,
-            List<PlannedReservation> ingredientReservations
+            List<PlannedReservation> ingredientReservations,
+            WorldTaskDefinition.QualityDistribution distribution
     ) {
+        Objects.requireNonNull(distribution, "distribution");
         return new WorldTaskCraftAttempt(
                 attemptId,
                 playerId,
@@ -71,12 +77,20 @@ public record WorldTaskCraftAttempt(
                 quantity,
                 Phase.PLANNED,
                 ingredientReservations,
+                distribution.improvisedPercent(),
+                distribution.standardPercent(),
+                distribution.excellentPercent(),
                 0,
                 null,
                 "craft-output:" + attemptId,
                 null,
                 0
         );
+    }
+
+    public WorldTaskDefinition.QualityDistribution frozenDistribution() {
+        return new WorldTaskDefinition.QualityDistribution(
+                improvisedPercent, standardPercent, excellentPercent);
     }
 
     public WorldTaskCraftAttempt resolved(
@@ -93,6 +107,9 @@ public record WorldTaskCraftAttempt(
                 quantity,
                 Phase.RESOLVED,
                 ingredientReservations,
+                improvisedPercent,
+                standardPercent,
+                excellentPercent,
                 rollPercent,
                 quality,
                 outputItemInstanceId,
@@ -107,35 +124,17 @@ public record WorldTaskCraftAttempt(
         }
         if (phase == Phase.COMMITTED) return this;
         return new WorldTaskCraftAttempt(
-                attemptId,
-                playerId,
-                recipeId,
-                quantity,
-                Phase.COMMITTED,
-                ingredientReservations,
-                rollPercent,
-                quality,
-                outputItemInstanceId,
-                outputTemplateId,
-                outputQuantity
-        );
+                attemptId, playerId, recipeId, quantity, Phase.COMMITTED, ingredientReservations,
+                improvisedPercent, standardPercent, excellentPercent,
+                rollPercent, quality, outputItemInstanceId, outputTemplateId, outputQuantity);
     }
 
     public WorldTaskCraftAttempt aborted() {
         if (phase == Phase.COMMITTED) throw new IllegalStateException("committed attempt cannot abort");
         return new WorldTaskCraftAttempt(
-                attemptId,
-                playerId,
-                recipeId,
-                quantity,
-                Phase.ABORTED,
-                ingredientReservations,
-                rollPercent,
-                quality,
-                outputItemInstanceId,
-                outputTemplateId,
-                outputQuantity
-        );
+                attemptId, playerId, recipeId, quantity, Phase.ABORTED, ingredientReservations,
+                improvisedPercent, standardPercent, excellentPercent,
+                rollPercent, quality, outputItemInstanceId, outputTemplateId, outputQuantity);
     }
 
     public enum Phase {
