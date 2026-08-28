@@ -35,9 +35,7 @@ final class ServerAuthoredRpgCalendarTest {
         assertEquals(List.of("ouros:season_open"), keys(calendar.snapshot(0)));
         assertEquals(List.of("ouros:starday_market"), keys(calendar.snapshot(5)));
         assertEquals(List.of("ouros:field_research_day"), keys(calendar.snapshot(13)));
-
-        var overlapping = calendar.snapshot(117);
-        assertEquals(List.of("ouros:season_open"), keys(overlapping));
+        assertEquals(List.of(), keys(calendar.snapshot(14)));
     }
 
     @Test
