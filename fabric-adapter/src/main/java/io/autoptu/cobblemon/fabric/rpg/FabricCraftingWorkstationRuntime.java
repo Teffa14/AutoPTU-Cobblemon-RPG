@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.CanonicalPlayerState;
 import io.autoptu.cobblemon.authority.WorldTaskCatalogue;
 import io.autoptu.cobblemon.authority.WorldTaskCompetenceService;
 import io.autoptu.cobblemon.authority.WorldTaskDefinition;
+import io.autoptu.cobblemon.authority.WorldTaskRecipeDefinition;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -16,16 +17,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
- * Normal-world crafting workstation preview backed by the canonical Trainer capability service.
+ * Normal-world crafting workstation preview backed by canonical Trainer capability and recipe data.
  *
  * <p>The authored station is a smithing-table interaction head on a crafting-table base with a
- * barrel beneath it. Right-clicking it lists the server-owned Ouros recipes the authenticated
- * Trainer currently understands and their authored quality distributions. The workstation performs
- * no outcome RNG and consumes no ingredients; those mutations remain reserved for the later durable
- * atomic craft transaction.</p>
+ * barrel beneath it. Right-clicking it lists only recipes authored for this workstation, including
+ * canonical ingredient/output contracts and Trainer-sensitive quality distributions. It performs
+ * no outcome RNG and consumes no ingredients.</p>
  */
 public final class FabricCraftingWorkstationRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 25.0D;
+    private static final String WORKSTATION_ID = WorldTaskCatalogue.GENERAL_CRAFTING_WORKSTATION;
     private static final WorldTaskCatalogue CATALOGUE = new WorldTaskCatalogue();
     private static final WorldTaskCompetenceService COMPETENCE = new WorldTaskCompetenceService();
 
@@ -56,9 +57,13 @@ public final class FabricCraftingWorkstationRuntime {
                 return ActionResult.FAIL;
             }
 
-            serverPlayer.sendMessage(Text.literal("AutoPTU crafting workstation"), false);
+            serverPlayer.sendMessage(Text.literal("AutoPTU crafting workstation | " + WORKSTATION_ID), false);
             boolean anyUnderstood = false;
-            for (WorldTaskDefinition task : CATALOGUE.all()) {
+            for (WorldTaskRecipeDefinition recipe : CATALOGUE.allRecipes()) {
+                if (!WORKSTATION_ID.equals(recipe.workstationId())) {
+                    continue;
+                }
+                WorldTaskDefinition task = recipe.task();
                 WorldTaskCompetenceService.Assessment assessment = COMPETENCE.assess(canonicalPlayer, task);
                 if (!assessment.understood()) {
                     serverPlayer.sendMessage(Text.literal(
@@ -70,14 +75,25 @@ public final class FabricCraftingWorkstationRuntime {
                 WorldTaskDefinition.QualityDistribution distribution = assessment.distribution();
                 serverPlayer.sendMessage(Text.literal(
                         "- " + task.taskId() + " | " + task.displayName()
+                                + " | ingredients " + FabricCraftingAssessmentRuntime.ingredientSummary(recipe)
                                 + " | " + assessment.canonicalSkillId() + " rank " + assessment.canonicalSkillRank()
                                 + " | quality " + distribution.improvisedPercent() + "/"
                                 + distribution.standardPercent() + "/" + distribution.excellentPercent()
-                                + "% (improvised/standard/excellent)"), false);
+                                + "%"), false);
+                serverPlayer.sendMessage(Text.literal(
+                        "  outputs I/S/E: "
+                                + FabricCraftingAssessmentRuntime.outputSummary(
+                                        recipe, WorldTaskRecipeDefinition.CraftQuality.IMPROVISED)
+                                + " | "
+                                + FabricCraftingAssessmentRuntime.outputSummary(
+                                        recipe, WorldTaskRecipeDefinition.CraftQuality.STANDARD)
+                                + " | "
+                                + FabricCraftingAssessmentRuntime.outputSummary(
+                                        recipe, WorldTaskRecipeDefinition.CraftQuality.EXCELLENT)), false);
             }
             serverPlayer.sendMessage(Text.literal(
                     anyUnderstood
-                            ? "Preview only. No craft roll or materials were consumed."
+                            ? "Preview only. Ingredient ownership is not checked yet; no craft roll or materials were consumed."
                             : "No authored recipes are currently understood by this Trainer."), false);
             return ActionResult.SUCCESS;
         });
