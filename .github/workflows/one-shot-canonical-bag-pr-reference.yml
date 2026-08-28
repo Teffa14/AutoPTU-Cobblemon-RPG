@@ -1,0 +1,48 @@
+name: One-shot canonical bag PR reference
+
+on:
+  push:
+    branches:
+      - rpg/canonical-bag-query
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/canonical-bag-query
+          fetch-depth: 0
+      - name: Record shipped PR and implementation commit
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          s = p.read_text()
+          impl = '0ad978dbbb6e48bfe4ca2c4a491fee881145f9ab'
+          s = s.replace(
+              '| CMD-060 | LIVE | `/autoptu bag` — PR pending on `rpg/canonical-bag-query`; reads only authenticated-player durable canonical stacks currently unreserved and spendable. |',
+              f'| CMD-060 | LIVE | `/autoptu bag` — PR #242 / implementation commit `{impl}`; reads only authenticated-player durable canonical stacks currently unreserved and spendable. |'
+          )
+          s = s.replace(
+              '| SVC-026 | LIVE | `readAvailableBag(player)` — PR pending on `rpg/canonical-bag-query`; aggregates only authenticated-player authored canonical stacks that are currently unreserved. Minecraft/Cobblemon inventory is never treated as RPG inventory truth, and in-flight reservations are excluded from spendable quantities. |',
+              f'| SVC-026 | LIVE | `readAvailableBag(player)` — PR #242 / implementation commit `{impl}`; aggregates only authenticated-player authored canonical stacks that are currently unreserved. Minecraft/Cobblemon inventory is never treated as RPG inventory truth, and in-flight reservations are excluded from spendable quantities. |'
+          )
+          s = s.replace(
+              '`/autoptu bag` and `readAvailableBag(player)` now expose spendable authenticated-player canonical stacks while excluding active reservations.',
+              f'PR #242 / implementation commit `{impl}` adds `/autoptu bag` and `readAvailableBag(player)`, exposing spendable authenticated-player canonical stacks while excluding active reservations.'
+          )
+          p.write_text(s)
+      - name: Remove one-shot workflow
+        run: git rm .github/workflows/one-shot-canonical-bag-pr-reference.yml
+      - name: Commit final plan reference
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "Plan: record canonical bag PR"
+          git push origin HEAD:rpg/canonical-bag-query
