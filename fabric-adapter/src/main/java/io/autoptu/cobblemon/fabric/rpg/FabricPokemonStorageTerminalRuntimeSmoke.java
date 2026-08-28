@@ -21,7 +21,10 @@ public final class FabricPokemonStorageTerminalRuntimeSmoke {
     private FabricPokemonStorageTerminalRuntimeSmoke() {}
 
     public static void registerIfEnabled() {
-        if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
+        if (!Boolean.getBoolean(ENABLE_PROPERTY)
+                && !Boolean.getBoolean(FabricHealingStationRuntimeSmoke.ENABLE_PROPERTY)) {
+            return;
+        }
         ServerLifecycleEvents.SERVER_STARTED.register(FabricPokemonStorageTerminalRuntimeSmoke::run);
     }
 
