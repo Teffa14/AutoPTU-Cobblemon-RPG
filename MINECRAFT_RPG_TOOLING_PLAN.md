@@ -66,6 +66,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-023 | LIVE | server-authored shop catalogue read surface | PR #247 / implementation head `36870beb75976891d0d4ebbe2f1edfaf78423e36` adds authored offers. PR #250 / implementation head `748a57efc20678962f65efad9d4feb7450bafd54` adds world-save-scoped remaining stock with revision CAS; `/autoptu shop` now shows persistent current stock against the authored cap. No sell, replenishment policy or PTU item effect is performed. |
 | CUR-024 | LIVE | restart-safe canonical shop purchase fallback | PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe`. `/autoptu shop buy <offer> [qty]` resolves authored price/currency/template plus durable wallet/stock on the server, journals the cross-store operation, grants one deterministic canonical bag item and resumes pending purchases on restart. |
 | CUR-025 | LIVE | canonical Pokemon box read surface | PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa`. `/autoptu box` reads a world-save-scoped owner-only boxed Pokemon aggregate, validates each reference against canonical Pokemon ownership, and fails closed on party/storage overlap. |
+| CUR-026 | LIVE | crash-recoverable party/box transfer fallback | PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. `/autoptu box deposit <partySlot>` and `/autoptu box withdraw <boxSlot>` resolve the source slot and Pokemon ownership on the server, journal source removal/target addition, and resume incomplete transfers on server start without duplicating or losing the Pokemon. |
 
 ---
 
@@ -119,8 +120,8 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-022 | TODO | `/autoptu party move <from> <to>` |
 | CMD-023 | LIVE | `/autoptu pokemon <slot>` — PR #207 / `b3fed8380f801222d6c549f1695b8bb98789a135` |
 | CMD-024 | LIVE | `/autoptu box` — PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa`; shows only the authenticated Trainer's durable canonical boxed Pokemon and revision, with ownership and party-overlap validation. |
-| CMD-025 | TODO | `/autoptu box deposit <partySlot>` |
-| CMD-026 | TODO | `/autoptu box withdraw <boxSlot>` |
+| CMD-025 | LIVE | `/autoptu box deposit <partySlot>` — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`; the server resolves the current party slot, canonical ownership and box membership, refuses to remove the last active party Pokemon, and commits through a restart-recoverable transfer journal. |
+| CMD-026 | LIVE | `/autoptu box withdraw <boxSlot>` — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`; the server resolves the current box slot and canonical ownership, then moves that Pokemon into the active party through the same recoverable authority boundary. |
 | CMD-027 | TODO | `/autoptu pokemon nickname <slot> <name>` with server validation |
 
 ## Care
@@ -185,9 +186,9 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | PARTY-001 | TODO | Party screen/menu. |
 | PARTY-002 | LIVE | Persistent lead-slot mutation — PR #219 / `e0149f97939aec2926d6b828c00851eb86a6a538`. |
 | PARTY-003 | TODO | Persistent party reorder. |
-| PARTY-004 | LIVE/PARTIAL | Persistent box/storage aggregate. PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa` adds an owner-scoped world-save aggregate with revision CAS, restart persistence and fail-closed canonical Pokemon ownership/party-overlap validation. Deposit/withdraw mutations remain PARTY-006. |
+| PARTY-004 | LIVE | Persistent box/storage aggregate. PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa` adds the owner-scoped durable box; PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767` closes durable movement between the active party and box with ownership checks, revisioned source/target mutations and restart recovery. |
 | PARTY-005 | TODO | PC/storage terminal world interaction. |
-| PARTY-006 | TODO | Deposit/withdraw atomic ownership-safe mutations. |
+| PARTY-006 | LIVE | Deposit/withdraw atomic ownership-safe mutations — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. Source removal and destination addition are journaled as separate idempotent stages; server restart resumes any incomplete transfer and terminal validation requires the Pokemon to exist in exactly the intended aggregate. |
 | PARTY-007 | BLOCKED | Capture request legality/RNG/result until upstream authority exists. |
 | PARTY-008 | BLOCKED | Successful capture ownership commit until authoritative capture result exists. |
 
@@ -323,6 +324,7 @@ These should become the normal gameplay path.
 | SVC-028 | LIVE | `inspectShop(player, shopId)` — PR #247 / implementation head `36870beb75976891d0d4ebbe2f1edfaf78423e36` supplies the authored catalogue; PR #250 / `748a57efc20678962f65efad9d4feb7450bafd54` adds server-owned durable remaining-stock/revision projection. It performs no wallet/item mutation and accepts no trusted client price, stock, currency or template data. |
 | SVC-029 | LIVE | `purchase(purchaseId, player, shopId, offerId, quantity)` — PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe`. The server freezes authored offer truth, journals the attempt, debits/refunds currency with immutable receipts, depletes stock with its own idempotency receipt, grants a deterministic canonical item exactly once, and resumes incomplete attempts on server start. No PTU item effect is applied. |
 | SVC-030 | LIVE | `inspectPokemonStorage(player)` — PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa`. Resolves only the authenticated Trainer's durable box identities through canonical Pokemon ownership and rejects party/storage overlap; performs no deposit, withdraw or PTU mutation. |
+| SVC-031 | LIVE | `transferPokemonStorage(transferId, player, direction, sourceSlot)` — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. The server re-resolves source membership and canonical ownership, journals source removal and target addition, uses revision-CAS writes, resumes pending transfers at server start and verifies terminal party/box exclusivity. It applies no PTU battle or capture rule. |
 
 ---
 
@@ -366,7 +368,7 @@ These are required for operations, testing and recovery. They must never be norm
 | LIVE | Canonical Pokémon aggregate. |
 | LIVE | Canonical encounter-profile/party-selection persistence. |
 | LIVE | Canonical item-instance/reservation infrastructure. |
-| LIVE/PARTIAL | Explicit long-term active-party + box/storage aggregate. PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa` adds a separate owner-scoped durable Pokemon box with revision CAS and restart persistence while the active party remains backed by the existing encounter profile. Atomic movement between both aggregates remains PARTY-006. |
+| LIVE | Explicit long-term active-party + box/storage aggregate. PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa` adds the owner-scoped durable box; PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767` adds crash-recoverable exclusive movement between that box and the active-party encounter profile. |
 | LIVE | Starter/onboarding claim state via PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d`. |
 | TODO | Trainer presentation/profile data. |
 | TODO | Trainer XP/level/progression. |
@@ -376,6 +378,7 @@ These are required for operations, testing and recovery. They must never be norm
 | LIVE | Durable canonical wallet transaction receipts — PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd`. Balance, wallet revision and immutable server-owned transaction identity are persisted atomically; retry/restart cannot double-apply a committed credit or debit. |
 | LIVE | Durable canonical shop stock — PR #250 / implementation head `748a57efc20678962f65efad9d4feb7450bafd54`. Remaining quantity and revision persist per authored shop/offer under the world save; stale CAS and implicit replenishment fail closed. |
 | LIVE | Durable canonical shop purchase journal — PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe`. Frozen purchase intent and stage persist under the world save; deterministic wallet, stock and item identities let startup recovery resume without double charge, double depletion or duplicate item grant. |
+| LIVE | Durable canonical party/box transfer journal — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. Transfer identity, direction, canonical Pokemon ID and CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED stage persist under the world save so startup recovery can finish an interrupted move without duplication or loss. |
 | TODO | Quest journal/objectives/reward claims. |
 | TODO | NPC relationships/factions/rivals. |
 | TODO | Badges/league/tournament records. |
