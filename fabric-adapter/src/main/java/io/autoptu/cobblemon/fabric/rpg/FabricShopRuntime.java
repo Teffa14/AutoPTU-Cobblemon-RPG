@@ -2,7 +2,6 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
-import io.autoptu.cobblemon.authority.CanonicalShopOffer;
 import io.autoptu.cobblemon.authority.CanonicalShopQueryService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -12,11 +11,9 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-/** Read-only fallback surface for the server-authored Ouros shop catalogue. */
+/** Read-only fallback surface for server-authored offers plus durable server-owned remaining stock. */
 public final class FabricShopRuntime {
     private static final String DEFAULT_SHOP_ID = "cedar-mart";
-    private static final CanonicalShopQueryService SHOP_QUERY =
-            new CanonicalShopQueryService(CanonicalShopCatalogue.DEFAULT);
 
     private FabricShopRuntime() {}
 
@@ -47,9 +44,12 @@ public final class FabricShopRuntime {
 
         CanonicalShopQueryService.ShopSnapshot shop;
         try {
-            shop = SHOP_QUERY.inspectShop(playerId, shopId);
+            shop = new CanonicalShopQueryService(
+                    CanonicalShopCatalogue.DEFAULT,
+                    FabricCanonicalPlayerStoreRuntime.requireShopStockRepository(player.getServer())
+            ).inspectShop(playerId, shopId);
         } catch (RuntimeException invalidId) {
-            source.sendError(Text.literal("Invalid shop id."));
+            source.sendError(Text.literal("Invalid or unavailable shop state."));
             return 0;
         }
         if (shop.offers().isEmpty()) {
@@ -58,16 +58,17 @@ public final class FabricShopRuntime {
         }
 
         player.sendMessage(Text.literal("AutoPTU shop: " + shop.shopId()), false);
-        for (CanonicalShopOffer offer : shop.offers()) {
+        for (CanonicalShopQueryService.OfferSnapshot offer : shop.offers()) {
             player.sendMessage(Text.literal(formatOffer(offer)), false);
         }
-        player.sendMessage(Text.literal("Catalogue only. Purchases are resolved separately by server authority."), false);
+        player.sendMessage(Text.literal("Server stock is persistent. Purchases remain a separate authoritative transaction."), false);
         return 1;
     }
 
-    static String formatOffer(CanonicalShopOffer offer) {
+    static String formatOffer(CanonicalShopQueryService.OfferSnapshot snapshot) {
+        var offer = snapshot.offer();
         return offer.offerId() + " -> " + offer.itemTemplateId()
                 + " | " + offer.unitPrice() + " " + offer.currencyId()
-                + " | authored stock cap " + offer.stockLimit();
+                + " | stock " + snapshot.remainingStock() + "/" + offer.stockLimit();
     }
 }
