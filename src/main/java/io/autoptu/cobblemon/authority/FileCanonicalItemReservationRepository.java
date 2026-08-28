@@ -79,6 +79,25 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
         return Optional.of(stored.item());
     }
 
+    /** Returns all canonical item stacks owned by one player, including active transaction locks. */
+    public List<InventoryEntry> findOwnedInventory(String playerId) {
+        String owner = requireId("playerId", playerId);
+        List<InventoryEntry> matches = new ArrayList<>();
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(itemsDirectory, "*.bin")) {
+            for (Path path : files) {
+                StoredItem stored = readStored(path);
+                CanonicalItemInstance item = stored.item();
+                if (item.ownerPlayerId().equals(owner) && item.quantity() > 0) {
+                    matches.add(new InventoryEntry(item, stored.reservation(), stored.reservationConsumed()));
+                }
+            }
+        } catch (IOException error) {
+            throw new UncheckedIOException("failed to scan canonical item inventory", error);
+        }
+        matches.sort(Comparator.comparing(entry -> entry.item().itemInstanceId()));
+        return List.copyOf(matches);
+    }
+
     /** Returns unreserved positive-quantity canonical stacks for one owner/template in stable order. */
     public List<CanonicalItemInstance> findReservableItems(String playerId, String itemTemplateId) {
         String owner = requireId("playerId", playerId);
@@ -416,6 +435,38 @@ public final class FileCanonicalItemReservationRepository implements CanonicalAs
     private static String requireId(String field, String value) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " must not be blank");
         return value.trim();
+    }
+
+    public record InventoryEntry(
+            CanonicalItemInstance item,
+            ItemReservation reservation,
+            boolean reservationConsumed
+    ) {
+        public InventoryEntry {
+            if (item == null) throw new IllegalArgumentException("item is required");
+            if (reservation == null && reservationConsumed) {
+                throw new IllegalArgumentException("consumed marker requires reservation");
+            }
+            if (reservation != null) {
+                if (!reservation.playerId().equals(item.ownerPlayerId())
+                        || !reservation.itemInstanceId().equals(item.itemInstanceId())
+                        || !reservation.itemTemplateId().equals(item.templateId())) {
+                    throw new IllegalArgumentException("reservation must belong to item");
+                }
+            }
+        }
+
+        public int reservedQuantity() {
+            return reservation != null && !reservationConsumed ? reservation.quantity() : 0;
+        }
+
+        public int availableQuantity() {
+            return Math.max(0, item.quantity() - reservedQuantity());
+        }
+
+        public boolean transactionLocked() {
+            return reservation != null;
+        }
     }
 
     private record StoredItem(CanonicalItemInstance item, ItemReservation reservation, boolean reservationConsumed) {
