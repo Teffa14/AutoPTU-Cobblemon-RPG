@@ -16,6 +16,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricCraftIngredientDepositRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingAssessmentRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingCommandRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingWorkstationRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricFieldCampRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricHealingStationRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyHealingRuntime;
@@ -67,6 +68,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricCraftingCommandRuntime.register();
         FabricCraftIngredientDepositRuntime.register();
         FabricCraftingWorkstationRuntime.register();
+        FabricFieldCampRuntime.register();
         VisibleWildPokemonEncounterRuntime.register();
         CedarMeadowRuntime.register();
         OurosSignatureBuildRuntime.register();
