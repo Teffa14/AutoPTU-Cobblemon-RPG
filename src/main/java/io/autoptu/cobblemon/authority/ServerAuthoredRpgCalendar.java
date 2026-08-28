@@ -19,7 +19,7 @@ public final class ServerAuthoredRpgCalendar {
     public static final int DAYS_PER_YEAR = DAYS_PER_SEASON * SEASONS_PER_YEAR;
 
     private static final List<String> WEEKDAY_NAMES = List.of(
-            "Moonday", "Tideday", "Emberday", "Bloomday", "Skyday", "Starday", "Sundday");
+            "Moonday", "Tideday", "Emberday", "Bloomday", "Skyday", "Starday", "Sunday");
     private static final List<String> SEASON_NAMES = List.of(
             "Verdant", "Highsun", "Harvest", "Frostfall");
 
