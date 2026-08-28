@@ -86,10 +86,7 @@ public final class CanonicalCraftIngredientDepositService {
 
         CanonicalItemInstance existing = itemRepository.findItem(itemInstanceId).orElse(null);
         if (existing != null) {
-            if (!existing.ownerPlayerId().equals(owner)
-                    || !existing.templateId().equals(template)
-                    || existing.revision() != 0L
-                    || (existing.quantity() != quantity && existing.quantity() != 0)) {
+            if (!matchesHandoffItem(existing, owner, template, quantity)) {
                 return DepositResult.invalid("canonical craft-deposit handoff identity collision");
             }
             return DepositResult.alreadyApplied(template, quantity, availableQuantity(owner, template));
@@ -99,14 +96,25 @@ public final class CanonicalCraftIngredientDepositService {
                 itemInstanceId, owner, template, quantity, 0L);
         if (!itemRepository.createItemIfAbsent(handoffItem)) {
             existing = itemRepository.findItem(itemInstanceId).orElse(null);
-            if (existing != null
-                    && existing.ownerPlayerId().equals(owner)
-                    && existing.templateId().equals(template)) {
+            if (existing != null && matchesHandoffItem(existing, owner, template, quantity)) {
                 return DepositResult.alreadyApplied(template, quantity, availableQuantity(owner, template));
             }
             return DepositResult.concurrent(template);
         }
         return DepositResult.applied(template, quantity, availableQuantity(owner, template));
+    }
+
+    /** True when this exact handoff already has a canonical receipt item, even if later consumed. */
+    public boolean isHandoffApplied(String handoffId, String playerId, String itemTemplateId, int quantity) {
+        if (handoffId == null || handoffId.isBlank()
+                || playerId == null || playerId.isBlank()
+                || itemTemplateId == null || itemTemplateId.isBlank()
+                || quantity <= 0) return false;
+        String owner = playerId.strip();
+        String template = itemTemplateId.strip();
+        CanonicalItemInstance existing = itemRepository.findItem(
+                handoffStackId(handoffId.strip(), owner, template)).orElse(null);
+        return existing != null && matchesHandoffItem(existing, owner, template, quantity);
     }
 
     public boolean supports(String itemTemplateId) {
@@ -122,6 +130,19 @@ public final class CanonicalCraftIngredientDepositService {
         UUID stable = UUID.nameUUIDFromBytes(
                 (handoffId + "\u0000" + playerId + "\u0000" + templateId).getBytes(StandardCharsets.UTF_8));
         return "craft-deposit-" + stable;
+    }
+
+    private static boolean matchesHandoffItem(
+            CanonicalItemInstance item,
+            String owner,
+            String template,
+            int originalQuantity
+    ) {
+        return item.ownerPlayerId().equals(owner)
+                && item.templateId().equals(template)
+                && item.revision() >= 0L
+                && item.quantity() >= 0
+                && item.quantity() <= originalQuantity;
     }
 
     private Validation validate(String playerId, String itemTemplateId, int quantity) {
