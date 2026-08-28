@@ -4,7 +4,7 @@ import io.autoptu.cobblemon.authority.CanonicalPlayerState;
 import io.autoptu.cobblemon.authority.WorldTaskCatalogue;
 import io.autoptu.cobblemon.authority.WorldTaskCompetenceService;
 import io.autoptu.cobblemon.authority.WorldTaskCraftMaterialAssessmentService;
-import io.autoptu.cobblemon.authority.WorldTaskDefinition;
+import io.autoptu.cobblemon.authority.WorldTaskCraftService;
 import io.autoptu.cobblemon.authority.WorldTaskRecipeDefinition;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -17,7 +17,10 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/** Normal-world crafting workstation preview backed by canonical Trainer and item state. */
+import java.util.Optional;
+import java.util.UUID;
+
+/** Normal-world crafting workstation backed by canonical Trainer, item and craft-attempt state. */
 public final class FabricCraftingWorkstationRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 25.0D;
     private static final String WORKSTATION_ID = WorldTaskCatalogue.GENERAL_CRAFTING_WORKSTATION;
@@ -28,7 +31,10 @@ public final class FabricCraftingWorkstationRuntime {
 
     public static void register() {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) {
+            if (world.isClient()
+                    || hand != Hand.MAIN_HAND
+                    || !(player instanceof ServerPlayerEntity serverPlayer)
+                    || serverPlayer.isSneaking()) {
                 return ActionResult.PASS;
             }
 
@@ -48,50 +54,66 @@ public final class FabricCraftingWorkstationRuntime {
                 serverPlayer.sendMessage(Text.literal("Canonical Trainer state is unavailable for this player."), false);
                 return ActionResult.FAIL;
             }
+
             WorldTaskCraftMaterialAssessmentService materialAssessment =
                     new WorldTaskCraftMaterialAssessmentService(
                             FabricCanonicalPlayerStoreRuntime.requireAssetRepository(serverPlayer.getServer()));
-
-            serverPlayer.sendMessage(Text.literal("AutoPTU crafting workstation | " + WORKSTATION_ID), false);
-            boolean anyUnderstood = false;
-            for (WorldTaskRecipeDefinition recipe : CATALOGUE.allRecipes()) {
-                if (!WORKSTATION_ID.equals(recipe.workstationId())) continue;
-                WorldTaskDefinition task = recipe.task();
-                WorldTaskCompetenceService.Assessment assessment = COMPETENCE.assess(canonicalPlayer, task);
-                if (!assessment.understood()) {
-                    serverPlayer.sendMessage(Text.literal(
-                            "- " + task.taskId() + ": locked (" + assessment.detail() + ")"), false);
-                    continue;
-                }
-
-                anyUnderstood = true;
-                WorldTaskCraftMaterialAssessmentService.Assessment materials =
-                        materialAssessment.assess(playerId, recipe, 1);
-                WorldTaskDefinition.QualityDistribution distribution = assessment.distribution();
+            Optional<WorldTaskRecipeDefinition> selected = firstReadyRecipe(
+                    canonicalPlayer,
+                    playerId,
+                    materialAssessment
+            );
+            if (selected.isEmpty()) {
                 serverPlayer.sendMessage(Text.literal(
-                        "- " + task.taskId() + " | " + task.displayName()
-                                + " | materials " + FabricCraftingAssessmentRuntime.materialSummary(materials)
-                                + " | ready=" + materials.ready()
-                                + " | " + assessment.canonicalSkillId() + " rank " + assessment.canonicalSkillRank()
-                                + " | quality " + distribution.improvisedPercent() + "/"
-                                + distribution.standardPercent() + "/" + distribution.excellentPercent() + "%"), false);
-                serverPlayer.sendMessage(Text.literal(
-                        "  outputs I/S/E: "
-                                + FabricCraftingAssessmentRuntime.outputSummary(
-                                        recipe, WorldTaskRecipeDefinition.CraftQuality.IMPROVISED)
-                                + " | "
-                                + FabricCraftingAssessmentRuntime.outputSummary(
-                                        recipe, WorldTaskRecipeDefinition.CraftQuality.STANDARD)
-                                + " | "
-                                + FabricCraftingAssessmentRuntime.outputSummary(
-                                        recipe, WorldTaskRecipeDefinition.CraftQuality.EXCELLENT)), false);
+                        "No understood AutoPTU recipe at this workstation currently has enough canonical materials. "
+                                + "Sneak-use while holding an authored ingredient to deposit one item."), false);
+                return ActionResult.FAIL;
             }
+
+            WorldTaskRecipeDefinition recipe = selected.get();
+            String attemptId = "minecraft-craft:" + serverPlayer.getUuid() + ":" + UUID.randomUUID();
+            WorldTaskCraftService craftService = new WorldTaskCraftService(
+                    FabricCanonicalPlayerStoreRuntime.requireAssetRepository(serverPlayer.getServer()),
+                    FabricCanonicalPlayerStoreRuntime.requireCraftAttemptRepository(serverPlayer.getServer())
+            );
+            WorldTaskCraftService.CraftResult result = craftService.craft(
+                    attemptId,
+                    canonicalPlayer,
+                    recipe,
+                    1
+            );
+
+            if (result.committed() && result.attempt() != null) {
+                serverPlayer.sendMessage(Text.literal(
+                        "Crafted " + result.attempt().outputQuantity() + "x "
+                                + result.attempt().outputTemplateId()
+                                + " at " + result.attempt().quality().name().toLowerCase()
+                                + " quality. Result is stored in canonical AutoPTU inventory."), false);
+                if (result.status() == WorldTaskCraftService.Status.COMMITTED_CLEANUP_PENDING) {
+                    serverPlayer.sendMessage(Text.literal(
+                            "Craft committed safely; reservation cleanup remains pending for attempt "
+                                    + attemptId + "."), false);
+                }
+                return ActionResult.SUCCESS;
+            }
+
             serverPlayer.sendMessage(Text.literal(
-                    anyUnderstood
-                            ? "Preview only. Canonical inventory was read; no reservation, craft roll, or material consumption occurred."
-                            : "No authored recipes are currently understood by this Trainer."), false);
-            return ActionResult.SUCCESS;
+                    "AutoPTU craft did not commit (" + result.status().name().toLowerCase() + "): "
+                            + result.detail() + ". Attempt: " + attemptId), false);
+            return ActionResult.FAIL;
         });
+    }
+
+    static Optional<WorldTaskRecipeDefinition> firstReadyRecipe(
+            CanonicalPlayerState player,
+            String playerId,
+            WorldTaskCraftMaterialAssessmentService materialAssessment
+    ) {
+        return CATALOGUE.allRecipes().stream()
+                .filter(recipe -> WORKSTATION_ID.equals(recipe.workstationId()))
+                .filter(recipe -> COMPETENCE.assess(player, recipe.task()).understood())
+                .filter(recipe -> materialAssessment.assess(playerId, recipe, 1).ready())
+                .findFirst();
     }
 
     static boolean isCraftingWorkstation(World world, BlockPos head) {
