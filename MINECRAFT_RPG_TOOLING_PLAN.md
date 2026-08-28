@@ -130,7 +130,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-060 | LIVE | `/autoptu bag` — PR pending on `rpg/canonical-bag-query`; reads only authenticated-player durable canonical stacks currently unreserved and spendable. |
+| CMD-060 | LIVE | `/autoptu bag` — PR #242 / implementation commit `0ad978dbbb6e48bfe4ca2c4a491fee881145f9ab`; reads only authenticated-player durable canonical stacks currently unreserved and spendable. |
 | CMD-061 | TODO | `/autoptu bag inspect <item>` |
 | CMD-062 | TODO | `/autoptu use <item> [target]` |
 | CMD-063 | TODO | `/autoptu held equip <partySlot> <item>` |
@@ -313,7 +313,7 @@ These should become the normal gameplay path.
 | SVC-023 | LIVE | `assessCraftMaterials(player, recipe, quantity)` — PR #230 aggregates only owned, unreserved durable canonical item stacks and reports required/available/missing quantities without reserving, rolling, or consuming. |
 | SVC-024 | LIVE | `depositCraftIngredient(player, serverObservedStack)` — PR #231 / `1648de45c7cd58ab6a2232d7a0c7e744cf5b986a` accepts only authored recipe ingredient templates, persists them into stable per-player/template canonical stacks through revision CAS, and is invoked from a server-observed held Minecraft stack. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` adds PREPARED/WITHDRAWN/CANONICAL_APPLIED/COMMITTED journaling, forces server-owned player inventory persistence after withdrawal, reconciles pending transfers on reconnect, and uses an idempotent canonical handoff receipt so retries cannot double-credit. |
 | SVC-025 | LIVE | `establishFieldCamp(attemptId, campId, player, task)` — PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23`. The server derives physical camp identity, freezes canonical Trainer capability plus authored Ouros quality odds before resolution, persists one result exactly once, and reuses it after retry/reconnect/restart without creating PTU Feature policy or battle state. |
-| SVC-026 | LIVE | `readAvailableBag(player)` — PR pending on `rpg/canonical-bag-query`; aggregates only authenticated-player authored canonical stacks that are currently unreserved. Minecraft/Cobblemon inventory is never treated as RPG inventory truth, and in-flight reservations are excluded from spendable quantities. |
+| SVC-026 | LIVE | `readAvailableBag(player)` — PR #242 / implementation commit `0ad978dbbb6e48bfe4ca2c4a491fee881145f9ab`; aggregates only authenticated-player authored canonical stacks that are currently unreserved. Minecraft/Cobblemon inventory is never treated as RPG inventory truth, and in-flight reservations are excluded from spendable quantities. |
 
 ---
 
@@ -362,7 +362,7 @@ These are required for operations, testing and recovery. They must never be norm
 | TODO | Trainer presentation/profile data. |
 | TODO | Trainer XP/level/progression. |
 | TODO | Pokémon XP/progression/evolution choices. |
-| NEXT/PARTIAL | Canonical inventory quantities and wallet. PR #231 persists authored crafting ingredient quantities in canonical item stacks, PR #233 consumes those canonical quantities into exactly-once durable craft outputs from the normal workstation, PR #235 exposes the same canonical mutation through explicit recipe fallback requests, and PR #236 exposes recipe selection/readiness through the normal workstation. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` closes the crash-recoverable Minecraft-to-canonical ingredient handoff. `/autoptu bag` and `readAvailableBag(player)` now expose spendable authenticated-player canonical stacks while excluding active reservations. Bag inspection, transfer/use/equipment, reserved-vs-total detail, and wallet remain TODO/NEXT. |
+| NEXT/PARTIAL | Canonical inventory quantities and wallet. PR #231 persists authored crafting ingredient quantities in canonical item stacks, PR #233 consumes those canonical quantities into exactly-once durable craft outputs from the normal workstation, PR #235 exposes the same canonical mutation through explicit recipe fallback requests, and PR #236 exposes recipe selection/readiness through the normal workstation. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` closes the crash-recoverable Minecraft-to-canonical ingredient handoff. PR #242 / implementation commit `0ad978dbbb6e48bfe4ca2c4a491fee881145f9ab` adds `/autoptu bag` and `readAvailableBag(player)`, exposing spendable authenticated-player canonical stacks while excluding active reservations. Bag inspection, transfer/use/equipment, reserved-vs-total detail, and wallet remain TODO/NEXT. |
 | LIVE | Durable Minecraft-to-canonical crafting ingredient handoff journal — PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8`. Pending withdrawals survive restart/reconnect, reconcile only against server-persisted inventory state, and canonical retries are idempotent. |
 | TODO | Quest journal/objectives/reward claims. |
 | TODO | NPC relationships/factions/rivals. |
