@@ -9,10 +9,11 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Server-authoritative, restart-safe world-task craft transaction.
  *
- * <p>The service freezes a material plan before rolling, durably persists the quality before any
- * material consumption, consumes ingredients while retaining their locks, creates one deterministic
- * output item, durably commits the attempt, then releases the consumed locks. Reconnect/restart and
- * retry with the same attempt id therefore reuse the same outcome and cannot duplicate output.</p>
+ * <p>The service freezes a material plan and quality distribution before rolling, durably persists
+ * the quality before any material consumption, consumes ingredients while retaining their locks,
+ * creates one deterministic output item, durably commits the attempt, then releases the consumed
+ * locks. Reconnect/restart and retry with the same attempt id therefore reuse the same outcome and
+ * cannot duplicate output.</p>
  */
 public final class WorldTaskCraftService {
     private final FileCanonicalItemReservationRepository items;
@@ -64,7 +65,13 @@ public final class WorldTaskCraftService {
                         "canonical ingredient quantities are insufficient");
             }
             WorldTaskCraftAttempt planned = WorldTaskCraftAttempt.planned(
-                    attemptId, player.playerId(), recipe.taskId(), quantity, plan);
+                    attemptId,
+                    player.playerId(),
+                    recipe.taskId(),
+                    quantity,
+                    plan,
+                    assessment.distribution()
+            );
             attempts.createIfAbsent(planned);
             attempt = attempts.find(attemptId).orElseThrow();
         }
@@ -88,8 +95,7 @@ public final class WorldTaskCraftService {
             }
             int roll = rollSource.rollPercent();
             if (roll < 1 || roll > 100) throw new IllegalStateException("roll source must return 1..100");
-            WorldTaskDefinition.QualityDistribution distribution = competence.assess(player, recipe.task()).distribution();
-            WorldTaskRecipeDefinition.CraftQuality quality = qualityFor(roll, distribution);
+            WorldTaskRecipeDefinition.CraftQuality quality = qualityFor(roll, attempt.frozenDistribution());
             WorldTaskCraftAttempt resolved = attempt.resolved(roll, quality, recipe.outputFor(quality));
             attempts.replaceIfPhase(attempt.attemptId(), WorldTaskCraftAttempt.Phase.PLANNED, resolved);
             attempt = attempts.find(attempt.attemptId()).orElseThrow();
