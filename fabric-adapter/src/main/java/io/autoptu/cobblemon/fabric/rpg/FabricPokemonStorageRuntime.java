@@ -1,7 +1,9 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalPokemonStorageQueryService;
 import io.autoptu.cobblemon.authority.CanonicalPokemonStorageSummary;
+import io.autoptu.cobblemon.authority.CanonicalPokemonStorageTransferService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -11,6 +13,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.Locale;
+import java.util.UUID;
 
 /** Minecraft fallback surface for durable server-owned boxed Pokemon. */
 public final class FabricPokemonStorageRuntime {
@@ -20,7 +23,17 @@ public final class FabricPokemonStorageRuntime {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("box")
-                                .executes(context -> show(context.getSource())))));
+                                .executes(context -> show(context.getSource()))
+                                .then(CommandManager.literal("deposit")
+                                        .then(CommandManager.argument("partySlot", IntegerArgumentType.integer(1))
+                                                .executes(context -> deposit(
+                                                        context.getSource(),
+                                                        IntegerArgumentType.getInteger(context, "partySlot")))))
+                                .then(CommandManager.literal("withdraw")
+                                        .then(CommandManager.argument("boxSlot", IntegerArgumentType.integer(1))
+                                                .executes(context -> withdraw(
+                                                        context.getSource(),
+                                                        IntegerArgumentType.getInteger(context, "boxSlot"))))))));
     }
 
     private static int show(ServerCommandSource source) {
@@ -52,6 +65,67 @@ public final class FabricPokemonStorageRuntime {
                     + " Lv." + member.level() + " | " + member.pokemonId()), false);
         }
         return 1;
+    }
+
+    private static int deposit(ServerCommandSource source, int partySlot) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("Pokemon storage must be changed by an authenticated player."));
+            return 0;
+        }
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        CanonicalPokemonStorageTransferService service = transferService(player);
+        try {
+            CanonicalPokemonStorageTransferService.TransferResult result = service.deposit(
+                    transferId(playerId), playerId, partySlot);
+            player.sendMessage(Text.literal("Deposited " + result.pokemonId()
+                    + " to the canonical box | party rev " + result.partyRevision()
+                    + " | box rev " + result.storageRevision()), false);
+            return 1;
+        } catch (IllegalArgumentException invalidRequest) {
+            source.sendError(Text.literal(invalidRequest.getMessage()));
+            return 0;
+        } catch (IllegalStateException invalidState) {
+            source.sendError(Text.literal("AutoPTU could not safely deposit that Pokemon. Canonical state was left recoverable."));
+            return 0;
+        }
+    }
+
+    private static int withdraw(ServerCommandSource source, int boxSlot) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("Pokemon storage must be changed by an authenticated player."));
+            return 0;
+        }
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        CanonicalPokemonStorageTransferService service = transferService(player);
+        try {
+            CanonicalPokemonStorageTransferService.TransferResult result = service.withdraw(
+                    transferId(playerId), playerId, boxSlot);
+            player.sendMessage(Text.literal("Withdrew " + result.pokemonId()
+                    + " to the active party | party rev " + result.partyRevision()
+                    + " | box rev " + result.storageRevision()), false);
+            return 1;
+        } catch (IllegalArgumentException invalidRequest) {
+            source.sendError(Text.literal(invalidRequest.getMessage()));
+            return 0;
+        } catch (IllegalStateException invalidState) {
+            source.sendError(Text.literal("AutoPTU could not safely withdraw that Pokemon. Canonical state was left recoverable."));
+            return 0;
+        }
+    }
+
+    private static CanonicalPokemonStorageTransferService transferService(ServerPlayerEntity player) {
+        return new CanonicalPokemonStorageTransferService(
+                FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requirePokemonStorageRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requirePokemonRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requirePokemonTransferRepository(player.getServer())
+        );
+    }
+
+    private static String transferId(String playerId) {
+        return "pokemon-transfer:" + playerId + ":" + UUID.randomUUID();
     }
 
     private static String displayName(String speciesId) {
