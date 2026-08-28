@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.persistence;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWalletRepository;
 import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepository;
 import io.autoptu.cobblemon.authority.FileFieldCampSetupAttemptRepository;
@@ -20,14 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Owns world-scoped canonical state for each live Minecraft server instance.
- *
- * The filesystem location is derived from the server's world save root. Minecraft supplies
- * storage location and lifecycle only; it does not supply canonical Trainer, Pokemon, item,
- * wallet, arena or WILD encounter values. WILD blueprint and actor-correlation registries are intentionally
- * lifecycle-scoped in memory; durable encounter recovery remains a separate future contract.
- */
+/** Owns world-scoped canonical RPG state for each live Minecraft server instance. */
 public final class FabricCanonicalPlayerStoreRuntime {
     private record Stores(
             FileVersionedCanonicalStateRepository players,
@@ -35,6 +29,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalPokemonRepository pokemon,
             FileCanonicalItemReservationRepository assets,
             FileCanonicalWalletRepository wallets,
+            FileCanonicalShopStockRepository shopStock,
             FileWorldTaskCraftAttemptRepository craftAttempts,
             FileCraftIngredientDepositHandoffRepository craftDepositHandoffs,
             FileFieldCampSetupAttemptRepository fieldCampAttempts,
@@ -53,45 +48,17 @@ public final class FabricCanonicalPlayerStoreRuntime {
         ServerLifecycleEvents.SERVER_STOPPED.register(FabricCanonicalPlayerStoreRuntime::stop);
     }
 
-    public static FileVersionedCanonicalStateRepository requireRepository(MinecraftServer server) {
-        return requireStores(server).players();
-    }
-
-    public static FileCanonicalPlayerEncounterProfileRepository requireEncounterProfileRepository(MinecraftServer server) {
-        return requireStores(server).encounterProfiles();
-    }
-
-    public static FileCanonicalPokemonRepository requirePokemonRepository(MinecraftServer server) {
-        return requireStores(server).pokemon();
-    }
-
-    public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) {
-        return requireStores(server).assets();
-    }
-
-    public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) {
-        return requireStores(server).wallets();
-    }
-
-    public static FileWorldTaskCraftAttemptRepository requireCraftAttemptRepository(MinecraftServer server) {
-        return requireStores(server).craftAttempts();
-    }
-
-    public static FileCraftIngredientDepositHandoffRepository requireCraftDepositHandoffRepository(MinecraftServer server) {
-        return requireStores(server).craftDepositHandoffs();
-    }
-
-    public static FileFieldCampSetupAttemptRepository requireFieldCampSetupAttemptRepository(MinecraftServer server) {
-        return requireStores(server).fieldCampAttempts();
-    }
-
-    public static WorldScopedCanonicalWildEncounterBlueprintRegistry requireWildEncounterBlueprintRegistry(MinecraftServer server) {
-        return requireStores(server).wildEncounterBlueprints();
-    }
-
-    public static WorldScopedWildEncounterCorrelationRegistry requireWildEncounterCorrelationRegistry(MinecraftServer server) {
-        return requireStores(server).wildEncounterCorrelations();
-    }
+    public static FileVersionedCanonicalStateRepository requireRepository(MinecraftServer server) { return requireStores(server).players(); }
+    public static FileCanonicalPlayerEncounterProfileRepository requireEncounterProfileRepository(MinecraftServer server) { return requireStores(server).encounterProfiles(); }
+    public static FileCanonicalPokemonRepository requirePokemonRepository(MinecraftServer server) { return requireStores(server).pokemon(); }
+    public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) { return requireStores(server).assets(); }
+    public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
+    public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
+    public static FileWorldTaskCraftAttemptRepository requireCraftAttemptRepository(MinecraftServer server) { return requireStores(server).craftAttempts(); }
+    public static FileCraftIngredientDepositHandoffRepository requireCraftDepositHandoffRepository(MinecraftServer server) { return requireStores(server).craftDepositHandoffs(); }
+    public static FileFieldCampSetupAttemptRepository requireFieldCampSetupAttemptRepository(MinecraftServer server) { return requireStores(server).fieldCampAttempts(); }
+    public static WorldScopedCanonicalWildEncounterBlueprintRegistry requireWildEncounterBlueprintRegistry(MinecraftServer server) { return requireStores(server).wildEncounterBlueprints(); }
+    public static WorldScopedWildEncounterCorrelationRegistry requireWildEncounterCorrelationRegistry(MinecraftServer server) { return requireStores(server).wildEncounterCorrelations(); }
 
     static Path storageRoot(MinecraftServer server) {
         Objects.requireNonNull(server, "server");
@@ -121,6 +88,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 pokemon,
                 new FileCanonicalItemReservationRepository(root, pokemon::findPokemon),
                 new FileCanonicalWalletRepository(root),
+                new FileCanonicalShopStockRepository(root),
                 new FileWorldTaskCraftAttemptRepository(root),
                 new FileCraftIngredientDepositHandoffRepository(root),
                 new FileFieldCampSetupAttemptRepository(root),
@@ -133,8 +101,6 @@ public final class FabricCanonicalPlayerStoreRuntime {
     }
 
     private static void stop(MinecraftServer server) {
-        synchronized (STORES) {
-            STORES.remove(server);
-        }
+        synchronized (STORES) { STORES.remove(server); }
     }
 }
