@@ -5,7 +5,11 @@ import io.autoptu.cobblemon.battlecore.BattleAuthoritativeChoiceExecutor;
 import io.autoptu.cobblemon.battlecore.BattleAuthoritativeLegalChoiceSource;
 import io.autoptu.cobblemon.battlecore.BattleChoiceMenuService;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.boss.BossBar;
+import net.minecraft.entity.boss.ServerBossBar;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,14 +22,16 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Minecraft-visible battle action menu backed only by AutoPTU-Java legal choices.
+ * Minecraft-visible battle action menu and HUD backed only by AutoPTU-Java legal choices.
  *
  * Normal battle-start wiring owns bind/unbind. The client never supplies trusted battle scope,
  * target legality or action data; it can select only a stable key from a fresh authoritative set.
  */
 public final class FabricBattleChoiceRuntime {
     private static final Map<UUID, SessionBinding> ACTIVE = new ConcurrentHashMap<>();
+    private static final Map<UUID, ServerBossBar> HUDS = new ConcurrentHashMap<>();
     private static volatile BattleChoiceMenuService menuService;
+    private static int hudTick;
 
     private FabricBattleChoiceRuntime() {}
 
@@ -41,6 +47,7 @@ public final class FabricBattleChoiceRuntime {
                                                         context.getSource(),
                                                         StringArgumentType.getString(context, "choiceId"))))))));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> unbind(handler.player.getUuid()));
+        ServerTickEvents.END_SERVER_TICK.register(FabricBattleChoiceRuntime::refreshHud);
     }
 
     public static synchronized void configure(
@@ -56,11 +63,56 @@ public final class FabricBattleChoiceRuntime {
     }
 
     public static void unbind(UUID playerUuid) {
-        if (playerUuid != null) ACTIVE.remove(playerUuid);
+        if (playerUuid == null) return;
+        ACTIVE.remove(playerUuid);
+        ServerBossBar hud = HUDS.remove(playerUuid);
+        if (hud != null) hud.clearPlayers();
     }
 
     public static boolean hasBinding(UUID playerUuid) {
         return playerUuid != null && ACTIVE.containsKey(playerUuid);
+    }
+
+    private static void refreshHud(MinecraftServer server) {
+        if (++hudTick < 10) return;
+        hudTick = 0;
+
+        BattleChoiceMenuService service = menuService;
+        for (Map.Entry<UUID, SessionBinding> active : ACTIVE.entrySet()) {
+            ServerPlayerEntity player = server.getPlayerManager().getPlayer(active.getKey());
+            if (player == null) continue;
+
+            SessionBinding binding = active.getValue();
+            ServerBossBar hud = HUDS.computeIfAbsent(active.getKey(), ignored -> {
+                ServerBossBar created = new ServerBossBar(
+                        Text.literal("AutoPTU battle"),
+                        BossBar.Color.BLUE,
+                        BossBar.Style.PROGRESS
+                );
+                created.setPercent(1.0F);
+                return created;
+            });
+            hud.addPlayer(player);
+
+            if (service == null) {
+                hud.setName(Text.literal("AutoPTU • authoritative choices unavailable"));
+                continue;
+            }
+
+            try {
+                List<BattleChoiceMenuService.Entry> choices =
+                        service.choices(binding.reservationId(), binding.actorId());
+                hud.setName(Text.literal(hudTitle(binding.actorId(), choices.size())));
+            } catch (RuntimeException unavailable) {
+                hud.setName(Text.literal("AutoPTU • authoritative choices unavailable"));
+            }
+        }
+    }
+
+    static String hudTitle(String actorId, int legalChoiceCount) {
+        if (actorId == null || actorId.isBlank()) throw new IllegalArgumentException("actorId must not be blank");
+        if (legalChoiceCount < 0) throw new IllegalArgumentException("legalChoiceCount cannot be negative");
+        return "AutoPTU • " + actorId.strip() + " • legal choices " + legalChoiceCount;
     }
 
     private static int showChoices(ServerCommandSource source) {

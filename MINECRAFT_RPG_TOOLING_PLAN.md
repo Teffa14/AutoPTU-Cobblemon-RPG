@@ -229,7 +229,7 @@ These should become the normal gameplay path.
 
 | ID | Status | Tool |
 |---|---|---|
-| BUI-001 | TODO | Battle HUD: turn owner, action budget, HP/status, event log. |
+| BUI-001 | LIVE/PARTIAL | Battle HUD: PR #249 / implementation head `9636cffa27abff4e22660db67b6af5da8d3b94f3` adds a normal in-world boss-bar HUD for an active server-bound battle actor. It refreshes from the same fresh AutoPTU-Java legal-choice source as BUI-002 and shows only canonical actor identity plus current legal-choice count. Turn/action-budget, HP/status and event-log fields remain follow-up work when their authoritative projections are available; zero choices are not reinterpreted locally as turn state. |
 | BUI-002 | LIVE | Legal move/action menu from authoritative choice set — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; server-bound scope plus fresh stable-key revalidation, with no Minecraft legality calculation. |
 | BUI-003 | TODO | Grid targeting overlay from authoritative legal tiles/targets. |
 | BUI-004 | TODO | Party switch menu from authoritative switch choices. |
