@@ -58,7 +58,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-015 | LIVE | authoritative battle choice menu/fallback | PR #220, implementation commit `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`. Displays only fresh AutoPTU-Java legal-choice stable keys and submits the exact revalidated choice without client-supplied battle scope or PTU legality. |
 | CUR-016 | LIVE/PARTIAL | Fabric semantic battle playback runtime | PR #221 / `22871146a187d9dc54f687112ff8483ac1f39067` projects authoritative move animation, HP and relocation. PR #222 / `0d261c11027a0f715aee3fac8c6bd5adaa1fd9e4` adds visible authoritative `status_skip` particles/action-bar cues; semantic faint/result remain upstream-contract work. |
 | CUR-017 | LIVE/PARTIAL | capability-sensitive world task assessment | Shipped via PR #226 / commit `2de8d720428b98a6d7375e793a89b5ff20e9c14c`. Server-authored graded quality curves and `/autoptu cancraft <recipe>` read only persistent canonical Trainer skill ranks; preview performs no RNG and consumes no materials. |
-| CUR-018 | NEXT/PARTIAL | crafting workstation interaction | PR #227 adds an authored physical workstation that resolves the authenticated persistent Trainer against the same server-owned recipe/capability service. PR #228 adds visible server-owned ingredient requirements and quality-specific canonical outputs. PR #229 adds the restart-safe canonical craft transaction underneath it; the station remains preview-only until normal canonical ingredient acquisition and request wiring exist. |
+| CUR-018 | NEXT/PARTIAL | crafting workstation interaction | PR #227 adds the physical workstation, PR #228 adds server-owned ingredient/output contracts, PR #229 adds the restart-safe craft transaction, and PR #230 adds side-effect-free canonical material readiness from durable owned/unreserved stacks. The station still needs a real craft request/menu and normal canonical ingredient acquisition. |
 
 ---
 
@@ -142,8 +142,8 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-081 | TODO | `/autoptu shop list` |
 | CMD-082 | TODO | `/autoptu shop buy <offer> [qty]` |
 | CMD-083 | TODO | `/autoptu shop sell <item> [qty]` |
-| CMD-084 | NEXT/PARTIAL | `/autoptu cancraft <recipe>` — PR #226 adds Trainer capability assessment, PR #227 reuses it from a physical workstation, and PR #228 adds server-owned workstation/ingredient/output preview. PR #229 supplies the canonical transaction service, but preview still does not mutate or pre-roll. |
-| CMD-085 | NEXT/PARTIAL | `/autoptu craft <recipe> [qty]` — PR #229 supplies the durable server transaction with frozen attempt odds, canonical ingredient reservations, one persisted outcome, and exactly-once deterministic output. Command/runtime wiring waits for normal server-authoritative canonical ingredient acquisition; do not trust Minecraft inventory as a shortcut. |
+| CMD-084 | LIVE | `/autoptu cancraft <recipe>` — PR #226 adds Trainer capability assessment, PR #228 adds server-owned workstation/ingredient/output contracts, and PR #230 reads only the authenticated player's unreserved durable canonical item stacks to report exact required/available/missing materials. It performs no reservation, RNG, or consumption. |
+| CMD-085 | NEXT/PARTIAL | `/autoptu craft <recipe> [qty]` — PR #229 supplies the durable server transaction with frozen attempt odds, canonical ingredient reservations, one persisted outcome, and exactly-once deterministic output. Command/runtime wiring waits for normal server-authoritative canonical ingredient acquisition and request recovery; do not trust Minecraft inventory as a shortcut. |
 
 ## Quests, journal and travel
 
@@ -199,7 +199,7 @@ These should become the normal gameplay path.
 | WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | WORLD-006 | TODO | PC/storage terminal. |
 | WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |
-| WORLD-008 | NEXT/PARTIAL | Crafting workstation/menu. PR #227 adds the physical authored workstation; PR #228 shows its server-owned ingredient and quality-specific output contracts; PR #229 supplies the restart-safe canonical transaction underneath it. A real menu, canonical ingredient acquisition, and workstation craft request remain TODO. |
+| WORLD-008 | NEXT/PARTIAL | Crafting workstation/menu. PR #227 adds the physical workstation, PR #228 shows server-owned ingredient/output contracts, PR #229 supplies the restart-safe transaction, and PR #230 shows current canonical material readiness from owned/unreserved durable stacks. A real menu, normal canonical ingredient acquisition, and workstation craft request remain TODO. |
 | WORLD-009 | TODO | NPC dialogue interaction and dialogue screen. |
 | WORLD-010 | TODO | Quest-giver/quest-object interaction. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
@@ -289,7 +289,7 @@ These should become the normal gameplay path.
 | SVC-001 | TODO | `canPerform(player, action, context)` |
 | SVC-002 | TODO | `canInteract(player, object, context)` |
 | SVC-003 | TODO | `canUse(player, item, target, context)` |
-| SVC-004 | NEXT/PARTIAL | `canCraft(player, recipe, context)` — PR #226 resolves Trainer capability, PR #227 reuses the boundary from the physical workstation, PR #228 supplies the server-owned material/output contract, and PR #229 supplies canonical ownership/mutation for committed attempts. Preview inventory eligibility and normal runtime wiring remain TODO. |
+| SVC-004 | LIVE/PARTIAL | `canCraft(player, recipe, context)` — PR #226 resolves Trainer capability, PR #228 supplies server-owned material/output contracts, PR #229 supplies exactly-once mutation, and PR #230 adds side-effect-free canonical material eligibility that excludes other owners and active reservations. Broader workstation/context policy and normal acquisition remain future work. |
 | SVC-005 | TODO | `canTravel(player, destination, context)` |
 | SVC-006 | TODO | `canStartEncounter(player, source)` |
 | SVC-007 | TODO | `canStartBattle(player, reservation)` |
@@ -308,6 +308,7 @@ These should become the normal gameplay path.
 | SVC-020 | BLOCKED/PARTIAL | Server-only PTU world-action usage reservation. PR #224 atomically caps canonical Daily usage by Trainer/action/RPG-day and rejects unknown canonical Trainers before consumption; Scene/Encounter/turn/round integration waits on authoritative PTU lifecycle/policy contracts. |
 | SVC-021 | NEXT/PARTIAL | `assessWorldTask(player, task, context)` — PR #226 / `2de8d720428b98a6d7375e793a89b5ff20e9c14c` reads canonical Trainer capabilities and applies server-authored Ouros task quality curves; PR #227 adds the normal-world crafting workstation consumer. Reuse this boundary for cooking, technology, medicine, research, occultism, survival, repairs and other non-battle world interactions. |
 | SVC-022 | LIVE | `craftWorldTask(attemptId, player, recipe, quantity)` — PR #229 persists the plan and frozen quality odds before rolling, resolves one server outcome, consumes canonical reservations recoverably, emits one deterministic canonical output, and is retry/restart safe. |
+| SVC-023 | LIVE | `assessCraftMaterials(player, recipe, quantity)` — PR #230 aggregates only owned, unreserved durable canonical item stacks and reports required/available/missing quantities without reserving, rolling, or consuming. |
 
 ---
 
