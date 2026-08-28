@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Dedicated-server proof that only the authored physical counter signature opens the canonical shop surface. */
+/** Dedicated-server proof that the final physical shop tree accepts only the authored counter signature. */
 public final class FabricShopCounterRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveShopCounterSmoke";
     public static final String SUCCESS_LOG = "AutoPTU live canonical shop counter smoke passed";
