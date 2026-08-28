@@ -5,6 +5,7 @@ import io.autoptu.cobblemon.authority.CanonicalShopPurchaseService;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalPokemonStorageRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopPurchaseRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWalletRepository;
@@ -30,6 +31,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileVersionedCanonicalStateRepository players,
             FileCanonicalPlayerEncounterProfileRepository encounterProfiles,
             FileCanonicalPokemonRepository pokemon,
+            FileCanonicalPokemonStorageRepository pokemonStorage,
             FileCanonicalItemReservationRepository assets,
             FileCanonicalWalletRepository wallets,
             FileCanonicalShopStockRepository shopStock,
@@ -55,6 +57,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileVersionedCanonicalStateRepository requireRepository(MinecraftServer server) { return requireStores(server).players(); }
     public static FileCanonicalPlayerEncounterProfileRepository requireEncounterProfileRepository(MinecraftServer server) { return requireStores(server).encounterProfiles(); }
     public static FileCanonicalPokemonRepository requirePokemonRepository(MinecraftServer server) { return requireStores(server).pokemon(); }
+    public static FileCanonicalPokemonStorageRepository requirePokemonStorageRepository(MinecraftServer server) { return requireStores(server).pokemonStorage(); }
     public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) { return requireStores(server).assets(); }
     public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
@@ -87,6 +90,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     private static void start(MinecraftServer server) {
         Path root = storageRoot(server);
         FileCanonicalPokemonRepository pokemon = new FileCanonicalPokemonRepository(root);
+        FileCanonicalPokemonStorageRepository pokemonStorage = new FileCanonicalPokemonStorageRepository(root);
         FileCanonicalItemReservationRepository assets = new FileCanonicalItemReservationRepository(root, pokemon::findPokemon);
         FileCanonicalWalletRepository wallets = new FileCanonicalWalletRepository(root);
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
@@ -95,6 +99,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 new FileVersionedCanonicalStateRepository(root),
                 new FileCanonicalPlayerEncounterProfileRepository(root),
                 pokemon,
+                pokemonStorage,
                 assets,
                 wallets,
                 shopStock,
