@@ -1,0 +1,43 @@
+name: Patch WORLD-007 tooling plan
+
+on:
+  push:
+    branches:
+      - minecraft/world-007-shop-counter
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: minecraft/world-007-shop-counter
+      - name: Patch canonical plan exactly
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          cur = "| CUR-028 | LIVE | physical canonical Cobblemon PC terminal | PR #255 / implementation head `1dd990700e40205cf495779585cec87507c9d2c4`. Right-clicking the real `cobblemon:pc` opens a server-authored party/box menu; every deposit/withdraw re-resolves canonical slot/ownership and delegates to the existing restart-safe transfer service without reading Cobblemon PC or Pokemon gameplay state. |"
+          cur_new = cur + "\n| CUR-029 | LIVE | physical canonical Cedar Mart counter | PR #256 / implementation head `5e5d50df2ed422c76360cc6d2a80aabe2b9db66d`. Right-clicking the authored emerald-over-barrel counter opens a server-authored buy/sell menu showing durable wallet, persistent stock and sellable canonical bag quantities; every click revalidates current state and delegates to SVC-029/SVC-032. |"
+          world = "| WORLD-007 | TODO | Shop counter/NPC and buy/sell menu. |"
+          world_new = "| WORLD-007 | LIVE | Shop counter and buy/sell menu — PR #256 / implementation head `5e5d50df2ed422c76360cc6d2a80aabe2b9db66d`. Right-clicking the authored Cedar Mart counter opens a 9x6 server-side menu; green offers buy one through SVC-029, gold canonical bag entries sell one through SVC-032, and range/block/stock/bag state are revalidated before mutation. |"
+          fac_old = "Final shop counter/UI and replenishment policy remain TODO."
+          fac_new = "PR #256 / implementation head `5e5d50df2ed422c76360cc6d2a80aabe2b9db66d` adds the physical server-authored buy/sell counter UI. Replenishment policy remains TODO."
+          for old in (cur, world, fac_old):
+              if text.count(old) != 1:
+                  raise SystemExit(f'expected exactly one plan match for: {old[:60]}')
+          text = text.replace(cur, cur_new).replace(world, world_new).replace(fac_old, fac_new)
+          path.write_text(text)
+      - name: Commit plan and remove helper workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/zz-plan-patch-world-007.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "Plan: mark physical shop counter live"
+          git push origin HEAD:minecraft/world-007-shop-counter
