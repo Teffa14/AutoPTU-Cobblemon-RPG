@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.ServerAuthoredRpgCalendar;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -39,6 +40,11 @@ public final class FabricRpgCalendarRuntime {
             tickCounter++;
             if (tickCounter % 20 != 0) return;
             announceTransitionIfNeeded(server);
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            synchronized (LAST_ANNOUNCED_DAY) {
+                LAST_ANNOUNCED_DAY.remove(server);
+            }
         });
     }
 
