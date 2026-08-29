@@ -89,7 +89,7 @@ Detailed provenance and design notes: `docs/cobblemon-skins/0025_pikachu/pikachu
 
 ## 0448 Lucario — Aura Sentinel
 
-Status: ARTISTICALLY ACCEPTED IN BLOCKBENCH — PLAYABLE/CORE CI PENDING
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Aura Sentinel is derived from the single normal Lucario geometry distributed in the exact official Cobblemon 1.7.3 Fabric JAR. CI pins the source model (`ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9`), animation (`ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563`), poser (`7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`), resolver (`a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`) and normal/shiny textures (`98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a` / `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`).
 
