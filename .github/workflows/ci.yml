@@ -92,7 +92,7 @@ jobs:
               && grep -q 'AutoPTU live authenticated player context smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live Cobblemon healing machine reuse smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live Minecraft lodestone fast travel surface smoke passed' "$latest" 2>/dev/null \
-              && grep -q 'AutoPTU live Minecraft inn rest surface smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live namespaced PTU recovery bed smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live RPG actor damage protection smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live canonical player store seed smoke passed' "$latest" 2>/dev/null \
               && grep -q 'Done (' "$latest" 2>/dev/null; then
@@ -152,7 +152,7 @@ jobs:
           grep 'AutoPTU live authenticated player context smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live Cobblemon healing machine reuse smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live Minecraft lodestone fast travel surface smoke passed' "$server_dir/autoptu-first-boot-latest.log"
-          grep 'AutoPTU live Minecraft inn rest surface smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live namespaced PTU recovery bed smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live RPG actor damage protection smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live canonical player store restart smoke passed' "$server_dir/autoptu-second-boot-latest.log"
       - name: Collect runtime evidence
@@ -188,7 +188,7 @@ jobs:
           record_marker "$first" 'AutoPTU live authenticated player context smoke passed'
           record_marker "$first" 'AutoPTU live Cobblemon healing machine reuse smoke passed'
           record_marker "$first" 'AutoPTU live Minecraft lodestone fast travel surface smoke passed'
-          record_marker "$first" 'AutoPTU live Minecraft inn rest surface smoke passed'
+          record_marker "$first" 'AutoPTU live namespaced PTU recovery bed smoke passed'
           record_marker "$first" 'AutoPTU live RPG actor damage protection smoke passed'
           record_marker "$first" 'AutoPTU live canonical player store seed smoke passed'
           record_marker "$first" 'Done ('

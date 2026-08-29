@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "minecraft:beds"
+    },
+    {
+      "item": "cobblemon:healing_machine"
+    }
+  ],
+  "result": {
+    "id": "autoptu_cobblemon_rpg_fabric_adapter:ptu_recovery_bed",
+    "count": 1
+  }
+}
