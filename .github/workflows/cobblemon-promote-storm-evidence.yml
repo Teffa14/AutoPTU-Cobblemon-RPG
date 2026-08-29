@@ -1,0 +1,55 @@
+name: Promote Storm Courier Blockbench Evidence
+
+on:
+  push:
+    branches:
+      - feat/cobblemon-skin-studio-clean-v2
+    paths:
+      - '.github/workflows/cobblemon-promote-storm-evidence.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download passed Blockbench review artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .review-artifact
+          gh run download 33263019780 \
+            --repo "${GITHUB_REPOSITORY}" \
+            --name storm-courier-blockbench-review \
+            --dir .review-artifact
+          test -s .review-artifact/compare-front.png
+          test -s .review-artifact/compare-left.png
+          test -s .review-artifact/compare-right.png
+          test -s .review-artifact/compare-back.png
+
+      - name: Commit four-view Blockbench comparisons
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest='test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-blockbench-review'
+          mkdir -p "$dest"
+          cp .review-artifact/compare-front.png "$dest/compare-front.png"
+          cp .review-artifact/compare-left.png "$dest/compare-left.png"
+          cp .review-artifact/compare-right.png "$dest/compare-right.png"
+          cp .review-artifact/compare-back.png "$dest/compare-back.png"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$dest/compare-front.png" "$dest/compare-left.png" "$dest/compare-right.png" "$dest/compare-back.png"
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'RPG: add Blockbench evidence for Storm Courier'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
