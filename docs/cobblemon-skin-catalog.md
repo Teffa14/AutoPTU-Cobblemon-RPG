@@ -133,6 +133,18 @@ All 130 official bones remain JSON-equivalent and in order. Eight attached `ouro
 
 The resolver keeps the official `cobblemon:charizard` poser, normal/shiny bodies, separate normal/shiny animated flame frames and `alpha_eyes` presentation branch. Real Blockbench 5.1.6 evidence covers matched official reference, hero, battle idle, ground walk, flight and four-view structure. Direct artistic review accepted the silhouette and confirmed motion-safe attachment through `battle_idle`, `ground_walk` and `air_fly`. PR #302 completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully; Integration Core booted the production Fabric + Cobblemon dedicated server twice. Detailed provenance and QA: `docs/cobblemon-skins/0006_charizard/charizard-solar-legion.md`.
 
+## 0658 Greninja — Shadow Tide
+
+Status: EPIC V2 ACCEPTED IN BLOCKBENCH — repository-wide PR gates pending
+
+Shadow Tide is derived independently from the exact normal Greninja (78 bones) and Ash-Greninja (81 bones) geometries distributed in Cobblemon 1.7.3. Eight cosmetic groups produce 86 and 89 bones respectively, with 60 cosmetic cubes in the accepted v2. All original bones remain JSON-equivalent and in order.
+
+The first structurally valid pass was rejected after direct Blockbench review because its three-quarter silhouette remained too close to standard Greninja. V2 adds a dominant asymmetric executioner tide-glaive, heavier split mantle, open crescent cowl, tide-core gorget, asymmetric pauldrons and bracers. Normal hero, battle idle and ground walk remain motion-safe in real Blockbench 5.1.6 evidence. The overlay occupies only `(0..7,63)`, proven free in both official geometry UV layouts.
+
+The official base resolver exposes only normal and shiny presentation variations; Battle Bond is a separate official species feature and Greninja uses a code-backed model class. This cosmetic preserves the official resolver scope and does not invent Ash/Battle Bond battle-state routing. A separately derived Ash model is retained for anatomy/form parity and diagnostic visual evidence.
+
+Detailed provenance, source hashes, form handling and visual QA: `docs/cobblemon-skins/0658_greninja/greninja-shadow-tide.md`.
+
 ## Authority boundary
 
 All skin/model work is presentation-only. Cobblemon/Minecraft model, animation and rendering systems may be reused. Cobblemon battle state, participants, legality, HP/status, positions and combat authority remain outside this workflow; Ouros/AutoPTU remain authoritative for tactical battle facts.
