@@ -56,7 +56,18 @@ Blockbench review imports the official `pikachu.animation.json` through Blockben
 
 `tools/cobblemon-model-review/validate_original_model.py` rejects any drift in the 90 official bones. `tools/cobblemon-model-review/build_storm_courier.py` deterministically derives both production gender models from the pinned official JAR inputs.
 
-Visual acceptance uses pinned Blockbench 5.1.6 with the exact production geometry, official texture and Ouros overlay. Review must include the untouched official Pikachu reference plus matched-camera Storm Courier views. Front/left/right/back evidence is used for structural inspection; three-quarter hero, battle-ready and walking evidence is used for presentation review.
+Visual acceptance uses pinned Blockbench 5.1.6 with the exact production geometry, official texture and Ouros overlay. Review includes the untouched official Pikachu reference plus matched-camera Storm Courier views. Front/left/right/back evidence is used for structural inspection; three-quarter hero, battle-ready and walking evidence is used for presentation review.
+
+### Accepted premium evidence
+
+The current production evidence is committed under `test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses/` and was produced from the 94-bone production model in Blockbench 5.1.6.
+
+- untouched official reference, `ground_idle`: `bb60acc03aa8ff7f584b8608cd06207759fc4a30a277820978979319ef28971d`
+- premium hero 3/4, `ground_idle` at 0.35: `06bda0377085b5b5604694cf1b64f0dabd3d1996cd2fab292c88f7fe148d2492`
+- premium battle-ready 3/4, `battle_idle` at 0.35: `7f59754412018ee1e44a05a8c9115a0586d952392135373083ba943244a377e2`
+- premium walking 3/4, `ground_walk` at 0.25: `7bfbe2c04ccb2f3615b223c3879bcfbf50caf23e835278a679b57999d0d9fa2a`
+
+The premium hero, battle-ready and walking renders were visually inspected against the official reference. The original Pikachu anatomy and silhouette remain intact. The goggles remain on the official head, the harness follows `torso2`, the expedition pack stays attached through the official battle/walk transforms, and the grounding clamp follows `tail2` without replacing the tail. No severe accessory clipping or detached geometry was observed in these accepted frames.
 
 ## Authority boundary
 
