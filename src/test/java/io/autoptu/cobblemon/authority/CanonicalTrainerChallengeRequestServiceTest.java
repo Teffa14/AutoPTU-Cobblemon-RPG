@@ -2,6 +2,8 @@ package io.autoptu.cobblemon.authority;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,6 +28,18 @@ class CanonicalTrainerChallengeRequestServiceTest {
 
         assertFalse(decision.accepted());
         assertEquals("challenge does not belong to this NPC", decision.detail());
+    }
+
+    @Test
+    void challengeRequestFreezesCanonicalPartyIdentities() {
+        ArrayList<String> roster = new ArrayList<>(List.of("pokemon-a", "pokemon-b"));
+        var request = new TrainerChallengeRequest("player-one", "challenge", "npc", roster, 7L);
+
+        roster.set(0, "client-mutated");
+
+        assertEquals(List.of("pokemon-a", "pokemon-b"), request.playerPokemonIds());
+        assertThrows(UnsupportedOperationException.class, () -> request.playerPokemonIds().add("pokemon-c"));
+        assertEquals(7L, request.partyRevision());
     }
 
     @Test
