@@ -1,0 +1,1792 @@
+{
+  "animations": [
+    {
+      "names": [
+        "animation.charizard.air_battle_cry",
+        "animation.charizard.air_fly",
+        "animation.charizard.air_fly_quirk",
+        "animation.charizard.air_glide",
+        "animation.charizard.air_idle",
+        "animation.charizard.air_physical",
+        "animation.charizard.air_recoil",
+        "animation.charizard.air_special",
+        "animation.charizard.air_status",
+        "animation.charizard.battle_cry",
+        "animation.charizard.battle_idle",
+        "animation.charizard.battle_quirk",
+        "animation.charizard.blink",
+        "animation.charizard.cry",
+        "animation.charizard.ground_idle",
+        "animation.charizard.ground_quirk",
+        "animation.charizard.ground_run",
+        "animation.charizard.ground_run_unbaked",
+        "animation.charizard.ground_walk",
+        "animation.charizard.hold_item",
+        "animation.charizard.idle_quirk",
+        "animation.charizard.physical",
+        "animation.charizard.recoil",
+        "animation.charizard.ride_air_dive",
+        "animation.charizard.ride_air_fly",
+        "animation.charizard.ride_ground_run",
+        "animation.charizard.ride_jump",
+        "animation.charizard.runspeed",
+        "animation.charizard.sleep",
+        "animation.charizard.sleep_quirk",
+        "animation.charizard.special",
+        "animation.charizard.status",
+        "animation.charizard.surfacewater_idle",
+        "animation.charizard.surfacewater_swim"
+      ],
+      "path": "assets/cobblemon/bedrock/pokemon/animations/0006_charizard/charizard.animation.json",
+      "sha256": "f16a510fec4fb00d8669ba07bee40e4ee80fb41e7cf4d798597a97da33d3880b"
+    }
+  ],
+  "latest_compatible_release": {
+    "FILE_NAME": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+    "SHA512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+    "URL": "https://cdn.modrinth.com/data/MdwFAVRL/versions/kF7CvxTo/Cobblemon-fabric-1.7.3%2B1.21.1.jar",
+    "VERSION_ID": "kF7CvxTo",
+    "VERSION_NUMBER": "1.7.3"
+  },
+  "license_candidates": [
+    "assets/cobblemon/bedrock/pokemon/models/0006_charizard/license",
+    "assets/cobblemon/textures/particle/balls/LICENSE",
+    "assets/cobblemon/textures/particle/balls/timerball/LICENSE",
+    "assets/cobblemon/textures/particle/balls/timerball/battle/LICENSE",
+    "assets/cobblemon/textures/particle/balls/timerball/casual/LICENSE",
+    "assets/cobblemon/textures/particle/balls/ultraball/LICENSE",
+    "assets/cobblemon/textures/particle/balls/ultraball/battle/LICENSE",
+    "assets/cobblemon/textures/particle/balls/ultraball/casual/LICENSE",
+    "assets/cobblemon/textures/particle/generic/LICENSE",
+    "assets/cobblemon/textures/particle/generic/bubble/LICENSE",
+    "assets/cobblemon/textures/particle/generic/electricity/LICENSE",
+    "assets/cobblemon/textures/particle/generic/fire/LICENSE",
+    "assets/cobblemon/textures/particle/generic/goo/LICENSE",
+    "assets/cobblemon/textures/particle/generic/grass/LICENSE",
+    "assets/cobblemon/textures/particle/generic/ice/LICENSE",
+    "assets/cobblemon/textures/particle/generic/impact/LICENSE",
+    "assets/cobblemon/textures/particle/generic/mud/LICENSE",
+    "assets/cobblemon/textures/particle/generic/orb/LICENSE",
+    "assets/cobblemon/textures/particle/generic/psychic/LICENSE",
+    "assets/cobblemon/textures/particle/generic/ring/LICENSE",
+    "assets/cobblemon/textures/particle/generic/smoke/LICENSE",
+    "assets/cobblemon/textures/particle/generic/sparkle/LICENSE",
+    "assets/cobblemon/textures/particle/generic/status/LICENSE",
+    "assets/cobblemon/textures/particle/generic/water/LICENSE",
+    "assets/cobblemon/textures/particle/moves/LICENSE",
+    "assets/cobblemon/textures/particle/pokemon/0218_slugma/LICENSE",
+    "assets/cobblemon/textures/particle/pokemon/LICENSE",
+    "assets/cobblemon/textures/particle/request/LICENSE",
+    "assets/cobblemon/textures/particle/vanilla/LICENSE"
+  ],
+  "models": [
+    {
+      "bone_count": 130,
+      "bones": [
+        {
+          "name": "charizard",
+          "parent": null,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "locator_root",
+          "parent": "charizard",
+          "pivot": [
+            0,
+            0,
+            -1
+          ]
+        },
+        {
+          "name": "locator_top",
+          "parent": "charizard",
+          "pivot": [
+            0,
+            41,
+            -1
+          ]
+        },
+        {
+          "name": "body",
+          "parent": "charizard",
+          "pivot": [
+            0,
+            11.5,
+            0
+          ]
+        },
+        {
+          "name": "locator_target",
+          "parent": "body",
+          "pivot": [
+            0,
+            20,
+            -10
+          ]
+        },
+        {
+          "name": "locator_middle",
+          "parent": "body",
+          "pivot": [
+            0,
+            20,
+            -0.5
+          ]
+        },
+        {
+          "name": "torso",
+          "parent": "body",
+          "pivot": [
+            0,
+            11.5,
+            0
+          ]
+        },
+        {
+          "name": "torso2",
+          "parent": "torso",
+          "pivot": [
+            0,
+            19,
+            0.5
+          ]
+        },
+        {
+          "name": "locator_seat_1",
+          "parent": "torso2",
+          "pivot": [
+            0,
+            25,
+            5.5
+          ]
+        },
+        {
+          "name": "neck",
+          "parent": "torso2",
+          "pivot": [
+            0,
+            25,
+            -0.5
+          ]
+        },
+        {
+          "name": "neck2",
+          "parent": "neck",
+          "pivot": [
+            0,
+            29,
+            -0.5
+          ]
+        },
+        {
+          "name": "neck3",
+          "parent": "neck2",
+          "pivot": [
+            0,
+            34,
+            -0.5
+          ]
+        },
+        {
+          "name": "neck4",
+          "parent": "neck3",
+          "pivot": [
+            0,
+            38.5,
+            1
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "neck4",
+          "pivot": [
+            0,
+            43.5,
+            -0.5
+          ]
+        },
+        {
+          "name": "head_correction",
+          "parent": "head",
+          "pivot": [
+            0,
+            43.5,
+            -0.5
+          ]
+        },
+        {
+          "name": "head_ai",
+          "parent": "head_correction",
+          "pivot": [
+            0,
+            43.5,
+            -0.5
+          ]
+        },
+        {
+          "name": "head_angle",
+          "parent": "head_ai",
+          "pivot": [
+            0,
+            43.5,
+            -0.5
+          ]
+        },
+        {
+          "name": "item_hat",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            45,
+            3.75
+          ]
+        },
+        {
+          "name": "locator_head",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            46.5,
+            3
+          ]
+        },
+        {
+          "name": "locator_face",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            53.75,
+            -0.25
+          ]
+        },
+        {
+          "name": "locator_item_face",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            48.5,
+            0.75
+          ]
+        },
+        {
+          "name": "locator_mouth",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            45.75,
+            -2
+          ]
+        },
+        {
+          "name": "eyes",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            -3.5,
+            1.5
+          ]
+        },
+        {
+          "name": "brow",
+          "parent": "eyes",
+          "pivot": [
+            0,
+            48.275,
+            1.765
+          ]
+        },
+        {
+          "name": "eye_right",
+          "parent": "eyes",
+          "pivot": [
+            -2.75,
+            47.75,
+            0.875
+          ]
+        },
+        {
+          "name": "locator_eye_right",
+          "parent": "eye_right",
+          "pivot": [
+            -2.5,
+            48.5,
+            0.5
+          ]
+        },
+        {
+          "name": "eyelid_right",
+          "parent": "eye_right",
+          "pivot": [
+            -2.655,
+            47.15,
+            1
+          ]
+        },
+        {
+          "name": "eye_left",
+          "parent": "eyes",
+          "pivot": [
+            2.75,
+            47.75,
+            0.875
+          ]
+        },
+        {
+          "name": "locator_eye_left",
+          "parent": "eye_left",
+          "pivot": [
+            2.5,
+            48.5,
+            0.5
+          ]
+        },
+        {
+          "name": "eyelid_left",
+          "parent": "eye_left",
+          "pivot": [
+            2.195,
+            47.15,
+            1
+          ]
+        },
+        {
+          "name": "muzzle",
+          "parent": "head_angle",
+          "pivot": [
+            -3,
+            48.5,
+            -2
+          ]
+        },
+        {
+          "name": "locator_jaw_upper",
+          "parent": "muzzle",
+          "pivot": [
+            0,
+            51.75,
+            -2.25
+          ]
+        },
+        {
+          "name": "nose",
+          "parent": "muzzle",
+          "pivot": [
+            0,
+            53,
+            0
+          ]
+        },
+        {
+          "name": "jaw",
+          "parent": "head_angle",
+          "pivot": [
+            0,
+            45.5,
+            -2
+          ]
+        },
+        {
+          "name": "jaw2",
+          "parent": "jaw",
+          "pivot": [
+            0,
+            48.5,
+            -4
+          ]
+        },
+        {
+          "name": "locator_jaw_lower",
+          "parent": "jaw2",
+          "pivot": [
+            0,
+            51.75,
+            -1.75
+          ]
+        },
+        {
+          "name": "tongue",
+          "parent": "jaw",
+          "pivot": [
+            0,
+            45.5,
+            -2
+          ]
+        },
+        {
+          "name": "tongue2",
+          "parent": "tongue",
+          "pivot": [
+            0,
+            48.5,
+            -2
+          ]
+        },
+        {
+          "name": "tongue3",
+          "parent": "tongue2",
+          "pivot": [
+            0,
+            50.5,
+            -2
+          ]
+        },
+        {
+          "name": "horns",
+          "parent": "head_angle",
+          "pivot": [
+            -1.5,
+            44.5,
+            3
+          ]
+        },
+        {
+          "name": "horn_right",
+          "parent": "horns",
+          "pivot": [
+            -1.5,
+            44.5,
+            3
+          ]
+        },
+        {
+          "name": "locator_horn_right",
+          "parent": "horn_right",
+          "pivot": [
+            -2.5,
+            39,
+            2
+          ]
+        },
+        {
+          "name": "horn_left",
+          "parent": "horns",
+          "pivot": [
+            1.5,
+            44.5,
+            3
+          ]
+        },
+        {
+          "name": "locator_horn_left",
+          "parent": "horn_left",
+          "pivot": [
+            2.5,
+            39,
+            2
+          ]
+        },
+        {
+          "name": "arms",
+          "parent": "torso2",
+          "pivot": [
+            0,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "shoulder_right",
+          "parent": "arms",
+          "pivot": [
+            -6,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "arm_right",
+          "parent": "shoulder_right",
+          "pivot": [
+            -8.5,
+            23,
+            0.5
+          ]
+        },
+        {
+          "name": "forearm_right",
+          "parent": "arm_right",
+          "pivot": [
+            -13.5,
+            22,
+            1
+          ]
+        },
+        {
+          "name": "hand_right",
+          "parent": "forearm_right",
+          "pivot": [
+            -18.5,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "locator_item",
+          "parent": "hand_right",
+          "pivot": [
+            -21.35,
+            22,
+            0
+          ]
+        },
+        {
+          "name": "locator_hand_primary",
+          "parent": "hand_right",
+          "pivot": [
+            -21.5,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "fingers_right",
+          "parent": "hand_right",
+          "pivot": [
+            -21.5,
+            23.75,
+            0
+          ]
+        },
+        {
+          "name": "finger_right_in",
+          "parent": "fingers_right",
+          "pivot": [
+            -21,
+            23.75,
+            -1.25
+          ]
+        },
+        {
+          "name": "finger_right_in2",
+          "parent": "finger_right_in",
+          "pivot": [
+            -23,
+            23.75,
+            -1.25
+          ]
+        },
+        {
+          "name": "finger_right_middle",
+          "parent": "fingers_right",
+          "pivot": [
+            -21.5,
+            23.75,
+            0
+          ]
+        },
+        {
+          "name": "finger_right_middle2",
+          "parent": "finger_right_middle",
+          "pivot": [
+            -23.5,
+            23.75,
+            0
+          ]
+        },
+        {
+          "name": "finger_right_out",
+          "parent": "fingers_right",
+          "pivot": [
+            -21,
+            23.75,
+            1.25
+          ]
+        },
+        {
+          "name": "finger_right_out2",
+          "parent": "finger_right_out",
+          "pivot": [
+            -23,
+            23.75,
+            1.25
+          ]
+        },
+        {
+          "name": "shoulder_left",
+          "parent": "arms",
+          "pivot": [
+            6,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "arm_left",
+          "parent": "shoulder_left",
+          "pivot": [
+            8.5,
+            23,
+            0.5
+          ]
+        },
+        {
+          "name": "forearm_left",
+          "parent": "arm_left",
+          "pivot": [
+            13.5,
+            22,
+            1
+          ]
+        },
+        {
+          "name": "hand_left",
+          "parent": "forearm_left",
+          "pivot": [
+            18.5,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "locator_hand_secondary",
+          "parent": "hand_left",
+          "pivot": [
+            21.5,
+            23,
+            0
+          ]
+        },
+        {
+          "name": "fingers_left",
+          "parent": "hand_left",
+          "pivot": [
+            21.5,
+            23.75,
+            0
+          ]
+        },
+        {
+          "name": "finger_left_in",
+          "parent": "fingers_left",
+          "pivot": [
+            21,
+            23.75,
+            -1.25
+          ]
+        },
+        {
+          "name": "finger_left_in2",
+          "parent": "finger_left_in",
+          "pivot": [
+            23,
+            23.75,
+            -1.25
+          ]
+        },
+        {
+          "name": "finger_left_middle",
+          "parent": "fingers_left",
+          "pivot": [
+            21.5,
+            23.75,
+            0
+          ]
+        },
+        {
+          "name": "finger_left_middle2",
+          "parent": "finger_left_middle",
+          "pivot": [
+            23.5,
+            23.75,
+            0
+          ]
+        },
+        {
+          "name": "finger_left_out",
+          "parent": "fingers_left",
+          "pivot": [
+            21,
+            23.75,
+            1.25
+          ]
+        },
+        {
+          "name": "finger_left_out2",
+          "parent": "finger_left_out",
+          "pivot": [
+            23,
+            23.75,
+            1.25
+          ]
+        },
+        {
+          "name": "wings",
+          "parent": "torso2",
+          "pivot": [
+            0,
+            21,
+            6
+          ]
+        },
+        {
+          "name": "wing_right_base",
+          "parent": "wings",
+          "pivot": [
+            -2.5,
+            22.75,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_base_membrane",
+          "parent": "wing_right_base",
+          "pivot": [
+            -2.5,
+            22.75,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_base_membrane2",
+          "parent": "wing_right_base",
+          "pivot": [
+            -2,
+            22,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_bend",
+          "parent": "wing_right_base",
+          "pivot": [
+            -6,
+            25,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_bend_membrane",
+          "parent": "wing_right_bend",
+          "pivot": [
+            -6,
+            25,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_mid",
+          "parent": "wing_right_bend",
+          "pivot": [
+            -14,
+            27.5,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_mid_membrane_hidden",
+          "parent": "wing_right_mid",
+          "pivot": [
+            -17,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_mid_membrane",
+          "parent": "wing_right_mid",
+          "pivot": [
+            -16.75,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_elbow",
+          "parent": "wing_right_mid",
+          "pivot": [
+            -17,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "locator_wing_right",
+          "parent": "wing_right_elbow",
+          "pivot": [
+            -20,
+            38.25,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_membrane",
+          "parent": "wing_right_elbow",
+          "pivot": [
+            -17,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_end",
+          "parent": "wing_right_elbow",
+          "pivot": [
+            -22,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_end_membrane_hidden",
+          "parent": "wing_right_end",
+          "pivot": [
+            -25,
+            32,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_end_membrane",
+          "parent": "wing_right_end",
+          "pivot": [
+            -22,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_tip",
+          "parent": "wing_right_end",
+          "pivot": [
+            -30,
+            30.5,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_right_tip_membrane",
+          "parent": "wing_right_tip",
+          "pivot": [
+            -30,
+            30.5,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_base",
+          "parent": "wings",
+          "pivot": [
+            2.5,
+            22.75,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_base_membrane",
+          "parent": "wing_left_base",
+          "pivot": [
+            2.5,
+            22.75,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_base_membrane2",
+          "parent": "wing_left_base",
+          "pivot": [
+            2,
+            22,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_bend",
+          "parent": "wing_left_base",
+          "pivot": [
+            6,
+            25,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_bend_membrane",
+          "parent": "wing_left_bend",
+          "pivot": [
+            6,
+            25,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_mid",
+          "parent": "wing_left_bend",
+          "pivot": [
+            14,
+            27.5,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_mid_membrane_hidden",
+          "parent": "wing_left_mid",
+          "pivot": [
+            17,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_mid_membrane",
+          "parent": "wing_left_mid",
+          "pivot": [
+            16.75,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_elbow",
+          "parent": "wing_left_mid",
+          "pivot": [
+            17,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "locator_wing_left",
+          "parent": "wing_left_elbow",
+          "pivot": [
+            20,
+            38.25,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_membrane",
+          "parent": "wing_left_elbow",
+          "pivot": [
+            17,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_end",
+          "parent": "wing_left_elbow",
+          "pivot": [
+            22,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_end_membrane_hidden",
+          "parent": "wing_left_end",
+          "pivot": [
+            25,
+            32,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_end_membrane",
+          "parent": "wing_left_end",
+          "pivot": [
+            22,
+            38,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_tip",
+          "parent": "wing_left_end",
+          "pivot": [
+            30,
+            30.5,
+            5.25
+          ]
+        },
+        {
+          "name": "wing_left_tip_membrane",
+          "parent": "wing_left_tip",
+          "pivot": [
+            30,
+            30.5,
+            5.25
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "torso",
+          "pivot": [
+            0,
+            9.5,
+            6
+          ]
+        },
+        {
+          "name": "tail2",
+          "parent": "tail",
+          "pivot": [
+            0,
+            9,
+            20
+          ]
+        },
+        {
+          "name": "tail3",
+          "parent": "tail2",
+          "pivot": [
+            0,
+            9.5,
+            32
+          ]
+        },
+        {
+          "name": "tail4",
+          "parent": "tail3",
+          "pivot": [
+            0,
+            9.5,
+            42
+          ]
+        },
+        {
+          "name": "locator_tail",
+          "parent": "tail4",
+          "pivot": [
+            0,
+            9.5,
+            47
+          ]
+        },
+        {
+          "name": "tail5",
+          "parent": "tail4",
+          "pivot": [
+            0,
+            9.5,
+            52
+          ]
+        },
+        {
+          "name": "locator_tail_tip",
+          "parent": "tail5",
+          "pivot": [
+            0,
+            9.5,
+            62
+          ]
+        },
+        {
+          "name": "fire",
+          "parent": "tail5",
+          "pivot": [
+            0,
+            9.45,
+            62
+          ]
+        },
+        {
+          "name": "fire2",
+          "parent": "fire",
+          "pivot": [
+            0,
+            9.45,
+            62
+          ]
+        },
+        {
+          "name": "locator_fire",
+          "parent": "fire2",
+          "pivot": [
+            0,
+            11,
+            62
+          ]
+        },
+        {
+          "name": "legs",
+          "parent": "body",
+          "pivot": [
+            0,
+            10.5,
+            1.05
+          ]
+        },
+        {
+          "name": "leg_right",
+          "parent": "legs",
+          "pivot": [
+            -8,
+            10.5,
+            1
+          ]
+        },
+        {
+          "name": "knee_right",
+          "parent": "leg_right",
+          "pivot": [
+            -9,
+            6.5,
+            -5
+          ]
+        },
+        {
+          "name": "foot_right",
+          "parent": "knee_right",
+          "pivot": [
+            -9,
+            1.5,
+            -3.5
+          ]
+        },
+        {
+          "name": "locator_foot_primary",
+          "parent": "foot_right",
+          "pivot": [
+            -9,
+            1.5,
+            -5
+          ]
+        },
+        {
+          "name": "foot_right2",
+          "parent": "foot_right",
+          "pivot": [
+            -9,
+            0,
+            -5.5
+          ]
+        },
+        {
+          "name": "claw_right_outer",
+          "parent": "foot_right2",
+          "pivot": [
+            -10.75,
+            2,
+            -8.5
+          ]
+        },
+        {
+          "name": "claw_right_center",
+          "parent": "foot_right2",
+          "pivot": [
+            -9,
+            2,
+            -8.5
+          ]
+        },
+        {
+          "name": "claw_right_inner",
+          "parent": "foot_right2",
+          "pivot": [
+            -7.25,
+            2,
+            -8.5
+          ]
+        },
+        {
+          "name": "leg_left",
+          "parent": "legs",
+          "pivot": [
+            8,
+            10.5,
+            1
+          ]
+        },
+        {
+          "name": "knee_left",
+          "parent": "leg_left",
+          "pivot": [
+            9,
+            6.5,
+            -5
+          ]
+        },
+        {
+          "name": "foot_left",
+          "parent": "knee_left",
+          "pivot": [
+            9,
+            1.5,
+            -3.5
+          ]
+        },
+        {
+          "name": "locator_foot_secondary",
+          "parent": "foot_left",
+          "pivot": [
+            9,
+            1.5,
+            -5
+          ]
+        },
+        {
+          "name": "foot_left2",
+          "parent": "foot_left",
+          "pivot": [
+            9,
+            0,
+            -5.5
+          ]
+        },
+        {
+          "name": "claw_left_outer",
+          "parent": "foot_left2",
+          "pivot": [
+            10.75,
+            2,
+            -8.5
+          ]
+        },
+        {
+          "name": "claw_left_center",
+          "parent": "foot_left2",
+          "pivot": [
+            9,
+            2,
+            -8.5
+          ]
+        },
+        {
+          "name": "claw_left_inner",
+          "parent": "foot_left2",
+          "pivot": [
+            7.25,
+            2,
+            -8.5
+          ]
+        }
+      ],
+      "identifier": "geometry.charizard",
+      "path": "assets/cobblemon/bedrock/pokemon/models/0006_charizard/charizard.geo.json",
+      "sha256": "b0e4a255876ef0cda88d0f61c9773bdcb7aee852cde929da49cda0da817bcadb",
+      "texture_height": 128,
+      "texture_width": 256
+    }
+  ],
+  "posers": [
+    {
+      "json": {
+        "animations": {
+          "air_physical": "q.bedrock_primary('charizard', 'air_physical', q.curve('symmetrical_wide'))",
+          "air_special": "q.bedrock_primary('charizard', 'air_special', q.curve('symmetrical_wide'))",
+          "cry": "q.bedrock_stateful('charizard', 'cry')",
+          "physical": "q.bedrock_primary('charizard', 'physical', q.curve('symmetrical_wide'))",
+          "recoil": "q.bedrock_stateful('charizard', 'recoil')",
+          "special": "q.bedrock_primary('charizard', 'special', q.curve('symmetrical_wide'))",
+          "status": "q.bedrock_primary('charizard', 'status', q.curve('symmetrical_wide'))"
+        },
+        "firstPersonCameraOffset": {
+          "seat_1": [
+            0,
+            0.45,
+            0
+          ]
+        },
+        "portraitScale": 2.1,
+        "portraitTranslation": [
+          -1.11,
+          2.43,
+          0
+        ],
+        "poses": {
+          "battle-flying": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'air_idle')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "isBattle": true,
+            "namedAnimations": {
+              "cry": "q.bedrock_primary('charizard', 'air_battle_cry', q.curve('symmetrical_wide'))",
+              "physical": "q.bedrock_primary('charizard', 'air_physical', q.curve('symmetrical'))",
+              "recoil": "q.bedrock_stateful('charizard', 'air_recoil')",
+              "special": "q.bedrock_primary('charizard', 'air_special', q.curve('symmetrical_wide'))",
+              "status": "q.bedrock_primary('charizard', 'air_status', q.curve('symmetrical_wide'))"
+            },
+            "poseTypes": [
+              "HOVER"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ]
+          },
+          "battle-standing": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'battle_idle')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "isBattle": true,
+            "isTouchingWater": false,
+            "namedAnimations": {
+              "cry": "q.bedrock_primary('charizard', 'battle_cry', q.curve('symmetrical_wide'))"
+            },
+            "poseTypes": [
+              "STAND"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')",
+              "q.bedrock_quirk('charizard', 'battle_quirk')"
+            ]
+          },
+          "fly": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'air_fly')",
+              {
+                "animation": "q.bedrock('charizard', 'ride_air_fly')",
+                "condition": "q.is_ridden"
+              },
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "condition": "!q.is_gliding",
+            "isBattle": false,
+            "poseTypes": [
+              "FLY"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')",
+              "q.bedrock_quirk('charizard', 'air_fly_quirk')"
+            ]
+          },
+          "glide": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'air_glide')",
+              "q.bedrock('charizard', 'ride_air_dive')",
+              {
+                "animation": "q.bedrock('charizard', 'ride_air_fly')",
+                "condition": "q.is_ridden"
+              },
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "condition": "q.is_gliding",
+            "isBattle": false,
+            "poseTypes": [
+              "FLY"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ]
+          },
+          "hover": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'air_idle')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "isBattle": false,
+            "poseTypes": [
+              "HOVER"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ]
+          },
+          "jump": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'ride_jump')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "condition": "q.in_air",
+            "poseTypes": [
+              "STAND",
+              "WALK"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ],
+            "transformTicks": 5,
+            "transformToTicks": 5
+          },
+          "portrait": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'ground_idle')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "isBattle": false,
+            "isTouchingWater": false,
+            "poseTypes": [
+              "PORTRAIT",
+              "PROFILE"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ]
+          },
+          "running": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'ground_run')",
+              {
+                "animation": "q.bedrock('charizard', 'ride_ground_run')",
+                "condition": "q.is_ridden"
+              },
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "condition": "!q.in_air && q.is_sprinting",
+            "isBattle": false,
+            "isTouchingWater": false,
+            "poseTypes": [
+              "WALK",
+              "SWIM"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ]
+          },
+          "sleep": {
+            "animations": [
+              "q.bedrock('charizard', 'sleep')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "namedAnimations": {
+              "cry": "q.bedrock_stateful('dummy', 'cry')"
+            },
+            "poseTypes": [
+              "SLEEP"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'sleep_quirk')"
+            ]
+          },
+          "standing": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'ground_idle')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "condition": "!q.in_air",
+            "isBattle": false,
+            "isTouchingWater": false,
+            "poseTypes": [
+              "STAND",
+              "NONE"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')",
+              "q.bedrock_quirk('charizard', 'ground_quirk')",
+              "q.bedrock_primary_quirk('charizard', 'idle_quirk', 20, 40, 1, q.curve('symmetrical'))"
+            ]
+          },
+          "surface_idle": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'surfacewater_idle')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "isTouchingWater": true,
+            "isUnderWater": false,
+            "poseTypes": [
+              "STAND",
+              "FLOAT"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ],
+            "transformedParts": [
+              {
+                "part": "body",
+                "position": [
+                  0,
+                  22,
+                  0
+                ]
+              }
+            ]
+          },
+          "surface_swim": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'surfacewater_swim')",
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "isTouchingWater": true,
+            "isUnderWater": false,
+            "poseTypes": [
+              "WALK",
+              "SWIM"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ],
+            "transformedParts": [
+              {
+                "part": "body",
+                "position": [
+                  0,
+                  22,
+                  0
+                ]
+              }
+            ]
+          },
+          "walking": {
+            "animations": [
+              "q.look('neck', 0.5, 0.5, 15, -15, 30, -30)",
+              "q.look('neck2', 0.5, 0.5, 10, -10, 25, -25)",
+              "q.look('neck3', 0.45, 0.45, 10, -10, 20, -20)",
+              "q.look('neck4', 0.35, 0.35, 5, -5, 15, -15)",
+              "q.look('head', 0.4, 0.25, 5, -5, 10, -10)",
+              "q.bedrock('charizard', 'ground_walk')",
+              {
+                "animation": "q.bedrock('charizard', 'ride_ground_run')",
+                "condition": "q.is_ridden"
+              },
+              {
+                "animation": "q.bedrock('charizard', 'hold_item')",
+                "condition": "q.is_holding_item"
+              }
+            ],
+            "condition": "!q.in_air && !q.is_sprinting",
+            "isBattle": false,
+            "isTouchingWater": false,
+            "poseTypes": [
+              "WALK",
+              "SWIM"
+            ],
+            "quirks": [
+              "q.bedrock_quirk('charizard', 'blink')"
+            ]
+          }
+        },
+        "profileScale": 0.54,
+        "profileTranslation": [
+          0,
+          0.96,
+          -10
+        ],
+        "rootBone": "charizard",
+        "thirdPersonCameraOffset": {
+          "seat_1": [
+            0,
+            1,
+            1
+          ],
+          "seat_1_reverse": [
+            0,
+            1,
+            0
+          ]
+        },
+        "thirdPersonCameraOffsetNoViewBobbing": {
+          "seat_1": [
+            0,
+            1,
+            1
+          ],
+          "seat_1_reverse": [
+            0,
+            1,
+            0
+          ]
+        }
+      },
+      "path": "assets/cobblemon/bedrock/pokemon/posers/0006_charizard/charizard.json",
+      "sha256": "89bfe55055fea4d7f0c0398e13060cc6fb724988028c50e2d341dd6b94c8ec8e"
+    }
+  ],
+  "resolvers": [
+    {
+      "json": {
+        "order": 0,
+        "species": "cobblemon:charizard",
+        "variations": [
+          {
+            "aspects": [],
+            "layers": [
+              {
+                "emissive": true,
+                "name": "flame",
+                "texture": {
+                  "fps": 10,
+                  "frames": [
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame1.png",
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame2.png",
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame3.png",
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame4.png"
+                  ],
+                  "loop": true
+                },
+                "translucent": true
+              }
+            ],
+            "model": "cobblemon:charizard.geo",
+            "poser": "cobblemon:charizard",
+            "texture": "cobblemon:textures/pokemon/0006_charizard/charizard.png"
+          },
+          {
+            "aspects": [
+              "shiny"
+            ],
+            "layers": [
+              {
+                "emissive": true,
+                "name": "flame",
+                "texture": {
+                  "fps": 10,
+                  "frames": [
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame1.png",
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame2.png",
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame3.png",
+                    "cobblemon:textures/pokemon/0006_charizard/charizard_flame4.png"
+                  ],
+                  "loop": true
+                },
+                "translucent": true
+              }
+            ],
+            "texture": "cobblemon:textures/pokemon/0006_charizard/charizard_shiny.png"
+          }
+        ]
+      },
+      "path": "assets/cobblemon/bedrock/pokemon/resolvers/0006_charizard/0_charizard_base.json",
+      "sha256": "fa46e648441b555d33bea16be49ab1abd0e1a5ac68958427b5ac914341b51711"
+    }
+  ],
+  "species_related_files": [
+    "assets/cobblemon/bedrock/pokemon/animations/0006_charizard/",
+    "assets/cobblemon/bedrock/pokemon/animations/0006_charizard/charizard.animation.json",
+    "assets/cobblemon/bedrock/pokemon/models/0006_charizard/",
+    "assets/cobblemon/bedrock/pokemon/models/0006_charizard/charizard.geo.json",
+    "assets/cobblemon/bedrock/pokemon/models/0006_charizard/license",
+    "assets/cobblemon/bedrock/pokemon/posers/0006_charizard/",
+    "assets/cobblemon/bedrock/pokemon/posers/0006_charizard/charizard.json",
+    "assets/cobblemon/bedrock/pokemon/resolvers/0006_charizard/",
+    "assets/cobblemon/bedrock/pokemon/resolvers/0006_charizard/0_charizard_base.json",
+    "assets/cobblemon/textures/pokemon/0006_charizard/",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame1.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame2.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame3.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame4.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame1.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame2.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame3.png",
+    "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame4.png",
+    "data/cobblemon/spawn_pool_world/0006_charizard.json"
+  ],
+  "textures": [
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard.png",
+      "sha256": "b2990c16bdf37002ee9a5ad3a68a562d03e8cd7105510a84c396e9e757ba3215"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame1.png",
+      "sha256": "1088551281e4d379170f89de60caf6af0e99cf58c1c8f120cb084df057f6e604"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame2.png",
+      "sha256": "5ccf2debe0d3e1446055fd8fc5cb37470f961c91efa861b2928a7749f70b771b"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame3.png",
+      "sha256": "12b373c2f7f3e8963d9be2651b077a9ab592d52739927f8c9138ced9135693ec"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_flame4.png",
+      "sha256": "1d4d0e7229c8093ac14ad720975cdc03917f1fd5a52d702cce58b884a7649e5e"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny.png",
+      "sha256": "ceb2458e18f2dc825e0a50fa8a400e95b593ab7b2d4fa8452a41a685e609a4c3"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame1.png",
+      "sha256": "874cbde79c50e4fda452b80a9859ae757a9672d21e0d326ce0989529c9a2f559"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame2.png",
+      "sha256": "cfda65554d00de48abc8a080e9e0328ac56250ff0ebe8b9b879b8e89facc3e4b"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame3.png",
+      "sha256": "cc2167f3c2749cbbabaefac38fd1d4588eb95be4d115a1cfca3a831b49bbd808"
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny_flame4.png",
+      "sha256": "c5bdcdc48ed5c121d6af150a138592538c791837aec634f334b652a8fc1d2dec"
+    }
+  ]
+}
