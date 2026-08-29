@@ -1,0 +1,30 @@
+{
+  "format": "ouros.cobblemon-blockbench-pose-evidence.v1",
+  "viewer": "Blockbench 5.1.6",
+  "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth kF7CvxTo",
+  "modelSha256": "d763a4704b345606af71fe567422abada299c44391bbf39a26628c63070236ab",
+  "animationSha256": "5adc2d0a21d9f0264906f01e2eec960801698894924eb39589119263b5ab24c5",
+  "textureSha256": "8a715d58bf5eb8904537946acf7c902bdc6fa8a5e56bd7cea3cb39ebfef3d376",
+  "originalBoneCount": 48,
+  "derivedBoneCount": 56,
+  "poses": {
+    "hero": "animation.mimikyu.ground_idle",
+    "action": "animation.mimikyu.physical",
+    "walking": "animation.mimikyu.ground_walk"
+  },
+  "battleReady": {
+    "status": "not-rendered",
+    "officialBattleClips": [],
+    "reason": "No manual battle pose is fabricated."
+  },
+  "files": {
+    "official_reference_three_quarter.png": "ccadab522736581a9974bf8cc5628299a19822f4bdc9ec194bdf9f4c3150d3d3",
+    "hero_three_quarter.png": "f3cd6ef7e6fe2127b3f3ebba3a483d709b4e450777484d6f4942298ffa7f6253",
+    "action_three_quarter.png": "e2835d46c7f7abaea0dd9083e6595d26016a3b92ce5c4f2014fa30a57d326626",
+    "walking_three_quarter.png": "10e0b00551fb8f95f5a60b431cdd009f55141b360d94b809f00c7a843b998c8c",
+    "hero_front.png": "83c369eaea0f7af5c6164d7cb37aa227e7fe9867af509b6dbfc0013e9258e4e4",
+    "hero_left.png": "07adc84c2fd18a14b1e13a464159293b74168d723035ad8827a13963e871ec06",
+    "hero_right.png": "0d023582cab2c06788007379da25ac3579a76002fe7957a70d6db376ecd6e3bb",
+    "hero_back.png": "d91aa3d1640eb79a03c26a206e0d2722f827b2d9bb09c41a4715b729daed29a2"
+  }
+}
