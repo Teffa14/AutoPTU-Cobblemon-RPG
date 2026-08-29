@@ -1,6 +1,6 @@
 # 0778 Mimikyu — Eclipse Herald
 
-Status: EPIC ARTISTIC PASS ACCEPTED — Blockbench validated; repository-wide PR gates pending.
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 ## Official source
 
@@ -51,6 +51,10 @@ Matched-camera evidence uses:
 No manual battle-ready pose is fabricated. The evidence metadata records whether a distinct official Bedrock battle clip exists and leaves battle-ready absent when it does not.
 
 The accepted files are under `test-evidence/visual/cobblemon-skins/0778_mimikyu/eclipse-herald-real-poses/` and include official reference, hero, action, walking, front, left, right and back views.
+
+## Repository-wide validation
+
+PR #299 completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully before merge. Integration Core also booted the production Fabric + Cobblemon dedicated server twice. The merged main commit is `a63a1712b53f584fccc08647d3792ee654fdc09d`.
 
 ## Authority boundary
 
