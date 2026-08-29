@@ -1,0 +1,12 @@
+assets/cobblemon/bedrock/pokemon/animations/0359_absol/
+assets/cobblemon/bedrock/pokemon/animations/0359_absol/absol.animation.json
+assets/cobblemon/bedrock/pokemon/models/0359_absol/
+assets/cobblemon/bedrock/pokemon/models/0359_absol/absol.geo.json
+assets/cobblemon/bedrock/pokemon/posers/0359_absol/
+assets/cobblemon/bedrock/pokemon/posers/0359_absol/absol.json
+assets/cobblemon/bedrock/pokemon/resolvers/0359_absol/
+assets/cobblemon/bedrock/pokemon/resolvers/0359_absol/0_absol_base.json
+assets/cobblemon/textures/pokemon/0359_absol/
+assets/cobblemon/textures/pokemon/0359_absol/absol.png
+assets/cobblemon/textures/pokemon/0359_absol/absol_shiny.png
+data/cobblemon/spawn_pool_world/0359_absol.json

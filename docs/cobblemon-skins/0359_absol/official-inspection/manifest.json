@@ -1,0 +1,50 @@
+{
+  "assets/cobblemon/bedrock/pokemon/animations/0359_absol/": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 0
+  },
+  "assets/cobblemon/bedrock/pokemon/animations/0359_absol/absol.animation.json": {
+    "sha256": "3e706148f3159fb60b51acd8221d4a1292306a8a780ab4b69a874eb72700ece4",
+    "size": 2686
+  },
+  "assets/cobblemon/bedrock/pokemon/models/0359_absol/": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 0
+  },
+  "assets/cobblemon/bedrock/pokemon/models/0359_absol/absol.geo.json": {
+    "sha256": "ed8b82b60caaeb0ee8b97597b5bd194a52d52d671da7bbc0eb35aa8dd864d462",
+    "size": 11615
+  },
+  "assets/cobblemon/bedrock/pokemon/posers/0359_absol/": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 0
+  },
+  "assets/cobblemon/bedrock/pokemon/posers/0359_absol/absol.json": {
+    "sha256": "d47d56606e412b794261ee3b8220d80b93da576f030f40e5b28eebe7ad8f06be",
+    "size": 657
+  },
+  "assets/cobblemon/bedrock/pokemon/resolvers/0359_absol/": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 0
+  },
+  "assets/cobblemon/bedrock/pokemon/resolvers/0359_absol/0_absol_base.json": {
+    "sha256": "41048e936f18c108331a0d739388fef686a8f01be72cbf70e4a146603aa3e832",
+    "size": 285
+  },
+  "assets/cobblemon/textures/pokemon/0359_absol/": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 0
+  },
+  "assets/cobblemon/textures/pokemon/0359_absol/absol.png": {
+    "sha256": "9f0ce5dcf5ccc6bcb24e6821f2ee7c8dbd572c0e9ce8634a548d1ec8b1fc26e7",
+    "size": 2402
+  },
+  "assets/cobblemon/textures/pokemon/0359_absol/absol_shiny.png": {
+    "sha256": "633051ce706888f14ff59afda37e22d4d82debab5716445c3ae1d603fc97a6a1",
+    "size": 2402
+  },
+  "data/cobblemon/spawn_pool_world/0359_absol.json": {
+    "sha256": "dd20f8aeb876473aafae41f06750eb62dce99adac7c3202fcc522b301d9561a5",
+    "size": 429
+  }
+}

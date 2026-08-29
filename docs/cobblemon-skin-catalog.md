@@ -135,7 +135,7 @@ The resolver keeps the official `cobblemon:charizard` poser, normal/shiny bodies
 
 ## 0658 Greninja — Shadow Tide
 
-Status: EPIC V2 ACCEPTED IN BLOCKBENCH — repository-wide PR gates pending
+Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Shadow Tide is derived independently from the exact normal Greninja (78 bones) and Ash-Greninja (81 bones) geometries distributed in Cobblemon 1.7.3. Eight cosmetic groups produce 86 and 89 bones respectively, with 60 cosmetic cubes in the accepted v2. All original bones remain JSON-equivalent and in order.
 
@@ -143,7 +143,19 @@ The first structurally valid pass was rejected after direct Blockbench review be
 
 The official base resolver exposes only normal and shiny presentation variations; Battle Bond is a separate official species feature and Greninja uses a code-backed model class. This cosmetic preserves the official resolver scope and does not invent Ash/Battle Bond battle-state routing. A separately derived Ash model is retained for anatomy/form parity and diagnostic visual evidence.
 
-Detailed provenance, source hashes, form handling and visual QA: `docs/cobblemon-skins/0658_greninja/greninja-shadow-tide.md`.
+PR #303 merged this accepted pass after Cobblemon Official Model Review, Playable Test Build and Integration Core CI completed successfully. Detailed provenance, source hashes, form handling and visual QA: `docs/cobblemon-skins/0658_greninja/greninja-shadow-tide.md`.
+
+## 0359 Absol — Omen Regent
+
+Status: EPIC V2 ACCEPTED IN BLOCKBENCH — repository-wide PR gates pending
+
+Omen Regent derives from the single 73-bone Absol geometry in the exact official Cobblemon 1.7.3 Fabric JAR. CI pins the official model (`ed8b82b60caaeb0ee8b97597b5bd194a52d52d671da7bbc0eb35aa8dd864d462`), animation (`3e706148f3159fb60b51acd8221d4a1292306a8a780ab4b69a874eb72700ece4`), poser (`d47d56606e412b794261ee3b8220d80b93da576f030f40e5b28eebe7ad8f06be`), resolver (`41048e936f18c108331a0d739388fef686a8f01be72cbf70e4a146603aa3e832`) and normal/shiny textures.
+
+All 73 original bones remain JSON-equivalent and in order. Eight cosmetic groups bring the derived model to 81 bones. The first structural pass was rejected after real Blockbench review because the silhouette remained too close to plain Absol. V2 expands the asymmetric pauldrons and split mantle, turns the rear hardware into a dominant broken eclipse frame and adds a large diagonal relic while leaving the biological horn, face, fur, quadruped anatomy and tail intact.
+
+Real Blockbench 5.1.6 matched-camera review accepted V2 and also validated the official `cry` clip. The official poser implements walking through procedural `q.quadruped_walk` and exposes no battle pose/`battle_idle` Bedrock clip, so the evidence pipeline explicitly omits fabricated walking and battle renders. The resolver preserves the official normal and shiny branches and adds only the `ouros_omen_regent` aspect plus transparent accessory layer.
+
+Detailed provenance, source hashes, UV reservation and artistic QA: `docs/cobblemon-skins/0359_absol/absol-omen-regent.md`.
 
 ## Authority boundary
 
