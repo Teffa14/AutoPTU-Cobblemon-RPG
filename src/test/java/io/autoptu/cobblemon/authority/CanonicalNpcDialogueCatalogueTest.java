@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,9 +14,12 @@ class CanonicalNpcDialogueCatalogueTest {
     void defaultCatalogueExposesAuthoredCedarRangerDialogue() {
         var dialogue = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue("cedar-ranger").orElseThrow();
         assertEquals("Cedar Ranger", dialogue.displayName());
-        assertEquals(4, dialogue.options().size());
+        assertEquals(5, dialogue.options().size());
         assertEquals("meadow", dialogue.options().getFirst().optionId());
         assertEquals("cedar-field-notes", dialogue.option("field-notes").orElseThrow().questId());
+        var challenge = dialogue.option("field-spar").orElseThrow();
+        assertEquals("cedar-ranger-field-spar", challenge.challengeId());
+        assertNull(challenge.questId());
         assertTrue(dialogue.option("battles").isPresent());
         assertTrue(dialogue.option("missing").isEmpty());
     }
