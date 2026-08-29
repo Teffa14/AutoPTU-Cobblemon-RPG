@@ -1,0 +1,259 @@
+name: Storm Courier Real Pose Evidence
+
+on:
+  push:
+    branches:
+      - feat/cobblemon-skin-studio-clean-v2
+    paths:
+      - '.github/workflows/cobblemon-storm-courier-poses.yml'
+      - 'tools/cobblemon-model-review/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_*.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-storm-courier-poses.yml'
+      - 'tools/cobblemon-model-review/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_*.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: storm-courier-real-pose-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  BLOCKBENCH_VERSION: 5.1.6
+  BLOCKBENCH_SHA256: c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e
+
+jobs:
+  render-real-poses:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install independent viewer dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+
+      - name: Download exact official Cobblemon 1.7.3 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .pose/official
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/pose-review' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
+            -o .pose/version.json
+          python - <<'PY' > .pose/download.env
+          import json, shlex
+          data = json.load(open('.pose/version.json', encoding='utf-8'))
+          assert data['id'] == 'kF7CvxTo'
+          assert data['version_number'] == '1.7.3'
+          assert data['game_versions'] == ['1.21.1']
+          primary = next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename'] == 'Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL=' + shlex.quote(primary['url']))
+          print('SHA512=' + shlex.quote(primary['hashes']['sha512']))
+          PY
+          source .pose/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .pose/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" '.pose/cobblemon.jar' | sha512sum --check --strict
+          unzip -p .pose/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json' > .pose/official/pikachu_male.geo.json
+          unzip -p .pose/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json' > .pose/official/pikachu.animation.json
+          unzip -p .pose/cobblemon.jar 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png' > .pose/official/pikachu.png
+          test "$(sha256sum .pose/official/pikachu_male.geo.json | awk '{print $1}')" = 'f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83'
+          test "$(sha256sum .pose/official/pikachu.animation.json | awk '{print $1}')" = 'd9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384'
+          test "$(sha256sum .pose/official/pikachu.png | awk '{print $1}')" = 'df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e'
+
+      - name: Prove cosmetic preserves official geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json'
+          python tools/cobblemon-model-review/validate_original_model.py \
+            --official .pose/official/pikachu_male.geo.json \
+            --candidate "$candidate"
+
+      - name: Build exact review texture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from PIL import Image
+          base = Image.open('.pose/official/pikachu.png').convert('RGBA')
+          overlay = Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png').convert('RGBA')
+          assert base.size == overlay.size == (128, 64)
+          Image.alpha_composite(base, overlay).save('.pose/storm.png', optimize=True)
+          PY
+
+      - name: Download pinned Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" \
+            -o .pose/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" '.pose/blockbench.AppImage' | sha256sum --check --strict
+          chmod +x .pose/blockbench.AppImage
+          (cd .pose && ./blockbench.AppImage --appimage-extract >/dev/null)
+          test -x .pose/squashfs-root/AppRun
+
+      - name: Render official hero and three Storm Courier poses in Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses'
+          rm -rf "$root" .pose/renders
+          mkdir -p "$root" .pose/renders
+
+          render_model() {
+            model="$1"; texture="$2"; animation="$3"; frame="$4"; output="$5"; port="$6"; name="$7"
+            userdata="$PWD/.pose/user-$name"
+            log="$PWD/.pose/$name.log"
+            rm -rf "$userdata" "$output"
+            mkdir -p "$userdata" "$output"
+            xvfb-run -a -s '-screen 0 1600x1200x24' \
+              env APPDIR="$PWD/.pose/squashfs-root" \
+              .pose/squashfs-root/AppRun \
+              --no-sandbox --disable-gpu-sandbox \
+              --remote-debugging-port="$port" --userData "$userdata" \
+              "$model" > "$log" 2>&1 &
+            pid=$!
+            trap 'kill "$pid" 2>/dev/null || true' RETURN
+            ready=0
+            for _ in $(seq 1 90); do
+              if curl --fail --silent "http://127.0.0.1:${port}/json/version" >/dev/null 2>&1; then ready=1; break; fi
+              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; return 1; fi
+              sleep 1
+            done
+            if [ "$ready" -ne 1 ]; then cat "$log"; return 1; fi
+            node tools/cobblemon-model-review/blockbench_capture.mjs \
+              --endpoint "http://127.0.0.1:${port}" \
+              --texture "$texture" \
+              --animation "$PWD/.pose/official/pikachu.animation.json" \
+              --animation-name "$animation" \
+              --animation-time "$frame" \
+              --output-dir "$output"
+            kill "$pid" 2>/dev/null || true
+            trap - RETURN
+          }
+
+          official="$PWD/.pose/official/pikachu_male.geo.json"
+          storm="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json"
+          render_model "$official" "$PWD/.pose/official/pikachu.png" 'animation.pikachu.ground_idle' 0.35 "$PWD/.pose/renders/official-hero" 9231 official-hero
+          render_model "$storm" "$PWD/.pose/storm.png" 'animation.pikachu.ground_idle' 0.35 "$PWD/.pose/renders/hero" 9232 hero
+          render_model "$storm" "$PWD/.pose/storm.png" 'animation.pikachu.battle_idle' 0.35 "$PWD/.pose/renders/battle" 9233 battle
+          render_model "$storm" "$PWD/.pose/storm.png" 'animation.pikachu.ground_walk' 0.25 "$PWD/.pose/renders/walking" 9234 walking
+
+          cp .pose/renders/official-hero/three_quarter.png "$root/official_reference_three_quarter.png"
+          cp .pose/renders/hero/three_quarter.png "$root/hero_three_quarter.png"
+          cp .pose/renders/battle/three_quarter.png "$root/battle_ready_three_quarter.png"
+          cp .pose/renders/walking/three_quarter.png "$root/walking_three_quarter.png"
+          cp .pose/renders/hero/front.png "$root/hero_front.png"
+          cp .pose/renders/battle/front.png "$root/battle_ready_front.png"
+          cp .pose/renders/walking/front.png "$root/walking_front.png"
+
+      - name: Validate pose provenance and write metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          from PIL import Image
+
+          renders = Path('.pose/renders')
+          expected = {
+              'official-hero': ('animation.pikachu.ground_idle', 90),
+              'hero': ('animation.pikachu.ground_idle', 94),
+              'battle': ('animation.pikachu.battle_idle', 94),
+              'walking': ('animation.pikachu.ground_walk', 94),
+          }
+          sources = {}
+          for name, (animation, bones) in expected.items():
+              metadata = json.loads((renders / name / 'blockbench-metadata.json').read_text(encoding='utf-8'))
+              assert metadata['viewer'] == 'Blockbench'
+              assert metadata['sourceOfTransforms'] == 'Blockbench Bedrock animation codec'
+              assert metadata['modelInfo']['boneCount'] == bones, (name, metadata['modelInfo']['boneCount'])
+              applied = metadata['modelInfo']['appliedAnimation']
+              assert applied['name'] == animation, (name, applied)
+              assert applied['codec'] == 'bedrock'
+              assert 'three_quarter' in metadata['views']
+              sources[name] = metadata
+
+          root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses')
+          files = [
+              'official_reference_three_quarter.png',
+              'hero_three_quarter.png',
+              'battle_ready_three_quarter.png',
+              'walking_three_quarter.png',
+              'hero_front.png',
+              'battle_ready_front.png',
+              'walking_front.png',
+          ]
+          hashes = {}
+          for filename in files:
+              path = root / filename
+              image = Image.open(path).convert('RGBA')
+              assert image.size == (1024, 1024)
+              assert image.getbbox() is not None
+              hashes[filename] = hashlib.sha256(path.read_bytes()).hexdigest()
+          assert len({hashes['hero_three_quarter.png'], hashes['battle_ready_three_quarter.png'], hashes['walking_three_quarter.png']}) == 3
+          manifest = {
+              'format': 'ouros.cobblemon-blockbench-pose-evidence.v1',
+              'viewer': 'Blockbench 5.1.6',
+              'modelSource': 'official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo',
+              'animationSource': 'official pikachu.animation.json imported through Blockbench Bedrock animation codec',
+              'originalBoneCount': 90,
+              'stormBoneCount': 94,
+              'poses': {
+                  'hero': {'animation': 'animation.pikachu.ground_idle', 'time': 0.35},
+                  'battle_ready': {'animation': 'animation.pikachu.battle_idle', 'time': 0.35},
+                  'walking': {'animation': 'animation.pikachu.ground_walk', 'time': 0.25},
+              },
+              'files': hashes,
+          }
+          (root / 'pose-metadata.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Upload real pose evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: storm-courier-real-poses
+          path: test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit real pose PNGs to branch
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$root"
+          if git diff --cached --quiet; then
+            echo 'Pose evidence already current.'
+            exit 0
+          fi
+          git commit -m 'Evidence: add real Blockbench Storm Courier poses'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"

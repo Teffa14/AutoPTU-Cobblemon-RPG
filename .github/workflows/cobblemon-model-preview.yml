@@ -1,117 +1,231 @@
-name: Cobblemon Model Preview
+name: Cobblemon Official Model Review
 
 on:
   push:
     branches:
-      - fix/storm-courier-real-model-previews
+      - feat/cobblemon-skin-studio-clean-v2
     paths:
-      - 'tools/cobblemon-model-review/**'
       - '.github/workflows/cobblemon-model-preview.yml'
-      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json'
-      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
+      - 'tools/cobblemon-model-review/**'
+      - 'docs/cobblemon-skin-catalog.md'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-model-preview.yml'
+      - 'tools/cobblemon-model-review/**'
+      - 'docs/cobblemon-skin-catalog.md'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: cobblemon-official-model-review-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  BLOCKBENCH_VERSION: 5.1.6
+  BLOCKBENCH_SHA256: c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e
+  MODEL_PATH: assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json
+  ANIMATION_PATH: assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json
+  POSER_PATH: assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json
+  RESOLVER_PATH: assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json
+  TEXTURE_PATH: assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png
 
 jobs:
-  render:
+  blockbench-baseline:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: fix/storm-courier-real-model-previews
-          fetch-depth: 0
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Install independent viewer runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
 
-      - name: Install deterministic renderer dependencies
-        run: python -m pip install --disable-pip-version-check numpy==2.1.3 pillow==11.0.0
-
-      - name: Fetch exact Cobblemon Pikachu base texture
+      - name: Download exact official Cobblemon release
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .preview-input
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            'https://raw.githubusercontent.com/codemonkey85/Cobblemon-Mirror/main/common/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png' \
-            -o .preview-input/pikachu.png
-          python - <<'PY'
-          from PIL import Image
-          img = Image.open('.preview-input/pikachu.png')
-          assert img.size == (64, 64), img.size
-          assert img.mode in ('RGBA', 'RGB')
-          print('Cobblemon Pikachu texture:', img.size, img.mode)
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/model-review' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
+            -o .preview-input/version.json
+
+          python - <<'PY' > .preview-input/download.env
+          import json, shlex
+          data = json.load(open('.preview-input/version.json', encoding='utf-8'))
+          assert data['id'] == 'kF7CvxTo', data['id']
+          assert data['version_number'] == '1.7.3', data['version_number']
+          assert '1.21.1' in data['game_versions'], data['game_versions']
+          assert 'fabric' in data['loaders'], data['loaders']
+          primary = next((f for f in data['files'] if f.get('primary')), data['files'][0])
+          assert primary['filename'] == 'Cobblemon-fabric-1.7.3+1.21.1.jar', primary['filename']
+          print('DOWNLOAD_URL=' + shlex.quote(primary['url']))
+          print('EXPECTED_SHA512=' + shlex.quote(primary['hashes']['sha512']))
           PY
+          source .preview-input/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "$DOWNLOAD_URL" -o .preview-input/cobblemon.jar
+          printf '%s  %s\n' "$EXPECTED_SHA512" '.preview-input/cobblemon.jar' | sha512sum --check --strict
 
-      - name: Render exact model four-view evidence
+      - name: Extract exact current Pikachu production assets
         shell: bash
         run: |
           set -euo pipefail
-          out='test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier'
-          rm -rf "$out"
-          python tools/cobblemon-model-review/render_bedrock_model.py \
-            --model fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json \
-            --base-texture .preview-input/pikachu.png \
-            --accessory-texture fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png \
-            --output-dir "$out" \
-            --size 1024
+          unzip -p .preview-input/cobblemon.jar "$MODEL_PATH" > .preview-input/pikachu_male.geo.json
+          unzip -p .preview-input/cobblemon.jar "$ANIMATION_PATH" > .preview-input/pikachu.animation.json
+          unzip -p .preview-input/cobblemon.jar "$POSER_PATH" > .preview-input/pikachu.poser.json
+          unzip -p .preview-input/cobblemon.jar "$RESOLVER_PATH" > .preview-input/pikachu.resolver.json
+          unzip -p .preview-input/cobblemon.jar "$TEXTURE_PATH" > .preview-input/pikachu.png
+          for file in .preview-input/pikachu_male.geo.json .preview-input/pikachu.animation.json .preview-input/pikachu.poser.json .preview-input/pikachu.resolver.json .preview-input/pikachu.png; do
+            test -s "$file"
+          done
 
-      - name: Validate PNG evidence is non-empty and model-derived
-        shell: bash
-        run: |
-          set -euo pipefail
+          python tools/cobblemon-model-review/validate_original_model.py \
+            --official .preview-input/pikachu_male.geo.json \
+            --candidate .preview-input/pikachu_male.geo.json \
+            > .preview-input/preservation-baseline.json
+
           python - <<'PY'
           import hashlib, json
           from pathlib import Path
-          from PIL import Image
 
-          root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier')
-          model_path = Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json')
+          model_path = Path('.preview-input/pikachu_male.geo.json')
+          texture_path = Path('.preview-input/pikachu.png')
           model = json.loads(model_path.read_text(encoding='utf-8'))
-          bones = model['minecraft:geometry'][0]['bones']
-          names = {b['name'] for b in bones}
-          required = {'pikachu', 'head', 'torso', 'tail', 'ouros_courier_goggles', 'ouros_courier_harness', 'ouros_courier_pack', 'ouros_courier_tail_clamp'}
-          assert required <= names
-          assert len(bones) == 26, len(bones)
+          geo = model['minecraft:geometry'][0]
+          desc = geo['description']
+          bones = geo['bones']
+          assert (desc['texture_width'], desc['texture_height']) == (128, 64), desc
+          assert len(bones) >= 80, len(bones)
+          names = [bone['name'] for bone in bones]
+          for required in ('torso2', 'neck', 'head_angle', 'muzzle', 'tail2', 'tail3', 'locator_item_face', 'locator_item_hat'):
+              assert required in names, required
+
+          version = json.loads(Path('.preview-input/version.json').read_text(encoding='utf-8'))
+          provenance = {
+              'format': 'ouros.cobblemon-official-model-source.v2',
+              'provider': 'Modrinth',
+              'versionId': version['id'],
+              'versionNumber': version['version_number'],
+              'jarFilename': next((f['filename'] for f in version['files'] if f.get('primary')), version['files'][0]['filename']),
+              'modelJarPath': 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json',
+              'textureJarPath': 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png',
+              'modelSha256': hashlib.sha256(model_path.read_bytes()).hexdigest(),
+              'textureSha256': hashlib.sha256(texture_path.read_bytes()).hexdigest(),
+              'textureSize': [desc['texture_width'], desc['texture_height']],
+              'boneCount': len(bones),
+              'boneNames': names,
+          }
+          Path('.preview-input/provenance.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps({k: provenance[k] for k in ('versionNumber', 'modelSha256', 'textureSize', 'boneCount')}, indent=2))
+          PY
+
+      - name: Download pinned Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" \
+            -o .preview-input/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" '.preview-input/blockbench.AppImage' | sha256sum --check --strict
+          chmod +x .preview-input/blockbench.AppImage
+          (
+            cd .preview-input
+            ./blockbench.AppImage --appimage-extract >/dev/null
+          )
+          test -x .preview-input/squashfs-root/AppRun
+
+      - name: Render untouched official model in Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          output='test-evidence/visual/cobblemon-skins/0025_pikachu/official-1.7.3-blockbench'
+          rm -rf "$output"
+          mkdir -p "$output" .blockbench-user
+
+          xvfb-run -a -s '-screen 0 1600x1200x24' \
+            env APPDIR="$PWD/.preview-input/squashfs-root" \
+            .preview-input/squashfs-root/AppRun \
+            --no-sandbox \
+            --disable-gpu-sandbox \
+            --remote-debugging-port=9222 \
+            --userData "$PWD/.blockbench-user" \
+            "$PWD/.preview-input/pikachu_male.geo.json" \
+            > .preview-input/blockbench.log 2>&1 &
+          BLOCKBENCH_PID=$!
+          trap 'kill "$BLOCKBENCH_PID" 2>/dev/null || true' EXIT
+
+          ready=0
+          for _ in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:9222/json/version >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$BLOCKBENCH_PID" 2>/dev/null; then
+              cat .preview-input/blockbench.log
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat .preview-input/blockbench.log
+            exit 1
+          fi
+
+          node tools/cobblemon-model-review/blockbench_capture.mjs \
+            --endpoint http://127.0.0.1:9222 \
+            --texture "$PWD/.preview-input/pikachu.png" \
+            --output-dir "$output"
+
+          cp .preview-input/provenance.json "$output/provenance.json"
+          cp .preview-input/preservation-baseline.json "$output/preservation-baseline.json"
+          cp .preview-input/blockbench.log "$output/blockbench.log"
+
+      - name: Validate independent viewer evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, struct
+          from pathlib import Path
+
+          root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/official-1.7.3-blockbench')
+          metadata = json.loads((root / 'blockbench-metadata.json').read_text(encoding='utf-8'))
+          assert metadata['viewer'] == 'Blockbench'
+          assert metadata['modelInfo']['formatId'].startswith('bedrock'), metadata['modelInfo']['formatId']
+          assert metadata['modelInfo']['textureWidth'] == 128, metadata['modelInfo']
+          assert metadata['modelInfo']['textureHeight'] == 64, metadata['modelInfo']
+          assert metadata['modelInfo']['boneCount'] >= 80, metadata['modelInfo']['boneCount']
 
           hashes = {}
           for view in ('front', 'left', 'right', 'back'):
               path = root / f'{view}.png'
-              img = Image.open(path).convert('RGBA')
-              assert img.size == (1024, 1024), img.size
-              alpha = img.getchannel('A')
-              bbox = alpha.getbbox()
-              assert bbox is not None, view
-              assert (bbox[2] - bbox[0]) > 180, (view, bbox)
-              assert (bbox[3] - bbox[1]) > 300, (view, bbox)
-              hashes[view] = hashlib.sha256(path.read_bytes()).hexdigest()
+              raw = path.read_bytes()
+              assert raw.startswith(b'\x89PNG\r\n\x1a\n'), view
+              width, height = struct.unpack('>II', raw[16:24])
+              assert (width, height) == (1024, 1024), (view, width, height)
+              assert len(raw) > 4096, (view, len(raw))
+              hashes[view] = hashlib.sha256(raw).hexdigest()
           assert len(set(hashes.values())) == 4, hashes
-          metadata = {
-              'format': 'ouros.cobblemon-model-review.v1',
-              'sourceModel': str(model_path),
-              'sourceModelSha256': hashlib.sha256(model_path.read_bytes()).hexdigest(),
-              'baseTexture': 'Cobblemon-Mirror:0025_pikachu/pikachu.png',
-              'accessoryTexture': 'assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png',
-              'renderer': 'tools/cobblemon-model-review/render_bedrock_model.py',
-              'views': hashes,
-              'note': 'Software-rasterized from the exact Bedrock geometry and textures; not generative imagery.'
-          }
-          (root / 'render-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
-          print(json.dumps(metadata, indent=2))
+          print(json.dumps(hashes, indent=2))
           PY
 
-      - name: Commit real model previews to branch
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier
-          if git diff --cached --quiet; then
-            echo 'No preview changes to commit.'
-            exit 0
-          fi
-          git commit -m 'RPG: add real Storm Courier model previews'
-          git push origin HEAD:fix/storm-courier-real-model-previews
+      - name: Upload Blockbench baseline evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobblemon-pikachu-official-1.7.3-blockbench
+          path: test-evidence/visual/cobblemon-skins/0025_pikachu/official-1.7.3-blockbench
+          if-no-files-found: error
+          retention-days: 14
