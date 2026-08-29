@@ -3,7 +3,7 @@ name: Generate Storm Courier From Official Cobblemon
 on:
   push:
     branches:
-      - feat/cobblemon-skin-studio-clean-v2
+      - feat/storm-courier-premium-accessories
     paths:
       - '.github/workflows/cobblemon-generate-storm-courier.yml'
       - 'tools/cobblemon-model-review/build_storm_courier.py'
@@ -81,16 +81,31 @@ jobs:
             --female-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json \
             --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png
 
-      - name: Prove original models are untouched
+      - name: Prove original models are untouched and extras are exact
         shell: bash
         run: |
           set -euo pipefail
-          python tools/cobblemon-model-review/validate_original_model.py \
-            --official .official-source/pikachu_male.geo.json \
-            --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json
-          python tools/cobblemon-model-review/validate_original_model.py \
-            --official .official-source/pikachu_female.geo.json \
-            --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json
+          male='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json'
+          female='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json'
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/pikachu_male.geo.json --candidate "$male"
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/pikachu_female.geo.json --candidate "$female"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected = [
+              'ouros_storm_goggles',
+              'ouros_storm_harness',
+              'ouros_storm_pack',
+              'ouros_storm_tail_clamp',
+          ]
+          for path in (
+              Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json'),
+              Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json'),
+          ):
+              bones = json.loads(path.read_text(encoding='utf-8'))['minecraft:geometry'][0]['bones']
+              assert len(bones) == 94, (path, len(bones))
+              assert [bone['name'] for bone in bones[90:]] == expected, path
+          PY
 
       - name: Validate accessory-only UV layer
         shell: bash
@@ -101,8 +116,7 @@ jobs:
           from pathlib import Path
           from PIL import Image
 
-          model_path = Path('.official-source/pikachu_male.geo.json')
-          data = json.loads(model_path.read_text(encoding='utf-8'))['minecraft:geometry'][0]
+          data = json.loads(Path('.official-source/pikachu_male.geo.json').read_text(encoding='utf-8'))['minecraft:geometry'][0]
           width = data['description']['texture_width']
           height = data['description']['texture_height']
           assert (width, height) == (128, 64)
@@ -116,10 +130,9 @@ jobs:
                       used.add((xx, yy))
 
           for bone in data['bones']:
-              for cube in bone.get('cubes', []):
-                  size = cube.get('size', [0, 0, 0])
-                  dx, dy, dz = size
-                  uv = cube.get('uv', [0, 0])
+              for item in bone.get('cubes', []):
+                  dx, dy, dz = item.get('size', [0, 0, 0])
+                  uv = item.get('uv', [0, 0])
                   if isinstance(uv, list):
                       u, v = uv
                       for rect in (
@@ -161,6 +174,6 @@ jobs:
             echo 'Generated assets already current.'
             exit 0
           fi
-          git commit -m 'RPG: generate Storm Courier from official Cobblemon 1.7.3 models'
+          git commit -m 'RPG: generate premium Storm Courier from official Cobblemon 1.7.3 models'
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin HEAD:"${GITHUB_REF_NAME}"
