@@ -1,0 +1,1612 @@
+{
+  "latest_compatible_release": {
+    "VERSION_ID": "kF7CvxTo",
+    "VERSION_NUMBER": "1.7.3",
+    "FILE_NAME": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+    "SHA512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+    "URL": "https://cdn.modrinth.com/data/MdwFAVRL/versions/kF7CvxTo/Cobblemon-fabric-1.7.3%2B1.21.1.jar"
+  },
+  "matching_paths": [
+    "assets/cobblemon/bedrock/pokemon/animations/0658_greninja/",
+    "assets/cobblemon/bedrock/pokemon/animations/0658_greninja/greninja.animation.json",
+    "assets/cobblemon/bedrock/pokemon/models/0658_greninja/",
+    "assets/cobblemon/bedrock/pokemon/models/0658_greninja/ashgreninja.geo.json",
+    "assets/cobblemon/bedrock/pokemon/models/0658_greninja/greninja.geo.json",
+    "assets/cobblemon/bedrock/pokemon/models/0658_greninja/license",
+    "assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/",
+    "assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/0_greninja_base.json",
+    "assets/cobblemon/sounds/pokemon/greninja/",
+    "assets/cobblemon/sounds/pokemon/greninja/greninja_ambient.ogg",
+    "assets/cobblemon/sounds/pokemon/greninja/greninja_cry.ogg",
+    "assets/cobblemon/textures/pokemon/0658_greninja/",
+    "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja_shiny.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja_shiny_tongue_hidden.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja_tongue_hidden.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/greninja.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/greninja_shiny.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/greninja_tongue_hidden.png",
+    "assets/cobblemon/textures/pokemon/0658_greninja/greninja_tongue_hidden_shiny.png",
+    "com/cobblemon/mod/common/client/render/models/blockbench/pokemon/gen6/GreninjaModel.class",
+    "data/cobblemon/dex_entries/pokemon/kalos/greninja.json",
+    "data/cobblemon/spawn_pool_world/0658_greninja.json",
+    "data/cobblemon/species/generation6/greninja.json",
+    "data/cobblemon/species_feature_assignments/greninja_battle_bond.json"
+  ],
+  "reference_json_paths": [
+    "assets/cobblemon/bedrock/pokemon/animations/0658_greninja/greninja.animation.json",
+    "assets/cobblemon/bedrock/pokemon/models/0658_greninja/ashgreninja.geo.json",
+    "assets/cobblemon/bedrock/pokemon/models/0658_greninja/greninja.geo.json",
+    "assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/0_greninja_base.json",
+    "assets/cobblemon/lang/de_de.json",
+    "assets/cobblemon/lang/en_us.json",
+    "assets/cobblemon/lang/es_es.json",
+    "assets/cobblemon/lang/fr_ca.json",
+    "assets/cobblemon/lang/fr_fr.json",
+    "assets/cobblemon/lang/it_it.json",
+    "assets/cobblemon/lang/ja_jp.json",
+    "assets/cobblemon/lang/ko_kr.json",
+    "assets/cobblemon/lang/pt_br.json",
+    "assets/cobblemon/lang/pt_pt.json",
+    "assets/cobblemon/lang/ru_ru.json",
+    "assets/cobblemon/lang/th_th.json",
+    "assets/cobblemon/lang/tr_tr.json",
+    "assets/cobblemon/lang/uk_ua.json",
+    "assets/cobblemon/lang/vi_vn.json",
+    "assets/cobblemon/lang/zh_cn.json",
+    "assets/cobblemon/lang/zh_hk.json",
+    "assets/cobblemon/lang/zh_tw.json",
+    "assets/cobblemon/sounds.json",
+    "data/cobblemon/dex_entries/pokemon/kalos/greninja.json",
+    "data/cobblemon/dexes/kalos.json",
+    "data/cobblemon/spawn_pool_world/0658_greninja.json",
+    "data/cobblemon/species/generation6/froakie.json",
+    "data/cobblemon/species/generation6/frogadier.json",
+    "data/cobblemon/species/generation6/greninja.json",
+    "data/cobblemon/species_feature_assignments/greninja_battle_bond.json"
+  ],
+  "models": [
+    {
+      "path": "assets/cobblemon/bedrock/pokemon/models/0658_greninja/ashgreninja.geo.json",
+      "sha256": "be45c61cc17a7ab6408c06e70905e53c7dbd3c99cba4e8bff0192a03849ca7f5",
+      "identifier": "geometry.ash_greninja",
+      "texture_width": 128,
+      "texture_height": 64,
+      "bone_count": 81,
+      "bones": [
+        {
+          "name": "greninja",
+          "parent": null,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "body",
+          "parent": "greninja",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "torso",
+          "parent": "body",
+          "pivot": [
+            0,
+            16.8,
+            1.4
+          ]
+        },
+        {
+          "name": "waist",
+          "parent": "torso",
+          "pivot": [
+            0,
+            17.8,
+            3.5
+          ]
+        },
+        {
+          "name": "chest",
+          "parent": "waist",
+          "pivot": [
+            0,
+            20.8,
+            3.75
+          ]
+        },
+        {
+          "name": "neck",
+          "parent": "chest",
+          "pivot": [
+            0,
+            24.8,
+            1
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "neck",
+          "pivot": [
+            0,
+            26.8,
+            1.1
+          ]
+        },
+        {
+          "name": "eye_right",
+          "parent": "head",
+          "pivot": [
+            -2.2682,
+            29.86914,
+            -0.749
+          ]
+        },
+        {
+          "name": "outer_pupil_right",
+          "parent": "eye_right",
+          "pivot": [
+            -3.31,
+            29.76914,
+            -1.45286
+          ]
+        },
+        {
+          "name": "outer_eyelid_right",
+          "parent": "eye_right",
+          "pivot": [
+            -3.32,
+            30.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_right",
+          "parent": "eye_right",
+          "pivot": [
+            -3.23,
+            29.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_cover_right",
+          "parent": "inner_eyelid_right",
+          "pivot": [
+            -3.23,
+            30.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_pupil_right",
+          "parent": "inner_eyelid_right",
+          "pivot": [
+            -3.24,
+            29.61914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "eye_left",
+          "parent": "head",
+          "pivot": [
+            2.2682,
+            29.86914,
+            -0.749
+          ]
+        },
+        {
+          "name": "outer_pupil_left",
+          "parent": "eye_left",
+          "pivot": [
+            2.3,
+            30.26914,
+            -1.45286
+          ]
+        },
+        {
+          "name": "outer_eyelid_left",
+          "parent": "eye_left",
+          "pivot": [
+            2.3,
+            29.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_left",
+          "parent": "eye_left",
+          "pivot": [
+            3.23,
+            29.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_cover_left",
+          "parent": "inner_eyelid_left",
+          "pivot": [
+            3.231,
+            30.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_pupil_left",
+          "parent": "inner_eyelid_left",
+          "pivot": [
+            3.24,
+            29.61914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "jaw",
+          "parent": "head",
+          "pivot": [
+            0,
+            27.66914,
+            -0.20286
+          ]
+        },
+        {
+          "name": "head_ruff_right",
+          "parent": "head",
+          "pivot": [
+            -4.5,
+            30.66914,
+            2.09714
+          ]
+        },
+        {
+          "name": "head_ruff_left",
+          "parent": "head",
+          "pivot": [
+            4.5,
+            30.66914,
+            2.09714
+          ]
+        },
+        {
+          "name": "tongue_hidden",
+          "parent": "head",
+          "pivot": [
+            0,
+            27.16914,
+            0.09714
+          ]
+        },
+        {
+          "name": "tongue_hidden2",
+          "parent": "tongue_hidden",
+          "pivot": [
+            0,
+            27.16914,
+            -4.90286
+          ]
+        },
+        {
+          "name": "tongue_hidden3",
+          "parent": "tongue_hidden2",
+          "pivot": [
+            0,
+            27.16914,
+            -8.65286
+          ]
+        },
+        {
+          "name": "tongue_hidden4",
+          "parent": "tongue_hidden3",
+          "pivot": [
+            0,
+            27.16914,
+            -12.40286
+          ]
+        },
+        {
+          "name": "tongue_hidden5",
+          "parent": "tongue_hidden4",
+          "pivot": [
+            0,
+            27.16914,
+            -17.15286
+          ]
+        },
+        {
+          "name": "tongue_hidden6",
+          "parent": "tongue_hidden5",
+          "pivot": [
+            0,
+            27.16914,
+            -21.90286
+          ]
+        },
+        {
+          "name": "tongue_hidden7",
+          "parent": "tongue_hidden6",
+          "pivot": [
+            0,
+            27.16914,
+            -26.65286
+          ]
+        },
+        {
+          "name": "tongue_hidden8",
+          "parent": "tongue_hidden7",
+          "pivot": [
+            0,
+            27.16914,
+            -31.40286
+          ]
+        },
+        {
+          "name": "head_fin_right",
+          "parent": "head",
+          "pivot": [
+            -3.7,
+            30.66914,
+            0.09714
+          ]
+        },
+        {
+          "name": "head_fin_left",
+          "parent": "head",
+          "pivot": [
+            3.7,
+            30.66914,
+            0.09714
+          ]
+        },
+        {
+          "name": "tongue",
+          "parent": "neck",
+          "pivot": [
+            0,
+            27.8,
+            5.1
+          ]
+        },
+        {
+          "name": "tongue2",
+          "parent": "tongue",
+          "pivot": [
+            0,
+            27.8,
+            10.5
+          ]
+        },
+        {
+          "name": "tongue3",
+          "parent": "tongue2",
+          "pivot": [
+            0,
+            27.8,
+            16
+          ]
+        },
+        {
+          "name": "tongue4",
+          "parent": "tongue3",
+          "pivot": [
+            0,
+            27.8,
+            21.5
+          ]
+        },
+        {
+          "name": "tongue5",
+          "parent": "tongue4",
+          "pivot": [
+            0,
+            27.8,
+            27
+          ]
+        },
+        {
+          "name": "tongue6",
+          "parent": "tongue5",
+          "pivot": [
+            0,
+            27.8,
+            32.5
+          ]
+        },
+        {
+          "name": "tongue7",
+          "parent": "tongue6",
+          "pivot": [
+            0,
+            27.8,
+            38
+          ]
+        },
+        {
+          "name": "shuriken_hand",
+          "parent": "chest",
+          "pivot": [
+            -35,
+            21.95,
+            2
+          ]
+        },
+        {
+          "name": "shuriken_chest",
+          "parent": "chest",
+          "pivot": [
+            0,
+            22.2,
+            4
+          ]
+        },
+        {
+          "name": "arm_right",
+          "parent": "chest",
+          "pivot": [
+            -4,
+            24.8,
+            1.5
+          ]
+        },
+        {
+          "name": "arm_right2",
+          "parent": "arm_right",
+          "pivot": [
+            -10,
+            23.8,
+            2.5
+          ]
+        },
+        {
+          "name": "hand_right",
+          "parent": "arm_right2",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_right",
+          "parent": "hand_right",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_right_end",
+          "parent": "finger_index_right",
+          "pivot": [
+            -21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_right",
+          "parent": "hand_right",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_right_end",
+          "parent": "finger_middle_right",
+          "pivot": [
+            -21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_right",
+          "parent": "hand_right",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_right_end",
+          "parent": "finger_pinky_right",
+          "pivot": [
+            -21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "shuriken_back2",
+          "parent": "hand_right",
+          "pivot": [
+            0,
+            21.95,
+            6
+          ]
+        },
+        {
+          "name": "arm_left",
+          "parent": "chest",
+          "pivot": [
+            4,
+            24.8,
+            1.5
+          ]
+        },
+        {
+          "name": "arm_left2",
+          "parent": "arm_left",
+          "pivot": [
+            10,
+            23.8,
+            2.5
+          ]
+        },
+        {
+          "name": "hand_left",
+          "parent": "arm_left2",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_left",
+          "parent": "hand_left",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_left_end",
+          "parent": "finger_index_left",
+          "pivot": [
+            21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_left",
+          "parent": "hand_left",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_left_end",
+          "parent": "finger_middle_left",
+          "pivot": [
+            21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_left",
+          "parent": "hand_left",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_left_end",
+          "parent": "finger_pinky_left",
+          "pivot": [
+            21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "torso",
+          "pivot": [
+            0,
+            17.8,
+            -0.1
+          ]
+        },
+        {
+          "name": "leg_right",
+          "parent": "body",
+          "pivot": [
+            -2,
+            16.8,
+            1.4
+          ]
+        },
+        {
+          "name": "shuriken_right",
+          "parent": "leg_right",
+          "pivot": [
+            -4.3,
+            13.3,
+            1.4
+          ]
+        },
+        {
+          "name": "leg_right2",
+          "parent": "leg_right",
+          "pivot": [
+            -1.8,
+            8.3,
+            -0.4
+          ]
+        },
+        {
+          "name": "foot_right",
+          "parent": "leg_right2",
+          "pivot": [
+            -1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "toe_right",
+          "parent": "foot_right",
+          "pivot": [
+            -1.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_right",
+          "parent": "toe_right",
+          "pivot": [
+            -0.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_right_end",
+          "parent": "toe_inner_right",
+          "pivot": [
+            -1.3,
+            0.9,
+            -5
+          ]
+        },
+        {
+          "name": "toe_outer_right",
+          "parent": "toe_right",
+          "pivot": [
+            -2.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_outer_right_end",
+          "parent": "toe_outer_right",
+          "pivot": [
+            -2.3,
+            0.9,
+            -4.65
+          ]
+        },
+        {
+          "name": "toe_back_right",
+          "parent": "foot_right",
+          "pivot": [
+            -1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "leg_left",
+          "parent": "body",
+          "pivot": [
+            2,
+            16.8,
+            1.4
+          ]
+        },
+        {
+          "name": "shuriken_left",
+          "parent": "leg_left",
+          "pivot": [
+            4.3,
+            13.3,
+            1.4
+          ]
+        },
+        {
+          "name": "leg_left2",
+          "parent": "leg_left",
+          "pivot": [
+            1.8,
+            8.3,
+            -0.4
+          ]
+        },
+        {
+          "name": "foot_left",
+          "parent": "leg_left2",
+          "pivot": [
+            1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "toe_back_left",
+          "parent": "foot_left",
+          "pivot": [
+            1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "toe_left",
+          "parent": "foot_left",
+          "pivot": [
+            1.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_left",
+          "parent": "toe_left",
+          "pivot": [
+            0.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_left_end",
+          "parent": "toe_inner_left",
+          "pivot": [
+            1.3,
+            0.9,
+            -5
+          ]
+        },
+        {
+          "name": "toe_outer_left",
+          "parent": "toe_left",
+          "pivot": [
+            2.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_outer_left_end",
+          "parent": "toe_outer_left",
+          "pivot": [
+            2.3,
+            0.9,
+            -4.65
+          ]
+        }
+      ]
+    },
+    {
+      "path": "assets/cobblemon/bedrock/pokemon/models/0658_greninja/greninja.geo.json",
+      "sha256": "b9608c2eef6dc1a407da31192fde20ae2cea135e7399c14926598acce091e30d",
+      "identifier": "geometry.greninja",
+      "texture_width": 128,
+      "texture_height": 64,
+      "bone_count": 78,
+      "bones": [
+        {
+          "name": "greninja",
+          "parent": null,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "body",
+          "parent": "greninja",
+          "pivot": [
+            0,
+            20,
+            1
+          ]
+        },
+        {
+          "name": "torso",
+          "parent": "body",
+          "pivot": [
+            0,
+            16.8,
+            1.4
+          ]
+        },
+        {
+          "name": "waist",
+          "parent": "torso",
+          "pivot": [
+            0,
+            17.8,
+            3.5
+          ]
+        },
+        {
+          "name": "chest",
+          "parent": "waist",
+          "pivot": [
+            0,
+            20.8,
+            3.75
+          ]
+        },
+        {
+          "name": "neck",
+          "parent": "chest",
+          "pivot": [
+            0,
+            24.8,
+            1
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "neck",
+          "pivot": [
+            0,
+            26.8,
+            1.1
+          ]
+        },
+        {
+          "name": "eye_right",
+          "parent": "head",
+          "pivot": [
+            -2.2682,
+            29.86914,
+            -0.749
+          ]
+        },
+        {
+          "name": "outer_pupil_right",
+          "parent": "eye_right",
+          "pivot": [
+            -3.31,
+            29.76914,
+            -1.45286
+          ]
+        },
+        {
+          "name": "outer_eyelid_right",
+          "parent": "eye_right",
+          "pivot": [
+            -3.32,
+            30.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_right",
+          "parent": "eye_right",
+          "pivot": [
+            -3.23,
+            29.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_cover_right",
+          "parent": "inner_eyelid_right",
+          "pivot": [
+            -3.23,
+            30.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_pupil_right",
+          "parent": "inner_eyelid_right",
+          "pivot": [
+            -3.24,
+            29.61914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "eye_left",
+          "parent": "head",
+          "pivot": [
+            2.2682,
+            29.86914,
+            -0.749
+          ]
+        },
+        {
+          "name": "outer_pupil_left",
+          "parent": "eye_left",
+          "pivot": [
+            2.3,
+            30.26914,
+            -1.45286
+          ]
+        },
+        {
+          "name": "outer_eyelid_left",
+          "parent": "eye_left",
+          "pivot": [
+            2.3,
+            29.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_left",
+          "parent": "eye_left",
+          "pivot": [
+            3.23,
+            29.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_eyelid_cover_left",
+          "parent": "inner_eyelid_left",
+          "pivot": [
+            3.231,
+            30.86914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "inner_pupil_left",
+          "parent": "inner_eyelid_left",
+          "pivot": [
+            3.24,
+            29.61914,
+            -0.75286
+          ]
+        },
+        {
+          "name": "jaw",
+          "parent": "head",
+          "pivot": [
+            0,
+            27.66914,
+            -0.20286
+          ]
+        },
+        {
+          "name": "tongue_hidden",
+          "parent": "head",
+          "pivot": [
+            0,
+            27.16914,
+            0.09714
+          ]
+        },
+        {
+          "name": "tongue_hidden2",
+          "parent": "tongue_hidden",
+          "pivot": [
+            0,
+            27.16914,
+            -4.90286
+          ]
+        },
+        {
+          "name": "tongue_hidden3",
+          "parent": "tongue_hidden2",
+          "pivot": [
+            0,
+            27.16914,
+            -8.65286
+          ]
+        },
+        {
+          "name": "tongue_hidden4",
+          "parent": "tongue_hidden3",
+          "pivot": [
+            0,
+            27.16914,
+            -12.40286
+          ]
+        },
+        {
+          "name": "tongue_hidden5",
+          "parent": "tongue_hidden4",
+          "pivot": [
+            0,
+            27.16914,
+            -17.15286
+          ]
+        },
+        {
+          "name": "tongue_hidden6",
+          "parent": "tongue_hidden5",
+          "pivot": [
+            0,
+            27.16914,
+            -21.90286
+          ]
+        },
+        {
+          "name": "tongue_hidden7",
+          "parent": "tongue_hidden6",
+          "pivot": [
+            0,
+            27.16914,
+            -26.65286
+          ]
+        },
+        {
+          "name": "tongue_hidden8",
+          "parent": "tongue_hidden7",
+          "pivot": [
+            0,
+            27.16914,
+            -31.40286
+          ]
+        },
+        {
+          "name": "head_fin_right",
+          "parent": "head",
+          "pivot": [
+            -3.7,
+            30.66914,
+            0.09714
+          ]
+        },
+        {
+          "name": "head_fin_left",
+          "parent": "head",
+          "pivot": [
+            3.7,
+            30.66914,
+            0.09714
+          ]
+        },
+        {
+          "name": "tongue",
+          "parent": "neck",
+          "pivot": [
+            0,
+            27.8,
+            5.1
+          ]
+        },
+        {
+          "name": "tongue2",
+          "parent": "tongue",
+          "pivot": [
+            0,
+            27.8,
+            10.5
+          ]
+        },
+        {
+          "name": "tongue3",
+          "parent": "tongue2",
+          "pivot": [
+            0,
+            27.8,
+            16
+          ]
+        },
+        {
+          "name": "tongue4",
+          "parent": "tongue3",
+          "pivot": [
+            0,
+            27.8,
+            21.5
+          ]
+        },
+        {
+          "name": "tongue5",
+          "parent": "tongue4",
+          "pivot": [
+            0,
+            27.8,
+            27
+          ]
+        },
+        {
+          "name": "tongue6",
+          "parent": "tongue5",
+          "pivot": [
+            0,
+            27.8,
+            32.5
+          ]
+        },
+        {
+          "name": "tongue7",
+          "parent": "tongue6",
+          "pivot": [
+            0,
+            27.8,
+            38
+          ]
+        },
+        {
+          "name": "arm_right",
+          "parent": "chest",
+          "pivot": [
+            -4,
+            24.8,
+            1.5
+          ]
+        },
+        {
+          "name": "arm_right2",
+          "parent": "arm_right",
+          "pivot": [
+            -10,
+            23.8,
+            2.5
+          ]
+        },
+        {
+          "name": "hand_right",
+          "parent": "arm_right2",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_right",
+          "parent": "hand_right",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_right_end",
+          "parent": "finger_index_right",
+          "pivot": [
+            -21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_right",
+          "parent": "hand_right",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_right_end",
+          "parent": "finger_middle_right",
+          "pivot": [
+            -21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_right",
+          "parent": "hand_right",
+          "pivot": [
+            -17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_right_end",
+          "parent": "finger_pinky_right",
+          "pivot": [
+            -21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "hand_shuriken_right",
+          "parent": "hand_right",
+          "pivot": [
+            -30.5,
+            24.3,
+            1
+          ]
+        },
+        {
+          "name": "arm_left",
+          "parent": "chest",
+          "pivot": [
+            4,
+            24.8,
+            1.5
+          ]
+        },
+        {
+          "name": "arm_left2",
+          "parent": "arm_left",
+          "pivot": [
+            10,
+            23.8,
+            2.5
+          ]
+        },
+        {
+          "name": "hand_left",
+          "parent": "arm_left2",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_left",
+          "parent": "hand_left",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_index_left_end",
+          "parent": "finger_index_left",
+          "pivot": [
+            21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_left",
+          "parent": "hand_left",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_middle_left_end",
+          "parent": "finger_middle_left",
+          "pivot": [
+            21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_left",
+          "parent": "hand_left",
+          "pivot": [
+            17,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "finger_pinky_left_end",
+          "parent": "finger_pinky_left",
+          "pivot": [
+            21,
+            24.3,
+            1.5
+          ]
+        },
+        {
+          "name": "hand_shuriken_left",
+          "parent": "hand_left",
+          "pivot": [
+            30.5,
+            24.3,
+            1
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "torso",
+          "pivot": [
+            0,
+            17.8,
+            -0.1
+          ]
+        },
+        {
+          "name": "leg_right",
+          "parent": "body",
+          "pivot": [
+            -2,
+            16.8,
+            1.4
+          ]
+        },
+        {
+          "name": "shuriken_right",
+          "parent": "leg_right",
+          "pivot": [
+            -4.3,
+            13.3,
+            1.4
+          ]
+        },
+        {
+          "name": "leg_right2",
+          "parent": "leg_right",
+          "pivot": [
+            -1.8,
+            8.3,
+            -0.4
+          ]
+        },
+        {
+          "name": "foot_right",
+          "parent": "leg_right2",
+          "pivot": [
+            -1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "toe_right",
+          "parent": "foot_right",
+          "pivot": [
+            -1.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_right",
+          "parent": "toe_right",
+          "pivot": [
+            -0.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_right_end",
+          "parent": "toe_inner_right",
+          "pivot": [
+            -1.3,
+            0.9,
+            -5
+          ]
+        },
+        {
+          "name": "toe_outer_right",
+          "parent": "toe_right",
+          "pivot": [
+            -2.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_outer_right_end",
+          "parent": "toe_outer_right",
+          "pivot": [
+            -2.3,
+            0.9,
+            -4.65
+          ]
+        },
+        {
+          "name": "toe_back_right",
+          "parent": "foot_right",
+          "pivot": [
+            -1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "leg_left",
+          "parent": "body",
+          "pivot": [
+            2,
+            16.8,
+            1.4
+          ]
+        },
+        {
+          "name": "shuriken_left",
+          "parent": "leg_left",
+          "pivot": [
+            4.3,
+            13.3,
+            1.4
+          ]
+        },
+        {
+          "name": "leg_left2",
+          "parent": "leg_left",
+          "pivot": [
+            1.8,
+            8.3,
+            -0.4
+          ]
+        },
+        {
+          "name": "foot_left",
+          "parent": "leg_left2",
+          "pivot": [
+            1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "toe_back_left",
+          "parent": "foot_left",
+          "pivot": [
+            1.8,
+            0.9,
+            1.6
+          ]
+        },
+        {
+          "name": "toe_left",
+          "parent": "foot_left",
+          "pivot": [
+            1.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_left",
+          "parent": "toe_left",
+          "pivot": [
+            0.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_inner_left_end",
+          "parent": "toe_inner_left",
+          "pivot": [
+            1.3,
+            0.9,
+            -5
+          ]
+        },
+        {
+          "name": "toe_outer_left",
+          "parent": "toe_left",
+          "pivot": [
+            2.8,
+            0.4,
+            -0.4
+          ]
+        },
+        {
+          "name": "toe_outer_left_end",
+          "parent": "toe_outer_left",
+          "pivot": [
+            2.3,
+            0.9,
+            -4.65
+          ]
+        }
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "path": "assets/cobblemon/bedrock/pokemon/animations/0658_greninja/greninja.animation.json",
+      "sha256": "9e0176549e372324127fc2c8edbaa5d72ca6009dac06088c65df89790d3548f3",
+      "names": [
+        "animation.greninja.ground_idle",
+        "animation.greninja.water_idle",
+        "animation.greninja.water_swim",
+        "animation.greninja.faint",
+        "animation.greninja.blink",
+        "animation.greninja.sleep",
+        "animation.greninja.cry",
+        "animation.greninja.ground_walk",
+        "animation.greninja.battle_idle"
+      ]
+    }
+  ],
+  "posers": [],
+  "resolvers": [
+    {
+      "path": "assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/0_greninja_base.json",
+      "sha256": "6c437d1397d607e2dcc17f193a40c666cb206884dc2b1c5f612b44584ea607de",
+      "json": {
+        "species": "cobblemon:greninja",
+        "order": 0,
+        "variations": [
+          {
+            "aspects": [],
+            "poser": "cobblemon:greninja",
+            "model": "cobblemon:greninja.geo",
+            "texture": "cobblemon:textures/pokemon/0658_greninja/greninja.png",
+            "layers": []
+          },
+          {
+            "aspects": [
+              "shiny"
+            ],
+            "texture": "cobblemon:textures/pokemon/0658_greninja/greninja_shiny.png"
+          }
+        ]
+      }
+    }
+  ],
+  "textures": [
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja.png",
+      "sha256": "8527e1da812cfadd96513813f98dda223c5e14fc80e32f0b533230996b664aa1",
+      "size_bytes": 2150
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja_shiny.png",
+      "sha256": "953e4f6826448142d9f85937c779719f2ece550ca5d030fc1d355ce583b2384c",
+      "size_bytes": 2144
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja_shiny_tongue_hidden.png",
+      "sha256": "2b7f9ea3cb64d2d3eca9fe2ecee5314b72cdb95ed5e23bfc2012b101d89bcaae",
+      "size_bytes": 1925
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/ash_greninja_tongue_hidden.png",
+      "sha256": "e04cafffbeb21f4160150f51d9c60853182497e0b12c6f723da02f469c739de6",
+      "size_bytes": 1935
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/greninja.png",
+      "sha256": "6a7b6ed1b1e93111413e47c11e9423a35e2877140e69b1bac1cb285c46ab6464",
+      "size_bytes": 2014
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/greninja_shiny.png",
+      "sha256": "875e2e2b61e6514de68c5d982f0c1030680003b15c5dbc0ddc62d3e37d726810",
+      "size_bytes": 2008
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/greninja_tongue_hidden.png",
+      "sha256": "eea65602d679b570ba8fc1193daaa746f193e49366d3e64c7b72d1935c201d18",
+      "size_bytes": 1805
+    },
+    {
+      "path": "assets/cobblemon/textures/pokemon/0658_greninja/greninja_tongue_hidden_shiny.png",
+      "sha256": "96eca1c24cd5f1fe9695fbb78909c5b8d987589ca704736eefe0097802ed3314",
+      "size_bytes": 1800
+    }
+  ],
+  "license_candidates": [
+    {
+      "path": "assets/cobblemon/bedrock/pokemon/models/0658_greninja/license",
+      "sha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"
+    }
+  ]
+}
