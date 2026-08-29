@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    " C ",
+    " B "
+  ],
+  "key": {
+    "S": { "item": "minecraft:smithing_table" },
+    "C": { "item": "minecraft:crafting_table" },
+    "B": { "item": "minecraft:barrel" }
+  },
+  "result": {
+    "id": "autoptu_cobblemon_rpg_fabric_adapter:crafting_workstation",
+    "count": 1
+  }
+}
