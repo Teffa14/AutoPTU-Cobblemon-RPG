@@ -49,18 +49,21 @@ jobs:
         run: |
           set -euo pipefail
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json' > .official-source/pikachu_male.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json' > .official-source/pikachu_female.geo.json
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json' > .official-source/pikachu.animation.json
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json' > .official-source/pikachu.poser.json
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json' > .official-source/pikachu.resolver.json
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png' > .official-source/pikachu.png
           sha256sum \
             .official-source/pikachu_male.geo.json \
+            .official-source/pikachu_female.geo.json \
             .official-source/pikachu.animation.json \
             .official-source/pikachu.poser.json \
             .official-source/pikachu.resolver.json \
             .official-source/pikachu.png \
             > .official-source/SHA256SUMS
           grep '^f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83  .official-source/pikachu_male.geo.json$' .official-source/SHA256SUMS
+          test -s .official-source/pikachu_female.geo.json
 
       - name: Upload exact official source bundle
         uses: actions/upload-artifact@v4
@@ -68,6 +71,7 @@ jobs:
           name: cobblemon-1.7.3-pikachu-official-source
           path: |
             .official-source/pikachu_male.geo.json
+            .official-source/pikachu_female.geo.json
             .official-source/pikachu.animation.json
             .official-source/pikachu.poser.json
             .official-source/pikachu.resolver.json
