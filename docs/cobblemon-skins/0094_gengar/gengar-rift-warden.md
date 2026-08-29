@@ -1,6 +1,6 @@
 # 0094 Gengar — Rift Warden
 
-Status: EPIC ACCEPTED IN BLOCKBENCH — PLAYABLE/CORE CI PENDING
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Rift Warden is a presentation-only Ouros cosmetic derived from the exact Gengar model distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It does not implement or consume Cobblemon battle-state authority.
 
@@ -66,7 +66,7 @@ The accepted review loads the exact production `.geo.json`, official texture and
 
 No `battle_ready` PNG is claimed because the official Gengar animation JSON has no dedicated battle clip. No walking PNG is claimed because that JSON has no walking clip; `air_fly` is used as the official locomotion evidence instead.
 
-Playable Fabric and Integration Core checks are still required before this status can be promoted to fully validated/mergeable.
+Playable Fabric, Cobblemon Official Model Review and Integration Core all passed on PR #298. Integration Core also completed both dedicated-server Fabric + Cobblemon boots before merge eligibility.
 
 ## Production files
 
