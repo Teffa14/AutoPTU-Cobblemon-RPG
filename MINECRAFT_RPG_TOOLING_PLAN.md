@@ -16,7 +16,7 @@ Every AutoPTU-Cobblemon-RPG work run must read this file after the short read-on
 6. Clients submit requests and selections only. The server re-resolves player identity, party, inventory, target, eligibility, progression, and canonical state.
 7. Normal wild encounters must originate from visible roaming Pokemon actors registered by AutoPTU. Never create invisible random encounters from walking on grass, entering caves, swimming, fishing context alone, or other movement-only rolls. Environment/context may select which canonical wild actors are provisioned into the world, but combat starts only from an explicit visible actor interaction/engagement.
 8. Cobblemon Pokemon entities may be used only as rendered/walking presentation actors. AutoPTU must never trust or read their Pokemon payload, species, level, HP, moves, statuses, ownership, BattleState, battle participants, RNG, faint/capture/healing eligibility or results. Presentation data is projected one-way from AutoPTU canonical state.
-9. Minecraft damage must never decide HP or death for Pokemon presentation actors or canonical NPC actors. Loaded canonical Trainers may not directly mutate the Ouros world through ordinary block breaking/placement, buckets or fire-starting; authored server interactions and server world services are the mutation path.
+9. Minecraft damage must never decide HP or death for Pokemon presentation actors or canonical NPC actors. Normal Minecraft mining, digging, logging, building, buckets and fire-starting remain available by default. A battle, quest or scripted interaction may temporarily protect only an explicitly registered world footprint whose mutation would invalidate that active interaction.
 
 ## Status
 
@@ -81,7 +81,8 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-037 | LIVE | canonical party management screen | PR #265 / implementation head `a9f1926bc8d92cadda43155d3a713a3fae04d82b`. `/autoptu party manage` opens a server-authored 9x3 party view from durable canonical state; every member click revalidates party revision and Pokemon identity before delegating lead selection to the existing canonical lead service. Stale screens refresh and no Cobblemon gameplay state is trusted. |
 | CUR-038 | LIVE | canonical Pokémon summary screen | PR #267 / implementation head `2270c21384d01b61fb3fc6f4b76d7f405ec38a40`. Right-clicking a member in the normal Ouros Party screen opens the same server-authored 9x6 read-only summary used by `/autoptu pokemon <slot>`, after party revision/Pokémon identity revalidation. The view consumes only `CanonicalPokemonDetail`; canonical level, HP, statuses, injuries, types, abilities, moves, combat stats, movement, accuracy/evasion, capabilities, held-item presence and revision are projected, while XP remains explicitly unavailable until durable server-owned XP exists. |
 | CUR-039 | LIVE | physical canonical Trainer challenge request | PR #268 / implementation head `2a48165f5011f41dcdffb1766add7ce2a4a39df8`. The Cedar Ranger dialogue exposes an authored field-spar challenge; the server revalidates physical NPC identity/range, authenticated Trainer state, challenge-to-NPC binding and a non-empty canonical party before producing an immutable request snapshot with party identities and revision. Minecraft does not start or resolve the PTU battle. |
-| CUR-040 | LIVE | RPG actor/world authority protection | PR #269 / implementation head `4ca41451e32e485d9b493ce674eb2cfb69a03dab`. Fabric cancels Minecraft damage to every Cobblemon Pokemon presentation actor and canonical tagged NPC before damage resolution. Loaded canonical Trainers cannot directly break blocks or request ordinary block placement, bucket placement/pickup or fire-starting; authored server interactions and world services remain the mutation path. |
+| CUR-040 | LIVE | RPG actor/world authority protection | PR #269 protects Pokemon/canonical-NPC presentation actors from Minecraft damage authority. PR #270 / merge `2437d32f02c727dc30c0c61ae3157125983424a1` restores ordinary Minecraft mining/building/logging/digging and world mutation outside explicit temporary battle/quest/script protection scopes. |
+| CUR-041 | LIVE | Authored world-object interaction gate | PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a` adds server-authoritative `canInteract` gating for explicitly authored chests, switches, doors, terminals and shrines while leaving ordinary vanilla objects untouched. |
 
 ---
 
@@ -235,8 +236,8 @@ These should become the normal gameplay path.
 | WORLD-013 | BLOCKED | Region/grass ecology provisioning for visible roaming wild Pokémon. Population/presence must be backed by a trusted server-authored complete canonical WILD blueprint source before reveal; it never creates invisible movement encounters. |
 | WORLD-014 | TODO | Cave ecology provisioning for visible roaming wild Pokémon; no movement-only encounter roll. |
 | WORLD-015 | TODO | Water/fishing ecology provisioning for visible/swimming/fishable wild actors; no context-only battle trigger. |
-| WORLD-016 | NEXT | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |
-| WORLD-017 | TODO | Fast-travel point. |
+| WORLD-016 | LIVE | Interactive chests, switches, doors, terminals and shrines through `canInteract` — PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a`. A gold-block authored footprint opts supported vanilla objects into server-side Trainer identity, object-kind and range revalidation; ordinary Minecraft objects remain vanilla. |
+| WORLD-017 | NEXT | Fast-travel point. |
 | WORLD-018 | TODO | Inn/rest point. |
 | WORLD-019 | TODO | Move tutor/relearner NPC shell. |
 | WORLD-020 | TODO | Gym/league registration desk. |
@@ -246,7 +247,7 @@ These should become the normal gameplay path.
 | WORLD-024 | TODO | Persistent world-event objects. |
 | WORLD-025 | TODO | Ambient Pokémon behavior framework that never becomes PTU stat truth. |
 | WORLD-026 | LIVE | Physical item storage terminal/menu — PR #262 / implementation head `ff27bfd65b8a0df7c093035847d2fb29b6bba094`. The authored iron-block-over-barrel world surface opens a 9x6 server-authored bag/storage menu, revalidates proximity/block identity and stale canonical quantities before each click, and delegates movement to SVC-037. Stored items remain excluded from active bag sale/crafting/reservation reads. |
-| WORLD-027 | LIVE | RPG actor/world anti-grief protection — PR #269 / implementation head `4ca41451e32e485d9b493ce674eb2cfb69a03dab`. Minecraft damage is rejected for Pokemon and canonical NPC presentation actors before HP/death resolution. Loaded canonical Trainers are denied direct block breaking plus ordinary block/bucket/fire world-mutation requests, so hazards and terrain edits cannot bypass the authored RPG authority path. External-mod entity discard/reprojection and non-player indirect block mutation remain separate recovery hardening, not trusted gameplay outcomes. |
+| WORLD-027 | LIVE | RPG actor/world authority protection — PR #269 protects Pokemon and canonical NPC presentation actors from Minecraft damage authority. PR #270 / merge `2437d32f02c727dc30c0c61ae3157125983424a1` narrows terrain protection to explicit temporary interaction footprints, so normal Minecraft mining, digging, logging, building, buckets and fire remain available elsewhere. |
 
 ---
 
@@ -317,7 +318,7 @@ These should become the normal gameplay path.
 | ID | Status | Boundary |
 |---|---|---|
 | SVC-001 | TODO | `canPerform(player, action, context)` |
-| SVC-002 | TODO | `canInteract(player, object, context)` |
+| SVC-002 | LIVE | `canInteract(player, object, context)` — PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a`. The server validates canonical Trainer existence, authored object identity/type and interaction range before allowing the Minecraft-facing interaction; it supplies no PTU legality, RNG, rewards, progression or battle outcome. |
 | SVC-003 | TODO | `canUse(player, item, target, context)` |
 | SVC-004 | LIVE/PARTIAL | `canCraft(player, recipe, context)` — PR #226 resolves Trainer capability, PR #228 supplies server-owned material/output contracts, PR #229 supplies exactly-once mutation, PR #230 adds side-effect-free canonical material eligibility, PR #231 supplies server-observed authored-ingredient acquisition, PR #233 wires that authority into normal workstation execution, PR #235 exposes explicit player recipe requests, and PR #236 / `38a3b230a5bb9ca4a3d9313065678b3a617afaa1` exposes server-owned readiness and selection through normal workstation interaction while preserving server revalidation. Cross-store acquisition recovery remains future work. |
 | SVC-005 | TODO | `canTravel(player, destination, context)` |
