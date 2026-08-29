@@ -76,6 +76,7 @@ jobs:
               -Dautoptu.liveFastTravelSmoke=true \
               -Dautoptu.liveInnRestSmoke=true \
               -Dautoptu.liveRpgProtectionSmoke=true \
+              -Dautoptu.liveCraftingWorkstationSmoke=true \
               -Dautoptu.liveCanonicalStoreRestartSmoke=seed \
               -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke-first.log 2>&1
           ) &
@@ -94,6 +95,7 @@ jobs:
               && grep -q 'AutoPTU live Minecraft lodestone fast travel surface smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live namespaced PTU recovery bed smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live RPG actor damage protection smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live canonical crafting workstation smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live canonical player store seed smoke passed' "$latest" 2>/dev/null \
               && grep -q 'Done (' "$latest" 2>/dev/null; then
               first_ready=1
@@ -112,6 +114,7 @@ jobs:
           fi
 
           cp "$server_dir/logs/latest.log" "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live canonical crafting workstation smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live canonical player store seed smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           stop_server
 
@@ -154,6 +157,7 @@ jobs:
           grep 'AutoPTU live Minecraft lodestone fast travel surface smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live namespaced PTU recovery bed smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live RPG actor damage protection smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live canonical crafting workstation smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live canonical player store restart smoke passed' "$server_dir/autoptu-second-boot-latest.log"
       - name: Collect runtime evidence
         if: always()
@@ -190,6 +194,7 @@ jobs:
           record_marker "$first" 'AutoPTU live Minecraft lodestone fast travel surface smoke passed'
           record_marker "$first" 'AutoPTU live namespaced PTU recovery bed smoke passed'
           record_marker "$first" 'AutoPTU live RPG actor damage protection smoke passed'
+          record_marker "$first" 'AutoPTU live canonical crafting workstation smoke passed'
           record_marker "$first" 'AutoPTU live canonical player store seed smoke passed'
           record_marker "$first" 'Done ('
           record_marker "$second" 'AutoPTU Fabric server adapter initialized'
