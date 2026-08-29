@@ -120,7 +120,7 @@ public final class FabricFirstJoinOnboardingRuntime {
             if (slotIndex != NEXT_SLOT) return;
             player.closeHandledScreen();
             player.sendMessage(Text.literal("Trainer loaded. Choose your starter to begin your Ouros journey."), false);
-            player.sendMessage(Text.literal("Starter fallback: /autoptu starter list"), false);
+            player.sendMessage(Text.literal("Use /autoptu starter list, then /autoptu starter choose <species>."), false);
         }
 
         @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
