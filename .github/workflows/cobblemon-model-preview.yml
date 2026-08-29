@@ -72,12 +72,11 @@ jobs:
                   'model': 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json',
                   'animation': 'assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json',
                   'poser': 'assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json',
-                  'resolver': 'assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/pikachu.json',
+                  'resolver': 'assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json',
                   'texture': 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png',
               }
               missing = {key: path for key, path in required.items() if path not in names}
               if missing:
-                  # Report every exact Pikachu path from the official JAR before failing.
                   candidates = sorted(n for n in names if '0025_pikachu' in n or ('pikachu' in n.lower() and '/posers/' in n))
                   raise AssertionError('Missing expected production assets: ' + repr(missing) + '\nCandidates:\n' + '\n'.join(candidates))
 
