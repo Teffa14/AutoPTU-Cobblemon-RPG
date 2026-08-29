@@ -161,10 +161,11 @@ if (animationName && modelInfo.appliedAnimation?.name !== animationName) {
 }
 
 const views = {
-  front: { position: [0, 0, -512], locked: 'north', horizontalAxis: 'x' },
-  back:  { position: [0, 0, 512],  locked: 'south', horizontalAxis: 'x' },
-  left:  { position: [-512, 0, 0], locked: 'west',  horizontalAxis: 'z' },
-  right: { position: [512, 0, 0],  locked: 'east',  horizontalAxis: 'z' },
+  front: { position: [0, 0, -512], locked: 'north', span: 'x' },
+  back: { position: [0, 0, 512], locked: 'south', span: 'x' },
+  left: { position: [-512, 0, 0], locked: 'west', span: 'z' },
+  right: { position: [512, 0, 0], locked: 'east', span: 'z' },
+  three_quarter: { position: [-512, 210, -512], locked: null, span: 'max' },
 };
 
 const renderMetadata = {};
@@ -182,9 +183,15 @@ for (const [name, view] of Object.entries(views)) {
 
     const center = bounds.getCenter(new THREE.Vector3());
     const size = bounds.getSize(new THREE.Vector3());
-    const horizontalSpan = view.horizontalAxis === 'x' ? size.x : size.z;
-    const verticalSpan = size.y;
-    const margin = 1.20;
+    const horizontalSpan = view.span === 'x'
+      ? size.x
+      : view.span === 'z'
+        ? size.z
+        : Math.hypot(size.x, size.z) / Math.SQRT2;
+    const verticalSpan = view.span === 'max'
+      ? size.y + Math.min(size.x, size.z) * 0.25
+      : size.y;
+    const margin = 1.22;
     const targetResolution = 1024;
     const orthoWorldSpanAtZoomOne = targetResolution / 40;
     const zoom = Math.min(
@@ -193,15 +200,16 @@ for (const [name, view] of Object.entries(views)) {
     );
 
     const preview = Preview.selected;
-    preview.loadAnglePreset({
+    const preset = {
       id: `ouros_${name}`,
       name: `Ouros ${name}`,
       projection: 'orthographic',
       position: view.position,
       target: [0, 0, 0],
       zoom,
-      locked_angle: view.locked,
-    });
+    };
+    if (view.locked) preset.locked_angle = view.locked;
+    preview.loadAnglePreset(preset);
 
     const cameraOffset = preview.camera.position.clone().sub(preview.controls.target);
     preview.controls.target.copy(center);
