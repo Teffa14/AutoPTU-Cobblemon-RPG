@@ -21,7 +21,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: storm-courier-real-pose-evidence-${{ github.ref }}
+  group: storm-courier-real-pose-evidence-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -181,9 +181,9 @@ jobs:
           renders = Path('.pose/renders')
           expected = {
               'official-hero': ('animation.pikachu.ground_idle', 90),
-              'hero': ('animation.pikachu.ground_idle', 94),
-              'battle': ('animation.pikachu.battle_idle', 94),
-              'walking': ('animation.pikachu.ground_walk', 94),
+              'hero': ('animation.pikachu.ground_idle', 98),
+              'battle': ('animation.pikachu.battle_idle', 98),
+              'walking': ('animation.pikachu.ground_walk', 98),
           }
           for name, (animation, bones) in expected.items():
               metadata = json.loads((renders / name / 'blockbench-metadata.json').read_text(encoding='utf-8'))
@@ -219,7 +219,7 @@ jobs:
               'modelSource': 'official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo',
               'animationSource': 'official pikachu.animation.json imported through Blockbench Bedrock animation codec',
               'originalBoneCount': 90,
-              'stormBoneCount': 94,
+              'stormBoneCount': 98,
               'poses': {
                   'hero': {'animation': 'animation.pikachu.ground_idle', 'time': 0.35},
                   'battle_ready': {'animation': 'animation.pikachu.battle_idle', 'time': 0.35},
@@ -252,6 +252,6 @@ jobs:
             echo 'Pose evidence already current.'
             exit 0
           fi
-          git commit -m 'Evidence: refresh premium Storm Courier Blockbench poses'
+          git commit -m 'Evidence: refresh epic Storm Courier Blockbench poses'
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin HEAD:"${GITHUB_REF_NAME}"
