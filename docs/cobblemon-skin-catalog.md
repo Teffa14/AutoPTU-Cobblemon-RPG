@@ -17,6 +17,7 @@ Implementation rule applied:
 - four Ouros accessory bones are appended and parented to original Cobblemon bones;
 - the resolver uses Cobblemon's original `cobblemon:pikachu` poser;
 - base and shiny body textures resolve to Cobblemon's original Pikachu textures;
+- a separate 64x64 transparent accessory overlay supplies charcoal, leather, copper and storm-glass materials only to UV pixels unused by the original Pikachu geometry;
 - original Cobblemon animations continue to drive the original bones, so accessories inherit movement through their parents;
 - the previous custom rebuilt body, custom poser, custom animation set and replacement body textures are removed.
 
@@ -33,5 +34,5 @@ Reference and licensing notes:
 - Base geometry is an adaptation of Cobblemon's `pikachu_male.geo.json`; source: `codemonkey85/Cobblemon-Mirror`, path `common/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json`.
 - Base/shiny textures remain Cobblemon resources and are referenced by identifier rather than copied into Ouros.
 - The source Pikachu asset carries Cobblemon's included Creative Commons public-license/non-commercial terms. This adaptation must retain the required attribution and license conditions.
-- The added courier accessory geometry is authored for Ouros.
+- The added courier accessory geometry and accessory-only overlay texture are authored for Ouros.
 - Pokémon UNITE/Holowear and public skin packs may inform high-level cosmetic principles only; no third-party costume geometry, texture or artwork is copied.
