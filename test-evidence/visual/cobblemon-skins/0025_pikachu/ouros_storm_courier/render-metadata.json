@@ -1,15 +1,64 @@
 {
-  "format": "ouros.cobblemon-model-review.v1",
+  "format": "ouros.cobblemon-model-review.v2",
   "sourceModel": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json",
   "sourceModelSha256": "0fde04dd2c7a968a9888ea83dba50d3bc7f02a55ad5d340b00727cebc5fea497",
   "baseTexture": "Cobblemon-Mirror:0025_pikachu/pikachu.png",
   "accessoryTexture": "assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png",
   "renderer": "tools/cobblemon-model-review/render_bedrock_model.py",
-  "views": {
-    "front": "c15283c2e89d1d7afaf857db602c16230cd97534f17b406426407953db929df7",
-    "left": "5ee069b0567a932c3a44a38a71b3f1bf0daf3a9b89ffdaecc1cdda82d5729425",
-    "right": "85de502aa4122062a85f0466aec5c6534c26c822c8d5723ffd43a3169fa6a5c9",
-    "back": "1db019ab270ba82124612cc991d7155e7a2d389470b6f1499886e91ae424be2a"
+  "orthographicViews": {
+    "front": "0db82587503963cc4b13d10101fd8ee72cac19d41b3d6a1e39a7fedd144f11ce",
+    "left": "bcc6ae705cd2368371596d3bd0c7906e4a1c27ae3ab03307063bc05793ecfed2",
+    "right": "7cb5f18b3c21b98c99340fe86695bcd409433da80268522afe264617eba98a73",
+    "back": "30be745d1a48b39e4b4219bf98ee26901d12a5ad40d3032411312b70ffac84c9"
   },
-  "note": "Software-rasterized from the exact Bedrock geometry and textures; not generative imagery."
+  "decisionPoses": {
+    "hero_three_quarter": "cae7025b557528e68b289c3bfed6624e756bb3eab31332755766c18d221aac69",
+    "battle_ready": "a9c8ff33b577e7ed809f58f95bb0832966d298aac34caca4616d5500029936ba",
+    "walking": "7e44d7556c2759fd5baa6e69f3fe0ad0cdb5c7825db083249396cf85a89a786a"
+  },
+  "boundingBoxes": {
+    "front": [
+      158,
+      67,
+      866,
+      956
+    ],
+    "left": [
+      107,
+      67,
+      917,
+      956
+    ],
+    "right": [
+      107,
+      67,
+      917,
+      956
+    ],
+    "back": [
+      158,
+      67,
+      866,
+      956
+    ],
+    "hero_three_quarter": [
+      124,
+      67,
+      899,
+      956
+    ],
+    "battle_ready": [
+      182,
+      67,
+      842,
+      956
+    ],
+    "walking": [
+      166,
+      67,
+      857,
+      956
+    ]
+  },
+  "note": "Software-rasterized from the exact Bedrock geometry and textures. Decision poses articulate the model existing bone hierarchy only; they are not generative imagery and do not modify production animation data."
 }
