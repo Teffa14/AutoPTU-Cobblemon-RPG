@@ -29,13 +29,13 @@
   },
   "files": {
     "official_reference_three_quarter.png": "c5966850860db4bc0ed7151e892976974241c72ccbe50c4aa1aa211ca9fbb0a8",
-    "hero_three_quarter.png": "383a9c11519e542f4836f890e0ea09448cf3f397057e1c688e47407de2b184dd",
-    "battle_ready_three_quarter.png": "9e05d4e50e256e3f6b2816414ee75c16b6f4a9e5fa93734b4919cbf10b2c6512",
-    "walking_three_quarter.png": "4253a346bdc05cd319b2440f82e190f8c2c3c17d0dd8c15086548857b0e76046",
-    "ash_hero_three_quarter.png": "47eba2ecc89e8f6ae1333705376bb1d8ae003d8d40e04c408254943a1c143bee",
-    "hero_front.png": "fcc96f615065a6f4a974b30bef03ec8e0e7f285fc9a8c2b636e8130d4a17061a",
-    "hero_left.png": "9bfc96cbe0d4423aa78d2f3b1763ea20154e925c672ddc24a66d8cb9199f3889",
-    "hero_right.png": "9512f7abf093dccc723b09148280bf7840b2b6ece4b688903e070129e95dce2f",
-    "hero_back.png": "9a6edfe981f0c502bd7b71125a4c9c5c6a52da5653e1e939ac09c5b35c181ed1"
+    "hero_three_quarter.png": "7f2b85d9acb22affd1d227bd41ffdb9d7588c095d4ab4645fbd9370f213a47e7",
+    "battle_ready_three_quarter.png": "4121c14943d0a364e40e55f5a1b2d3846f1c4222ebc0af653c785f2533669269",
+    "walking_three_quarter.png": "c62d9952e749318d39a645859014924a7f34f3c356449d0f3ab55059dc128d8d",
+    "ash_hero_three_quarter.png": "f9e0169ad8c88fdbe0776a5896d81855a7ebb77433fb47428930946f468310a3",
+    "hero_front.png": "06048c4fa01f4785a4ad4747fbd3e00b55edb04d3ab88c4d69bdbc70753f5fb9",
+    "hero_left.png": "e2f1a34c115ed5164296d26b2707888dab84d0d414787f34cca1c94e8e1343ff",
+    "hero_right.png": "ed1d014b2bad4b56151ae555aad0ef29f03616058403f8b72941b2a2316a0b76",
+    "hero_back.png": "ab1e0cb8ebb9a4e453e79af38611341dad37b22be202b993563e104264abf298"
   }
 }
