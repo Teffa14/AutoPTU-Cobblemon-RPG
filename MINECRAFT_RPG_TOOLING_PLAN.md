@@ -76,6 +76,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-033 | LIVE | persistent tracked quest selection | PR #260 / implementation head `d2d554d67c418881280df02f7ed848bc53b23220`. `/autoptu quest track <id>` selects exactly one already-accepted server-authored quest for the authenticated Trainer, persists the pointer through journal revision CAS, and exposes tracked state through the existing journal projection without advancing objectives or granting rewards. |
 | CUR-034 | LIVE | restart-safe canonical item storage fallback | PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. `/autoptu storage` projects owner-scoped stored quantities; deposit/withdraw move opaque canonical item quantities between the active bag and storage through a durable staged journal, keeping stored items outside bag sale/crafting/reservation reads and recovering pending transfers on server start. |
 | CUR-035 | LIVE | physical canonical item storage terminal | PR #262 / implementation head `ff27bfd65b8a0df7c093035847d2fb29b6bba094`. Right-clicking the authored iron-block-over-barrel terminal opens a server-side bag/storage menu; every click revalidates canonical bag stack or storage revision/quantity and delegates one-item movement to SVC-037 without exposing stored quantities as active bag inventory. |
+| CUR-036 | LIVE | server-authored first-join Trainer onboarding | PR #263 / implementation head `c9b54bcd4db742c5d1f3f3e049ca43271ee5293a`. After authenticated provisioning, a player with a canonical Trainer but no persistent encounter profile gets the server-side Ouros onboarding screen; existing party-bearing players are not interrupted, and no Trainer/PTU/starter truth is accepted from the client. |
 
 ---
 
@@ -212,8 +213,8 @@ These should become the normal gameplay path.
 
 | ID | Status | Interaction |
 |---|---|---|
-| WORLD-001 | NEXT | First-join Trainer/onboarding screen. |
-| WORLD-002 | TODO | Starter-selection screen with Pokémon preview. |
+| WORLD-001 | LIVE | First-join Trainer/onboarding screen — PR #263 / implementation head `c9b54bcd4db742c5d1f3f3e049ca43271ee5293a`. After Minecraft authentication and canonical provisioning, the server opens onboarding only when that UUID-derived Trainer exists and has no persistent encounter profile/starter party; every interaction revalidates the same server-owned state and no PTU or starter truth comes from the client. |
+| WORLD-002 | NEXT | Starter-selection screen with Pokémon preview. |
 | WORLD-003 | TODO | Party HUD and party management screen. |
 | WORLD-004 | TODO | Pokémon summary screen. |
 | WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
