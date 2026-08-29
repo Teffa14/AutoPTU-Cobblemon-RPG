@@ -74,6 +74,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-031 | LIVE | physical canonical quest-giver acceptance | PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8`. The Cedar Ranger exposes the server-authored `cedar-field-notes` offer; selecting it accepts that exact quest once into the authenticated Trainer's durable world-save journal. Repeat selection is idempotent and objective completion/rewards remain separate systems. |
 | CUR-032 | LIVE | canonical quest journal read surface | PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`. `/autoptu journal`, `/autoptu quests` and `/autoptu quest <id>` project only the authenticated Trainer's durable accepted entries plus server-authored quest metadata; unknown or unaccepted detail requests fail closed and no objective/reward state is inferred. |
 | CUR-033 | LIVE | persistent tracked quest selection | PR #260 / implementation head `d2d554d67c418881280df02f7ed848bc53b23220`. `/autoptu quest track <id>` selects exactly one already-accepted server-authored quest for the authenticated Trainer, persists the pointer through journal revision CAS, and exposes tracked state through the existing journal projection without advancing objectives or granting rewards. |
+| CUR-034 | LIVE | restart-safe canonical item storage fallback | PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. `/autoptu storage` projects owner-scoped stored quantities; deposit/withdraw move opaque canonical item quantities between the active bag and storage through a durable staged journal, keeping stored items outside bag sale/crafting/reservation reads and recovering pending transfers on server start. |
 
 ---
 
@@ -145,9 +146,12 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 |---|---|---|
 | CMD-060 | LIVE | `/autoptu bag` — PR #243 / implementation head `a5667c5b6f482f3aae73c77694a47467fb4c7db1`; reads only the authenticated player's durable canonical item stacks and reports quantity, available quantity, active reservation quantity and retained transaction locks. |
 | CMD-061 | LIVE | `/autoptu bag inspect <item>` — PR #244 / implementation head `74c9341ab8cc13e3445f133220e8fd0763dbbfdc`; resolves only owner-scoped canonical state, preferring an exact item-instance ID and otherwise aggregating the authored template ID, with quantity, availability, reservation/retained-lock detail and revision. |
-| CMD-062 | TODO | `/autoptu use <item> [target]` |
-| CMD-063 | TODO | `/autoptu held equip <partySlot> <item>` |
-| CMD-064 | TODO | `/autoptu held remove <partySlot>` |
+| CMD-062 | BLOCKED | `/autoptu use <item> [target]` until AutoPTU-Java supplies authoritative item-use legality/effects. |
+| CMD-063 | BLOCKED | `/autoptu held equip <partySlot> <item>` until AutoPTU-Java supplies authoritative held-item legality/effects. |
+| CMD-064 | BLOCKED | `/autoptu held remove <partySlot>` until AutoPTU-Java supplies authoritative held-item legality/effects. |
+| CMD-065 | LIVE | `/autoptu storage` — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`; reads only the authenticated Trainer's durable canonical stored item quantities and revision. |
+| CMD-066 | LIVE | `/autoptu storage deposit <item> [qty]` — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`; the server resolves an owned unreserved bag stack, retains a transaction lock while moving quantity out of the bag, journals the transfer and recovers it on restart. |
+| CMD-067 | LIVE | `/autoptu storage withdraw <item> [qty]` — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`; the server validates stored quantity, journals source removal and creates one deterministic canonical bag stack exactly once. |
 
 ## Economy and crafting
 
@@ -228,10 +232,11 @@ These should become the normal gameplay path.
 | WORLD-019 | TODO | Move tutor/relearner NPC shell. |
 | WORLD-020 | TODO | Gym/league registration desk. |
 | WORLD-021 | TODO | Gates/doors controlled by canonical badge/key/progression state. |
-| WORLD-022 | LIVE | Camp interaction. PR #240 adds the physical campfire-over-barrel assessment surface. PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23` adds the actual server-owned field-camp activity: dimension/block position defines the camp identity, the authenticated Trainer's canonical Survival rank freezes the authored Ouros quality curve, one result is committed durably, and later interactions/restarts reuse that exact result. It consumes no PTU action cost/frequency and grants no healing, reward, encounter result, or battle state. |
+| WORLD-022 | LIVE | Camp interaction. PR #240 adds the physical campfire-over-barrel assessment surface. PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23` adds the actual server-owned Ouros camp result keyed by dimension/block position and reuses the persisted result after reconnect/restart. |
 | WORLD-023 | TODO | Discovery/location trigger. |
 | WORLD-024 | TODO | Persistent world-event objects. |
 | WORLD-025 | TODO | Ambient Pokémon behavior framework that never becomes PTU stat truth. |
+| WORLD-026 | NEXT | Physical item storage terminal/menu backed by SVC-037, so normal players can manage bag versus storage without slash commands. The world object must revalidate proximity/context and must never expose stored items as active bag inventory. |
 
 ---
 
@@ -337,6 +342,7 @@ These should become the normal gameplay path.
 | SVC-034 | LIVE | `acceptQuest(player, npcId, questId)` — PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8`. The server resolves authored quest/giver truth, writes one owner-scoped ACCEPTED entry through revisioned atomic persistence and returns the existing entry on duplicate retry. It grants no reward, XP, item, PTU action or battle effect. |
 | SVC-035 | LIVE | `inspectQuestJournal(player)` / `inspectQuest(player, questId)` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`. The server reads only the owner-scoped durable journal, resolves every stored quest ID against the authored catalogue, rejects unknown/unaccepted detail requests and performs no objective, reward, XP or PTU mutation. |
 | SVC-036 | LIVE | `trackQuest(player, questId)` — PR #260 / implementation head `d2d554d67c418881280df02f7ed848bc53b23220`. The server accepts only a server-authored quest already present in the authenticated Trainer's durable journal, persists one tracked quest through revision CAS, and treats repeated selection as idempotent. It does not advance objectives, claim rewards or apply PTU behavior. |
+| SVC-037 | LIVE | `inspectItemStorage(player)` / `transferItemStorage(transferId, player, direction, item, quantity)` — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. The server resolves bag ownership/reservation state or stored quantity, journals CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED, uses idempotent storage receipts and retained bag locks, resumes pending transfers on startup and never interprets item effects. |
 
 ---
 
@@ -385,7 +391,8 @@ These are required for operations, testing and recovery. They must never be norm
 | TODO | Trainer presentation/profile data. |
 | TODO | Trainer XP/level/progression. |
 | TODO | Pokémon XP/progression/evolution choices. |
-| NEXT/PARTIAL | Canonical inventory quantities and wallet. PR #231 persists authored crafting ingredient quantities in canonical item stacks, PR #233 consumes those canonical quantities into exactly-once durable craft outputs from the normal workstation, PR #235 exposes the same canonical mutation through explicit recipe fallback requests, and PR #236 exposes recipe selection/readiness through the normal workstation. PR #238 closes the crash-recoverable Minecraft-to-canonical ingredient handoff. PR #243 adds owner-scoped bag reads; PR #244 adds exact stack/template inspection. PR #245 adds durable wallet state and `/autoptu money`; PR #246 adds atomic exactly-once currency mutation receipts. PR #247 adds the authored shop catalogue; PR #250 adds durable mutable shop stock. PR #251 adds durable exactly-once purchases. PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e` adds explicit authored sell prices plus a durable sale journal that safely consumes canonical items and credits wallet across retry/restart. Item use/equipment remains blocked on authoritative PTU item behavior; general item transfer still needs its own canonical storage policy. |
+| BLOCKED/PARTIAL | Canonical inventory quantities and wallet. PR #231 persists authored crafting ingredient quantities in canonical item stacks, PR #233 consumes those canonical quantities into exactly-once durable craft outputs from the normal workstation, PR #235 exposes the same canonical mutation through explicit recipe fallback requests, and PR #236 exposes recipe selection/readiness through the normal workstation. PR #238 closes the crash-recoverable Minecraft-to-canonical ingredient handoff. PR #243 adds owner-scoped bag reads; PR #244 adds exact stack/template inspection. PR #245 adds durable wallet state and `/autoptu money`; PR #246 adds atomic exactly-once currency mutation receipts. PR #247 adds the authored shop catalogue; PR #250 adds durable mutable shop stock. PR #251 adds durable exactly-once purchases. PR #254 adds restart-safe canonical sales. PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2` adds owner-scoped long-term item storage plus crash-recoverable bag/storage transfers, so stored quantities are outside bag sale/crafting/reservation reads. Remaining item use and held-item equipment are blocked on authoritative PTU item behavior. |
+| LIVE | Durable canonical item storage and transfer journal — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. Stored template quantities, revision and idempotency receipts persist owner-scoped under the world save; transfer intent and CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED stages recover on server start without duplication or loss. |
 | LIVE | Durable Minecraft-to-canonical crafting ingredient handoff journal — PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8`. Pending withdrawals survive restart/reconnect, reconcile only against server-persisted inventory state, and canonical retries are idempotent. |
 | LIVE | Durable canonical wallet transaction receipts — PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd`. Balance, wallet revision and immutable server-owned transaction identity are persisted atomically; retry/restart cannot double-apply a committed credit or debit. |
 | LIVE | Durable canonical shop stock — PR #250 / implementation head `748a57efc20678962f65efad9d4feb7450bafd54`. Remaining quantity and revision persist per authored shop/offer under the world save; stale CAS and implicit replenishment fail closed. |
@@ -400,7 +407,7 @@ These are required for operations, testing and recovery. They must never be norm
 | TODO | Active encounter session journal. |
 | TODO | Active battle checkpoint/recovery journal. |
 | TODO | Post-battle result commit ledger/idempotency keys. |
-| NEXT/PARTIAL | Trainer PTU Daily action usage and monotonic RPG-day state — PR #224; stored under the server world save and durable through reconnect/restart. |
+| BLOCKED/PARTIAL | Trainer PTU Daily action usage and monotonic RPG-day state — PR #224; stored under the server world save and durable through reconnect/restart. Final Scene/Encounter/turn/round frequency semantics remain blocked on authoritative PTU lifecycle/policy contracts. |
 | LIVE | Durable world-task/craft attempt ledger — PR #229. Stable attempt IDs persist frozen quality odds, planned canonical ingredient reservations, one resolved outcome, deterministic output identity, and exactly-once commit/recovery state. PR #233 binds this ledger to normal-world workstation craft requests; PR #235 binds explicit command requests to the same ledger. |
 | LIVE | Durable physical field-camp result ledger — PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23`. Camp identity, establishing Trainer, frozen Survival-derived Ouros quality distribution and committed result persist under the Minecraft world save and are reused after restart. |
 
