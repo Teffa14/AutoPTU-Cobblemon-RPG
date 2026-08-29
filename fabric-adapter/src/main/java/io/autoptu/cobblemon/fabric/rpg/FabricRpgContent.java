@@ -14,6 +14,7 @@ public final class FabricRpgContent {
     public static final String MOD_ID = "autoptu_cobblemon_rpg_fabric_adapter";
     public static final Identifier PTU_RECOVERY_BED_ID = Identifier.of(MOD_ID, "ptu_recovery_bed");
     public static final Identifier CEDAR_MART_COUNTER_ID = Identifier.of(MOD_ID, "cedar_mart_counter");
+    public static final Identifier ITEM_STORAGE_TERMINAL_ID = Identifier.of(MOD_ID, "item_storage_terminal");
 
     /**
      * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
@@ -37,6 +38,13 @@ public final class FabricRpgContent {
     );
     public static final Item CEDAR_MART_COUNTER_ITEM = new BlockItem(CEDAR_MART_COUNTER, new Item.Settings());
 
+    /** Dedicated item-storage identity. Bag/storage authority remains in canonical server services. */
+    public static final Block ITEM_STORAGE_TERMINAL = new Block(
+            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+                    .strength(3.0F)
+    );
+    public static final Item ITEM_STORAGE_TERMINAL_ITEM = new BlockItem(ITEM_STORAGE_TERMINAL, new Item.Settings());
+
     private static boolean registered;
 
     private FabricRpgContent() {}
@@ -47,6 +55,8 @@ public final class FabricRpgContent {
         Registry.register(Registries.ITEM, PTU_RECOVERY_BED_ID, PTU_RECOVERY_BED_ITEM);
         Registry.register(Registries.BLOCK, CEDAR_MART_COUNTER_ID, CEDAR_MART_COUNTER);
         Registry.register(Registries.ITEM, CEDAR_MART_COUNTER_ID, CEDAR_MART_COUNTER_ITEM);
+        Registry.register(Registries.BLOCK, ITEM_STORAGE_TERMINAL_ID, ITEM_STORAGE_TERMINAL);
+        Registry.register(Registries.ITEM, ITEM_STORAGE_TERMINAL_ID, ITEM_STORAGE_TERMINAL_ITEM);
         registered = true;
     }
 }
