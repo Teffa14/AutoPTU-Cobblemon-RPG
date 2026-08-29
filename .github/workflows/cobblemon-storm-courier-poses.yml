@@ -1,5 +1,6 @@
 name: Storm Courier Real Pose Evidence
 
+# Persist only evidence rendered by Blockbench from the pinned official Cobblemon model and animations.
 on:
   push:
     branches:
