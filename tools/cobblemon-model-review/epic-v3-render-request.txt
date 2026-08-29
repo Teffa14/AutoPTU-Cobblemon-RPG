@@ -1,0 +1,1 @@
+Render request: inspect the regenerated 98-bone Storm Courier assets from the current branch head in pinned Blockbench 5.1.6 using the official Cobblemon 1.7.3 Pikachu animations. This file exists only to force a human-authored post-generation review run; it carries no runtime behavior.
