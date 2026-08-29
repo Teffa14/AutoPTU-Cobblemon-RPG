@@ -1,14 +1,6 @@
 name: Storm Courier Real Pose Evidence
 
 on:
-  push:
-    branches:
-      - feat/cobblemon-skin-studio-clean-v2
-    paths:
-      - '.github/workflows/cobblemon-storm-courier-poses.yml'
-      - 'tools/cobblemon-model-review/**'
-      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_*.geo.json'
-      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
   pull_request:
     paths:
       - '.github/workflows/cobblemon-storm-courier-poses.yml'
@@ -18,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: storm-courier-real-pose-evidence-${{ github.ref }}
@@ -35,8 +27,6 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -185,7 +175,6 @@ jobs:
               'battle': ('animation.pikachu.battle_idle', 94),
               'walking': ('animation.pikachu.ground_walk', 94),
           }
-          sources = {}
           for name, (animation, bones) in expected.items():
               metadata = json.loads((renders / name / 'blockbench-metadata.json').read_text(encoding='utf-8'))
               assert metadata['viewer'] == 'Blockbench'
@@ -195,7 +184,6 @@ jobs:
               assert applied['name'] == animation, (name, applied)
               assert applied['codec'] == 'bedrock'
               assert 'three_quarter' in metadata['views']
-              sources[name] = metadata
 
           root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses')
           files = [
@@ -240,20 +228,3 @@ jobs:
           path: test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses
           if-no-files-found: error
           retention-days: 14
-
-      - name: Commit real pose PNGs to branch
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          set -euo pipefail
-          root='test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses'
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add "$root"
-          if git diff --cached --quiet; then
-            echo 'Pose evidence already current.'
-            exit 0
-          fi
-          git commit -m 'Evidence: add real Blockbench Storm Courier poses'
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin HEAD:"${GITHUB_REF_NAME}"
