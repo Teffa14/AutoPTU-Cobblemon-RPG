@@ -6,7 +6,12 @@ import io.autoptu.cobblemon.authority.CanonicalPartySummary;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.boss.BossBar;
+import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
@@ -20,9 +25,14 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Server-authored party management surface. Minecraft renders canonical party state and submits only
@@ -32,6 +42,9 @@ import java.util.Locale;
 public final class FabricPartyManagementRuntime {
     private static final int TOP_SLOT_COUNT = 27;
     private static final int[] PARTY_SLOTS = {10, 11, 12, 14, 15, 16};
+    private static final int HUD_REFRESH_TICKS = 40;
+    private static final Map<UUID, ServerBossBar> PARTY_HUDS = new ConcurrentHashMap<>();
+    private static int hudTickCounter;
 
     private FabricPartyManagementRuntime() {}
 
@@ -41,6 +54,56 @@ public final class FabricPartyManagementRuntime {
                         .then(CommandManager.literal("party")
                                 .then(CommandManager.literal("manage")
                                         .executes(context -> open(context.getSource()))))));
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (world.isClient() || hand != Hand.MAIN_HAND || !player.isSneaking()
+                    || !(player instanceof ServerPlayerEntity serverPlayer)) {
+                return ActionResult.PASS;
+            }
+            if (!FabricPokemonStorageTerminalRuntime.isCanonicalPc(world, hitResult.getBlockPos())) {
+                return ActionResult.PASS;
+            }
+            if (!FabricPokemonStorageTerminalRuntime.withinInteractionDistance(serverPlayer, hitResult.getBlockPos())) {
+                serverPlayer.sendMessage(Text.literal("You are too far away to manage your AutoPTU party."), false);
+                return ActionResult.FAIL;
+            }
+            CanonicalPartySummary party = queryParty(serverPlayer);
+            if (party == null || party.members().isEmpty()) {
+                serverPlayer.sendMessage(Text.literal("No persistent AutoPTU party exists yet."), false);
+                return ActionResult.FAIL;
+            }
+            openScreen(serverPlayer);
+            return ActionResult.SUCCESS;
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> removeHud(handler.player.getUuid()));
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            hudTickCounter++;
+            if (hudTickCounter < HUD_REFRESH_TICKS) return;
+            hudTickCounter = 0;
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                CanonicalPartySummary party = queryParty(player);
+                if (party == null || party.members().isEmpty()) {
+                    removeHud(player.getUuid());
+                    continue;
+                }
+                ServerBossBar hud = PARTY_HUDS.computeIfAbsent(player.getUuid(), ignored -> {
+                    ServerBossBar created = new ServerBossBar(
+                            Text.literal("Ouros Party"),
+                            BossBar.Color.GREEN,
+                            BossBar.Style.PROGRESS
+                    );
+                    created.setPercent(1.0F);
+                    return created;
+                });
+                hud.setName(Text.literal(hudLabel(party)));
+                hud.addPlayer(player);
+            }
+        });
+    }
+
+    private static void removeHud(UUID playerUuid) {
+        if (playerUuid == null) return;
+        ServerBossBar hud = PARTY_HUDS.remove(playerUuid);
+        if (hud != null) hud.clearPlayers();
     }
 
     private static int open(ServerCommandSource source) {
@@ -79,6 +142,22 @@ public final class FabricPartyManagementRuntime {
         } catch (IllegalStateException inconsistentState) {
             return null;
         }
+    }
+
+    static String hudLabel(CanonicalPartySummary party) {
+        if (party == null || party.members().isEmpty()) return "Party unavailable";
+        StringBuilder label = new StringBuilder("Party ");
+        List<CanonicalPartySummary.Member> members = party.members();
+        for (int i = 0; i < members.size(); i++) {
+            CanonicalPartySummary.Member member = members.get(i);
+            if (i > 0) label.append(" | ");
+            if (member.slot() == 1) label.append("★ ");
+            label.append(displayName(member.speciesId()));
+            if (member.hasHealth()) {
+                label.append(' ').append(member.currentHp()).append('/').append(member.maxHp());
+            }
+        }
+        return label.toString();
     }
 
     private static final class PartyManagementScreenHandler extends GenericContainerScreenHandler {
