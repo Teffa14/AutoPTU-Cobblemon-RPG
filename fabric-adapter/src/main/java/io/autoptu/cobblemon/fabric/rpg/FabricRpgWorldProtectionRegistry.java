@@ -50,9 +50,14 @@ public final class FabricRpgWorldProtectionRegistry {
     }
 
     public static Optional<ProtectedRegion> protectionAt(World world, BlockPos pos) {
-        if (world == null || pos == null) return Optional.empty();
+        if (world == null) return Optional.empty();
+        return protectionAt(world.getRegistryKey(), pos);
+    }
+
+    static Optional<ProtectedRegion> protectionAt(RegistryKey<World> dimension, BlockPos pos) {
+        if (dimension == null || pos == null) return Optional.empty();
         return REGIONS.values().stream()
-                .filter(region -> region.dimension().equals(world.getRegistryKey()))
+                .filter(region -> region.dimension().equals(dimension))
                 .filter(region -> region.contains(pos))
                 .findFirst();
     }
