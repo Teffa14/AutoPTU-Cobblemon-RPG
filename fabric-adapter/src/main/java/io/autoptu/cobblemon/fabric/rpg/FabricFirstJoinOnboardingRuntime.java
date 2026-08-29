@@ -132,7 +132,7 @@ public final class FabricFirstJoinOnboardingRuntime {
                     "Ouros Pokemon RPG"
             ));
             displayInventory.setStack(TRAINER_SLOT, named(
-                    Items.PLAYER_HEAD.getDefaultStack(),
+                    Items.NAME_TAG.getDefaultStack(),
                     "Canonical Trainer ready"
             ));
             displayInventory.setStack(NEXT_SLOT, named(
