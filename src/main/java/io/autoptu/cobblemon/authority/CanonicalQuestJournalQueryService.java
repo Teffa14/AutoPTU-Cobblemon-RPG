@@ -18,23 +18,26 @@ public final class CanonicalQuestJournalQueryService {
         var journal = repository.findOrCreate(playerId);
         List<QuestSnapshot> quests = journal.entries().values().stream()
                 .map(entry -> snapshot(entry, catalogue.quest(entry.questId())
-                        .orElseThrow(() -> new IllegalStateException("quest journal references unknown canonical questId: " + entry.questId()))))
+                        .orElseThrow(() -> new IllegalStateException("quest journal references unknown canonical questId: " + entry.questId())),
+                        entry.questId().equals(journal.trackedQuestId())))
                 .sorted(Comparator.comparing(QuestSnapshot::questId))
                 .toList();
-        return new JournalSnapshot(journal.playerId(), journal.revision(), quests);
+        return new JournalSnapshot(journal.playerId(), journal.revision(), journal.trackedQuestId(), quests);
     }
 
     public QuestSnapshot inspectQuest(String playerId, String questId) {
         var quest = catalogue.quest(questId)
                 .orElseThrow(() -> new IllegalArgumentException("unknown canonical questId: " + questId));
-        var entry = repository.findOrCreate(playerId).entries().get(quest.questId());
+        var journal = repository.findOrCreate(playerId);
+        var entry = journal.entries().get(quest.questId());
         if (entry == null) throw new IllegalArgumentException("quest is not in this Trainer's journal: " + quest.questId());
-        return snapshot(entry, quest);
+        return snapshot(entry, quest, quest.questId().equals(journal.trackedQuestId()));
     }
 
     private static QuestSnapshot snapshot(
             FileCanonicalQuestJournalRepository.QuestEntry entry,
-            CanonicalQuestCatalogue.Quest quest
+            CanonicalQuestCatalogue.Quest quest,
+            boolean tracked
     ) {
         return new QuestSnapshot(
                 quest.questId(),
@@ -42,14 +45,16 @@ public final class CanonicalQuestJournalQueryService {
                 quest.summary(),
                 quest.objectiveText(),
                 entry.state().name(),
-                entry.acceptedRevision()
+                entry.acceptedRevision(),
+                tracked
         );
     }
 
-    public record JournalSnapshot(String playerId, long revision, List<QuestSnapshot> quests) {
+    public record JournalSnapshot(String playerId, long revision, String trackedQuestId, List<QuestSnapshot> quests) {
         public JournalSnapshot {
             if (playerId == null || playerId.isBlank()) throw new IllegalArgumentException("playerId is required");
             if (revision < 0) throw new IllegalArgumentException("revision must not be negative");
+            if (trackedQuestId != null && trackedQuestId.isBlank()) throw new IllegalArgumentException("trackedQuestId must not be blank");
             quests = List.copyOf(Objects.requireNonNull(quests, "quests"));
         }
     }
@@ -60,6 +65,7 @@ public final class CanonicalQuestJournalQueryService {
             String summary,
             String objectiveText,
             String state,
-            long acceptedRevision
+            long acceptedRevision,
+            boolean tracked
     ) {}
 }
