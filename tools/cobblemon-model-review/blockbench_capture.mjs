@@ -13,9 +13,27 @@ function arg(name) {
   return process.argv[index + 1];
 }
 
+function optionalArg(name, fallback = null) {
+  const index = process.argv.indexOf(name);
+  return index === -1 || !process.argv[index + 1] ? fallback : process.argv[index + 1];
+}
+
 const endpoint = arg('--endpoint');
 const texturePath = path.resolve(arg('--texture'));
 const outputDir = path.resolve(arg('--output-dir'));
+const animationArg = optionalArg('--animation');
+const animationName = optionalArg('--animation-name');
+const animationTime = Number(optionalArg('--animation-time', '0'));
+const animationPath = animationArg ? path.resolve(animationArg) : null;
+const animationContent = animationPath ? fs.readFileSync(animationPath, 'utf8') : null;
+
+if ((animationPath && !animationName) || (!animationPath && animationName)) {
+  throw new Error('--animation and --animation-name must be provided together');
+}
+if (!Number.isFinite(animationTime) || animationTime < 0) {
+  throw new Error(`Invalid --animation-time ${animationTime}`);
+}
+
 fs.mkdirSync(outputDir, { recursive: true });
 
 let browser;
@@ -45,10 +63,13 @@ await page.waitForFunction(() => {
     && typeof Cube !== 'undefined'
     && Array.isArray(Cube.all)
     && Cube.all.length > 0
-    && typeof Group !== 'undefined';
+    && typeof Group !== 'undefined'
+    && typeof AnimationCodec !== 'undefined'
+    && typeof Animator !== 'undefined'
+    && typeof Timeline !== 'undefined';
 }, null, { timeout: 60000 });
 
-const modelInfo = await page.evaluate(async (texture) => {
+const modelInfo = await page.evaluate(async ({ texture, animationContent, animationPath, animationName, animationTime }) => {
   const info = {
     projectName: Project.name,
     formatId: Format.id,
@@ -87,19 +108,56 @@ const modelInfo = await page.evaluate(async (texture) => {
 
   Canvas.updateAllFaces();
   Canvas.updateAllBones();
+
+  let appliedAnimation = null;
+  if (animationContent && animationName) {
+    if (!Animator.open) Animator.join();
+    const codec = AnimationCodec.getCodec();
+    if (!codec || typeof codec.loadFile !== 'function') {
+      throw new Error(`Blockbench has no animation codec for format ${Format.id}`);
+    }
+    const imported = codec.loadFile(
+      { content: animationContent, path: animationPath, name: animationPath?.split(/[\\/]/).pop() },
+      [animationName],
+    );
+    const animation = imported?.find(candidate => candidate.name === animationName)
+      ?? Animation.all.find(candidate => candidate.name === animationName);
+    if (!animation) {
+      throw new Error(`Blockbench did not import animation ${animationName}`);
+    }
+    animation.select();
+    animation.playing = true;
+    Timeline.setTime(animationTime);
+    Animator.preview();
+    scene.updateMatrixWorld(true);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    appliedAnimation = {
+      name: animation.name,
+      requestedTime: animationTime,
+      timelineTime: Timeline.time,
+      length: animation.length,
+      loop: animation.loop,
+      codec: codec.id,
+    };
+  }
+
   return {
     ...info,
     textureName: loaded.name,
     textureWidth: loaded.width,
     textureHeight: loaded.height,
+    appliedAnimation,
   };
-}, texturePath);
+}, { texture: texturePath, animationContent, animationPath, animationName, animationTime });
 
 if (!String(modelInfo.formatId).includes('bedrock')) {
   throw new Error(`Expected Blockbench Bedrock format, got ${modelInfo.formatId}`);
 }
 if (modelInfo.textureWidth <= 0 || modelInfo.textureHeight <= 0) {
   throw new Error('Blockbench did not load the Cobblemon texture');
+}
+if (animationName && modelInfo.appliedAnimation?.name !== animationName) {
+  throw new Error(`Expected Blockbench animation ${animationName}, got ${modelInfo.appliedAnimation?.name}`);
 }
 
 const views = {
@@ -112,6 +170,9 @@ const views = {
 const renderMetadata = {};
 for (const [name, view] of Object.entries(views)) {
   const result = await page.evaluate(async ({ name, view }) => {
+    if (typeof Animator !== 'undefined' && Animator.open && Animation?.selected) {
+      Animator.preview();
+    }
     scene.updateMatrixWorld(true);
     const bounds = new THREE.Box3();
     for (const cube of Cube.all) {
@@ -189,11 +250,17 @@ for (const [name, view] of Object.entries(views)) {
   };
 }
 
+const metadata = {
+  viewer: 'Blockbench',
+  sourceOfTransforms: modelInfo.appliedAnimation ? 'Blockbench Bedrock animation codec' : 'Blockbench model bind pose',
+  modelInfo,
+  views: renderMetadata,
+};
 fs.writeFileSync(
   path.join(outputDir, 'blockbench-metadata.json'),
-  `${JSON.stringify({ viewer: 'Blockbench', modelInfo, views: renderMetadata }, null, 2)}\n`,
+  `${JSON.stringify(metadata, null, 2)}\n`,
   'utf8',
 );
 
-console.log(JSON.stringify({ viewer: 'Blockbench', modelInfo, views: renderMetadata }, null, 2));
+console.log(JSON.stringify(metadata, null, 2));
 await browser.close();
