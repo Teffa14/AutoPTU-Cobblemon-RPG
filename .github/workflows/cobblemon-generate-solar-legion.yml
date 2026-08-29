@@ -1,0 +1,113 @@
+name: Generate Solar Legion From Official Cobblemon
+
+on:
+  push:
+    branches: ['skin/charizard-solar-legion']
+    paths:
+      - '.github/workflows/cobblemon-generate-solar-legion.yml'
+      - 'tools/cobblemon-model-review/build_solar_legion_charizard.py'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0006_charizard/90_ouros_solar_legion.json'
+      - 'fabric-adapter/src/main/resources/data/cobblemon/species_features/ouros_solar_legion.json'
+      - 'fabric-adapter/src/main/resources/data/cobblemon/species_feature_assignments/ouros_charizard_cosmetics.json'
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency:
+  group: generate-solar-legion-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Verify latest stable compatible release and download official source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Solar-Legion' \
+            'https://api.modrinth.com/v2/project/cobblemon/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D' -o .official-source/versions.json
+          python - <<'PY'
+          import json
+          v=json.load(open('.official-source/versions.json'))
+          r=sorted((x for x in v if x.get('version_type')=='release'),key=lambda x:x['date_published'],reverse=True)
+          assert r and r[0]['id']=='kF7CvxTo', (r[0]['id'],r[0]['version_number'])
+          PY
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Solar-Legion' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          python - <<'PY' > .official-source/download.env
+          import json,shlex
+          d=json.load(open('.official-source/version.json')); assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and d['game_versions']==['1.21.1'] and 'fabric' in d['loaders']
+          p=next(f for f in d['files'] if f.get('primary')); assert p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(p['url'])); print('SHA512='+shlex.quote(p['hashes']['sha512']))
+          PY
+          source .official-source/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" .official-source/cobblemon.jar | sha512sum --check --strict
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0006_charizard/charizard.geo.json' > .official-source/charizard.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0006_charizard/charizard.animation.json' > .official-source/charizard.animation.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/posers/0006_charizard/charizard.json' > .official-source/charizard.poser.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/resolvers/0006_charizard/0_charizard_base.json' > .official-source/charizard.resolver.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0006_charizard/charizard.png' > .official-source/charizard.png
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0006_charizard/charizard_shiny.png' > .official-source/charizard_shiny.png
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0006_charizard/license' > .official-source/model-license.txt
+          test "$(sha256sum .official-source/charizard.geo.json|awk '{print $1}')" = b0e4a255876ef0cda88d0f61c9773bdcb7aee852cde929da49cda0da817bcadb
+          test "$(sha256sum .official-source/charizard.animation.json|awk '{print $1}')" = f16a510fec4fb00d8669ba07bee40e4ee80fb41e7cf4d798597a97da33d3880b
+          test "$(sha256sum .official-source/charizard.poser.json|awk '{print $1}')" = 89bfe55055fea4d7f0c0398e13060cc6fb724988028c50e2d341dd6b94c8ec8e
+          test "$(sha256sum .official-source/charizard.resolver.json|awk '{print $1}')" = fa46e648441b555d33bea16be49ab1abd0e1a5ac68958427b5ac914341b51711
+          test "$(sha256sum .official-source/charizard.png|awk '{print $1}')" = b2990c16bdf37002ee9a5ad3a68a562d03e8cd7105510a84c396e9e757ba3215
+          test "$(sha256sum .official-source/charizard_shiny.png|awk '{print $1}')" = ceb2458e18f2dc825e0a50fa8a400e95b593ab7b2d4fa8452a41a685e609a4c3
+      - name: Generate cosmetic production assets
+        run: |
+          python tools/cobblemon-model-review/build_solar_legion_charizard.py --official .official-source/charizard.geo.json --model-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0006_charizard/ouros_solar_legion_charizard.geo.json --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0006_charizard/ouros_solar_legion_accessories.png --metadata-out docs/cobblemon-skins/0006_charizard/solar-legion-build-metadata.json
+      - name: Validate anatomy, extras, UV, resolver and official animations
+        shell: bash
+        run: |
+          set -euo pipefail
+          model=fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0006_charizard/ouros_solar_legion_charizard.geo.json
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/charizard.geo.json --candidate "$model"
+          python - <<'PY'
+          import importlib.util,json,hashlib
+          from pathlib import Path
+          from PIL import Image
+          o=json.loads(Path('.official-source/charizard.geo.json').read_text())['minecraft:geometry'][0]
+          m=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0006_charizard/ouros_solar_legion_charizard.geo.json').read_text())['minecraft:geometry'][0]
+          meta=json.loads(Path('docs/cobblemon-skins/0006_charizard/solar-legion-build-metadata.json').read_text())
+          expected=['ouros_solar_crown','ouros_solar_gorget_core','ouros_solar_pauldron_right','ouros_solar_pauldron_left','ouros_solar_wing_standard_right','ouros_solar_wing_standard_left','ouros_solar_tail_brazier','ouros_solar_legion_mantle']
+          assert len(o['bones'])==130 and len(m['bones'])==138 and [b['name'] for b in m['bones'][130:]]==expected
+          assert meta['originalBoneCount']==130 and meta['derivedBoneCount']==138 and meta['cosmeticCubeCount']>=50
+          spec=importlib.util.spec_from_file_location('builder','tools/cobblemon-model-review/build_solar_legion_charizard.py'); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          reserved={tuple(v) for v in meta['palettePixels'].values()}; assert reserved.isdisjoint(mod.mark_uv_usage(o))
+          im=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0006_charizard/ouros_solar_legion_accessories.png').convert('RGBA'); assert list(im.size)==meta['textureSize']==[256,128]
+          opaque={(x,y) for y in range(im.height) for x in range(im.width) if im.getpixel((x,y))[3]}; assert opaque==reserved
+          r=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0006_charizard/90_ouros_solar_legion.json').read_text()); assert r['species']=='cobblemon:charizard' and len(r['variations'])==4
+          for v in r['variations']:
+              assert v['poser']=='cobblemon:charizard' and v['model']=='cobblemon:ouros_solar_legion_charizard.geo' and v['layers'][-1]['name']=='ouros_solar_legion'
+              assert any(x['name']=='flame' for x in v['layers'])
+          a=json.loads(Path('.official-source/charizard.animation.json').read_text())['animations']
+          for n in ['animation.charizard.ground_idle','animation.charizard.battle_idle','animation.charizard.ground_walk','animation.charizard.air_idle','animation.charizard.air_fly']: assert n in a
+          license_sha=hashlib.sha256(Path('.official-source/model-license.txt').read_bytes()).hexdigest()
+          meta['officialModelLicenseSha256']=license_sha
+          Path('docs/cobblemon-skins/0006_charizard/solar-legion-build-metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
+          print('validated',len(o['bones']),'official +',len(m['bones'])-len(o['bones']),'cosmetic; cubes',meta['cosmeticCubeCount'],'license',license_sha)
+          PY
+      - name: Preserve exact model license
+        run: |
+          mkdir -p docs/cobblemon-skins/0006_charizard
+          cp .official-source/model-license.txt docs/cobblemon-skins/0006_charizard/official-model-license.txt
+      - name: Commit generated production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]; git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0006_charizard/ouros_solar_legion_charizard.geo.json fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0006_charizard/ouros_solar_legion_accessories.png docs/cobblemon-skins/0006_charizard/solar-legion-build-metadata.json docs/cobblemon-skins/0006_charizard/official-model-license.txt
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'RPG: generate Solar Legion from official Cobblemon Charizard'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"

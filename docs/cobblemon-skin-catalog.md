@@ -115,6 +115,24 @@ Real Blockbench 5.1.6 review accepted the silhouette after direct visual inspect
 
 Detailed provenance, license, geometry and QA notes: `docs/cobblemon-skins/0094_gengar/gengar-rift-warden.md`.
 
+## 0778 Mimikyu — Eclipse Herald
+
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+
+Eclipse Herald is derived from the exact official Cobblemon 1.7.3 Mimikyu geometry. All 48 original bones remain JSON-equivalent and in order; eight `ouros_*` cosmetic groups bring the derived model to 56 bones with 42 cosmetic cubes. Its signature read is a broken lateral eclipse relic, asymmetric ritual mantle, unequal rear standards, tail reliquary and hand charms. The 64×64 overlay occupies only eight texels proven unused by the original geometry.
+
+Real Blockbench 5.1.6 review uses the official `ground_idle`, `physical` and `ground_walk` clips and matched-camera official-vs-skin evidence. Playable Fabric, Cobblemon Official Model Review and Integration Core completed successfully before PR #299 merged. Detailed provenance and QA: `docs/cobblemon-skins/0778_mimikyu/mimikyu-eclipse-herald.md`.
+
+## 0006 Charizard — Solar Legion
+
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+
+Solar Legion is built from the exact official Charizard model in Cobblemon 1.7.3 / Minecraft 1.21.1, Modrinth `kF7CvxTo`. CI pins the official model (`b0e4a255876ef0cda88d0f61c9773bdcb7aee852cde929da49cda0da817bcadb`), animation (`f16a510fec4fb00d8669ba07bee40e4ee80fb41e7cf4d798597a97da33d3880b`), poser (`89bfe55055fea4d7f0c0398e13060cc6fb724988028c50e2d341dd6b94c8ec8e`) and resolver (`fa46e648441b555d33bea16be49ab1abd0e1a5ac68958427b5ac914341b51711`).
+
+All 130 official bones remain JSON-equivalent and in order. Eight attached `ouros_*` groups produce 138 bones and 55 cosmetic cubes: open solar crown, gorget/chest core, asymmetric pauldrons, unequal wing-root standards, a tail brazier around the original flame root and a split legion mantle. The overlay uses only `(0..7,127)` on the official 256×128 texture, proven UV-free by generation CI.
+
+The resolver keeps the official `cobblemon:charizard` poser, normal/shiny bodies, separate normal/shiny animated flame frames and `alpha_eyes` presentation branch. Real Blockbench 5.1.6 evidence covers matched official reference, hero, battle idle, ground walk, flight and four-view structure. Direct artistic review accepted the silhouette and confirmed motion-safe attachment through `battle_idle`, `ground_walk` and `air_fly`. PR #302 completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully; Integration Core booted the production Fabric + Cobblemon dedicated server twice. Detailed provenance and QA: `docs/cobblemon-skins/0006_charizard/charizard-solar-legion.md`.
+
 ## Authority boundary
 
 All skin/model work is presentation-only. Cobblemon/Minecraft model, animation and rendering systems may be reused. Cobblemon battle state, participants, legality, HP/status, positions and combat authority remain outside this workflow; Ouros/AutoPTU remain authoritative for tactical battle facts.
