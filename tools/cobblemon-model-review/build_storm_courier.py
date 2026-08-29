@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build Storm Courier by appending premium cosmetic geometry to official Cobblemon Pikachu.
+"""Build Storm Courier by appending epic cosmetic geometry to official Cobblemon Pikachu.
 
 Inputs must be the exact male/female geometry extracted from the pinned official
 Cobblemon 1.7.3 Fabric JAR. Existing bones, cubes, pivots, locators, hierarchy,
 UVs and animation-facing names are never rewritten. The only allowed model
-changes are the geometry identifier and four appended `ouros_*` cosmetic bones.
+changes are the geometry identifier and appended `ouros_*` cosmetic bones.
 """
 
 from __future__ import annotations
@@ -41,36 +41,39 @@ def cube(origin, size, material, **extra) -> dict:
 
 
 def goggles_bone() -> dict:
-    """Layered storm goggles with readable hardware at front and three-quarter angles."""
+    """Storm visor with heavy frame, brow lightning and side retention hardware."""
     cubes = [
-        cube([-3.72, 14.70, -4.22], [2.12, 1.52, 0.10], "glass"),
-        cube([1.60, 14.70, -4.22], [2.12, 1.52, 0.10], "glass"),
-        cube([-3.84, 16.18, -4.26], [2.36, 0.20, 0.17], "copper"),
-        cube([1.48, 16.18, -4.26], [2.36, 0.20, 0.17], "copper"),
-        cube([-1.62, 15.34, -4.28], [3.24, 0.22, 0.17], "copper"),
-        cube([-0.44, 15.04, -4.30], [0.88, 0.20, 0.18], "brass"),
+        cube([-3.82, 14.58, -4.28], [2.34, 1.78, 0.12], "glass"),
+        cube([1.48, 14.58, -4.28], [2.34, 1.78, 0.12], "glass"),
+        cube([-3.98, 16.24, -4.34], [2.66, 0.28, 0.22], "copper"),
+        cube([1.32, 16.24, -4.34], [2.66, 0.28, 0.22], "copper"),
+        cube([-1.62, 15.34, -4.36], [3.24, 0.28, 0.22], "copper"),
+        cube([-0.50, 14.96, -4.38], [1.00, 0.28, 0.20], "brass"),
+        # Lightning brow accents make the face read as a signature skin at distance.
+        cube([-3.18, 16.52, -4.26], [1.18, 0.24, 0.18], "brass", pivot=[-2.59, 16.64, -4.17], rotation=[0, 0, -16]),
+        cube([2.00, 16.52, -4.26], [1.18, 0.24, 0.18], "brass", pivot=[2.59, 16.64, -4.17], rotation=[0, 0, 16]),
     ]
-    for x in (-3.84, 1.48):
+    for x in (-3.98, 1.32):
         cubes.extend(
             [
-                cube([x, 14.58, -4.27], [2.36, 0.18, 0.16], "charcoal"),
-                cube([x, 14.58, -4.27], [0.18, 1.78, 0.16], "charcoal"),
-                cube([x + 2.18, 14.58, -4.27], [0.18, 1.78, 0.16], "charcoal"),
+                cube([x, 14.44, -4.33], [2.66, 0.20, 0.20], "charcoal"),
+                cube([x, 14.44, -4.33], [0.20, 2.08, 0.20], "charcoal"),
+                cube([x + 2.46, 14.44, -4.33], [0.20, 2.08, 0.20], "charcoal"),
             ]
         )
     cubes.extend(
         [
-            cube([-4.44, 15.30, -3.62], [0.72, 0.24, 1.28], "leather"),
-            cube([3.72, 15.30, -3.62], [0.72, 0.24, 1.28], "leather"),
-            cube([-4.46, 15.30, -2.48], [0.26, 0.24, 1.08], "navy"),
-            cube([4.20, 15.30, -2.48], [0.26, 0.24, 1.08], "navy"),
-            cube([-3.96, 16.05, -4.34], [0.28, 0.28, 0.14], "brass"),
-            cube([-1.62, 16.05, -4.34], [0.28, 0.28, 0.14], "brass"),
-            cube([1.34, 16.05, -4.34], [0.28, 0.28, 0.14], "brass"),
-            cube([3.68, 16.05, -4.34], [0.28, 0.28, 0.14], "brass"),
-            # Signature right-temple weather tab: tiny, readable, and still local to the head.
-            cube([4.28, 15.64, -3.18], [0.28, 0.54, 0.72], "copper"),
-            cube([4.34, 15.76, -3.30], [0.16, 0.30, 0.18], "glass"),
+            cube([-4.72, 15.18, -3.72], [0.82, 0.34, 1.54], "leather"),
+            cube([3.90, 15.18, -3.72], [0.82, 0.34, 1.54], "leather"),
+            cube([-4.78, 15.18, -2.30], [0.30, 0.34, 1.42], "navy"),
+            cube([4.48, 15.18, -2.30], [0.30, 0.34, 1.42], "navy"),
+            cube([-4.00, 16.10, -4.42], [0.34, 0.34, 0.16], "brass"),
+            cube([-1.56, 16.10, -4.42], [0.34, 0.34, 0.16], "brass"),
+            cube([1.22, 16.10, -4.42], [0.34, 0.34, 0.16], "brass"),
+            cube([3.66, 16.10, -4.42], [0.34, 0.34, 0.16], "brass"),
+            # Right-temple weather lens is intentionally asymmetric.
+            cube([4.56, 15.52, -3.28], [0.34, 0.76, 0.84], "copper"),
+            cube([4.64, 15.68, -3.40], [0.18, 0.42, 0.20], "glass"),
         ]
     )
     return {
@@ -81,107 +84,190 @@ def goggles_bone() -> dict:
     }
 
 
+def cowl_bone() -> dict:
+    """Open-faced storm cowl that frames the original head and pushes silhouette outward."""
+    return {
+        "name": "ouros_storm_cowl",
+        "parent": "head_angle",
+        "pivot": [0, 17.0, 2.0],
+        "cubes": [
+            # Rear shell and side rails leave the original face and ears unobstructed.
+            cube([-4.72, 14.20, 3.90], [9.44, 4.90, 0.44], "navy"),
+            cube([-4.92, 14.72, 1.52], [0.42, 4.10, 2.48], "canvas"),
+            cube([4.50, 14.72, 1.52], [0.42, 4.10, 2.48], "canvas"),
+            cube([-4.92, 18.42, 1.40], [1.48, 0.38, 2.76], "copper"),
+            cube([3.44, 18.42, 1.40], [1.48, 0.38, 2.76], "copper"),
+            # Angular crown wings create a distinct hero silhouette between head and ears.
+            cube([-5.56, 18.60, 1.34], [2.20, 0.40, 1.20], "navy", pivot=[-4.46, 18.80, 1.94], rotation=[0, 0, -24]),
+            cube([3.36, 18.60, 1.34], [2.20, 0.40, 1.20], "navy", pivot=[4.46, 18.80, 1.94], rotation=[0, 0, 24]),
+            cube([-5.42, 18.92, 1.42], [1.72, 0.20, 0.90], "brass", pivot=[-4.56, 19.02, 1.87], rotation=[0, 0, -24]),
+            cube([3.70, 18.92, 1.42], [1.72, 0.20, 0.90], "brass", pivot=[4.56, 19.02, 1.87], rotation=[0, 0, 24]),
+            # Lower jawline guards stay behind the muzzle plane.
+            cube([-4.86, 13.62, 0.72], [0.38, 1.68, 2.82], "leather"),
+            cube([4.48, 13.62, 0.72], [0.38, 1.68, 2.82], "leather"),
+            cube([-4.98, 14.04, 0.58], [0.18, 0.72, 1.34], "brass"),
+            cube([4.80, 14.04, 0.58], [0.18, 0.72, 1.34], "brass"),
+        ],
+    }
+
+
+def mantle_bone() -> dict:
+    """Layered shoulder mantle and split storm tabs for an aggressive 3/4 silhouette."""
+    return {
+        "name": "ouros_storm_mantle",
+        "parent": "torso2",
+        "pivot": [0, 10.5, 1.0],
+        "cubes": [
+            # Shoulder pauldrons extend past the body but remain clear of the original arm bones.
+            cube([-6.10, 10.24, -2.46], [2.72, 1.26, 4.70], "navy", pivot=[-4.74, 10.87, -0.11], rotation=[0, 0, -8]),
+            cube([3.38, 10.24, -2.46], [2.72, 1.26, 4.70], "navy", pivot=[4.74, 10.87, -0.11], rotation=[0, 0, 8]),
+            cube([-6.20, 11.34, -2.26], [2.86, 0.30, 4.34], "copper", pivot=[-4.77, 11.49, -0.09], rotation=[0, 0, -8]),
+            cube([3.34, 11.34, -2.26], [2.86, 0.30, 4.34], "copper", pivot=[4.77, 11.49, -0.09], rotation=[0, 0, 8]),
+            cube([-5.82, 9.96, -2.10], [2.12, 0.30, 4.04], "brass", pivot=[-4.76, 10.11, -0.08], rotation=[0, 0, -8]),
+            cube([3.70, 9.96, -2.10], [2.12, 0.30, 4.04], "brass", pivot=[4.76, 10.11, -0.08], rotation=[0, 0, 8]),
+            # Rear split mantle panels give motion a stronger profile without replacing the torso.
+            cube([-4.18, 7.10, 4.44], [3.54, 4.30, 0.46], "canvas", pivot=[-2.40, 10.80, 4.67], rotation=[-8, 0, 10]),
+            cube([0.64, 7.10, 4.44], [3.54, 4.30, 0.46], "navy", pivot=[2.40, 10.80, 4.67], rotation=[-8, 0, -10]),
+            cube([-3.98, 7.14, 4.86], [3.24, 0.22, 0.20], "copper", pivot=[-2.36, 7.25, 4.96], rotation=[-8, 0, 10]),
+            cube([0.74, 7.14, 4.86], [3.24, 0.22, 0.20], "copper", pivot=[2.36, 7.25, 4.96], rotation=[-8, 0, -10]),
+        ],
+    }
+
+
 def harness_bone() -> dict:
-    """Courier harness with strong chest readability and restrained utility hardware."""
+    """Heavy courier harness with a large storm-core chest assembly."""
     return {
         "name": "ouros_storm_harness",
         "parent": "torso2",
         "pivot": [0, 8.75, 0.5],
         "cubes": [
-            cube(
-                [-3.92, 8.72, -3.78],
-                [7.84, 0.48, 0.26],
-                "leather",
-                pivot=[0, 8.96, -3.65],
-                rotation=[0, 0, 27],
-            ),
-            cube(
-                [-3.92, 8.72, -3.77],
-                [7.84, 0.48, 0.26],
-                "navy",
-                pivot=[0, 8.96, -3.64],
-                rotation=[0, 0, -27],
-            ),
-            cube([-4.18, 6.82, -3.76], [8.36, 0.46, 0.26], "leather"),
-            cube([-4.44, 6.94, -3.42], [0.28, 1.90, 6.84], "navy"),
-            cube([4.16, 6.94, -3.42], [0.28, 1.90, 6.84], "navy"),
-            # Upper yoke stays above the arms in idle and gives the front a real equipment silhouette.
-            cube([-2.34, 10.72, -3.80], [4.68, 0.34, 0.24], "leather"),
-            cube([-1.30, 10.58, -3.92], [2.60, 0.18, 0.16], "copper"),
-            # Main storm compass: larger than the prototype clasp so it remains readable in gameplay.
-            cube([-0.78, 9.58, -3.98], [1.56, 1.34, 0.34], "brass"),
-            cube([-0.48, 9.86, -4.08], [0.96, 0.78, 0.12], "glass"),
-            cube([-0.18, 10.00, -4.12], [0.36, 0.50, 0.10], "copper", pivot=[0, 10.25, -4.07], rotation=[0, 0, -28]),
-            # Lower keeper continues the V toward the belt without becoming a painted line.
-            cube([-0.52, 7.48, -3.96], [1.04, 0.28, 0.24], "copper"),
-            cube([-0.30, 7.76, -4.02], [0.60, 0.46, 0.10], "glass"),
-            # Shoulder clips.
-            cube([-3.62, 9.74, -3.96], [0.40, 0.40, 0.22], "brass"),
-            cube([3.22, 9.74, -3.96], [0.40, 0.40, 0.22], "brass"),
-            # Small utility pouches sit on the sides, visible from 3/4 but outside the arm swing path.
-            cube([-4.36, 7.34, -2.36], [0.62, 1.10, 1.42], "canvas"),
-            cube([3.74, 7.34, -2.36], [0.62, 1.10, 1.42], "canvas"),
-            cube([-4.42, 8.24, -2.42], [0.74, 0.26, 1.54], "leather"),
-            cube([3.68, 8.24, -2.42], [0.74, 0.26, 1.54], "leather"),
-            cube([-4.48, 7.70, -2.54], [0.14, 0.40, 0.48], "brass"),
-            cube([4.34, 7.70, -2.54], [0.14, 0.40, 0.48], "brass"),
+            cube([-4.08, 8.62, -3.86], [8.16, 0.58, 0.30], "leather", pivot=[0, 8.91, -3.71], rotation=[0, 0, 29]),
+            cube([-4.08, 8.62, -3.84], [8.16, 0.58, 0.30], "navy", pivot=[0, 8.91, -3.69], rotation=[0, 0, -29]),
+            cube([-4.34, 6.72, -3.84], [8.68, 0.54, 0.30], "leather"),
+            cube([-4.56, 6.92, -3.46], [0.34, 2.28, 6.92], "navy"),
+            cube([4.22, 6.92, -3.46], [0.34, 2.28, 6.92], "navy"),
+            cube([-2.84, 10.70, -3.90], [5.68, 0.42, 0.28], "leather"),
+            cube([-1.78, 10.54, -4.02], [3.56, 0.22, 0.20], "copper"),
+            # Main storm core is intentionally much larger than the previous compass clasp.
+            cube([-1.12, 9.28, -4.10], [2.24, 1.82, 0.44], "brass"),
+            cube([-0.78, 9.62, -4.22], [1.56, 1.14, 0.14], "glass"),
+            cube([-0.22, 9.78, -4.26], [0.44, 0.80, 0.12], "copper", pivot=[0, 10.18, -4.20], rotation=[0, 0, -32]),
+            cube([-0.60, 8.64, -4.08], [1.20, 0.40, 0.28], "copper"),
+            cube([-0.34, 8.94, -4.16], [0.68, 0.54, 0.12], "glass"),
+            # Shoulder locks visually connect the harness to the mantle.
+            cube([-4.04, 9.80, -4.00], [0.54, 0.54, 0.26], "brass"),
+            cube([3.50, 9.80, -4.00], [0.54, 0.54, 0.26], "brass"),
+            cube([-4.56, 7.26, -2.48], [0.82, 1.36, 1.64], "canvas"),
+            cube([3.74, 7.26, -2.48], [0.82, 1.36, 1.64], "canvas"),
+            cube([-4.66, 8.38, -2.56], [1.02, 0.32, 1.82], "leather"),
+            cube([3.64, 8.38, -2.56], [1.02, 0.32, 1.82], "leather"),
+            cube([-4.72, 7.74, -2.68], [0.18, 0.50, 0.56], "brass"),
+            cube([4.54, 7.74, -2.68], [0.18, 0.50, 0.56], "brass"),
         ],
     }
 
 
 def pack_bone() -> dict:
-    """Compact expedition pack with an asymmetric field-kit profile for three-quarter readability."""
+    """Large but body-bounded expedition pack with asymmetric storm equipment."""
     return {
         "name": "ouros_storm_pack",
         "parent": "torso2",
         "pivot": [0, 8.75, 4.5],
         "cubes": [
-            cube([-2.40, 7.02, 4.36], [5.20, 3.78, 1.48], "canvas"),
-            cube([-2.14, 6.48, 4.52], [4.68, 0.62, 1.18], "navy"),
-            cube([-2.56, 10.06, 4.25], [5.52, 0.78, 1.70], "leather"),
-            cube([-2.28, 9.82, 5.72], [4.96, 0.26, 0.16], "copper"),
-            cube([-3.18, 7.52, 4.48], [0.84, 2.14, 1.20], "navy"),
-            cube([2.74, 7.52, 4.48], [0.84, 2.14, 1.20], "navy"),
-            cube([-3.26, 9.32, 4.42], [1.00, 0.38, 1.34], "leather"),
-            cube([2.66, 9.32, 4.42], [1.00, 0.38, 1.34], "leather"),
-            cube([-1.92, 10.88, 4.56], [4.24, 0.66, 0.94], "cream"),
-            cube([-1.28, 10.82, 4.48], [0.34, 0.82, 1.10], "leather"),
-            cube([1.34, 10.82, 4.48], [0.34, 0.82, 1.10], "leather"),
-            cube([-1.52, 7.18, 5.76], [0.34, 2.72, 0.16], "leather"),
-            cube([1.58, 7.18, 5.76], [0.34, 2.72, 0.16], "leather"),
-            cube([-1.62, 8.10, 5.86], [0.54, 0.54, 0.12], "brass"),
-            cube([1.48, 8.10, 5.86], [0.54, 0.54, 0.12], "brass"),
-            cube([0.00, 8.72, 5.88], [0.40, 1.18, 0.12], "copper", pivot=[0.20, 9.31, 5.94], rotation=[0, 0, -18]),
-            cube([0.22, 8.18, 5.89], [0.36, 0.86, 0.12], "brass", pivot=[0.40, 8.61, 5.95], rotation=[0, 0, 28]),
-            # Right-side storm vial and copper cap create a recognizable asymmetry from the hero 3/4 view.
-            cube([3.42, 7.74, 4.70], [0.42, 1.38, 0.74], "glass"),
-            cube([3.34, 9.10, 4.62], [0.58, 0.28, 0.90], "copper"),
-            cube([3.34, 7.54, 4.62], [0.58, 0.24, 0.90], "brass"),
-            # Left-side folded route case balances the profile without making the pack wider than the body.
-            cube([-3.54, 7.70, 4.62], [0.40, 1.42, 0.82], "cream"),
-            cube([-3.62, 8.98, 4.54], [0.56, 0.28, 0.98], "leather"),
+            cube([-2.86, 6.78, 4.30], [6.12, 4.42, 1.84], "canvas"),
+            cube([-2.58, 6.18, 4.48], [5.56, 0.72, 1.44], "navy"),
+            cube([-3.00, 10.48, 4.16], [6.40, 0.96, 2.06], "leather"),
+            cube([-2.72, 10.18, 6.02], [5.84, 0.30, 0.20], "copper"),
+            cube([-3.76, 7.34, 4.40], [1.02, 2.56, 1.56], "navy"),
+            cube([3.20, 7.34, 4.40], [1.02, 2.56, 1.56], "navy"),
+            cube([-3.88, 9.52, 4.32], [1.26, 0.46, 1.76], "leather"),
+            cube([3.08, 9.52, 4.32], [1.26, 0.46, 1.76], "leather"),
+            # Rolled stormcloth crowns the pack and reads clearly from the front 3/4.
+            cube([-2.34, 11.44, 4.48], [5.08, 0.86, 1.24], "cream"),
+            cube([-1.66, 11.34, 4.36], [0.42, 1.06, 1.48], "leather"),
+            cube([1.44, 11.34, 4.36], [0.42, 1.06, 1.48], "leather"),
+            cube([-1.82, 6.96, 6.06], [0.42, 3.20, 0.20], "leather"),
+            cube([1.78, 6.96, 6.06], [0.42, 3.20, 0.20], "leather"),
+            cube([-1.96, 8.06, 6.18], [0.66, 0.66, 0.14], "brass"),
+            cube([1.64, 8.06, 6.18], [0.66, 0.66, 0.14], "brass"),
+            # Large lightning sigil on rear plate.
+            cube([-0.10, 8.78, 6.20], [0.48, 1.54, 0.14], "copper", pivot=[0.14, 9.55, 6.27], rotation=[0, 0, -18]),
+            cube([0.18, 8.08, 6.22], [0.44, 1.12, 0.14], "brass", pivot=[0.40, 8.64, 6.29], rotation=[0, 0, 30]),
+            # Right-side storm vial and left route case exaggerate asymmetry.
+            cube([3.96, 7.48, 4.64], [0.54, 1.76, 0.94], "glass"),
+            cube([3.84, 9.22, 4.54], [0.78, 0.34, 1.14], "copper"),
+            cube([3.84, 7.18, 4.54], [0.78, 0.30, 1.14], "brass"),
+            cube([-4.34, 7.36, 4.56], [0.52, 1.90, 1.06], "cream"),
+            cube([-4.44, 9.06, 4.46], [0.72, 0.36, 1.26], "leather"),
+        ],
+    }
+
+
+def coils_bone() -> dict:
+    """Twin storm-field pylons rising behind the shoulders for an unmistakable epic silhouette."""
+    return {
+        "name": "ouros_storm_coils",
+        "parent": "torso2",
+        "pivot": [0, 10.0, 4.8],
+        "cubes": [
+            # Left pylon.
+            cube([-3.72, 9.82, 4.84], [0.58, 4.28, 0.58], "charcoal", pivot=[-3.43, 11.96, 5.13], rotation=[0, 0, -9]),
+            cube([-3.82, 10.18, 4.72], [0.78, 0.34, 0.82], "copper", pivot=[-3.43, 10.35, 5.13], rotation=[0, 0, -9]),
+            cube([-3.82, 11.24, 4.72], [0.78, 0.34, 0.82], "brass", pivot=[-3.43, 11.41, 5.13], rotation=[0, 0, -9]),
+            cube([-3.82, 12.30, 4.72], [0.78, 0.34, 0.82], "copper", pivot=[-3.43, 12.47, 5.13], rotation=[0, 0, -9]),
+            cube([-3.74, 13.26, 4.76], [0.62, 0.78, 0.74], "glass", pivot=[-3.43, 13.65, 5.13], rotation=[0, 0, -9]),
+            cube([-4.20, 13.92, 4.66], [1.54, 0.30, 0.94], "brass", pivot=[-3.43, 14.07, 5.13], rotation=[0, 0, -9]),
+            # Right pylon.
+            cube([3.14, 9.82, 4.84], [0.58, 4.28, 0.58], "charcoal", pivot=[3.43, 11.96, 5.13], rotation=[0, 0, 9]),
+            cube([3.04, 10.18, 4.72], [0.78, 0.34, 0.82], "copper", pivot=[3.43, 10.35, 5.13], rotation=[0, 0, 9]),
+            cube([3.04, 11.24, 4.72], [0.78, 0.34, 0.82], "brass", pivot=[3.43, 11.41, 5.13], rotation=[0, 0, 9]),
+            cube([3.04, 12.30, 4.72], [0.78, 0.34, 0.82], "copper", pivot=[3.43, 12.47, 5.13], rotation=[0, 0, 9]),
+            cube([3.12, 13.26, 4.76], [0.62, 0.78, 0.74], "glass", pivot=[3.43, 13.65, 5.13], rotation=[0, 0, 9]),
+            cube([2.66, 13.92, 4.66], [1.54, 0.30, 0.94], "brass", pivot=[3.43, 14.07, 5.13], rotation=[0, 0, 9]),
+            # Low bridge grounds both pylons into the pack silhouette.
+            cube([-3.36, 9.72, 4.72], [6.72, 0.34, 0.72], "navy"),
+            cube([-1.14, 9.66, 5.36], [2.28, 0.46, 0.18], "glass"),
         ],
     }
 
 
 def tail_clamp_bone() -> dict:
-    """Grounding clamp with visible rails and indicator, still fitted to the official tail plane."""
+    """Heavy grounding clamp fitted to the official tail plane."""
     return {
         "name": "ouros_storm_tail_clamp",
         "parent": "tail2",
         "pivot": [0, 9.75, 8.9],
         "cubes": [
-            cube([-0.42, 9.32, 8.00], [0.84, 0.56, 2.18], "copper"),
-            cube([-0.54, 9.20, 8.18], [1.08, 0.18, 1.82], "charcoal"),
-            cube([-0.54, 9.92, 8.18], [1.08, 0.18, 1.82], "charcoal"),
-            cube([-0.58, 9.42, 8.66], [1.16, 0.38, 0.74], "brass"),
-            cube([-0.64, 9.50, 8.82], [1.28, 0.22, 0.42], "glass"),
-            cube([-0.48, 9.34, 7.88], [0.96, 0.50, 0.20], "leather"),
-            cube([-0.48, 9.34, 10.10], [0.96, 0.50, 0.20], "leather"),
-            # Two thin conductor rails extend the hardware language without repainting the tail.
-            cube([-0.24, 9.48, 7.36], [0.18, 0.18, 0.58], "brass"),
-            cube([0.06, 9.48, 10.18], [0.18, 0.18, 0.64], "brass"),
-            cube([-0.18, 9.44, 8.28], [0.36, 0.22, 0.24], "navy"),
+            cube([-0.52, 9.18, 7.82], [1.04, 0.76, 2.62], "copper"),
+            cube([-0.66, 9.04, 8.00], [1.32, 0.22, 2.24], "charcoal"),
+            cube([-0.66, 9.98, 8.00], [1.32, 0.22, 2.24], "charcoal"),
+            cube([-0.72, 9.36, 8.56], [1.44, 0.46, 0.90], "brass"),
+            cube([-0.78, 9.46, 8.76], [1.56, 0.26, 0.50], "glass"),
+            cube([-0.58, 9.22, 7.66], [1.16, 0.62, 0.24], "leather"),
+            cube([-0.58, 9.22, 10.40], [1.16, 0.62, 0.24], "leather"),
+            cube([-0.30, 9.48, 7.12], [0.22, 0.22, 0.64], "brass"),
+            cube([0.08, 9.48, 10.52], [0.22, 0.22, 0.78], "brass"),
+            cube([-0.24, 9.40, 8.18], [0.48, 0.30, 0.32], "navy"),
+        ],
+    }
+
+
+def tail_vanes_bone() -> dict:
+    """Segmented conductor fins along the tail edge without replacing the official tail."""
+    return {
+        "name": "ouros_storm_tail_vanes",
+        "parent": "tail2",
+        "pivot": [0, 11.0, 10.0],
+        "cubes": [
+            cube([-0.42, 10.18, 10.70], [0.84, 0.28, 1.52], "navy"),
+            cube([-0.34, 10.54, 11.64], [0.68, 0.24, 1.44], "copper"),
+            cube([-0.28, 10.88, 12.52], [0.56, 0.22, 1.26], "brass"),
+            cube([-0.22, 11.18, 13.28], [0.44, 0.20, 1.04], "glass"),
+            # Small side fins thicken the otherwise flat plane just enough to read in 3/4.
+            cube([-0.74, 10.44, 11.10], [0.30, 0.64, 0.92], "charcoal"),
+            cube([0.44, 10.44, 11.10], [0.30, 0.64, 0.92], "charcoal"),
+            cube([-0.66, 11.02, 12.18], [0.24, 0.52, 0.78], "brass"),
+            cube([0.42, 11.02, 12.18], [0.24, 0.52, 0.78], "brass"),
         ],
     }
 
@@ -191,7 +277,16 @@ def build(source: Path, identifier: str) -> dict:
     geometry = data["minecraft:geometry"][0]
     geometry["description"]["identifier"] = identifier
     geometry["bones"].extend(
-        [goggles_bone(), harness_bone(), pack_bone(), tail_clamp_bone()]
+        [
+            goggles_bone(),
+            cowl_bone(),
+            mantle_bone(),
+            harness_bone(),
+            pack_bone(),
+            coils_bone(),
+            tail_clamp_bone(),
+            tail_vanes_bone(),
+        ]
     )
     return data
 
