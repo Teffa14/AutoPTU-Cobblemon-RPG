@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
+import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
 import io.autoptu.core.action.MoveChoice;
 import io.autoptu.core.action.MoveOption;
@@ -106,6 +107,15 @@ public final class PlayableBattleTestRuntime {
         PokemonEntity playerPokemon = spawn(world, starter, playerOrigin);
         PokemonEntity enemyPokemon = spawn(world, opponent, enemyOrigin);
 
+        String protectionScopeId = "battle-demo:" + player.getUuidAsString();
+        FabricRpgWorldProtectionRegistry.protect(
+                protectionScopeId,
+                world.getRegistryKey(),
+                playerOrigin.add(-2, -2, -3),
+                enemyOrigin.add(2, 3, 3),
+                "an AutoPTU battle is active here"
+        );
+
         Session session = new Session(
                 player,
                 displayName(starterId),
@@ -113,7 +123,8 @@ public final class PlayableBattleTestRuntime {
                 playerPokemon,
                 enemyPokemon,
                 playerOrigin,
-                enemyOrigin
+                enemyOrigin,
+                protectionScopeId
         );
         ACTIVE.put(player.getUuid(), session);
         session.announceStart();
@@ -157,9 +168,6 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static MoveResolutionInput demoMoveInput() {
-        // These are server-owned scenario inputs to the upstream resolver. DB 4 is a real supported
-        // PTU table entry; attack/defense are chosen so every landed hit advances the visible demo.
-        // Rolls, crit state, damage arithmetic, action consumption and HP mutation remain in Java.
         return new MoveResolutionInput(
                 2,
                 0,
@@ -189,6 +197,7 @@ public final class PlayableBattleTestRuntime {
         private final PokemonEntity enemyEntity;
         private final BlockPos playerOrigin;
         private final BlockPos enemyOrigin;
+        private final String protectionScopeId;
         private final RuntimeCombatantState playerState;
         private final RuntimeCombatantState enemyState;
         private final BattleRuntimeState runtime;
@@ -208,7 +217,8 @@ public final class PlayableBattleTestRuntime {
                 PokemonEntity playerEntity,
                 PokemonEntity enemyEntity,
                 BlockPos playerOrigin,
-                BlockPos enemyOrigin
+                BlockPos enemyOrigin,
+                String protectionScopeId
         ) {
             this.player = player;
             this.playerPokemonName = playerPokemonName;
@@ -217,6 +227,7 @@ public final class PlayableBattleTestRuntime {
             this.enemyEntity = enemyEntity;
             this.playerOrigin = playerOrigin;
             this.enemyOrigin = enemyOrigin;
+            this.protectionScopeId = protectionScopeId;
             this.playerState = combatant("player-demo", new GridCoord(1, 1));
             this.enemyState = combatant("wild-demo", new GridCoord(2, 1));
             this.runtime = new BattleRuntimeState(
@@ -329,6 +340,7 @@ public final class PlayableBattleTestRuntime {
         }
 
         private void cleanupNow() {
+            FabricRpgWorldProtectionRegistry.clear(protectionScopeId);
             playerEntity.discard();
             enemyEntity.discard();
             ACTIVE.remove(player.getUuid(), this);
