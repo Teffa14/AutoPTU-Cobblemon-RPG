@@ -4,7 +4,7 @@
   "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo",
   "animationSource": "official pikachu.animation.json imported through Blockbench Bedrock animation codec",
   "originalBoneCount": 90,
-  "stormBoneCount": 94,
+  "stormBoneCount": 98,
   "poses": {
     "hero": {
       "animation": "animation.pikachu.ground_idle",
@@ -21,11 +21,11 @@
   },
   "files": {
     "official_reference_three_quarter.png": "bb60acc03aa8ff7f584b8608cd06207759fc4a30a277820978979319ef28971d",
-    "hero_three_quarter.png": "06bda0377085b5b5604694cf1b64f0dabd3d1996cd2fab292c88f7fe148d2492",
-    "battle_ready_three_quarter.png": "7f59754412018ee1e44a05a8c9115a0586d952392135373083ba943244a377e2",
-    "walking_three_quarter.png": "7bfbe2c04ccb2f3615b223c3879bcfbf50caf23e835278a679b57999d0d9fa2a",
-    "hero_front.png": "a115553ba12fd80a0f30cd738dc602f8f480081716310bbb3ee59255def7ce09",
-    "battle_ready_front.png": "ebd58e7c60ea186bef33e88140ed3d4ebd11418f0f9d68d709bda76d2e805ef2",
-    "walking_front.png": "9da68e8f2298abd921bd04f242c8853aeb0915bf73e799a2e4da03a345007350"
+    "hero_three_quarter.png": "469451b2298f3d5f236d58751130cbfccfc455736b9ee8620829350464a39b72",
+    "battle_ready_three_quarter.png": "a96ec4909e41cb01cefbf4651cfece9b8869fde95a3ad004a8394f7fcfc55073",
+    "walking_three_quarter.png": "0cbf457b384832966673b861e3f38088b578b6392304c99d2d468c3f3420e93c",
+    "hero_front.png": "91ccdd86452a0648c93bfc690dc5e500bee8158d580432594f5c0cfc88d0f089",
+    "battle_ready_front.png": "efe63bf58e84059c7b7e765becbac0f0dbc5dcc553a109b490e75cb937a49459",
+    "walking_front.png": "79d407d3881ae6755a0820cce78b37bf2da86238126a91f8c82fba6d28e2c881"
   }
 }
