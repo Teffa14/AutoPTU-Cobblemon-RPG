@@ -1,38 +1,40 @@
 # Cobblemon Skin Catalog
 
-This catalog records Ouros-authored visual Pokémon variants. For Pokémon that already exist in Cobblemon, cosmetic work must begin from the species' original Cobblemon geometry and preserve its anatomy, proportions, pivots and animation-compatible bone structure. Rebuilding the Pokémon from scratch is not an acceptable skin workflow.
+This catalog records Ouros-authored visual Pokemon variants.
+
+## Mandatory model-source rule
+
+For any Pokemon that already exists in Cobblemon, Ouros MUST begin from the exact original model distributed by the latest stable Cobblemon release used by this project. Do not rebuild anatomy. Do not substitute an older mirror. Do not approximate the model with generic cubes.
+
+Current production target:
+- Minecraft Java Edition 1.21.1
+- Cobblemon 1.7.3
+- source of truth: the released Cobblemon 1.7.3 Fabric JAR published on Modrinth, version id `kF7CvxTo`
+
+A skin implementation may only change or append deliberate cosmetic geometry. Every original bone, cube, pivot, locator, hierarchy relationship and animation-facing name must remain unchanged unless a design explicitly requires a local modification and that exception is documented.
+
+## Visual validation rule
+
+The old in-repo Python software renderer is rejected as acceptance evidence.
+
+New assets must be validated through an independent Minecraft model viewer. Blockbench is the primary review viewer because it supports Minecraft Bedrock Entity geometry, bone rotations, per-face UV, model animations and MoLang. The CI review path must load the generated `.geo.json` in Blockbench rather than reimplementing Bedrock transforms in project code.
+
+A preview is evidence only when:
+- the exact production `.geo.json` is loaded;
+- the exact release texture is applied;
+- any accessory texture used in production is applied;
+- the model imports without geometry errors;
+- the original species silhouette matches the unmodified release model;
+- screenshots come from the external viewer, not from concept art or a project-authored geometry renderer.
 
 ## 0025 Pikachu — Storm Courier
 
-Status: CORRECTED / ORIGINAL COBBLEMON MODEL BASE / CLIENT RUNTIME VALIDATION PENDING
+Status: RESET / NOT IMPLEMENTED
 
-Aspect: `ouros_storm_courier`
+The previous Storm Courier implementation was removed from the clean v2 branch. It used an obsolete Pikachu base and produced misleading review evidence. It must not be restored or used as a template.
 
-Species feature key: `ouros_storm_courier`
+If Storm Courier is rebuilt, it must start by extracting the current `pikachu_male.geo.json`, Pikachu textures and Pikachu animation files directly from the official Cobblemon 1.7.3 release JAR. Accessories may then be added on top of that exact model. The first acceptance image must show the untouched release Pikachu and the edited Pikachu side-by-side in the same independent viewer so anatomy drift is immediately visible.
 
-Design intent: a field courier Pikachu with wearable expedition equipment. Pikachu's original Cobblemon body, head, muzzle, eyes, ears, arms, legs, feet and lightning tail remain the base model. The cosmetic adds only storm goggles, a crossed courier harness, a compact back/side pack and a tail clamp.
+## Authority boundary
 
-Implementation rule applied:
-- the 22 original `pikachu_male.geo.json` bones and their cubes/pivots are preserved;
-- four Ouros accessory bones are appended and parented to original Cobblemon bones;
-- the resolver uses Cobblemon's original `cobblemon:pikachu` poser;
-- base and shiny body textures resolve to Cobblemon's original Pikachu textures;
-- a separate 64x64 transparent accessory overlay supplies charcoal, leather, copper and storm-glass materials only to UV pixels unused by the original Pikachu geometry;
-- original Cobblemon animations continue to drive the original bones, so accessories inherit movement through their parents;
-- the previous custom rebuilt body, custom poser, custom animation set and replacement body textures are removed.
-
-Runtime test:
-`/pokespawn pikachu ouros_storm_courier`
-
-Shiny test:
-`/pokespawn pikachu ouros_storm_courier shiny`
-
-Review evidence rule:
-Four-view evidence must be regenerated from the corrected model or captured in the real client. The previous four PNGs represented the rejected rebuilt body and are removed rather than retained as misleading evidence.
-
-Reference and licensing notes:
-- Base geometry is an adaptation of Cobblemon's `pikachu_male.geo.json`; source: `codemonkey85/Cobblemon-Mirror`, path `common/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json`.
-- Base/shiny textures remain Cobblemon resources and are referenced by identifier rather than copied into Ouros.
-- The source Pikachu asset carries Cobblemon's included Creative Commons public-license/non-commercial terms. This adaptation must retain the required attribution and license conditions.
-- The added courier accessory geometry and accessory-only overlay texture are authored for Ouros.
-- Pokémon UNITE/Holowear and public skin packs may inform high-level cosmetic principles only; no third-party costume geometry, texture or artwork is copied.
+All skin/model work is presentation-only. Cobblemon/Minecraft model, animation and rendering systems may be reused. Cobblemon battle state, participants, legality, HP/status, positions and combat authority remain outside this workflow; Ouros/AutoPTU remain authoritative for tactical battle facts.
