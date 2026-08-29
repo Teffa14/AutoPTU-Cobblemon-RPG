@@ -1,6 +1,6 @@
 # 0006 Charizard — Solar Legion
 
-Status: EPIC ARTISTIC PASS ACCEPTED — Blockbench validated; repository-wide PR gates pending.
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
 
 ## Official source
 
@@ -67,6 +67,10 @@ Matched-camera evidence records:
 - flight: `animation.charizard.air_fly` at 0.25, 138 bones.
 
 The accepted files are under `test-evidence/visual/cobblemon-skins/0006_charizard/solar-legion-real-poses/` and include the matched official reference, hero, battle-ready, walking, air-fly, front, left, right and back PNGs plus provenance metadata and hashes.
+
+## Repository-wide validation
+
+PR #302 completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully on the production branch head before merge eligibility. Integration Core booted the production Fabric + Cobblemon dedicated server twice. Generation CI also revalidated the exact official source, 130→138 anatomy contract, UV reservations, resolver structure and official animation availability after the shiny-flame correction.
 
 ## Authority boundary
 
