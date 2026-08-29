@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Dedicated-server proof for the authored physical item-storage signature. */
+/** Dedicated-server proof for the authored physical item-storage identity. */
 public final class FabricItemStorageTerminalRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveItemStorageTerminalSmoke";
     public static final String SUCCESS_LOG = "AutoPTU live canonical item storage terminal smoke passed";
@@ -29,31 +29,31 @@ public final class FabricItemStorageTerminalRuntimeSmoke {
 
     private static void run(MinecraftServer server) {
         ServerWorld world = server.getOverworld();
-        BlockPos head = world.getSpawnPos().up(30);
-        BlockPos base = head.down();
-        BlockState originalHead = world.getBlockState(head);
-        BlockState originalBase = world.getBlockState(base);
+        BlockPos terminal = world.getSpawnPos().up(30);
+        BlockPos below = terminal.down();
+        BlockState originalTerminal = world.getBlockState(terminal);
+        BlockState originalBelow = world.getBlockState(below);
         try {
-            world.setBlockState(base, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
-            world.setBlockState(head, Blocks.IRON_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
-            if (!FabricItemStorageTerminalRuntime.isItemStorageTerminal(world, head)) {
-                throw new IllegalStateException("authored iron-over-barrel item storage terminal was not recognized");
+            world.setBlockState(terminal, FabricRpgContent.ITEM_STORAGE_TERMINAL.getDefaultState(), Block.NOTIFY_ALL);
+            if (!FabricItemStorageTerminalRuntime.isItemStorageTerminal(world, terminal)) {
+                throw new IllegalStateException("namespaced item storage terminal was not recognized");
             }
 
-            world.setBlockState(base, Blocks.CHEST.getDefaultState(), Block.NOTIFY_ALL);
-            if (FabricItemStorageTerminalRuntime.isItemStorageTerminal(world, head)) {
-                throw new IllegalStateException("non-authored item storage base was accepted");
+            world.setBlockState(below, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
+            world.setBlockState(terminal, Blocks.IRON_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+            if (FabricItemStorageTerminalRuntime.isItemStorageTerminal(world, terminal)) {
+                throw new IllegalStateException("legacy iron-over-barrel composite was still accepted");
             }
 
-            world.setBlockState(base, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
-            world.setBlockState(head, Blocks.EMERALD_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
-            if (FabricItemStorageTerminalRuntime.isItemStorageTerminal(world, head)) {
-                throw new IllegalStateException("shop counter head was accepted as item storage terminal");
+            world.setBlockState(terminal, Blocks.IRON_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+            world.setBlockState(below, Blocks.CHEST.getDefaultState(), Block.NOTIFY_ALL);
+            if (FabricItemStorageTerminalRuntime.isItemStorageTerminal(world, terminal)) {
+                throw new IllegalStateException("vanilla iron block was accepted as item storage terminal");
             }
             LOGGER.info(SUCCESS_LOG);
         } finally {
-            world.setBlockState(base, originalBase, Block.NOTIFY_ALL);
-            world.setBlockState(head, originalHead, Block.NOTIFY_ALL);
+            world.setBlockState(below, originalBelow, Block.NOTIFY_ALL);
+            world.setBlockState(terminal, originalTerminal, Block.NOTIFY_ALL);
         }
     }
 }
