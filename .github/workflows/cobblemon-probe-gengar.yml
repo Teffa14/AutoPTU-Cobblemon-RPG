@@ -1,0 +1,109 @@
+name: Probe Official Gengar Presentation Assets
+
+on:
+  push:
+    branches:
+      - 'feat/gengar-rift-warden-epic'
+    paths:
+      - '.github/workflows/cobblemon-probe-gengar.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download exact official Cobblemon release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .probe docs/cobblemon-skins/0094_gengar
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/gengar-source-probe' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .probe/version.json
+          python - <<'PY' > .probe/download.env
+          import json, shlex
+          data=json.load(open('.probe/version.json',encoding='utf-8'))
+          assert data['id']=='kF7CvxTo'
+          assert data['version_number']=='1.7.3'
+          assert data['game_versions']==['1.21.1']
+          assert 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(primary['url']))
+          print('SHA512='+shlex.quote(primary['hashes']['sha512']))
+          PY
+          source .probe/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .probe/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" '.probe/cobblemon.jar' | sha512sum --check --strict
+      - name: Inspect Gengar paths and contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -Z1 .probe/cobblemon.jar | grep -Ei '(^|/)0094_gengar/|gengar' | sort > .probe/gengar-paths.txt
+          python - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+          z=zipfile.ZipFile('.probe/cobblemon.jar')
+          paths=Path('.probe/gengar-paths.txt').read_text().splitlines()
+          def sha(path): return hashlib.sha256(z.read(path)).hexdigest()
+          json_assets=[]
+          for p in paths:
+              if p.endswith(('.json','.geo.json')):
+                  try: data=json.loads(z.read(p))
+                  except Exception: continue
+                  entry={'path':p,'sha256':sha(p)}
+                  if 'minecraft:geometry' in data:
+                      geo=data['minecraft:geometry'][0]
+                      entry['geometryIdentifier']=geo.get('description',{}).get('identifier')
+                      entry['textureSize']=[geo.get('description',{}).get('texture_width'),geo.get('description',{}).get('texture_height')]
+                      entry['boneCount']=len(geo.get('bones',[]))
+                      entry['boneNames']=[b.get('name') for b in geo.get('bones',[])]
+                  if 'animations' in data:
+                      entry['animationNames']=sorted(data['animations'].keys())
+                  if isinstance(data,dict) and 'poses' in data:
+                      entry['rootBone']=data.get('rootBone')
+                      entry['poses']=data.get('poses')
+                  if isinstance(data,dict) and 'species' in data and 'variations' in data:
+                      entry['species']=data.get('species')
+                      entry['resolverOrder']=data.get('order')
+                      entry['variations']=data.get('variations')
+                  json_assets.append(entry)
+          textures=[]
+          for p in paths:
+              if p.endswith('.png'):
+                  textures.append({'path':p,'sha256':sha(p)})
+          licenses=[]
+          for p in paths:
+              if p.lower().endswith(('license','license.txt')):
+                  licenses.append({'path':p,'sha256':sha(p),'text':z.read(p).decode('utf-8','replace')})
+          report={
+            'source':{'modrinthVersionId':'kF7CvxTo','cobblemonVersion':'1.7.3','minecraft':'1.21.1','jar':'Cobblemon-fabric-1.7.3+1.21.1.jar'},
+            'matchingPaths':paths,
+            'jsonAssets':json_assets,
+            'textures':textures,
+            'licenses':licenses,
+          }
+          Path('docs/cobblemon-skins/0094_gengar/official-source-probe.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - name: Commit exact source probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/cobblemon-skins/0094_gengar/official-source-probe.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Docs: record exact official Gengar source probe'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
