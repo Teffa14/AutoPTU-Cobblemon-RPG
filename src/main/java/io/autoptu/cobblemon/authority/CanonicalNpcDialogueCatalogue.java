@@ -17,6 +17,7 @@ public final class CanonicalNpcDialogueCatalogue {
                             new Option("meadow", "What should I watch for?", "The lookout notices movement first. If it raises the alarm, the feeding group will move for cover."),
                             new Option("field-notes", "Anything I can help with?", "Start a field journal for me. Observe the meadow lookout and feeding group, then come back when future quest objectives are wired.", "cedar-field-notes"),
                             new Option("facilities", "Where can I prepare?", "Use the healing machine, PC, Mart and crafting stations you find in the world. Their state belongs to your canonical Trainer."),
+                            Option.challenge("field-spar", "Challenge Cedar Ranger", "Let's see whether your party is ready for a proper field spar.", "cedar-ranger-field-spar"),
                             new Option("battles", "How do battles work here?", "When a battle starts, AutoPTU decides legal actions and outcomes. The Minecraft world only presents the authoritative result.")
                     )
             )
@@ -59,13 +60,19 @@ public final class CanonicalNpcDialogueCatalogue {
         }
     }
 
-    public record Option(String optionId, String label, String response, String questId) {
-        public Option(String optionId, String label, String response) { this(optionId, label, response, null); }
+    public record Option(String optionId, String label, String response, String questId, String challengeId) {
+        public Option(String optionId, String label, String response) { this(optionId, label, response, null, null); }
+        public Option(String optionId, String label, String response, String questId) { this(optionId, label, response, questId, null); }
+        public static Option challenge(String optionId, String label, String response, String challengeId) {
+            return new Option(optionId, label, response, null, challengeId);
+        }
         public Option {
             optionId = requireText(optionId, "optionId");
             label = requireText(label, "label");
             response = requireText(response, "response");
             if (questId != null) questId = requireText(questId, "questId");
+            if (challengeId != null) challengeId = requireText(challengeId, "challengeId");
+            if (questId != null && challengeId != null) throw new IllegalArgumentException("dialogue option cannot be both quest and challenge action");
         }
     }
 
