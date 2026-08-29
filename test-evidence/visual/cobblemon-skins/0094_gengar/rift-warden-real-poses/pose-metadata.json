@@ -1,0 +1,42 @@
+{
+  "format": "ouros.cobblemon-blockbench-pose-evidence.v1",
+  "viewer": "Blockbench 5.1.6",
+  "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo",
+  "modelSha256": "57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38",
+  "animationSha256": "68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f",
+  "textureSha256": "7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65",
+  "originalBoneCount": 78,
+  "derivedBoneCount": 86,
+  "poses": {
+    "hero": {
+      "animation": "animation.gengar.ground_idle",
+      "time": 0.35
+    },
+    "air_idle": {
+      "animation": "animation.gengar.air_idle",
+      "time": 0.35
+    },
+    "air_fly": {
+      "animation": "animation.gengar.air_fly",
+      "time": 0.35
+    }
+  },
+  "battleEvidence": {
+    "status": "not-rendered",
+    "reason": "Official Gengar animation JSON contains no dedicated battle clip; no manual battle pose is fabricated."
+  },
+  "walkingEvidence": {
+    "status": "not-rendered",
+    "reason": "Official Gengar animation JSON contains no walking clip; air_fly is captured as the official locomotion evidence instead."
+  },
+  "files": {
+    "official_reference_three_quarter.png": "bb59b4457d1f8855d1469bf8a41a50cdca1aa1688b2100c89af0bc55de2b1f6d",
+    "hero_three_quarter.png": "1311af8199a011859dfa5a05c4283597b8d41dad1ba6707e23339bac47c3d658",
+    "air_idle_three_quarter.png": "5fd2ab4bc34a71a16942a6feaf6228d7b34705d46479a218daead601754428c9",
+    "air_fly_three_quarter.png": "d5b61f14c948604370617ea340f214d729b6341a18bdd368232ba1f128a64a77",
+    "hero_front.png": "d5689290f79d736b01729b8048b29dff27ae80ddd8573c7f6e352e631b9041c1",
+    "hero_left.png": "4656a02897c7db6d1219bdc6d1e863b68f3a07ba296cfc18185964e7bef90a27",
+    "hero_right.png": "23e7a14884ffe2ef36cbc4661f7d13deec4350c4d3928a968e894a1c8ddd23c2",
+    "hero_back.png": "40e062c9f31748de806cca74d4c61190d9ac9f5c4cc3ab9480df911ab1f1bef8"
+  }
+}
