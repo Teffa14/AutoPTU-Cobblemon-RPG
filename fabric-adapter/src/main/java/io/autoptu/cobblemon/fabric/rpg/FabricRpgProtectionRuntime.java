@@ -1,8 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
-import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -15,29 +13,28 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
 
 /**
- * Hard authority boundary between Minecraft simulation and Ouros RPG state.
+ * Authority boundary between Minecraft simulation and Ouros RPG state.
  *
- * Pokemon entities and canonical NPCs are presentation actors. Vanilla/mod damage is never
- * allowed to decide their HP or death. Direct player world mutation is also denied for loaded
- * canonical Trainers; authored interactions and server-side world services remain the mutation
- * path. This intentionally behaves like an RPG/adventure world rather than survival mining.
+ * Pokemon entities and canonical NPCs are presentation actors, so Minecraft damage never decides
+ * their HP or death. Normal Minecraft mining, building, logging, digging and world interaction stay
+ * available. World mutation is denied only inside an explicitly registered battle/quest/script
+ * protection scope whose terrain must remain stable for that interaction.
  */
 public final class FabricRpgProtectionRuntime {
-    private static final Text WORLD_PROTECTED = Text.literal(
-            "Ouros world state is protected. Use an authored interaction instead.");
-
     private FabricRpgProtectionRuntime() {}
 
     public static void register() {
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> !isProtectedRpgActor(entity));
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
-            if (!(player instanceof ServerPlayerEntity serverPlayer) || !hasCanonicalTrainer(serverPlayer)) {
-                return true;
+            var protection = FabricRpgWorldProtectionRegistry.protectionAt(world, pos);
+            if (protection.isEmpty()) return true;
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                sendProtectedRegionFeedback(serverPlayer, protection.get().reason());
             }
-            serverPlayer.sendMessage(WORLD_PROTECTED, true);
             return false;
         });
 
@@ -45,21 +42,23 @@ public final class FabricRpgProtectionRuntime {
             if (world.isClient()
                     || hand != Hand.MAIN_HAND
                     || !(player instanceof ServerPlayerEntity serverPlayer)
-                    || !hasCanonicalTrainer(serverPlayer)) {
+                    || !requestsDirectWorldMutation(serverPlayer.getStackInHand(hand))) {
                 return ActionResult.PASS;
             }
-            if (!requestsDirectWorldMutation(serverPlayer.getStackInHand(hand))) {
-                return ActionResult.PASS;
-            }
-            serverPlayer.sendMessage(WORLD_PROTECTED, true);
+
+            BlockPos clicked = hitResult.getBlockPos();
+            BlockPos adjacent = clicked.offset(hitResult.getSide());
+            var protection = FabricRpgWorldProtectionRegistry.protectionAt(world, clicked)
+                    .or(() -> FabricRpgWorldProtectionRegistry.protectionAt(world, adjacent));
+            if (protection.isEmpty()) return ActionResult.PASS;
+
+            sendProtectedRegionFeedback(serverPlayer, protection.get().reason());
             return ActionResult.FAIL;
         });
     }
 
     static boolean isProtectedRpgActor(LivingEntity entity) {
-        if (entity instanceof PokemonEntity) {
-            return true;
-        }
+        if (entity instanceof PokemonEntity) return true;
         return FabricNpcDialogueRuntime.npcId(entity).isPresent();
     }
 
@@ -69,8 +68,7 @@ public final class FabricRpgProtectionRuntime {
         return stack.isOf(Items.FLINT_AND_STEEL) || stack.isOf(Items.FIRE_CHARGE);
     }
 
-    static boolean hasCanonicalTrainer(ServerPlayerEntity player) {
-        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-        return FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isPresent();
+    private static void sendProtectedRegionFeedback(ServerPlayerEntity player, String reason) {
+        player.sendMessage(Text.literal("This area is temporarily protected: " + reason), true);
     }
 }
