@@ -7,6 +7,7 @@ import io.autoptu.cobblemon.authority.CanonicalPlayerState;
 import io.autoptu.cobblemon.authority.CanonicalPokemonState;
 import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestJournalService;
+import io.autoptu.cobblemon.authority.CanonicalQuestTrackingService;
 import io.autoptu.cobblemon.authority.FileCanonicalQuestJournalRepository;
 import io.autoptu.cobblemon.authority.ItemReservation;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -122,6 +123,11 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
             if (!questAccept.newlyAccepted()) {
                 throw new IllegalStateException("canonical quest fixture already existed before seed boot");
             }
+            var tracked = new CanonicalQuestTrackingService(CanonicalQuestCatalogue.DEFAULT, questJournals)
+                    .track(PLAYER_ID, QUEST_ID);
+            if (!tracked.changed() || tracked.journalRevision() != 2L) {
+                throw new IllegalStateException("canonical tracked quest was not persisted during seed boot");
+            }
 
             requireExactSeedState(repository, encounterProfiles, pokemon, assets, questJournals);
             LOGGER.info(SEED_SUCCESS_LOG);
@@ -167,9 +173,10 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
 
     private static void requireQuestState(FileCanonicalQuestJournalRepository.JournalState journal) {
         var entry = journal.entries().get(QUEST_ID);
-        if (journal.revision() != 1L || entry == null
+        if (journal.revision() != 2L || entry == null
                 || entry.state() != FileCanonicalQuestJournalRepository.QuestState.ACCEPTED
-                || entry.acceptedRevision() != 1L) {
+                || entry.acceptedRevision() != 1L
+                || !QUEST_ID.equals(journal.trackedQuestId())) {
             throw new IllegalStateException("canonical quest journal changed across persistence boundary");
         }
     }
