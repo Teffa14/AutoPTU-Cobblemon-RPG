@@ -3,13 +3,15 @@ package io.autoptu.cobblemon.fabric.rpg;
 import io.autoptu.cobblemon.authority.CanonicalPartyLeadService;
 import io.autoptu.cobblemon.authority.CanonicalPartyQueryService;
 import io.autoptu.cobblemon.authority.CanonicalPartySummary;
-import io.autoptu.cobblemon.fabric.battle.FabricBattleChoiceRuntime;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.boss.BossBar;
+import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
@@ -28,6 +30,9 @@ import net.minecraft.util.Hand;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Server-authored party management surface. Minecraft renders canonical party state and submits only
@@ -38,6 +43,7 @@ public final class FabricPartyManagementRuntime {
     private static final int TOP_SLOT_COUNT = 27;
     private static final int[] PARTY_SLOTS = {10, 11, 12, 14, 15, 16};
     private static final int HUD_REFRESH_TICKS = 40;
+    private static final Map<UUID, ServerBossBar> PARTY_HUDS = new ConcurrentHashMap<>();
     private static int hudTickCounter;
 
     private FabricPartyManagementRuntime() {}
@@ -68,17 +74,36 @@ public final class FabricPartyManagementRuntime {
             openScreen(serverPlayer);
             return ActionResult.SUCCESS;
         });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> removeHud(handler.player.getUuid()));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             hudTickCounter++;
             if (hudTickCounter < HUD_REFRESH_TICKS) return;
             hudTickCounter = 0;
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (FabricBattleChoiceRuntime.hasBinding(player.getUuid())) continue;
                 CanonicalPartySummary party = queryParty(player);
-                if (party == null || party.members().isEmpty()) continue;
-                player.sendMessage(Text.literal(hudLabel(party)), true);
+                if (party == null || party.members().isEmpty()) {
+                    removeHud(player.getUuid());
+                    continue;
+                }
+                ServerBossBar hud = PARTY_HUDS.computeIfAbsent(player.getUuid(), ignored -> {
+                    ServerBossBar created = new ServerBossBar(
+                            Text.literal("Ouros Party"),
+                            BossBar.Color.GREEN,
+                            BossBar.Style.PROGRESS
+                    );
+                    created.setPercent(1.0F);
+                    return created;
+                });
+                hud.setName(Text.literal(hudLabel(party)));
+                hud.addPlayer(player);
             }
         });
+    }
+
+    private static void removeHud(UUID playerUuid) {
+        if (playerUuid == null) return;
+        ServerBossBar hud = PARTY_HUDS.remove(playerUuid);
+        if (hud != null) hud.clearPlayers();
     }
 
     private static int open(ServerCommandSource source) {
