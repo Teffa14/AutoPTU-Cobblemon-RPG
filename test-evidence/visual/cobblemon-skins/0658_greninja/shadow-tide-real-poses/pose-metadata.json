@@ -1,0 +1,41 @@
+{
+  "format": "ouros.cobblemon-blockbench-pose-evidence.v1",
+  "viewer": "Blockbench 5.1.6",
+  "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth kF7CvxTo",
+  "normalModelSha256": "b9608c2eef6dc1a407da31192fde20ae2cea135e7399c14926598acce091e30d",
+  "ashModelSha256": "be45c61cc17a7ab6408c06e70905e53c7dbd3c99cba4e8bff0192a03849ca7f5",
+  "animationSha256": "9e0176549e372324127fc2c8edbaa5d72ca6009dac06088c65df89790d3548f3",
+  "normalOriginalBoneCount": 78,
+  "normalDerivedBoneCount": 86,
+  "ashOriginalBoneCount": 81,
+  "ashDerivedBoneCount": 89,
+  "poses": {
+    "hero": {
+      "animation": "animation.greninja.ground_idle",
+      "time": 0.35
+    },
+    "battle_ready": {
+      "animation": "animation.greninja.battle_idle",
+      "time": 0.35
+    },
+    "walking": {
+      "animation": "animation.greninja.ground_walk",
+      "time": 0.25
+    },
+    "ash_hero": {
+      "animation": "animation.greninja.ground_idle",
+      "time": 0.35
+    }
+  },
+  "files": {
+    "official_reference_three_quarter.png": "c5966850860db4bc0ed7151e892976974241c72ccbe50c4aa1aa211ca9fbb0a8",
+    "hero_three_quarter.png": "383a9c11519e542f4836f890e0ea09448cf3f397057e1c688e47407de2b184dd",
+    "battle_ready_three_quarter.png": "9e05d4e50e256e3f6b2816414ee75c16b6f4a9e5fa93734b4919cbf10b2c6512",
+    "walking_three_quarter.png": "4253a346bdc05cd319b2440f82e190f8c2c3c17d0dd8c15086548857b0e76046",
+    "ash_hero_three_quarter.png": "47eba2ecc89e8f6ae1333705376bb1d8ae003d8d40e04c408254943a1c143bee",
+    "hero_front.png": "fcc96f615065a6f4a974b30bef03ec8e0e7f285fc9a8c2b636e8130d4a17061a",
+    "hero_left.png": "9bfc96cbe0d4423aa78d2f3b1763ea20154e925c672ddc24a66d8cb9199f3889",
+    "hero_right.png": "9512f7abf093dccc723b09148280bf7840b2b6ece4b688903e070129e95dce2f",
+    "hero_back.png": "9a6edfe981f0c502bd7b71125a4c9c5c6a52da5653e1e939ac09c5b35c181ed1"
+  }
+}
