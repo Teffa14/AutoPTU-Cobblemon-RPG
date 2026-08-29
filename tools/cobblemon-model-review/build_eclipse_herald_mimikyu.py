@@ -45,13 +45,25 @@ def cube(origin,size,mat,pivot=None,rotation=None):
  return d
 
 def eclipse_halo():
+ # A single readable broken crescent behind the left ear replaces the noisy all-around ring.
+ # Each moon segment has an inner violet/aura edge so the silhouette reads as one relic.
  cs=[]
- # broken crescent/frame behind ears, wide enough to change 3/4 silhouette
- seg=[(-9.5,13.3,-38),(-11.7,16.2,-62),(-9.0,19.0,-112),(5.5,13.3,38),(7.2,16.2,62),(5.0,19.0,112)]
- for i,(x,y,r) in enumerate(seg):
-  mat='void' if i%2==0 else 'violet'; cs.append(cube([x,y,4.8],[5.8,0.55,0.8],mat,[x+2.9,y+0.275,5.2],[0,0,r]))
-  cs.append(cube([x+0.35,y+0.58,4.55],[4.9,0.16,0.22],'aura',[x+2.8,y+0.66,4.66],[0,0,r]))
- cs += [cube([-1.0,21.1,4.7],[2.0,1.7,0.35],'moon',[0,21.95,4.88],[0,0,45]), cube([-0.6,20.0,4.45],[1.2,0.5,0.22],'teal')]
+ segments=[
+  (-8.4,10.8,-18,4.8),
+  (-10.0,13.5,-38,4.8),
+  (-10.4,16.5,-62,4.7),
+  (-9.2,19.2,-92,4.6),
+  (-6.5,21.0,-124,4.4),
+ ]
+ for x,y,r,length in segments:
+  cs.append(cube([x,y,5.0],[length,0.72,0.92],'moon',[x+length/2,y+0.36,5.46],[0,0,r]))
+  cs.append(cube([x+0.28,y+0.70,4.72],[max(2.8,length-0.56),0.18,0.24],'violet',[x+length/2,y+0.79,4.84],[0,0,r]))
+ # A small separated fracture on the opposite side makes the eclipse intentionally broken,
+ # but stays close to the head instead of reading as random floating debris.
+ cs += [
+  cube([5.7,14.0,5.0],[3.7,0.66,0.84],'void',[7.55,14.33,5.42],[0,0,42]),
+  cube([6.0,14.65,4.72],[3.0,0.16,0.22],'aura',[7.5,14.73,4.83],[0,0,42]),
+ ]
  return {'name':'ouros_eclipse_halo','parent':'torso_top','pivot':[0,14,4.8],'cubes':cs}
 
 def ritual_cowl():
@@ -69,15 +81,19 @@ def mantle():
  ]}
 
 def pennant_left():
- return {'name':'ouros_eclipse_pennant_left','parent':'torso_top','pivot':[4.2,8.0,2.8],'cubes':[
-  cube([4.5,7.2,3.0],[0.55,8.4,0.55],'silver',[4.78,11.4,3.28],[0,0,12]), cube([4.8,11.7,3.25],[4.6,5.8,0.36],'violet',[7.1,14.6,3.43],[0,0,-9]),
-  cube([5.4,16.6,3.0],[3.1,0.22,0.72],'moon',[6.95,16.71,3.36],[0,0,-9]), cube([6.6,13.2,2.95],[1.2,1.2,0.18],'aura',[7.2,13.8,3.04],[0,0,45])
+ # Lower rear standard: visible in 3/4/back, but no longer competes with the ears.
+ return {'name':'ouros_eclipse_pennant_left','parent':'torso_top','pivot':[4.2,7.0,3.8],'cubes':[
+  cube([4.8,4.9,4.0],[0.48,8.1,0.48],'silver',[5.04,8.95,4.24],[0,0,7]),
+  cube([5.0,7.0,4.22],[4.5,4.8,0.38],'violet',[7.25,9.4,4.41],[0,0,-5]),
+  cube([5.5,11.0,4.0],[3.3,0.22,0.72],'moon',[7.15,11.11,4.36],[0,0,-5]),
+  cube([6.45,8.45,3.98],[1.15,1.15,0.18],'aura',[7.03,9.03,4.07],[0,0,45])
  ]}
 
 def pennant_right():
- return {'name':'ouros_eclipse_pennant_right','parent':'torso_top','pivot':[-4.2,8.0,2.8],'cubes':[
-  cube([-5.05,7.0,3.0],[0.55,6.8,0.55],'silver',[-4.78,10.4,3.28],[0,0,-9]), cube([-9.0,10.3,3.25],[4.2,4.4,0.36],'void',[-6.9,12.5,3.43],[0,0,11]),
-  cube([-8.3,13.8,3.0],[2.8,0.22,0.72],'teal',[-6.9,13.91,3.36],[0,0,11])
+ return {'name':'ouros_eclipse_pennant_right','parent':'torso_top','pivot':[-4.2,6.5,3.8],'cubes':[
+  cube([-5.28,4.8,4.0],[0.48,6.6,0.48],'silver',[-5.04,8.1,4.24],[0,0,-6]),
+  cube([-9.1,6.5,4.22],[4.1,3.8,0.38],'void',[-7.05,8.4,4.41],[0,0,6]),
+  cube([-8.5,9.55,4.0],[2.9,0.22,0.72],'teal',[-7.05,9.66,4.36],[0,0,6])
  ]}
 
 def tail_reliquary():
