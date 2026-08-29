@@ -39,7 +39,7 @@ class FabricFirstJoinOnboardingRuntimeTest {
                 playerId,
                 List.of(playerId + ":starter"),
                 Map.of(),
-                new BattleArenaSnapshot(12, 12, Set.of()),
+                new BattleArenaSnapshot("minecraft:overworld", 0, 64, 0, 1, 0, 0, 1),
                 0L
         ));
         assertFalse(FabricFirstJoinOnboardingRuntime.needsOnboarding(players, profiles, uuid));
