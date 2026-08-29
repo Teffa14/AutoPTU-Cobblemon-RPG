@@ -1,6 +1,6 @@
 # 0658 Greninja — Shadow Tide
 
-Status: EPIC V2 ACCEPTED IN BLOCKBENCH — repository-wide PR gates pending.
+Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
 
 ## Official source
 
@@ -49,6 +49,8 @@ Blockbench 5.1.6 is pinned by SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea1
 Matched normal-form evidence uses `animation.greninja.ground_idle` at 0.35 for the official reference and hero, `animation.greninja.battle_idle` at 0.35, and `animation.greninja.ground_walk` at 0.25. The workflow also records front/left/right/back views. A separate Ash geometry render is retained as diagnostic form-parity evidence; because the official base resolver does not expose an Ash variation and the code-backed presentation path is not reconstructed here, that diagnostic is not treated as proof of an in-game Ash routing path.
 
 Evidence is stored under `test-evidence/visual/cobblemon-skins/0658_greninja/shadow-tide-real-poses/` with provenance metadata and PNG hashes.
+
+PR #303 merged the accepted v2. On its final head, Cobblemon Official Model Review, Playable Test Build and Integration Core CI all completed successfully, alongside the real Blockbench evidence workflow. This closes the prior documentation-only “repository-wide PR gates pending” status.
 
 ## Authority boundary
 
