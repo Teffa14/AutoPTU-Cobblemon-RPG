@@ -77,6 +77,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-034 | LIVE | restart-safe canonical item storage fallback | PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. `/autoptu storage` projects owner-scoped stored quantities; deposit/withdraw move opaque canonical item quantities between the active bag and storage through a durable staged journal, keeping stored items outside bag sale/crafting/reservation reads and recovering pending transfers on server start. |
 | CUR-035 | LIVE | physical canonical item storage terminal | PR #262 / implementation head `ff27bfd65b8a0df7c093035847d2fb29b6bba094`. Right-clicking the authored iron-block-over-barrel terminal opens a server-side bag/storage menu; every click revalidates canonical bag stack or storage revision/quantity and delegates one-item movement to SVC-037 without exposing stored quantities as active bag inventory. |
 | CUR-036 | LIVE | server-authored first-join Trainer onboarding | PR #263 / implementation head `c9b54bcd4db742c5d1f3f3e049ca43271ee5293a`. After authenticated provisioning, a player with a canonical Trainer but no persistent encounter profile gets the server-side Ouros onboarding screen; existing party-bearing players are not interrupted, and no Trainer/PTU/starter truth is accepted from the client. |
+| CUR-037 | LIVE | canonical party management screen | PR #265 / implementation head `a9f1926bc8d92cadda43155d3a713a3fae04d82b`. `/autoptu party manage` opens a server-authored 9x3 party view from durable canonical state; every member click revalidates party revision and Pokemon identity before delegating lead selection to the existing canonical lead service. Stale screens refresh and no Cobblemon gameplay state is trusted. |
 
 ---
 
@@ -127,6 +128,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 |---|---|---|
 | CMD-020 | LIVE | `/autoptu party` — PR #204 / `ab484b9ebc753668a1271bae27e9f56395584bb1` |
 | CMD-021 | LIVE | `/autoptu party lead <slot>` — PR #219 / `e0149f97939aec2926d6b828c00851eb86a6a538` |
+| CMD-028 | LIVE | `/autoptu party manage` — PR #265 / implementation head `a9f1926bc8d92cadda43155d3a713a3fae04d82b`; opens the server-authored canonical party screen and accepts only a revalidated party-slot lead selection. |
 | CMD-022 | TODO | `/autoptu party move <from> <to>` |
 | CMD-023 | LIVE | `/autoptu pokemon <slot>` — PR #207 / `b3fed8380f801222d6c549f1695b8bb98789a135` |
 | CMD-024 | LIVE | `/autoptu box` — PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa`; shows only the authenticated Trainer's durable canonical boxed Pokemon and revision, with ownership and party-overlap validation. |
@@ -196,7 +198,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | System |
 |---|---|---|
-| PARTY-001 | TODO | Party screen/menu. |
+| PARTY-001 | LIVE | Party screen/menu — PR #265 / implementation head `a9f1926bc8d92cadda43155d3a713a3fae04d82b`. The server projects only durable canonical party members and revalidates party revision plus Pokemon identity before lead mutation; stale GUI state refreshes instead of applying to a different Pokemon. |
 | PARTY-002 | LIVE | Persistent lead-slot mutation — PR #219 / `e0149f97939aec2926d6b828c00851eb86a6a538`. |
 | PARTY-003 | TODO | Persistent party reorder. |
 | PARTY-004 | LIVE | Persistent box/storage aggregate. PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa` adds the owner-scoped durable box; PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767` closes durable movement between the active party and box with ownership checks, revisioned source/target mutations and restart recovery. |
@@ -215,7 +217,7 @@ These should become the normal gameplay path.
 |---|---|---|
 | WORLD-001 | LIVE | First-join Trainer/onboarding screen — PR #263 / implementation head `c9b54bcd4db742c5d1f3f3e049ca43271ee5293a`. After Minecraft authentication and canonical provisioning, the server opens onboarding only when that UUID-derived Trainer exists and has no persistent encounter profile/starter party; every interaction revalidates the same server-owned state and no PTU or starter truth comes from the client. |
 | WORLD-002 | LIVE | Starter-selection screen with Pokémon preview — PR #264 / implementation head `3a233a43dc8223ee22b25cb2336a5b49233ed8a2`. First-join onboarding opens a server-authored 9x3 selector backed only by the canonical starter catalogue. A starter click creates a temporary one-way Cobblemon model preview from that server-authored species, and confirmation revalidates the same choice through `CanonicalStarterSelectionService` before creating the persistent canonical starter/party. No Cobblemon gameplay field is read back as RPG truth. |
-| WORLD-003 | NEXT | Party HUD and party management screen. |
+| WORLD-003 | NEXT/PARTIAL | Party HUD and party management screen. PR #265 / implementation head `a9f1926bc8d92cadda43155d3a713a3fae04d82b` adds the server-authored 9x3 management screen with stale-state revalidation and lead selection through the existing canonical service. Normal non-command access plus the persistent party HUD remain the next bounded work. |
 | WORLD-004 | TODO | Pokémon summary screen. |
 | WORLD-005 | LIVE | Healing machine/nurse/healer interaction — PR #209 / `81ca566e645f749e7cb6b23cd0714dd91f706094`. |
 | WORLD-006 | LIVE | Physical PC/storage terminal — PR #255 / implementation head `1dd990700e40205cf495779585cec87507c9d2c4`. Right-clicking `cobblemon:pc` opens the canonical party/box selector; the native Cobblemon PC store is never read or written as RPG truth. |
@@ -323,7 +325,7 @@ These should become the normal gameplay path.
 | SVC-013 | LIVE/PARTIAL | Item reservation/commit/rollback infrastructure exists. PR #229 adds schema-compatible consumed-but-retained reservations so multi-item craft recovery cannot expose partially consumed stacks before the durable transaction commit; expand to complete RPG inventory use. |
 | SVC-014 | LIVE/PARTIAL | Encounter reservation infrastructure exists; wire it to normal world encounters. |
 | SVC-015 | LIVE/PARTIAL | Battle outcome commit infrastructure exists; wire it to the normal battle loop. |
-| SVC-016 | LIVE | `credit/debit(transactionId, player, amount, source)` — PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd`. The server writes the wallet value, revision and immutable transaction receipt atomically; duplicate retries/restarts return the committed result without moving currency again, conflicting reuse fails closed, and insufficient debits do not mutate state. Client-authored balances, prices and rewards are not accepted here. |
+| SVC-016 | LIVE | `credit/debit(transactionId, player, amount, source)` — PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd`. The server writes the wallet value, revision and immutable server-owned transaction identity atomically; duplicate retries/restarts return the committed result without moving currency again, conflicting reuse fails closed, and insufficient debits do not mutate state. Client-authored balances, prices and rewards are not accepted here. |
 | SVC-017 | TODO | Quest reward commit/idempotency. |
 | SVC-018 | TODO | Persistent world-object mutation/idempotency. |
 | SVC-019 | TODO | Reconnect/restart active-session recovery. |
