@@ -103,7 +103,7 @@ Detailed provenance, license preservation, geometry contract and review notes: `
 
 ## 0094 Gengar — Rift Warden
 
-Status: EPIC ACCEPTED IN BLOCKBENCH — PLAYABLE/CORE CI PENDING
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Rift Warden is derived from the single official Gengar geometry in the Cobblemon 1.7.3 Fabric JAR. CI pins model `57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38`, animation `68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f`, resolver `aeecefe6571d99bc9ab38a3b22af5e34769b346ed9858335292c82209ee95afc` and the exact normal, shiny, emissive and Pokemopolis textures.
 
@@ -111,7 +111,7 @@ All 78 official Gengar bones remain JSON-equivalent and in order. Eight `ouros_*
 
 The resolver preserves all three official presentation branches: normal, shiny and `color-green`/Pokemopolis. Official emissive layers remain in the normal and shiny branches. The Ouros overlay occupies only eight proven UV-free texels on the 128×128 texture and does not repaint the body.
 
-Real Blockbench 5.1.6 review accepted the silhouette after direct visual inspection. Matched-camera official vs skin evidence shows a strong front and three-quarter change without masking Gengar's eyes or grin. Official `ground_idle`, `air_idle` and `air_fly` clips keep the attached equipment coherent. The detached center halo fragment is intentional rift imagery and stays stable through the tested frames. The official animation JSON contains no battle or walking clip, so the pipeline does not fabricate either; `air_fly` is used as the locomotion evidence.
+Real Blockbench 5.1.6 review accepted the silhouette after direct visual inspection. Matched-camera official vs skin evidence shows a strong front and three-quarter change without masking Gengar's eyes or grin. Official `ground_idle`, `air_idle` and `air_fly` clips keep the attached equipment coherent. The detached center halo fragment is intentional rift imagery and stays stable through the tested frames. The official animation JSON contains no battle or walking clip, so the pipeline does not fabricate either; `air_fly` is used as the locomotion evidence. Playable Fabric, Cobblemon Official Model Review and Integration Core all completed successfully on PR #298 before merge eligibility.
 
 Detailed provenance, license, geometry and QA notes: `docs/cobblemon-skins/0094_gengar/gengar-rift-warden.md`.
 
