@@ -84,7 +84,6 @@ def find_safe_pixels(model, texture_paths, width, height, count=4):
     used = occupied_uv_pixels(model, width, height)
     images = [load_rgba(path, (width, height)) for path in texture_paths]
     safe = []
-    # Prefer the bottom-right area so accessory atlas pixels stay visually isolated.
     for y in range(height - 1, -1, -1):
         for x in range(width - 1, -1, -1):
             if (x, y) in used:
@@ -178,6 +177,9 @@ def main():
 
     source_path = Path(args.source_model)
     source = json.loads(source_path.read_text(encoding="utf-8"))
+    source_bones = copy.deepcopy(source["minecraft:geometry"][0].get("bones", []))
+    source_names = {bone.get("name") for bone in source_bones}
+
     model = copy.deepcopy(source)
     geometry = model["minecraft:geometry"][0]
     description = geometry["description"]
@@ -186,8 +188,6 @@ def main():
     if (width, height) != (128, 64):
         raise ValueError(f"Expected Cobblemon 1.7.3 Pikachu 128x64 atlas, got {(width, height)}")
 
-    source_bones = geometry.get("bones", [])
-    source_names = {bone.get("name") for bone in source_bones}
     required_173 = {
         "pikachu", "body", "torso", "torso2", "neck", "head", "head_ai", "head_angle",
         "muzzle", "mouth", "ear_left", "ear_right", "arm_left", "arm_right",
@@ -214,13 +214,12 @@ def main():
     output_model.write_text(json.dumps(model, separators=(",", ":")) + "\n", encoding="utf-8")
 
     overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    for (name, color), pixel in zip(PALETTE.items(), pixels):
+    for (_, color), pixel in zip(PALETTE.items(), pixels):
         overlay.putpixel(pixel, color)
     output_accessory = Path(args.output_accessory)
     output_accessory.parent.mkdir(parents=True, exist_ok=True)
     overlay.save(output_accessory, optimize=True)
 
-    # Anatomy must remain structurally identical and in the same order before accessories.
     built_bones = geometry["bones"][:-len(added)]
     if built_bones != source_bones:
         raise AssertionError("Source anatomy changed while building Storm Courier")
