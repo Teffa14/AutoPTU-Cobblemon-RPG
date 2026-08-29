@@ -6,6 +6,7 @@ import io.autoptu.cobblemon.authority.CanonicalPartySummary;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -32,6 +33,8 @@ import java.util.Locale;
 public final class FabricPartyManagementRuntime {
     private static final int TOP_SLOT_COUNT = 27;
     private static final int[] PARTY_SLOTS = {10, 11, 12, 14, 15, 16};
+    private static final int HUD_REFRESH_TICKS = 40;
+    private static int hudTickCounter;
 
     private FabricPartyManagementRuntime() {}
 
@@ -41,6 +44,16 @@ public final class FabricPartyManagementRuntime {
                         .then(CommandManager.literal("party")
                                 .then(CommandManager.literal("manage")
                                         .executes(context -> open(context.getSource()))))));
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            hudTickCounter++;
+            if (hudTickCounter < HUD_REFRESH_TICKS) return;
+            hudTickCounter = 0;
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                CanonicalPartySummary party = queryParty(player);
+                if (party == null || party.members().isEmpty()) continue;
+                player.sendMessage(Text.literal(hudLabel(party)), true);
+            }
+        });
     }
 
     private static int open(ServerCommandSource source) {
@@ -79,6 +92,22 @@ public final class FabricPartyManagementRuntime {
         } catch (IllegalStateException inconsistentState) {
             return null;
         }
+    }
+
+    static String hudLabel(CanonicalPartySummary party) {
+        if (party == null || party.members().isEmpty()) return "Party unavailable";
+        StringBuilder label = new StringBuilder("Party ");
+        List<CanonicalPartySummary.Member> members = party.members();
+        for (int i = 0; i < members.size(); i++) {
+            CanonicalPartySummary.Member member = members.get(i);
+            if (i > 0) label.append(" | ");
+            if (member.slot() == 1) label.append("★ ");
+            label.append(displayName(member.speciesId()));
+            if (member.hasHealth()) {
+                label.append(' ').append(member.currentHp()).append('/').append(member.maxHp());
+            }
+        }
+        return label.toString();
     }
 
     private static final class PartyManagementScreenHandler extends GenericContainerScreenHandler {
