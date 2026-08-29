@@ -1,0 +1,66 @@
+name: Sync RPG plan 271
+
+on:
+  push:
+    branches:
+      - rpg/sync-plan-271
+
+permissions:
+  contents: write
+
+jobs:
+  sync-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/sync-plan-271
+      - name: Update canonical plan
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+
+          def replace_once(old, new):
+              global text
+              if old not in text:
+                  raise SystemExit(f'missing expected plan text: {old[:120]}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              '9. Minecraft damage must never decide HP or death for Pokemon presentation actors or canonical NPC actors. Loaded canonical Trainers may not directly mutate the Ouros world through ordinary block breaking/placement, buckets or fire-starting; authored server interactions and server world services are the mutation path.',
+              '9. Minecraft damage must never decide HP or death for Pokemon presentation actors or canonical NPC actors. Normal Minecraft mining, digging, logging, building, buckets and fire-starting remain available by default. A battle, quest or scripted interaction may temporarily protect only an explicitly registered world footprint whose mutation would invalidate that active interaction.'
+          )
+          replace_once(
+              '| CUR-040 | LIVE | RPG actor/world authority protection | PR #269 / implementation head `4ca41451e32e485d9b493ce674eb2cfb69a03dab`. Fabric cancels Minecraft damage to every Cobblemon Pokemon presentation actor and canonical tagged NPC before damage resolution. Loaded canonical Trainers cannot directly break blocks or request ordinary block placement, bucket placement/pickup or fire-starting; authored server interactions and world services remain the mutation path. |',
+              '| CUR-040 | LIVE | RPG actor/world authority protection | PR #269 protects Pokemon/canonical-NPC presentation actors from Minecraft damage authority. PR #270 / merge `2437d32f02c727dc30c0c61ae3157125983424a1` restores ordinary Minecraft mining/building/logging/digging and world mutation outside explicit temporary battle/quest/script protection scopes. |\n| CUR-041 | LIVE | Authored world-object interaction gate | PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a` adds server-authoritative `canInteract` gating for explicitly authored chests, switches, doors, terminals and shrines while leaving ordinary vanilla objects untouched. |'
+          )
+          replace_once(
+              '| WORLD-016 | NEXT | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |',
+              '| WORLD-016 | LIVE | Interactive chests, switches, doors, terminals and shrines through `canInteract` — PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a`. A gold-block authored footprint opts supported vanilla objects into server-side Trainer identity, object-kind and range revalidation; ordinary Minecraft objects remain vanilla. |'
+          )
+          replace_once(
+              '| WORLD-017 | TODO | Fast-travel point. |',
+              '| WORLD-017 | NEXT | Fast-travel point. |'
+          )
+          replace_once(
+              '| WORLD-027 | LIVE | RPG actor/world anti-grief protection — PR #269 / implementation head `4ca41451e32e485d9b493ce674eb2cfb69a03dab`. Minecraft damage is rejected for Pokemon and canonical NPC presentation actors before HP/death resolution. Loaded canonical Trainers are denied direct block breaking plus ordinary block/bucket/fire world-mutation requests, so hazards and terrain edits cannot bypass the authored RPG authority path. External-mod entity discard/reprojection and non-player indirect block mutation remain separate recovery hardening, not trusted gameplay outcomes. |',
+              '| WORLD-027 | LIVE | RPG actor/world authority protection — PR #269 protects Pokemon and canonical NPC presentation actors from Minecraft damage authority. PR #270 / merge `2437d32f02c727dc30c0c61ae3157125983424a1` narrows terrain protection to explicit temporary interaction footprints, so normal Minecraft mining, digging, logging, building, buckets and fire remain available elsewhere. |'
+          )
+          replace_once(
+              '| SVC-002 | TODO | `canInteract(player, object, context)` |',
+              '| SVC-002 | LIVE | `canInteract(player, object, context)` — PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a`. The server validates canonical Trainer existence, authored object identity/type and interaction range before allowing the Minecraft-facing interaction; it supplies no PTU legality, RNG, rewards, progression or battle outcome. |'
+          )
+
+          path.write_text(text)
+          PY
+      - name: Remove one-shot workflow and commit plan
+        run: |
+          git rm .github/workflows/sync-plan-271.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "Plan: mark WORLD-016 live and advance WORLD-017"
+          git push origin HEAD:rpg/sync-plan-271
