@@ -1,23 +1,24 @@
 # Cobblemon Skin Catalog
 
-This catalog records Ouros-authored visual Pokémon variants. A catalog entry is complete only when the repository contains the Cobblemon-loadable model, texture, poser/resolver, animation assets, and exact-model review images.
+This catalog records Ouros-authored visual Pokémon variants. For Pokémon that already exist in Cobblemon, cosmetic work must begin from the species' original Cobblemon geometry and preserve its anatomy, proportions, pivots and animation-compatible bone structure. Rebuilding the Pokémon from scratch is not an acceptable skin workflow.
 
 ## 0025 Pikachu — Storm Courier
 
-Status: IMPLEMENTED / RUNTIME VALIDATION PENDING
+Status: CORRECTED / ORIGINAL COBBLEMON MODEL BASE / CLIENT RUNTIME VALIDATION PENDING
 
 Aspect: `ouros_storm_courier`
 
 Species feature key: `ouros_storm_courier`
 
-Design intent: a field courier prepared for electrically violent weather. The silhouette changes through storm goggles, an indigo scarf with independently animated tails, a cross-body satchel, copper wrist conductors, and a conductor assembly on the lightning tail. This is a geometry change, not a recolor.
+Design intent: a field courier Pikachu with wearable expedition equipment. Pikachu's original Cobblemon body, head, muzzle, eyes, ears, arms, legs, feet and lightning tail remain the base model. The cosmetic adds only storm goggles, a crossed courier harness, a compact back/side pack and a tail clamp.
 
-Visual systems:
-- custom Bedrock Entity geometry with dedicated accessory bones;
-- normal and shiny textures;
-- ground idle, battle idle, walk, blink, storm-charge quirk and faint animations;
-- storm-charge accessory animation on the tail conductor and goggles.
-- emissive and particle hooks are intentionally deferred until their 1.7.3 runtime binding is verified.
+Implementation rule applied:
+- the 22 original `pikachu_male.geo.json` bones and their cubes/pivots are preserved;
+- four Ouros accessory bones are appended and parented to original Cobblemon bones;
+- the resolver uses Cobblemon's original `cobblemon:pikachu` poser;
+- base and shiny body textures resolve to Cobblemon's original Pikachu textures;
+- original Cobblemon animations continue to drive the original bones, so accessories inherit movement through their parents;
+- the previous custom rebuilt body, custom poser, custom animation set and replacement body textures are removed.
 
 Runtime test:
 `/pokespawn pikachu ouros_storm_courier`
@@ -25,14 +26,12 @@ Runtime test:
 Shiny test:
 `/pokespawn pikachu ouros_storm_courier shiny`
 
-Review evidence:
-- `test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier/front.png`
-- `test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier/left.png`
-- `test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier/right.png`
-- `test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier/back.png`
+Review evidence rule:
+Four-view evidence must be regenerated from the corrected model or captured in the real client. The previous four PNGs represented the rejected rebuilt body and are removed rather than retained as misleading evidence.
 
 Reference and licensing notes:
-- Cobblemon's current model/addon documentation was used for Bedrock Entity, Box UV, poser, resolver and species-feature conventions.
-- The public Cobblemon source/mirror was inspected only to verify contemporary Pikachu bone/layout conventions. Its Pikachu asset license contains non-commercial terms, so no source geometry, texture or animation was copied into this asset.
-- Pokémon UNITE Holowear was used only as a high-level reference for the idea that premium cosmetics can change costume silhouette and presentation. No Holowear geometry, texture, artwork or named costume was copied.
-- All Ouros geometry, textures, accessory design, animation data in this entry were authored for this repository.
+- Base geometry is an adaptation of Cobblemon's `pikachu_male.geo.json`; source: `codemonkey85/Cobblemon-Mirror`, path `common/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json`.
+- Base/shiny textures remain Cobblemon resources and are referenced by identifier rather than copied into Ouros.
+- The source Pikachu asset carries Cobblemon's included Creative Commons public-license/non-commercial terms. This adaptation must retain the required attribution and license conditions.
+- The added courier accessory geometry is authored for Ouros.
+- Pokémon UNITE/Holowear and public skin packs may inform high-level cosmetic principles only; no third-party costume geometry, texture or artwork is copied.
