@@ -6,7 +6,6 @@ import io.autoptu.cobblemon.authority.CanonicalItemStorageTransferService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -65,8 +64,7 @@ public final class FabricItemStorageTerminalRuntime {
     }
 
     static boolean isItemStorageTerminal(World world, BlockPos pos) {
-        return world.getBlockState(pos).isOf(Blocks.IRON_BLOCK)
-                && world.getBlockState(pos.down()).isOf(Blocks.BARREL);
+        return world.getBlockState(pos).isOf(FabricRpgContent.ITEM_STORAGE_TERMINAL);
     }
 
     static boolean withinInteractionDistance(ServerPlayerEntity player, BlockPos pos) {
