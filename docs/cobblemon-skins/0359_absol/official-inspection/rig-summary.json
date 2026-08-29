@@ -1,0 +1,750 @@
+{
+  "boneCount": 73,
+  "bones": [
+    {
+      "name": "absol",
+      "parent": null,
+      "pivot": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "body",
+      "parent": "absol",
+      "pivot": [
+        0,
+        17,
+        0
+      ]
+    },
+    {
+      "name": "waist",
+      "parent": "body",
+      "pivot": [
+        0,
+        17.5,
+        7
+      ]
+    },
+    {
+      "name": "torso",
+      "parent": "waist",
+      "pivot": [
+        0,
+        17.5,
+        7
+      ]
+    },
+    {
+      "name": "hips",
+      "parent": "torso",
+      "pivot": [
+        0,
+        18.4,
+        5
+      ]
+    },
+    {
+      "name": "chest",
+      "parent": "hips",
+      "pivot": [
+        0,
+        18.9,
+        -3
+      ]
+    },
+    {
+      "name": "neck",
+      "parent": "chest",
+      "pivot": [
+        0,
+        19.5,
+        -3
+      ]
+    },
+    {
+      "name": "head",
+      "parent": "neck",
+      "pivot": [
+        0,
+        28.5,
+        -7.5
+      ]
+    },
+    {
+      "name": "head_correction",
+      "parent": "head",
+      "pivot": [
+        0,
+        28.5,
+        -7.5
+      ]
+    },
+    {
+      "name": "head_ai",
+      "parent": "head_correction",
+      "pivot": [
+        0,
+        28.5,
+        -7.5
+      ]
+    },
+    {
+      "name": "head_angle",
+      "parent": "head_ai",
+      "pivot": [
+        0,
+        28.5,
+        -7.5
+      ]
+    },
+    {
+      "name": "horn",
+      "parent": "head_angle",
+      "pivot": [
+        -4,
+        30.38,
+        -9.55
+      ]
+    },
+    {
+      "name": "eyes",
+      "parent": "head_angle",
+      "pivot": [
+        0,
+        -0.25,
+        -0.75
+      ]
+    },
+    {
+      "name": "eyes_open",
+      "parent": "eyes",
+      "pivot": [
+        0,
+        28.65,
+        -12.6
+      ]
+    },
+    {
+      "name": "eye_left",
+      "parent": "eyes_open",
+      "pivot": [
+        2.3,
+        28.65,
+        -12.45
+      ]
+    },
+    {
+      "name": "eye_right",
+      "parent": "eyes_open",
+      "pivot": [
+        -2.3,
+        28.65,
+        -12.45
+      ]
+    },
+    {
+      "name": "eyes_happy",
+      "parent": "eyes",
+      "pivot": [
+        0,
+        28.65,
+        -11.6
+      ]
+    },
+    {
+      "name": "eye_closed_right2",
+      "parent": "eyes_happy",
+      "pivot": [
+        -2.5,
+        28.125,
+        -11.575
+      ]
+    },
+    {
+      "name": "eye_closed_left2",
+      "parent": "eyes_happy",
+      "pivot": [
+        2.5,
+        28.125,
+        -11.575
+      ]
+    },
+    {
+      "name": "eyes_closed",
+      "parent": "eyes",
+      "pivot": [
+        0,
+        28.25,
+        -11.6
+      ]
+    },
+    {
+      "name": "eye_closed_right",
+      "parent": "eyes_closed",
+      "pivot": [
+        -2.5,
+        28.25,
+        -11.6
+      ]
+    },
+    {
+      "name": "eye_closed_left",
+      "parent": "eyes_closed",
+      "pivot": [
+        2.5,
+        28.25,
+        -11.6
+      ]
+    },
+    {
+      "name": "eyes_halfclosed",
+      "parent": "eyes",
+      "pivot": [
+        0,
+        28.75,
+        -11.15
+      ]
+    },
+    {
+      "name": "eye_halfclosed_right",
+      "parent": "eyes_halfclosed",
+      "pivot": [
+        -2.4,
+        28.75,
+        -11.15
+      ]
+    },
+    {
+      "name": "eye_halfclosed_left",
+      "parent": "eyes_halfclosed",
+      "pivot": [
+        2.4,
+        28.75,
+        -11.15
+      ]
+    },
+    {
+      "name": "mouth",
+      "parent": "head_angle",
+      "pivot": [
+        1e-05,
+        27.65,
+        -12.5
+      ]
+    },
+    {
+      "name": "hair",
+      "parent": "head_angle",
+      "pivot": [
+        4,
+        34.65,
+        -10.05
+      ]
+    },
+    {
+      "name": "hair2",
+      "parent": "hair",
+      "pivot": [
+        9,
+        33.9,
+        -7.55
+      ]
+    },
+    {
+      "name": "hair3",
+      "parent": "hair2",
+      "pivot": [
+        13,
+        33.15,
+        -11.2
+      ]
+    },
+    {
+      "name": "fur",
+      "parent": "neck",
+      "pivot": [
+        0,
+        25.5,
+        -10.95
+      ]
+    },
+    {
+      "name": "neck_fur_right2",
+      "parent": "fur",
+      "pivot": [
+        -4,
+        25.5,
+        -8.5
+      ]
+    },
+    {
+      "name": "neck_fur_left2",
+      "parent": "fur",
+      "pivot": [
+        4,
+        25.5,
+        -8.5
+      ]
+    },
+    {
+      "name": "neck_fur_back2",
+      "parent": "fur",
+      "pivot": [
+        0,
+        25.5,
+        -3
+      ]
+    },
+    {
+      "name": "chest_fur",
+      "parent": "fur",
+      "pivot": [
+        0,
+        25.5,
+        -11
+      ]
+    },
+    {
+      "name": "chest_fur_right",
+      "parent": "chest_fur",
+      "pivot": [
+        -4,
+        25.5,
+        -11
+      ]
+    },
+    {
+      "name": "chest_fur_left",
+      "parent": "chest_fur",
+      "pivot": [
+        4,
+        25.5,
+        -11
+      ]
+    },
+    {
+      "name": "chest_fur_1",
+      "parent": "chest_fur",
+      "pivot": [
+        0,
+        17.5,
+        -11
+      ]
+    },
+    {
+      "name": "chest_fur_2",
+      "parent": "chest_fur_1",
+      "pivot": [
+        0,
+        12.5,
+        -11
+      ]
+    },
+    {
+      "name": "tail",
+      "parent": "torso",
+      "pivot": [
+        0,
+        21.4,
+        11
+      ]
+    },
+    {
+      "name": "fhips",
+      "parent": "waist",
+      "pivot": [
+        0,
+        18.4,
+        5
+      ]
+    },
+    {
+      "name": "fchest",
+      "parent": "fhips",
+      "pivot": [
+        0,
+        18.9,
+        -3
+      ]
+    },
+    {
+      "name": "legs_front",
+      "parent": "fchest",
+      "pivot": [
+        0,
+        16,
+        -7
+      ]
+    },
+    {
+      "name": "leg_front_right",
+      "parent": "legs_front",
+      "pivot": [
+        -3.75,
+        15.4,
+        -6.6
+      ]
+    },
+    {
+      "name": "leg_front_right2",
+      "parent": "leg_front_right",
+      "pivot": [
+        -3.75,
+        8.4,
+        -4.6
+      ]
+    },
+    {
+      "name": "foot_front_right",
+      "parent": "leg_front_right2",
+      "pivot": [
+        -3.75,
+        -0.5,
+        -6.7
+      ]
+    },
+    {
+      "name": "toes_front_right",
+      "parent": "foot_front_right",
+      "pivot": [
+        -3.75,
+        -0.45,
+        -7.8
+      ]
+    },
+    {
+      "name": "toe_middle_right",
+      "parent": "toes_front_right",
+      "pivot": [
+        -3.75,
+        -1.5,
+        -9.8
+      ]
+    },
+    {
+      "name": "toe_outer_right",
+      "parent": "toes_front_right",
+      "pivot": [
+        -4.9,
+        -1.5,
+        -7.75
+      ]
+    },
+    {
+      "name": "toe_inner_right",
+      "parent": "toes_front_right",
+      "pivot": [
+        -2.6,
+        -1.5,
+        -7.7
+      ]
+    },
+    {
+      "name": "leg_front_left",
+      "parent": "legs_front",
+      "pivot": [
+        3.75,
+        15.4,
+        -6.6
+      ]
+    },
+    {
+      "name": "leg_front_left2",
+      "parent": "leg_front_left",
+      "pivot": [
+        3.75,
+        8.4,
+        -4.6
+      ]
+    },
+    {
+      "name": "foot_front_left",
+      "parent": "leg_front_left2",
+      "pivot": [
+        3.75,
+        -0.5,
+        -6.7
+      ]
+    },
+    {
+      "name": "toes_front_left",
+      "parent": "foot_front_left",
+      "pivot": [
+        3.75,
+        -0.45,
+        -7.8
+      ]
+    },
+    {
+      "name": "toe_middle_left",
+      "parent": "toes_front_left",
+      "pivot": [
+        3.75,
+        -1.5,
+        -9.8
+      ]
+    },
+    {
+      "name": "toe_outer_left",
+      "parent": "toes_front_left",
+      "pivot": [
+        4.9,
+        -1.5,
+        -7.75
+      ]
+    },
+    {
+      "name": "toe_inner_left",
+      "parent": "toes_front_left",
+      "pivot": [
+        2.6,
+        -1.5,
+        -7.7
+      ]
+    },
+    {
+      "name": "legs_back",
+      "parent": "body",
+      "pivot": [
+        0,
+        17,
+        8
+      ]
+    },
+    {
+      "name": "leg_back_left",
+      "parent": "legs_back",
+      "pivot": [
+        4,
+        17,
+        8
+      ]
+    },
+    {
+      "name": "leg_back_left2",
+      "parent": "leg_back_left",
+      "pivot": [
+        4,
+        11,
+        4
+      ]
+    },
+    {
+      "name": "leg_back_left3",
+      "parent": "leg_back_left2",
+      "pivot": [
+        4,
+        1,
+        9
+      ]
+    },
+    {
+      "name": "foot__back_left",
+      "parent": "leg_back_left3",
+      "pivot": [
+        4,
+        -5.75,
+        7
+      ]
+    },
+    {
+      "name": "back_toes_left",
+      "parent": "foot__back_left",
+      "pivot": [
+        3.75,
+        -6.65,
+        4
+      ]
+    },
+    {
+      "name": "mid_back_toes_left",
+      "parent": "back_toes_left",
+      "pivot": [
+        3.75,
+        -6.7,
+        4
+      ]
+    },
+    {
+      "name": "right_back_toes_left",
+      "parent": "back_toes_left",
+      "pivot": [
+        4.9,
+        -6.7,
+        6.05
+      ]
+    },
+    {
+      "name": "left_back_toes_left",
+      "parent": "back_toes_left",
+      "pivot": [
+        2.6,
+        -6.7,
+        6.05
+      ]
+    },
+    {
+      "name": "leg_back_right",
+      "parent": "legs_back",
+      "pivot": [
+        -4,
+        17,
+        8
+      ]
+    },
+    {
+      "name": "leg_back_right2",
+      "parent": "leg_back_right",
+      "pivot": [
+        -4,
+        11,
+        4
+      ]
+    },
+    {
+      "name": "leg_back_right3",
+      "parent": "leg_back_right2",
+      "pivot": [
+        -4,
+        1,
+        9
+      ]
+    },
+    {
+      "name": "foot_back_right",
+      "parent": "leg_back_right3",
+      "pivot": [
+        -4,
+        -5.75,
+        7
+      ]
+    },
+    {
+      "name": "back_toes_right",
+      "parent": "foot_back_right",
+      "pivot": [
+        -3.75,
+        -6.65,
+        4
+      ]
+    },
+    {
+      "name": "mid_back_toes_right",
+      "parent": "back_toes_right",
+      "pivot": [
+        -3.75,
+        -6.7,
+        4
+      ]
+    },
+    {
+      "name": "right_back_toes_right",
+      "parent": "back_toes_right",
+      "pivot": [
+        -4.9,
+        -6.7,
+        6.05
+      ]
+    },
+    {
+      "name": "left_back_toes_right",
+      "parent": "back_toes_right",
+      "pivot": [
+        -2.6,
+        -6.7,
+        6.05
+      ]
+    }
+  ],
+  "animationNames": [
+    "animation.absol.render",
+    "animation.absol.ground_idle",
+    "animation.absol.cry",
+    "animation.absol.blink"
+  ],
+  "poser": {
+    "portraitScale": 1.91,
+    "portraitTranslation": [
+      -0.91,
+      1.18,
+      0
+    ],
+    "profileScale": 0.59,
+    "profileTranslation": [
+      -0.02,
+      0.85,
+      0
+    ],
+    "rootBone": "absol",
+    "animations": {
+      "cry": "q.bedrock_stateful('absol', 'cry')"
+    },
+    "poses": {
+      "standing": {
+        "poseTypes": [
+          "STAND",
+          "NONE",
+          "FLOAT",
+          "PORTRAIT",
+          "PROFILE"
+        ],
+        "isBattle": false,
+        "animations": [
+          "q.look('head')",
+          "q.bedrock('absol', 'ground_idle')"
+        ],
+        "quirks": [
+          "q.bedrock_quirk('absol', 'blink')"
+        ]
+      },
+      "walking": {
+        "poseTypes": [
+          "WALK",
+          "SWIM"
+        ],
+        "animations": [
+          "q.look('head')",
+          "q.bedrock('absol', 'ground_idle')",
+          "q.quadruped_walk(1, 1, 'leg_front_left', 'leg_front_right', 'leg_back_left', 'leg_back_right')"
+        ],
+        "quirks": [
+          "q.bedrock_quirk('absol', 'blink')"
+        ]
+      }
+    }
+  },
+  "resolver": {
+    "species": "cobblemon:absol",
+    "order": 0,
+    "variations": [
+      {
+        "aspects": [],
+        "poser": "cobblemon:absol",
+        "model": "cobblemon:absol.geo",
+        "texture": "cobblemon:textures/pokemon/0359_absol/absol.png",
+        "layers": []
+      },
+      {
+        "aspects": [
+          "shiny"
+        ],
+        "texture": "cobblemon:textures/pokemon/0359_absol/absol_shiny.png"
+      }
+    ]
+  },
+  "description": {
+    "identifier": "geometry.absol",
+    "texture_width": 128,
+    "texture_height": 128,
+    "visible_bounds_width": 9,
+    "visible_bounds_height": 4.5,
+    "visible_bounds_offset": [
+      0,
+      1.75,
+      0
+    ]
+  }
+}

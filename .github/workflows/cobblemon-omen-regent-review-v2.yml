@@ -1,0 +1,94 @@
+name: Omen Regent Blockbench Review V2
+
+on:
+  push:
+    branches: ['feat/absol-omen-regent']
+    paths:
+      - '.github/workflows/cobblemon-omen-regent-review-v2.yml'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0359_absol/ouros_omen_regent_absol.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0359_absol/ouros_omen_regent_accessories.png'
+  workflow_dispatch:
+permissions: {contents: write}
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  BLOCKBENCH_VERSION: 5.1.6
+  BLOCKBENCH_SHA256: c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64 >/dev/null
+      - name: Fetch official inputs and Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .pose/official
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .pose/version.json
+          python - <<'PY' > .pose/env
+          import json,shlex
+          d=json.load(open('.pose/version.json')); p=next(f for f in d['files'] if f.get('primary'))
+          assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and d['game_versions']==['1.21.1'] and p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(p['url'])); print('SHA512='+shlex.quote(p['hashes']['sha512']))
+          PY
+          source .pose/env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .pose/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" .pose/cobblemon.jar | sha512sum --check --strict
+          unzip -p .pose/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0359_absol/absol.geo.json' > .pose/official/absol.geo.json
+          unzip -p .pose/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0359_absol/absol.animation.json' > .pose/official/absol.animation.json
+          unzip -p .pose/cobblemon.jar 'assets/cobblemon/textures/pokemon/0359_absol/absol.png' > .pose/official/absol.png
+          python tools/cobblemon-model-review/validate_original_model.py --official .pose/official/absol.geo.json --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0359_absol/ouros_omen_regent_absol.geo.json
+          python - <<'PY'
+          from PIL import Image
+          b=Image.open('.pose/official/absol.png').convert('RGBA'); o=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0359_absol/ouros_omen_regent_accessories.png').convert('RGBA'); assert b.size==o.size==(128,128); Image.alpha_composite(b,o).save('.pose/omen.png',optimize=True)
+          PY
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" -o .pose/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" .pose/blockbench.AppImage | sha256sum --check --strict
+          chmod +x .pose/blockbench.AppImage; (cd .pose && ./blockbench.AppImage --appimage-extract >/dev/null)
+      - name: Render exact states with retries
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$PWD/test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses"; rm -rf "$root" .pose/renders; mkdir -p "$root" .pose/renders
+          cleanup_blockbench() { pid="${1:-}"; if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi; pkill -f "$PWD/.pose/squashfs-root/blockbench" 2>/dev/null || true; pkill -f "$PWD/.pose/squashfs-root/AppRun" 2>/dev/null || true; sleep 2; }
+          render_once() {
+            model="$1"; texture="$2"; animation="$3"; frame="$4"; output="$5"; port="$6"; name="$7"; attempt="$8"; userdata="$PWD/.pose/user-${name}-${attempt}"; log="$PWD/.pose/${name}-${attempt}.log"; rm -rf "$userdata" "$output"; mkdir -p "$userdata" "$output"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.pose/squashfs-root" .pose/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$userdata" "$model" > "$log" 2>&1 & pid=$!
+            ready=0; for _ in $(seq 1 90); do if curl --fail --silent "http://127.0.0.1:${port}/json/version" >/dev/null 2>&1; then ready=1; break; fi; if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; cleanup_blockbench "$pid"; return 1; fi; sleep 1; done
+            if [ "$ready" -ne 1 ]; then cat "$log"; cleanup_blockbench "$pid"; return 1; fi
+            if ! node tools/cobblemon-model-review/blockbench_capture.mjs --endpoint "http://127.0.0.1:${port}" --texture "$texture" --animation "$PWD/.pose/official/absol.animation.json" --animation-name "$animation" --animation-time "$frame" --output-dir "$output"; then cat "$log"; cleanup_blockbench "$pid"; return 1; fi
+            cleanup_blockbench "$pid"
+          }
+          render_model() { for attempt in 1 2 3; do if render_once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$attempt"; then return 0; fi; done; return 1; }
+          official="$PWD/.pose/official/absol.geo.json"; omen="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0359_absol/ouros_omen_regent_absol.geo.json"
+          render_model "$official" "$PWD/.pose/official/absol.png" 'animation.absol.ground_idle' 0.35 "$PWD/.pose/renders/official" 9271 official
+          render_model "$omen" "$PWD/.pose/omen.png" 'animation.absol.ground_idle' 0.35 "$PWD/.pose/renders/hero" 9272 hero
+          render_model "$omen" "$PWD/.pose/omen.png" 'animation.absol.cry' 0.25 "$PWD/.pose/renders/cry" 9273 cry
+          cp .pose/renders/official/three_quarter.png "$root/official_reference_three_quarter.png"; cp .pose/renders/hero/three_quarter.png "$root/hero_three_quarter.png"; cp .pose/renders/cry/three_quarter.png "$root/cry_three_quarter.png"; cp .pose/renders/hero/front.png "$root/hero_front.png"; cp .pose/renders/hero/left.png "$root/hero_left.png"; cp .pose/renders/hero/right.png "$root/hero_right.png"; cp .pose/renders/hero/back.png "$root/hero_back.png"
+      - name: Write and validate provenance
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          from PIL import Image
+          root=Path('test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses'); names=['official_reference_three_quarter.png','hero_three_quarter.png','cry_three_quarter.png','hero_front.png','hero_left.png','hero_right.png','hero_back.png']; hashes={}
+          for n in names:
+              p=root/n; im=Image.open(p).convert('RGBA'); assert im.size==(1024,1024) and im.getbbox() is not None; hashes[n]=hashlib.sha256(p.read_bytes()).hexdigest()
+          manifest={'format':'ouros.cobblemon-blockbench-pose-evidence.v1','viewer':'Blockbench 5.1.6','modelSource':'official Cobblemon 1.7.3 Fabric JAR, Modrinth kF7CvxTo','officialModelSha256':'ed8b82b60caaeb0ee8b97597b5bd194a52d52d671da7bbc0eb35aa8dd864d462','officialAnimationSha256':'3e706148f3159fb60b51acd8221d4a1292306a8a780ab4b69a874eb72700ece4','originalBoneCount':73,'derivedBoneCount':81,'poses':{'hero':{'animation':'animation.absol.ground_idle','time':0.35},'cry':{'animation':'animation.absol.cry','time':0.25}},'walkingEvidence':'omitted because official walking is q.quadruped_walk procedural','battleEvidence':'omitted because official poser exposes no battle pose/battle_idle clip','files':hashes}; (root/'pose-metadata.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with: {name: omen-regent-real-poses-v2, path: test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses, retention-days: 14}
+      - name: Commit evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses'; git config user.name github-actions[bot]; git config user.email 41898282+github-actions[bot]@users.noreply.github.com; git add "$root"; git commit -m 'Evidence: add Omen Regent Blockbench renders' || exit 0; git pull --rebase origin "${GITHUB_REF_NAME}"; git push origin HEAD:"${GITHUB_REF_NAME}"

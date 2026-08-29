@@ -1,0 +1,57 @@
+{
+  "format": "ouros.cobblemon-skin-build.v1",
+  "species": "cobblemon:absol",
+  "concept": "Omen Regent v2",
+  "originalBoneCount": 73,
+  "derivedBoneCount": 81,
+  "cosmeticBones": [
+    "ouros_omen_crown",
+    "ouros_omen_gorget",
+    "ouros_omen_pauldron_left",
+    "ouros_omen_pauldron_right",
+    "ouros_omen_split_mantle",
+    "ouros_omen_eclipse_frame",
+    "ouros_omen_tail_reliquary",
+    "ouros_omen_rear_relic"
+  ],
+  "cosmeticCubeCount": 61,
+  "palettePixels": {
+    "obsidian": [
+      32,
+      127
+    ],
+    "midnight": [
+      33,
+      127
+    ],
+    "silver": [
+      60,
+      127
+    ],
+    "bone": [
+      61,
+      127
+    ],
+    "crimson": [
+      62,
+      127
+    ],
+    "violet": [
+      63,
+      127
+    ],
+    "aura": [
+      64,
+      127
+    ],
+    "gold": [
+      65,
+      127
+    ]
+  },
+  "textureSize": [
+    128,
+    128
+  ],
+  "artPass": "v2-epic-silhouette"
+}
