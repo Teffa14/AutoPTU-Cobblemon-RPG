@@ -17,9 +17,15 @@ public final class FabricRpgContent {
     /**
      * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
      * world identity is this registry ID rather than an accidental arrangement of unrelated blocks.
+     *
+     * Do not copy BedBlock settings here: vanilla bed settings capture BedBlock-only HEAD/FOOT
+     * properties and crash when applied to a plain registered block. Bed-like presentation belongs
+     * in this mod's model/shape resources, not in inherited vanilla bed gameplay state.
      */
     public static final Block PTU_RECOVERY_BED = new Block(
-            AbstractBlock.Settings.copy(Blocks.RED_BED).nonOpaque()
+            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+                    .strength(1.5F)
+                    .nonOpaque()
     );
     public static final Item PTU_RECOVERY_BED_ITEM = new BlockItem(PTU_RECOVERY_BED, new Item.Settings());
 
