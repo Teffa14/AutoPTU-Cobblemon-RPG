@@ -72,6 +72,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-029 | LIVE | physical canonical Cedar Mart counter | PR #256 / implementation head `b483936f4bae43dd8c1eca77a1ecbd2d8ee8a6f6`. Right-clicking the authored emerald-over-barrel counter opens a server-authored buy/sell menu showing durable wallet, persistent stock and sellable canonical bag quantities; every click revalidates current state and delegates to SVC-029/SVC-032. |
 | CUR-030 | LIVE/PARTIAL | physical canonical NPC dialogue | PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725`. Cedar Meadow provisions a persistent Cedar Ranger villager presentation actor bound one-way to server-authored dialogue; right-click opens a server-side option menu and every selection revalidates entity UUID, canonical NPC tag, range, Trainer state and authored option before showing the response. Normal world provisioning beyond the dev Cedar Meadow placement remains follow-up work. |
 | CUR-031 | LIVE | physical canonical quest-giver acceptance | PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8`. The Cedar Ranger exposes the server-authored `cedar-field-notes` offer; selecting it accepts that exact quest once into the authenticated Trainer's durable world-save journal. Repeat selection is idempotent and objective completion/rewards remain separate systems. |
+| CUR-032 | LIVE | canonical quest journal read surface | PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`. `/autoptu journal`, `/autoptu quests` and `/autoptu quest <id>` project only the authenticated Trainer's durable accepted entries plus server-authored quest metadata; unknown or unaccepted detail requests fail closed and no objective/reward state is inferred. |
 
 ---
 
@@ -162,9 +163,9 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-100 | TODO | `/autoptu journal` |
-| CMD-101 | TODO | `/autoptu quests` |
-| CMD-102 | TODO | `/autoptu quest <id>` |
+| CMD-100 | LIVE | `/autoptu journal` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`; owner-scoped read-only durable journal projection. |
+| CMD-101 | LIVE | `/autoptu quests` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`; lists only accepted canonical quest entries enriched from the server-authored catalogue. |
+| CMD-102 | LIVE | `/autoptu quest <id>` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`; resolves authored metadata only for a quest already present in the authenticated Trainer's journal and fails closed otherwise. |
 | CMD-103 | TODO | `/autoptu quest track <id>` |
 | CMD-104 | TODO | `/autoptu travel` |
 | CMD-105 | TODO | `/autoptu travel <destination>` |
@@ -261,7 +262,7 @@ These should become the normal gameplay path.
 | ID | Status | System |
 |---|---|---|
 | RPG-001 | LIVE/PARTIAL | Server-owned NPC identity and dialogue-state framework. PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725` adds a validated canonical NPC dialogue catalogue, one-way physical entity binding and server-authored option resolution. Conditional/persistent dialogue state remains follow-up work. |
-| RPG-002 | LIVE | Quest journal persistence. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` adds owner-scoped world-save persistence with revision-CAS acceptance, atomic replacement, idempotent repeats and dedicated-server restart verification. The stored state currently records accepted quest identity/state only; objective processing and rewards are RPG-003/RPG-004. |
+| RPG-002 | LIVE | Quest journal persistence. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` adds owner-scoped world-save persistence with revision-CAS acceptance, atomic replacement, idempotent repeats and dedicated-server restart verification. PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8` adds an owner-scoped read-only projection that resolves persisted IDs against server-authored quest metadata. The stored state currently records accepted quest identity/state only; objective processing and rewards are RPG-003/RPG-004. |
 | RPG-003 | TODO | Quest objective event processing. |
 | RPG-004 | TODO | Idempotent quest reward commit. |
 | RPG-005 | TODO | Trainer XP/level/progression persistence. |
@@ -333,6 +334,7 @@ These should become the normal gameplay path.
 | SVC-032 | LIVE | `sell(saleId, player, shopId, itemTemplateId, quantity)` — PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e`. The server resolves explicit authored sell price/currency, selects and reserves an owned canonical stack, consumes it behind a retained transaction lock, credits currency exactly once, releases the lock only after durable credit, and resumes incomplete attempts on server start. Retail stock/replenishment and PTU item behavior are not inferred. |
 | SVC-033 | LIVE/PARTIAL | `dialogue(npcId)` / `dialogue.option(optionId)` — PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725`. The server owns canonical NPC identity, opening text, labels and responses; Fabric binds a physical presentation actor one-way and revalidates the authored option on every click. Conditional/persistent dialogue-state mutation remains future work. |
 | SVC-034 | LIVE | `acceptQuest(player, npcId, questId)` — PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8`. The server resolves authored quest/giver truth, writes one owner-scoped ACCEPTED entry through revisioned atomic persistence and returns the existing entry on duplicate retry. It grants no reward, XP, item, PTU action or battle effect. |
+| SVC-035 | LIVE | `inspectQuestJournal(player)` / `inspectQuest(player, questId)` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`. The server reads only the owner-scoped durable journal, resolves every stored quest ID against the authored catalogue, rejects unknown/unaccepted detail requests and performs no objective, reward, XP or PTU mutation. |
 
 ---
 
@@ -388,7 +390,7 @@ These are required for operations, testing and recovery. They must never be norm
 | LIVE | Durable canonical shop purchase journal — PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe`. Frozen purchase intent and stage persist under the world save; deterministic wallet, stock and item identities let startup recovery resume without double charge, double depletion or duplicate item grant. |
 | LIVE | Durable canonical shop sale journal — PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e`. Frozen item instance/revision, authored price/currency and CREATED/ITEM_RESERVED/ITEM_CONSUMED/WALLET_CREDITED/COMMITTED stages persist under the world save; startup recovery cannot consume or credit the same sale twice. |
 | LIVE | Durable canonical party/box transfer journal — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. Transfer identity, direction, canonical Pokemon ID and CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED stage persist under the world save so startup recovery can finish an interrupted move without duplication or loss. |
-| LIVE/PARTIAL | Quest journal/objectives/reward claims. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` persists owner-scoped accepted quest identity/state/revision and proves the entry across a real dedicated-server restart. Objective progress and reward claims remain TODO under RPG-003/RPG-004. |
+| LIVE/PARTIAL | Quest journal/objectives/reward claims. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` persists owner-scoped accepted quest identity/state/revision and proves the entry across a real dedicated-server restart. PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8` exposes that same durable journal through owner-scoped fallback reads without creating objective or reward state. Objective progress and reward claims remain TODO under RPG-003/RPG-004. |
 | TODO | NPC relationships/factions/rivals. |
 | TODO | Badges/league/tournament records. |
 | TODO | Discovery/world-event flags. |
