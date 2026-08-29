@@ -3,7 +3,7 @@ name: Generate Storm Courier From Official Cobblemon
 on:
   push:
     branches:
-      - feat/storm-courier-premium-accessories
+      - 'feat/storm-courier-*'
     paths:
       - '.github/workflows/cobblemon-generate-storm-courier.yml'
       - 'tools/cobblemon-model-review/build_storm_courier.py'
