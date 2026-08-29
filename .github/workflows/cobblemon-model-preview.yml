@@ -1,0 +1,117 @@
+name: Cobblemon Model Preview
+
+on:
+  push:
+    branches:
+      - fix/storm-courier-real-model-previews
+    paths:
+      - 'tools/cobblemon-model-review/**'
+      - '.github/workflows/cobblemon-model-preview.yml'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/storm-courier-real-model-previews
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deterministic renderer dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.1.3 pillow==11.0.0
+
+      - name: Fetch exact Cobblemon Pikachu base texture
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .preview-input
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            'https://raw.githubusercontent.com/codemonkey85/Cobblemon-Mirror/main/common/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png' \
+            -o .preview-input/pikachu.png
+          python - <<'PY'
+          from PIL import Image
+          img = Image.open('.preview-input/pikachu.png')
+          assert img.size == (64, 64), img.size
+          assert img.mode in ('RGBA', 'RGB')
+          print('Cobblemon Pikachu texture:', img.size, img.mode)
+          PY
+
+      - name: Render exact model four-view evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          out='test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier'
+          rm -rf "$out"
+          python tools/cobblemon-model-review/render_bedrock_model.py \
+            --model fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json \
+            --base-texture .preview-input/pikachu.png \
+            --accessory-texture fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png \
+            --output-dir "$out" \
+            --size 1024
+
+      - name: Validate PNG evidence is non-empty and model-derived
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          from PIL import Image
+
+          root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier')
+          model_path = Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json')
+          model = json.loads(model_path.read_text(encoding='utf-8'))
+          bones = model['minecraft:geometry'][0]['bones']
+          names = {b['name'] for b in bones}
+          required = {'pikachu', 'head', 'torso', 'tail', 'ouros_courier_goggles', 'ouros_courier_harness', 'ouros_courier_pack', 'ouros_courier_tail_clamp'}
+          assert required <= names
+          assert len(bones) == 26, len(bones)
+
+          hashes = {}
+          for view in ('front', 'left', 'right', 'back'):
+              path = root / f'{view}.png'
+              img = Image.open(path).convert('RGBA')
+              assert img.size == (1024, 1024), img.size
+              alpha = img.getchannel('A')
+              bbox = alpha.getbbox()
+              assert bbox is not None, view
+              assert (bbox[2] - bbox[0]) > 180, (view, bbox)
+              assert (bbox[3] - bbox[1]) > 300, (view, bbox)
+              hashes[view] = hashlib.sha256(path.read_bytes()).hexdigest()
+          assert len(set(hashes.values())) == 4, hashes
+          metadata = {
+              'format': 'ouros.cobblemon-model-review.v1',
+              'sourceModel': str(model_path),
+              'sourceModelSha256': hashlib.sha256(model_path.read_bytes()).hexdigest(),
+              'baseTexture': 'Cobblemon-Mirror:0025_pikachu/pikachu.png',
+              'accessoryTexture': 'assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png',
+              'renderer': 'tools/cobblemon-model-review/render_bedrock_model.py',
+              'views': hashes,
+              'note': 'Software-rasterized from the exact Bedrock geometry and textures; not generative imagery.'
+          }
+          (root / 'render-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(metadata, indent=2))
+          PY
+
+      - name: Commit real model previews to branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add test-evidence/visual/cobblemon-skins/0025_pikachu/ouros_storm_courier
+          if git diff --cached --quiet; then
+            echo 'No preview changes to commit.'
+            exit 0
+          fi
+          git commit -m 'RPG: add real Storm Courier model previews'
+          git push origin HEAD:fix/storm-courier-real-model-previews
