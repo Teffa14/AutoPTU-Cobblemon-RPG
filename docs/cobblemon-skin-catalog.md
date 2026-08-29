@@ -101,6 +101,20 @@ The resolver reuses `cobblemon:lucario`, supports the official normal and shiny 
 
 Detailed provenance, license preservation, geometry contract and review notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
 
+## 0094 Gengar — Rift Warden
+
+Status: EPIC ACCEPTED IN BLOCKBENCH — PLAYABLE/CORE CI PENDING
+
+Rift Warden is derived from the single official Gengar geometry in the Cobblemon 1.7.3 Fabric JAR. CI pins model `57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38`, animation `68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f`, resolver `aeecefe6571d99bc9ab38a3b22af5e34769b346ed9858335292c82209ee95afc` and the exact normal, shiny, emissive and Pokemopolis textures.
+
+All 78 official Gengar bones remain JSON-equivalent and in order. Eight `ouros_*` cosmetic bones bring the production model to 86 bones with 44 cosmetic cubes. The signature silhouette uses a broken planar rift halo, asymmetric shoulder shrouds, rear collar guards, twin dimensional pylons, warded wrists and a split shadow mantle. Eyes, mouth states, tongue, ears, limbs, feet and tail remain the original model.
+
+The resolver preserves all three official presentation branches: normal, shiny and `color-green`/Pokemopolis. Official emissive layers remain in the normal and shiny branches. The Ouros overlay occupies only eight proven UV-free texels on the 128×128 texture and does not repaint the body.
+
+Real Blockbench 5.1.6 review accepted the silhouette after direct visual inspection. Matched-camera official vs skin evidence shows a strong front and three-quarter change without masking Gengar's eyes or grin. Official `ground_idle`, `air_idle` and `air_fly` clips keep the attached equipment coherent. The detached center halo fragment is intentional rift imagery and stays stable through the tested frames. The official animation JSON contains no battle or walking clip, so the pipeline does not fabricate either; `air_fly` is used as the locomotion evidence.
+
+Detailed provenance, license, geometry and QA notes: `docs/cobblemon-skins/0094_gengar/gengar-rift-warden.md`.
+
 ## Authority boundary
 
 All skin/model work is presentation-only. Cobblemon/Minecraft model, animation and rendering systems may be reused. Cobblemon battle state, participants, legality, HP/status, positions and combat authority remain outside this workflow; Ouros/AutoPTU remain authoritative for tactical battle facts.
