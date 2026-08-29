@@ -1,0 +1,57 @@
+{
+  "format": "ouros.cobblemon-skin-build.v1",
+  "species": "cobblemon:charizard",
+  "concept": "Solar Legion",
+  "originalBoneCount": 130,
+  "derivedBoneCount": 138,
+  "cosmeticBones": [
+    "ouros_solar_crown",
+    "ouros_solar_gorget_core",
+    "ouros_solar_pauldron_right",
+    "ouros_solar_pauldron_left",
+    "ouros_solar_wing_standard_right",
+    "ouros_solar_wing_standard_left",
+    "ouros_solar_tail_brazier",
+    "ouros_solar_legion_mantle"
+  ],
+  "cosmeticCubeCount": 55,
+  "palettePixels": {
+    "obsidian": [
+      0,
+      127
+    ],
+    "brass": [
+      1,
+      127
+    ],
+    "ivory": [
+      2,
+      127
+    ],
+    "crimson": [
+      3,
+      127
+    ],
+    "sun": [
+      4,
+      127
+    ],
+    "glass": [
+      5,
+      127
+    ],
+    "ash": [
+      6,
+      127
+    ],
+    "ember": [
+      7,
+      127
+    ]
+  },
+  "textureSize": [
+    256,
+    128
+  ],
+  "officialModelLicenseSha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"
+}
