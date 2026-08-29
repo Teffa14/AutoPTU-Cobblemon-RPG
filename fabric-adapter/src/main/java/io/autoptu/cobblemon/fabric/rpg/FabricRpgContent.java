@@ -16,6 +16,7 @@ public final class FabricRpgContent {
     public static final Identifier CEDAR_MART_COUNTER_ID = Identifier.of(MOD_ID, "cedar_mart_counter");
     public static final Identifier ITEM_STORAGE_TERMINAL_ID = Identifier.of(MOD_ID, "item_storage_terminal");
     public static final Identifier CRAFTING_WORKSTATION_ID = Identifier.of(MOD_ID, "crafting_workstation");
+    public static final Identifier FIELD_CAMP_ID = Identifier.of(MOD_ID, "field_camp");
 
     /**
      * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
@@ -53,6 +54,18 @@ public final class FabricRpgContent {
     );
     public static final Item CRAFTING_WORKSTATION_ITEM = new BlockItem(CRAFTING_WORKSTATION, new Item.Settings());
 
+    /**
+     * Dedicated field-camp identity. Copy a property-free container block rather than CampfireBlock;
+     * campfire-specific LIT/SIGNAL_FIRE/WATERLOGGED state must not leak into this plain Block.
+     * Durable camp results and quality remain server authoritative.
+     */
+    public static final Block FIELD_CAMP = new Block(
+            AbstractBlock.Settings.copy(Blocks.BARREL)
+                    .strength(2.0F)
+                    .nonOpaque()
+    );
+    public static final Item FIELD_CAMP_ITEM = new BlockItem(FIELD_CAMP, new Item.Settings());
+
     private static boolean registered;
 
     private FabricRpgContent() {}
@@ -67,6 +80,8 @@ public final class FabricRpgContent {
         Registry.register(Registries.ITEM, ITEM_STORAGE_TERMINAL_ID, ITEM_STORAGE_TERMINAL_ITEM);
         Registry.register(Registries.BLOCK, CRAFTING_WORKSTATION_ID, CRAFTING_WORKSTATION);
         Registry.register(Registries.ITEM, CRAFTING_WORKSTATION_ID, CRAFTING_WORKSTATION_ITEM);
+        Registry.register(Registries.BLOCK, FIELD_CAMP_ID, FIELD_CAMP);
+        Registry.register(Registries.ITEM, FIELD_CAMP_ID, FIELD_CAMP_ITEM);
         registered = true;
     }
 }
