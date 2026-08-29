@@ -1,0 +1,160 @@
+name: Generate Aura Sentinel From Official Cobblemon
+
+on:
+  push:
+    branches:
+      - 'feat/lucario-aura-sentinel-epic'
+    paths:
+      - '.github/workflows/cobblemon-generate-aura-sentinel.yml'
+      - 'tools/cobblemon-model-review/build_aura_sentinel_lucario.py'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-aura-sentinel-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deterministic image dependency
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Download verified official Cobblemon 1.7.3 Fabric JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/aura-sentinel-generator' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          python - <<'PY' > .official-source/download.env
+          import json, shlex
+          data=json.load(open('.official-source/version.json',encoding='utf-8'))
+          assert data['id']=='kF7CvxTo'
+          assert data['version_number']=='1.7.3'
+          assert data['game_versions']==['1.21.1']
+          assert 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(primary['url']))
+          print('SHA512='+shlex.quote(primary['hashes']['sha512']))
+          PY
+          source .official-source/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" '.official-source/cobblemon.jar' | sha512sum --check --strict
+      - name: Extract and pin exact official Lucario assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json' > .official-source/lucario.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0448_lucario/lucario.animation.json' > .official-source/lucario.animation.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/posers/0448_lucario/lucario.json' > .official-source/lucario.poser.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/0_lucario_base.json' > .official-source/lucario.resolver.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0448_lucario/lucario.png' > .official-source/lucario.png
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0448_lucario/lucario_shiny.png' > .official-source/lucario_shiny.png
+          test "$(sha256sum .official-source/lucario.geo.json | awk '{print $1}')" = 'ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9'
+          test "$(sha256sum .official-source/lucario.animation.json | awk '{print $1}')" = 'ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563'
+          test "$(sha256sum .official-source/lucario.poser.json | awk '{print $1}')" = '7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d'
+          test "$(sha256sum .official-source/lucario.resolver.json | awk '{print $1}')" = 'a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81'
+          test "$(sha256sum .official-source/lucario.png | awk '{print $1}')" = '98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a'
+          test "$(sha256sum .official-source/lucario_shiny.png | awk '{print $1}')" = 'b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d'
+      - name: Generate production cosmetic assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/build_aura_sentinel_lucario.py \
+            --official .official-source/lucario.geo.json \
+            --model-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json \
+            --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png \
+            --metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-build-metadata.json
+      - name: Prove original model is untouched and extras are exact
+        shell: bash
+        run: |
+          set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/lucario.geo.json --candidate "$model"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          meta=json.loads(Path('docs/cobblemon-skins/0448_lucario/aura-sentinel-build-metadata.json').read_text())
+          model=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json').read_text())['minecraft:geometry'][0]
+          official=json.loads(Path('.official-source/lucario.geo.json').read_text())['minecraft:geometry'][0]
+          expected=['ouros_aura_crown','ouros_aura_pauldron_left','ouros_aura_pauldron_right','ouros_aura_core','ouros_aura_backframe','ouros_aura_bracer_left','ouros_aura_bracer_right','ouros_aura_waist_mantle']
+          n=len(official['bones'])
+          assert meta['originalBoneCount']==n
+          assert meta['derivedBoneCount']==n+8
+          assert len(model['bones'])==n+8
+          assert [b['name'] for b in model['bones'][n:]]==expected
+          assert meta['cosmeticBones']==expected
+          print('official bones', n, 'derived bones', n+8)
+          PY
+      - name: Validate accessory-only UV layer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          from tools.cobblemon-model-review.build_aura_sentinel_lucario import mark_uv_usage
+          official=json.loads(Path('.official-source/lucario.geo.json').read_text())['minecraft:geometry'][0]
+          meta=json.loads(Path('docs/cobblemon-skins/0448_lucario/aura-sentinel-build-metadata.json').read_text())
+          reserved={tuple(v) for v in meta['palettePixels'].values()}
+          used=mark_uv_usage(official)
+          assert reserved.isdisjoint(used), (reserved & used)
+          overlay=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png').convert('RGBA')
+          assert overlay.size==(official['description']['texture_width'],official['description']['texture_height'])
+          opaque={(x,y) for y in range(overlay.height) for x in range(overlay.width) if overlay.getpixel((x,y))[3]>0}
+          assert opaque==reserved, (opaque,reserved)
+          print('reserved UV-free palette texels', sorted(reserved))
+          PY
+      - name: Validate resolver and source contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json').read_text())
+          assert r['species']=='cobblemon:lucario' and r['order']==90
+          assert len(r['variations'])==2
+          for v in r['variations']:
+              assert v['poser']=='cobblemon:lucario'
+              assert v['model']=='cobblemon:ouros_aura_sentinel_lucario.geo'
+              assert v['layers'][0]['texture']=='cobblemon:textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png'
+              assert v['layers'][0]['translucent'] is True
+          assert r['variations'][0]['texture']=='cobblemon:textures/pokemon/0448_lucario/lucario.png'
+          assert r['variations'][1]['texture']=='cobblemon:textures/pokemon/0448_lucario/lucario_shiny.png'
+          base=json.loads(Path('.official-source/lucario.resolver.json').read_text())
+          assert base['species']=='cobblemon:lucario'
+          assert base['variations'][0]['poser']=='cobblemon:lucario'
+          assert base['variations'][0]['model']=='cobblemon:lucario.geo'
+          PY
+      - name: Commit generated production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png \
+            docs/cobblemon-skins/0448_lucario/aura-sentinel-build-metadata.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'RPG: generate Aura Sentinel from official Cobblemon Lucario'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
