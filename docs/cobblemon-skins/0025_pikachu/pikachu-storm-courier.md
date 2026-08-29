@@ -12,50 +12,58 @@ Resolver order: `90`
 
 Aspect: `ouros_storm_courier`
 
-Poser: `cobblemon:pikachu` (original Cobblemon poser)
+Poser: `cobblemon:pikachu` (the stock Cobblemon 1.7.3 Pikachu poser)
 
-## Corrected model architecture
+## Cobblemon 1.7.3 source of truth
 
-The cosmetic model is an edit of Cobblemon's original male Pikachu geometry, not a replacement interpretation.
+Storm Courier is built from the male Pikachu geometry used by Cobblemon 1.7.3, pinned for reproducibility to `MayIHaveK/cobblemon-1.7.3` commit `e428d34ea7f4aeca6dc9031488fb51fe0e315218`.
 
-Preserved from `pikachu_male.geo.json`:
-- root `pikachu`;
-- `body`, `torso`, `head` and muzzle/mouth bones;
-- eye/eyelid hierarchy;
-- both ear bones and their pivots/rotations;
-- both arm bones;
-- original two-plane lightning-tail geometry and tail pivot;
-- leg, foot and toe hierarchies on both sides;
-- original 64x64 UV layout and Cobblemon base/shiny texture identifiers.
+The previous 64x64/22-bone mirror asset was rejected as an obsolete Pikachu generation and is not an acceptable anatomical source for this skin.
 
-Added Ouros geometry:
-- `ouros_courier_goggles`, parented to `head`;
-- `ouros_courier_harness`, parented to `torso`;
-- `ouros_courier_pack`, parented to `torso`;
-- `ouros_courier_tail_clamp`, parented to `tail`.
+The 1.7.3 source uses a 128x64 atlas and the newer hierarchy, including `torso2`, `neck`, `head_ai`, `head_angle`, a separate `muzzle`, expanded mouth/eye structures, segmented tail bones (`tail`, `tail2`, `tail3`), item/face/tail locators and the current animation-compatible limb hierarchy.
 
-The accessory cubes use per-face UVs mapped to four pixels that are outside the conservative UV footprint of the original Pikachu cubes. A transparent 64x64 overlay colors those pixels as charcoal, leather brown, copper and storm-glass. The underlying Pikachu body still resolves to Cobblemon's original base/shiny textures.
+The build tool copies every upstream source bone unchanged and in the same order. It changes only the geometry identifier and appends four Ouros accessory bones. CI fails if any upstream anatomy changes during the build.
 
-Because the original poser remains active, Cobblemon's own Pikachu movement/idle/battle/face animation stack drives the preserved base bones. Accessory pieces follow those bones through normal hierarchy inheritance. There is no parallel Ouros Pikachu animation rig in this corrected slice.
+## Added Ouros geometry
+
+- `ouros_courier_goggles`, parented to `head_angle` so the goggles follow the current head/face animation stack;
+- `ouros_courier_harness`, parented to `torso2`;
+- `ouros_courier_pack`, parented to `torso2`;
+- `ouros_courier_tail_clamp`, parented to the first `tail` segment so it follows the segmented lightning tail.
+
+The accessory atlas is 128x64. The builder scans the official normal, shiny and emissive Pikachu textures plus the source model UV footprint, then chooses four pixels that are unused by the source geometry and transparent in all supplied official layers. Those pixels carry charcoal, leather, copper and storm-glass colors. This prevents the accessory UVs from repainting Pikachu's body.
+
+## Resolver and animation compatibility
+
+The resolver keeps `cobblemon:pikachu` as the poser and keeps the official 1.7.3 normal/shiny textures. It also preserves Pikachu's official emissive and emissive-shiny layers before adding the transparent courier accessory layer.
+
+No Ouros Pikachu poser or production animation file exists. Cobblemon 1.7.3 remains responsible for Pikachu presentation and drives the stock `ground_idle`, `ground_walk`, `battle_idle`, face/quirk and other animation states. Accessories inherit those parent-bone transforms.
+
+Review PNGs are non-generative evidence. The review workflow fetches the pinned 1.7.3 animation file and applies real `ground_idle`, `battle_idle` and `ground_walk` transforms to the exact built model. The renderer does not author substitute hero/battle/walking rotations anymore.
 
 ## Production files
 
-- corrected Bedrock geometry: `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json`
+- geometry: `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json`
 - resolver: `assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/90_ouros_storm_courier.json`
 - accessory-only overlay: `assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png`
 - visual feature: `data/cobblemon/species_features/ouros_storm_courier.json`
 - Pikachu feature assignment: `data/cobblemon/species_feature_assignments/ouros_pikachu_cosmetics.json`
+- reproducible builder: `tools/cobblemon-model-review/build_storm_courier_173.py`
+- official-animation review renderer: `tools/cobblemon-model-review/render_cobblemon_animation.py`
 
-Removed as rejected implementation:
+## Rejected implementations
+
+Do not restore any of these:
+- custom rebuilt Pikachu body geometry;
+- the obsolete 64x64/22-bone Pikachu mirror model;
 - Ouros replacement body textures;
-- Ouros Pikachu poser;
-- Ouros standalone Pikachu animation file;
-- four review PNGs generated from the rebuilt-body geometry.
+- Ouros Pikachu poser or standalone production animation rig;
+- preview poses made from manually invented bone rotations.
 
 ## Acceptance rule
 
-A cosmetic for an existing Cobblemon Pokémon must preserve the original model as the anatomical source of truth. New geometry may dress or locally modify the Pokémon but must not recreate its body from generic cubes. Four-view review renders must come from this corrected geometry or from the real Cobblemon client; no concept-art substitute counts.
+For a Pokémon already supplied by Cobblemon, the installed Cobblemon version is the anatomical and animation source of truth. A cosmetic can add wearable/local geometry but cannot silently substitute an older model generation or reconstruct the Pokémon. Review evidence must represent the production geometry under stock Cobblemon states or come from the real client.
 
 ## Licensing/provenance
 
-Base geometry is adapted from Cobblemon's `pikachu_male.geo.json` in the public Cobblemon source/mirror. The upstream Pikachu model directory contains a Creative Commons public license with non-commercial restrictions; required attribution/license conditions apply to the adaptation. Original Cobblemon body texture files are referenced at runtime instead of copied into this repository. All `ouros_courier_*` accessory geometry and the accessory-only overlay texture are newly authored for Ouros.
+Base geometry and referenced Pikachu textures/animations originate from Cobblemon 1.7.3. The build is pinned to the public 1.7.3 source copy above for reproducibility and remains subject to the upstream asset licensing/attribution terms. Original Cobblemon body textures and animations are referenced or fetched for validation rather than redistributed as Ouros-authored assets. All `ouros_courier_*` accessory geometry and the generated accessory-only palette layer are Ouros additions.
