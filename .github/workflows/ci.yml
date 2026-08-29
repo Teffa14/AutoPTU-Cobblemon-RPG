@@ -73,6 +73,7 @@ jobs:
               -Dautoptu.liveBattleInterceptionSmoke=true \
               -Dautoptu.liveAuthenticatedPlayerContextSmoke=true \
               -Dautoptu.liveHealingStationSmoke=true \
+              -Dautoptu.liveFastTravelSmoke=true \
               -Dautoptu.liveRpgProtectionSmoke=true \
               -Dautoptu.liveCanonicalStoreRestartSmoke=seed \
               -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../fabric-server-smoke-first.log 2>&1
@@ -88,7 +89,8 @@ jobs:
               && grep -q 'AutoPTU live Cobblemon HP projection smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live Cobblemon battle interception smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live authenticated player context smoke passed' "$latest" 2>/dev/null \
-              && grep -q 'AutoPTU live healing station interaction signature smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live Cobblemon healing machine reuse smoke passed' "$latest" 2>/dev/null \
+              && grep -q 'AutoPTU live Minecraft lodestone fast travel surface smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live RPG actor damage protection smoke passed' "$latest" 2>/dev/null \
               && grep -q 'AutoPTU live canonical player store seed smoke passed' "$latest" 2>/dev/null \
               && grep -q 'Done (' "$latest" 2>/dev/null; then
@@ -146,7 +148,8 @@ jobs:
           grep 'AutoPTU live Cobblemon HP projection smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live Cobblemon battle interception smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live authenticated player context smoke passed' "$server_dir/autoptu-first-boot-latest.log"
-          grep 'AutoPTU live healing station interaction signature smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live Cobblemon healing machine reuse smoke passed' "$server_dir/autoptu-first-boot-latest.log"
+          grep 'AutoPTU live Minecraft lodestone fast travel surface smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live RPG actor damage protection smoke passed' "$server_dir/autoptu-first-boot-latest.log"
           grep 'AutoPTU live canonical player store restart smoke passed' "$server_dir/autoptu-second-boot-latest.log"
       - name: Collect runtime evidence
@@ -180,7 +183,8 @@ jobs:
           record_marker "$first" 'AutoPTU live Cobblemon HP projection smoke passed'
           record_marker "$first" 'AutoPTU live Cobblemon battle interception smoke passed'
           record_marker "$first" 'AutoPTU live authenticated player context smoke passed'
-          record_marker "$first" 'AutoPTU live healing station interaction signature smoke passed'
+          record_marker "$first" 'AutoPTU live Cobblemon healing machine reuse smoke passed'
+          record_marker "$first" 'AutoPTU live Minecraft lodestone fast travel surface smoke passed'
           record_marker "$first" 'AutoPTU live RPG actor damage protection smoke passed'
           record_marker "$first" 'AutoPTU live canonical player store seed smoke passed'
           record_marker "$first" 'Done ('
