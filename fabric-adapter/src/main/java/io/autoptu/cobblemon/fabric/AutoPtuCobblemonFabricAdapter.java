@@ -38,6 +38,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricPokemonStorageTerminalRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricQuestJournalRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgCalendarRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgProtectionRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricRpgProtectionRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricShopCounterRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricShopCounterRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricShopRuntime;
@@ -69,6 +70,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
             throw new IllegalStateException("Cobblemon runtime is required by the AutoPTU adapter");
         }
         FabricRpgProtectionRuntime.register();
+        FabricRpgProtectionRuntimeSmoke.registerIfEnabled();
         FabricFirstJoinOnboardingRuntime.register();
         PlayableBattleTestRuntime.register();
         FabricBattleChoiceRuntime.register();
