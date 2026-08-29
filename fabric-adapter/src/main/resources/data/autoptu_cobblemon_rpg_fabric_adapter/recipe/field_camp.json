@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    " B "
+  ],
+  "key": {
+    "C": { "item": "minecraft:campfire" },
+    "B": { "item": "minecraft:barrel" }
+  },
+  "result": {
+    "id": "autoptu_cobblemon_rpg_fabric_adapter:field_camp",
+    "count": 1
+  }
+}
