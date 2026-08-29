@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Dedicated-server proof that the final physical shop tree accepts only the authored counter signature. */
+/** Dedicated-server proof that the shop runtime accepts only the namespaced authored counter. */
 public final class FabricShopCounterRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveShopCounterSmoke";
     public static final String SUCCESS_LOG = "AutoPTU live canonical shop counter smoke passed";
@@ -29,31 +29,30 @@ public final class FabricShopCounterRuntimeSmoke {
 
     private static void run(MinecraftServer server) {
         ServerWorld world = server.getOverworld();
-        BlockPos head = world.getSpawnPos().up(28);
-        BlockPos base = head.down();
-        BlockState originalHead = world.getBlockState(head);
-        BlockState originalBase = world.getBlockState(base);
+        BlockPos counter = world.getSpawnPos().up(28);
+        BlockPos below = counter.down();
+        BlockState originalCounter = world.getBlockState(counter);
+        BlockState originalBelow = world.getBlockState(below);
         try {
-            world.setBlockState(base, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
-            world.setBlockState(head, Blocks.EMERALD_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
-            if (!FabricShopCounterRuntime.isShopCounter(world, head)) {
-                throw new IllegalStateException("authored emerald-over-barrel shop counter was not recognized");
+            world.setBlockState(counter, FabricRpgContent.CEDAR_MART_COUNTER.getDefaultState(), Block.NOTIFY_ALL);
+            if (!FabricShopCounterRuntime.isShopCounter(world, counter)) {
+                throw new IllegalStateException("namespaced Cedar Mart counter was not recognized");
             }
 
-            world.setBlockState(base, Blocks.CHEST.getDefaultState(), Block.NOTIFY_ALL);
-            if (FabricShopCounterRuntime.isShopCounter(world, head)) {
-                throw new IllegalStateException("non-authored counter base was accepted as canonical shop counter");
+            world.setBlockState(counter, Blocks.EMERALD_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+            world.setBlockState(below, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
+            if (FabricShopCounterRuntime.isShopCounter(world, counter)) {
+                throw new IllegalStateException("legacy emerald-over-barrel signature was still accepted as canonical shop identity");
             }
 
-            world.setBlockState(base, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
-            world.setBlockState(head, Blocks.DIAMOND_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
-            if (FabricShopCounterRuntime.isShopCounter(world, head)) {
-                throw new IllegalStateException("non-authored counter head was accepted as canonical shop counter");
+            world.setBlockState(counter, Blocks.BARREL.getDefaultState(), Block.NOTIFY_ALL);
+            if (FabricShopCounterRuntime.isShopCounter(world, counter)) {
+                throw new IllegalStateException("vanilla barrel was accepted as canonical shop counter");
             }
             LOGGER.info(SUCCESS_LOG);
         } finally {
-            world.setBlockState(base, originalBase, Block.NOTIFY_ALL);
-            world.setBlockState(head, originalHead, Block.NOTIFY_ALL);
+            world.setBlockState(below, originalBelow, Block.NOTIFY_ALL);
+            world.setBlockState(counter, originalCounter, Block.NOTIFY_ALL);
         }
     }
 }
