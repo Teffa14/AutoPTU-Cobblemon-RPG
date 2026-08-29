@@ -161,7 +161,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-080 | LIVE | `/autoptu money` — PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f`; reads only the authenticated Trainer's durable world-save-scoped wallet and reports server-owned currency, balance and revision. |
+| CMD-080 | LIVE | `/autoptu money` — PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f`; reads only the authenticated Trainer's durable world-save-scoped canonical wallet and reports server-owned currency, balance and revision. |
 | CMD-081 | LIVE | `/autoptu shop list [shop]` — PR #247 / implementation head `36870beb75976891d0d4ebbe2f1edfaf78423e36` exposes authored offers; PR #250 / `748a57efc20678962f65efad9d4feb7450bafd54` adds durable current remaining stock and revision-backed persistence. No trusted client price, currency, template or stock truth is accepted. |
 | CMD-082 | LIVE | `/autoptu shop buy <offer> [qty]` — PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe`; accepts only offer/quantity selection, then re-resolves the authenticated Trainer, authored price/currency/template, durable wallet and current stock. Wallet debit/refund, stock depletion and deterministic canonical item grant are idempotent and restart-recoverable through a durable purchase journal. |
 | CMD-083 | LIVE | `/autoptu shop sell <item> [qty]` — PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e`; accepts only template/quantity selection. The server selects an owned unreserved canonical stack, freezes an explicit authored sell price/currency, journals reservation/consumption/wallet credit, and recovers pending sales after restart without implicit stock replenishment. |
@@ -325,7 +325,7 @@ These should become the normal gameplay path.
 | SVC-013 | LIVE/PARTIAL | Item reservation/commit/rollback infrastructure exists. PR #229 adds schema-compatible consumed-but-retained reservations so multi-item craft recovery cannot expose partially consumed stacks before the durable transaction commit; expand to complete RPG inventory use. |
 | SVC-014 | LIVE/PARTIAL | Encounter reservation infrastructure exists; wire it to normal world encounters. |
 | SVC-015 | LIVE/PARTIAL | Battle outcome commit infrastructure exists; wire it to the normal battle loop. |
-| SVC-016 | LIVE | `credit/debit(transactionId, player, amount, source)` — PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd`. The server writes the wallet value, revision and immutable server-owned transaction identity atomically; duplicate retries/restarts return the committed result without moving currency again, conflicting reuse fails closed, and insufficient debits do not mutate state. Client-authored balances, prices and rewards are not accepted here. |
+| SVC-016 | LIVE | `credit/debit(transactionId, player, amount, source)` — PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd`. The server writes the wallet value, revision and immutable transaction receipt atomically; duplicate retries/restarts return the committed result without moving currency again, conflicting reuse fails closed, and insufficient debits do not mutate state. Client-authored balances, prices and rewards are not accepted here. |
 | SVC-017 | TODO | Quest reward commit/idempotency. |
 | SVC-018 | TODO | Persistent world-object mutation/idempotency. |
 | SVC-019 | TODO | Reconnect/restart active-session recovery. |
