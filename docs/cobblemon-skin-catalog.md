@@ -47,7 +47,7 @@ Do not reject a cosmetic merely because it changes the outer silhouette. Reject 
 
 ## 0025 Pikachu — Storm Courier
 
-Status: EPIC V3 IN BLOCKBENCH REVIEW
+Status: EPIC V3 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Storm Courier is built on the exact official Cobblemon 1.7.3 Pikachu male and female models. The obsolete 22-bone implementation is rejected and is not used as a template.
 
@@ -75,7 +75,7 @@ These pieces are equipment around Pikachu. They do not replace head, torso, limb
 
 The resolver reuses `cobblemon:pikachu`, Cobblemon base/shiny textures and Cobblemon emissive layers. Ouros contributes only a transparent 128×64 accessory layer. The accessory palette occupies eight reserved texels on row `y=63`; CI verifies that those texels are outside the UV footprint of every original cube.
 
-Visual acceptance uses pinned Blockbench 5.1.6. Structural comparison uses matched-camera official vs Storm Courier front/left/right/back views for male and female models. Presentation review imports the official Pikachu animations through Blockbench's Bedrock codec and records official-reference, hero, battle-ready and walking evidence.
+Visual acceptance uses pinned Blockbench 5.1.6. Structural comparison uses matched-camera official vs Storm Courier front/left/right/back views for male and female models. Presentation review imports the official Pikachu animations through Blockbench's Bedrock codec and records official-reference, hero, battle-ready and walking evidence. The final epic-v3 review accepted the stronger three-quarter silhouette and confirmed that the equipment remains attached through the tested official idle, battle and walking frames without severe visual detachment.
 
 Production files:
 - `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json`
