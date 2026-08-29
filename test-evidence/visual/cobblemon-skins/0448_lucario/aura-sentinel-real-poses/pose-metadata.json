@@ -1,0 +1,33 @@
+{
+  "format": "ouros.cobblemon-blockbench-pose-evidence.v1",
+  "viewer": "Blockbench 5.1.6",
+  "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo",
+  "modelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
+  "animationSha256": "ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563",
+  "textureSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
+  "originalBoneCount": 87,
+  "derivedBoneCount": 95,
+  "poses": {
+    "hero": {
+      "animation": "animation.lucario.ground_idle",
+      "time": 0.35
+    },
+    "battle_ready": {
+      "animation": "animation.lucario.battle_idle",
+      "time": 0.35
+    }
+  },
+  "walkingEvidence": {
+    "status": "not-rendered",
+    "reason": "Official Lucario walking poser is procedural q.biped_walk + q.bimanual_swing plus ground_idle; no dedicated Bedrock walking animation exists, so this workflow does not invent manual transforms."
+  },
+  "files": {
+    "official_reference_three_quarter.png": "e1fcfc4fe881ca8a1ce263bd6c89c572e42741adcbe78202e629559261f1839d",
+    "hero_three_quarter.png": "0f58b478e53bb194cdbe5ff0b685f7214b2ddff340334c8a49f302c5c2afbece",
+    "battle_ready_three_quarter.png": "d4661ce6252030258353c8112745a26c5504e11c4f96db3244cd7b6c2ff5da71",
+    "hero_front.png": "f0a29abe8252042fd96a1a87e52cd49e6916dc2be89569ce596bd15cdc12801c",
+    "hero_left.png": "32a7d3b4996ffec18ec480e5b00e7cc091402683a07ae178a6dd70addc807ee5",
+    "hero_right.png": "e57975010b787cd6f6bcd7afd593b3bb5d27771e1f7d191973d9720d912ee6b8",
+    "hero_back.png": "fb8dd306faffd3df62428c2888d9cac28c5a28e5dbe903e18966a170de191be3"
+  }
+}

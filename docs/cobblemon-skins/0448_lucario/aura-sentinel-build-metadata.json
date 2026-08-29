@@ -1,0 +1,48 @@
+{
+  "originalBoneCount": 87,
+  "derivedBoneCount": 95,
+  "cosmeticBones": [
+    "ouros_aura_crown",
+    "ouros_aura_pauldron_left",
+    "ouros_aura_pauldron_right",
+    "ouros_aura_core",
+    "ouros_aura_backframe",
+    "ouros_aura_bracer_left",
+    "ouros_aura_bracer_right",
+    "ouros_aura_waist_mantle"
+  ],
+  "palettePixels": {
+    "obsidian": [
+      80,
+      63
+    ],
+    "steel": [
+      81,
+      63
+    ],
+    "silver": [
+      82,
+      63
+    ],
+    "gold": [
+      83,
+      63
+    ],
+    "aura": [
+      84,
+      63
+    ],
+    "royal": [
+      85,
+      63
+    ],
+    "cloth": [
+      86,
+      63
+    ],
+    "ivory": [
+      87,
+      63
+    ]
+  }
+}
