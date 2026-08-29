@@ -1,5 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
+import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -16,6 +18,7 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -45,13 +48,22 @@ public final class FabricFirstJoinOnboardingRuntime {
 
     static boolean needsOnboarding(ServerPlayerEntity player) {
         if (player == null || player.getServer() == null) return false;
-        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
-            return false;
-        }
-        return FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer())
-                .findProfile(playerId)
-                .isEmpty();
+        return needsOnboarding(
+                FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer()),
+                player.getUuid()
+        );
+    }
+
+    static boolean needsOnboarding(
+            FileVersionedCanonicalStateRepository playerRepository,
+            FileCanonicalPlayerEncounterProfileRepository encounterProfileRepository,
+            UUID authenticatedUuid
+    ) {
+        if (playerRepository == null || encounterProfileRepository == null || authenticatedUuid == null) return false;
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(authenticatedUuid);
+        return playerRepository.findPlayer(playerId).isPresent()
+                && encounterProfileRepository.findProfile(playerId).isEmpty();
     }
 
     static void openIfNeeded(ServerPlayerEntity player) {
@@ -91,9 +103,11 @@ public final class FabricFirstJoinOnboardingRuntime {
             if (clickingPlayer != player || player.isRemoved() || player.getServer() == null) return false;
             String authenticated = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
             if (!authenticated.equals(playerId)) return false;
-            return FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isPresent()
-                    && FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer())
-                    .findProfile(playerId).isEmpty();
+            return needsOnboarding(
+                    FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
+                    FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer()),
+                    player.getUuid()
+            );
         }
 
         @Override
