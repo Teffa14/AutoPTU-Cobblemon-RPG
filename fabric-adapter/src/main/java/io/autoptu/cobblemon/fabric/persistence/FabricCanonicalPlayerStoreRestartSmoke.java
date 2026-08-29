@@ -5,6 +5,9 @@ import io.autoptu.cobblemon.authority.CanonicalItemInstance;
 import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
 import io.autoptu.cobblemon.authority.CanonicalPlayerState;
 import io.autoptu.cobblemon.authority.CanonicalPokemonState;
+import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestJournalService;
+import io.autoptu.cobblemon.authority.FileCanonicalQuestJournalRepository;
 import io.autoptu.cobblemon.authority.ItemReservation;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
@@ -32,6 +35,7 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
     private static final String POKEMON_ID = "restart-pokemon-1";
     private static final String ITEM_ID = "restart-item-1";
     private static final String RESERVATION_ID = "restart-item-reservation";
+    private static final String QUEST_ID = "cedar-field-notes";
 
     private static final CanonicalPlayerState FIXTURE = new CanonicalPlayerState(
             PLAYER_ID,
@@ -95,6 +99,7 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
         var encounterProfiles = FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(server);
         var pokemon = FabricCanonicalPlayerStoreRuntime.requirePokemonRepository(server);
         var assets = FabricCanonicalPlayerStoreRuntime.requireAssetRepository(server);
+        var questJournals = FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(server);
 
         if (mode.equals("seed")) {
             if (!repository.createPlayerIfAbsent(FIXTURE)) {
@@ -112,8 +117,13 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
             if (!assets.tryReserveItem(ITEM_RESERVATION)) {
                 throw new IllegalStateException("canonical item reservation was not persisted during seed boot");
             }
+            var questAccept = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, questJournals)
+                    .accept(PLAYER_ID, "cedar-ranger", QUEST_ID);
+            if (!questAccept.newlyAccepted()) {
+                throw new IllegalStateException("canonical quest fixture already existed before seed boot");
+            }
 
-            requireExactSeedState(repository, encounterProfiles, pokemon, assets);
+            requireExactSeedState(repository, encounterProfiles, pokemon, assets, questJournals);
             LOGGER.info(SEED_SUCCESS_LOG);
             return;
         }
@@ -128,22 +138,15 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
                 () -> new IllegalStateException("canonical item missing after server restart"));
         ItemReservation persistedReservation = assets.findReservation(RESERVATION_ID).orElseThrow(
                 () -> new IllegalStateException("canonical item reservation missing after server restart"));
+        FileCanonicalQuestJournalRepository.JournalState persistedQuestJournal = questJournals.find(PLAYER_ID).orElseThrow(
+                () -> new IllegalStateException("canonical quest journal missing after server restart"));
 
-        if (!FIXTURE.equals(persisted)) {
-            throw new IllegalStateException("canonical restart smoke state changed across server restart");
-        }
-        if (!ENCOUNTER_FIXTURE.equals(persistedEncounter)) {
-            throw new IllegalStateException("canonical encounter profile changed across server restart");
-        }
-        if (!POKEMON_FIXTURE.equals(persistedPokemon)) {
-            throw new IllegalStateException("canonical Pokemon changed across server restart");
-        }
-        if (!ITEM_FIXTURE.equals(persistedItem)) {
-            throw new IllegalStateException("canonical item changed across server restart");
-        }
-        if (!ITEM_RESERVATION.equals(persistedReservation)) {
-            throw new IllegalStateException("canonical item reservation changed across server restart");
-        }
+        if (!FIXTURE.equals(persisted)) throw new IllegalStateException("canonical restart smoke state changed across server restart");
+        if (!ENCOUNTER_FIXTURE.equals(persistedEncounter)) throw new IllegalStateException("canonical encounter profile changed across server restart");
+        if (!POKEMON_FIXTURE.equals(persistedPokemon)) throw new IllegalStateException("canonical Pokemon changed across server restart");
+        if (!ITEM_FIXTURE.equals(persistedItem)) throw new IllegalStateException("canonical item changed across server restart");
+        if (!ITEM_RESERVATION.equals(persistedReservation)) throw new IllegalStateException("canonical item reservation changed across server restart");
+        requireQuestState(persistedQuestJournal);
         LOGGER.info(RESTART_SUCCESS_LOG);
     }
 
@@ -151,22 +154,23 @@ public final class FabricCanonicalPlayerStoreRestartSmoke {
             io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository repository,
             io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository encounterProfiles,
             io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository pokemon,
-            io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository assets
+            io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository assets,
+            FileCanonicalQuestJournalRepository questJournals
     ) {
-        if (!FIXTURE.equals(repository.findPlayer(PLAYER_ID).orElseThrow())) {
-            throw new IllegalStateException("canonical restart smoke seed did not round-trip exact Trainer state");
-        }
-        if (!ENCOUNTER_FIXTURE.equals(encounterProfiles.findProfile(PLAYER_ID).orElseThrow())) {
-            throw new IllegalStateException("canonical encounter profile did not round-trip exact state");
-        }
-        if (!POKEMON_FIXTURE.equals(pokemon.findPokemon(POKEMON_ID).orElseThrow())) {
-            throw new IllegalStateException("canonical Pokemon did not round-trip exact state");
-        }
-        if (!ITEM_FIXTURE.equals(assets.findItem(ITEM_ID).orElseThrow())) {
-            throw new IllegalStateException("canonical item did not round-trip exact state");
-        }
-        if (!ITEM_RESERVATION.equals(assets.findReservation(RESERVATION_ID).orElseThrow())) {
-            throw new IllegalStateException("canonical item reservation did not round-trip exact state");
+        if (!FIXTURE.equals(repository.findPlayer(PLAYER_ID).orElseThrow())) throw new IllegalStateException("canonical restart smoke seed did not round-trip exact Trainer state");
+        if (!ENCOUNTER_FIXTURE.equals(encounterProfiles.findProfile(PLAYER_ID).orElseThrow())) throw new IllegalStateException("canonical encounter profile did not round-trip exact state");
+        if (!POKEMON_FIXTURE.equals(pokemon.findPokemon(POKEMON_ID).orElseThrow())) throw new IllegalStateException("canonical Pokemon did not round-trip exact state");
+        if (!ITEM_FIXTURE.equals(assets.findItem(ITEM_ID).orElseThrow())) throw new IllegalStateException("canonical item did not round-trip exact state");
+        if (!ITEM_RESERVATION.equals(assets.findReservation(RESERVATION_ID).orElseThrow())) throw new IllegalStateException("canonical item reservation did not round-trip exact state");
+        requireQuestState(questJournals.find(PLAYER_ID).orElseThrow());
+    }
+
+    private static void requireQuestState(FileCanonicalQuestJournalRepository.JournalState journal) {
+        var entry = journal.entries().get(QUEST_ID);
+        if (journal.revision() != 1L || entry == null
+                || entry.state() != FileCanonicalQuestJournalRepository.QuestState.ACCEPTED
+                || entry.acceptedRevision() != 1L) {
+            throw new IllegalStateException("canonical quest journal changed across persistence boundary");
         }
     }
 }
