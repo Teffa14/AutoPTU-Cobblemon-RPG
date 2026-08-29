@@ -29,11 +29,32 @@ A preview is evidence only when:
 
 ## 0025 Pikachu — Storm Courier
 
-Status: RESET / NOT IMPLEMENTED
+Status: IMPLEMENTED / BLOCKBENCH REVIEWED
 
-The previous Storm Courier implementation was removed from the clean v2 branch. It used an obsolete Pikachu base and produced misleading review evidence. It must not be restored or used as a template.
+Storm Courier was rebuilt from zero on the exact official Cobblemon 1.7.3 Pikachu models. The previous obsolete 22-bone implementation remains rejected and is not used as a template.
 
-If Storm Courier is rebuilt, it must start by extracting the current `pikachu_male.geo.json`, Pikachu textures and Pikachu animation files directly from the official Cobblemon 1.7.3 release JAR. Accessories may then be added on top of that exact model. The first acceptance image must show the untouched release Pikachu and the edited Pikachu side-by-side in the same independent viewer so anatomy drift is immediately visible.
+Official source pinned by CI:
+- male geometry SHA-256: `f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83`
+- female geometry SHA-256: `d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318`
+- base texture SHA-256: `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
+- original bones per gender model: `90`
+- derived bones per gender model: `95`
+
+The generator preserves all 90 official bones exactly and appends only five accessory bones: visor, harness, pack, antenna and tail clamp. Male and female models are derived independently so the official female tail UV remains intact.
+
+The resolver reuses `cobblemon:pikachu`, Cobblemon base/shiny textures and Cobblemon emissive layers. Ouros contributes only a transparent 128x64 accessory layer. The accessory palette occupies eight reserved texels on row `y=63`; CI verifies that those texels are outside the UV footprint of every original cube.
+
+Visual review uses Blockbench 5.1.6 with the same orthographic camera for the untouched official male model, Storm Courier male and Storm Courier female. Front, left, right and back comparisons are required. The current review passed import, reproduction, anatomy-preservation, resolver and four-view render gates.
+
+Production files:
+- `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json`
+- `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json`
+- `assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/90_ouros_storm_courier.json`
+- `assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png`
+- `data/cobblemon/species_features/ouros_storm_courier.json`
+- `data/cobblemon/species_feature_assignments/ouros_pikachu_cosmetics.json`
+
+Detailed provenance and design notes: `docs/cobblemon-skins/0025_pikachu/pikachu-storm-courier.md`.
 
 ## Authority boundary
 
