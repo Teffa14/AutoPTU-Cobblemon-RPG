@@ -1,45 +1,74 @@
-# Pikachu — Storm Courier (Cobblemon 1.7.3 clean rebuild)
+# Pikachu — Storm Courier (Cobblemon 1.7.3 premium pass)
 
 ## Source of truth
 
-This implementation was rebuilt from zero after the previous Storm Courier model was rejected.
+Storm Courier is derived from the exact Pikachu geometry distributed in the official Cobblemon 1.7.3 Fabric JAR (`Cobblemon-fabric-1.7.3+1.21.1.jar`, Modrinth version id `kF7CvxTo`). It is not derived from a mirror, an old model, screenshots or an Ouros reconstruction.
 
-The anatomical source is the exact Pikachu geometry extracted from the official Cobblemon 1.7.3 Fabric JAR (`Cobblemon-fabric-1.7.3+1.21.1.jar`, Modrinth version id `kF7CvxTo`), not a mirror and not an Ouros reconstruction.
-
-Pinned official geometry hashes:
+Pinned official hashes:
 
 - male `pikachu_male.geo.json`: `f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83`
 - female `pikachu_female.geo.json`: `d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318`
 - base texture `pikachu.png`: `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
+- official `pikachu.animation.json`: `d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384`
 
-Both official gender models contain 90 bones. The clean rebuild preserves all 90 original bones exactly at the JSON-object level, in the same order, including all cubes, pivots, parents, rotations, locators and UV definitions. The female model keeps the official female `tail3` UV instead of being coerced to the male model.
+Both official gender models contain 90 bones. The derived models preserve all 90 original bones exactly at the JSON-object level and in the same order, including cubes, pivots, parents, rotations, locators and UV definitions. Male and female are derived independently so the official female tail remains intact.
 
-## Cosmetic geometry
+## Premium cosmetic geometry
 
-Only five bones are appended:
+Exactly four Ouros bones are appended. No original Cobblemon bone is rewritten:
 
-- `ouros_storm_visor` → parent `head_angle`
+- `ouros_storm_goggles` → parent `head_angle`
 - `ouros_storm_harness` → parent `torso2`
 - `ouros_storm_pack` → parent `torso2`
-- `ouros_storm_antenna` → parent `torso2`
 - `ouros_storm_tail_clamp` → parent `tail2`
 
-The design adds a translucent storm visor with a dark/copper frame, crossed leather courier harness, brass/glass clasp, compact canvas weather pack, copper storm sigil, short storm antenna and a local tail clamp. No body part is replaced or approximated.
+The premium pass increases detail inside those same four cosmetic bones instead of adding anatomy or unrelated silhouette pieces. The current signature-readability pass was tuned against real Blockbench hero, battle-ready, walking and matched-camera structural evidence rather than against concept art.
 
-The original `cobblemon:pikachu` poser remains authoritative for presentation. Accessories inherit transforms from existing animated parents. No Ouros replacement animation rig exists.
+### Goggles
+
+The goggles use two translucent glass lenses, charcoal lower/side frames, copper brow pieces and bridge, a brass nose keeper, leather temple straps and small brass rivets. The latest pass adds restrained navy side retention and a tiny right-temple copper/glass weather tab so the equipment reads from three-quarter angles without covering the original eyes, muzzle or forehead.
+
+### Harness
+
+The harness is real three-dimensional geometry rather than a painted line. Two crossed front straps, a lower belt and side wraps follow `torso2`. The signature pass thickens those straps slightly for gameplay readability, adds a shallow upper yoke that remains visible above the arms, promotes the central brass/glass element into a readable storm compass and adds compact canvas utility pouches at the sides. The body remains visible between the equipment and no torso cube is replaced.
+
+### Expedition pack
+
+The pack remains compact but is deliberately readable from three-quarter and rear views. It has a canvas body, reinforced lower section, leather flap, side pockets, rolled weather cloth, retention straps, brass buckles and a small copper/brass lightning mark. The signature pass shifts the field-kit profile slightly off-center and adds a right-side translucent storm vial plus a left-side folded route case. The asymmetry improves hero-view recognition without making the pack wider than Pikachu's body silhouette.
+
+### Tail clamp
+
+The clamp is fitted locally to `tail2` as a shallow copper collar with charcoal rails, brass grounding hub, translucent indicator and leather keepers. The signature pass extends two thin conductor rails and adds a navy insulator block. It remains hardware on the official flat tail plane rather than becoming a new tail shape.
 
 ## Texture contract
 
-The resolver continues to reference Cobblemon's own base/shiny and emissive textures. Ouros supplies only `ouros_storm_courier_accessories.png`, a transparent 128×64 layer.
+The resolver keeps Cobblemon's base/shiny and emissive texture references. Ouros supplies only `ouros_storm_courier_accessories.png`, a transparent 128×64 overlay containing the eight material swatches used by the added geometry.
 
-Accessory materials use eight texels on row `y=63`. Static UV analysis against the exact official geometry confirms that this row is outside the UV footprint of all original cubes. Therefore the accessory layer does not repaint Pikachu's body.
+Those eight swatches occupy `x=0..7, y=63`. CI verifies against the exact official model that these texels are outside the UV footprint of all original Pikachu cubes, so the overlay does not repaint Pikachu's body.
+
+## Animation and presentation
+
+The original `cobblemon:pikachu` poser remains authoritative for presentation. The four accessory bones inherit transforms from official animated parents; there is no replacement Ouros body rig.
+
+Blockbench review imports the official `pikachu.animation.json` through Blockbench's Bedrock animation codec. Acceptance previews use official `ground_idle`, `battle_idle` and `ground_walk` states where applicable. No project-authored renderer is accepted as visual evidence.
 
 ## Validation
 
-`tools/cobblemon-model-review/validate_original_model.py` rejects any drift in the 90 official bones. `tools/cobblemon-model-review/build_storm_courier.py` deterministically derives both production models from official JAR inputs.
+`tools/cobblemon-model-review/validate_original_model.py` rejects any drift in the 90 official bones. `tools/cobblemon-model-review/build_storm_courier.py` deterministically derives both production gender models from the pinned official JAR inputs.
 
-Visual acceptance uses Blockbench 5.1.6. The rejected project-authored Python Bedrock renderer is not acceptance evidence. The review workflow must render the untouched official model and the derived Storm Courier model through Blockbench and compare the four views.
+Visual acceptance uses pinned Blockbench 5.1.6 with the exact production geometry, official texture and Ouros overlay. Review includes the untouched official Pikachu reference plus matched-camera Storm Courier views. Front/left/right/back evidence is used for structural inspection; three-quarter hero, battle-ready and walking evidence is used for presentation review.
+
+### Accepted premium evidence
+
+The current production evidence is committed under `test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses/` and was produced from the 94-bone production model in Blockbench 5.1.6.
+
+- untouched official reference, `ground_idle`: `bb60acc03aa8ff7f584b8608cd06207759fc4a30a277820978979319ef28971d`
+- premium hero 3/4, `ground_idle` at 0.35: `06bda0377085b5b5604694cf1b64f0dabd3d1996cd2fab292c88f7fe148d2492`
+- premium battle-ready 3/4, `battle_idle` at 0.35: `7f59754412018ee1e44a05a8c9115a0586d952392135373083ba943244a377e2`
+- premium walking 3/4, `ground_walk` at 0.25: `7bfbe2c04ccb2f3615b223c3879bcfbf50caf23e835278a679b57999d0d9fa2a`
+
+The premium hero, battle-ready and walking renders were visually inspected against the official reference. The original Pikachu anatomy and silhouette remain intact. The goggles remain on the official head, the harness follows `torso2`, the expedition pack stays attached through the official battle/walk transforms, and the grounding clamp follows `tail2` without replacing the tail. No severe accessory clipping or detached geometry was observed in these accepted frames.
 
 ## Authority boundary
 
-This is presentation-only. It does not use or alter Cobblemon battle-state authority, participants, legality, HP/status, tactical positions or combatant selection. Ouros/AutoPTU remains authoritative for battle facts.
+This asset is presentation-only. It does not use or alter Cobblemon battle-state authority, participants, legality, HP/status, tactical positions, combatant selection, damage or RNG. Ouros/AutoPTU remains authoritative for tactical battle facts.

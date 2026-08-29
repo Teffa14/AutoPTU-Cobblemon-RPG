@@ -29,22 +29,25 @@ A preview is evidence only when:
 
 ## 0025 Pikachu — Storm Courier
 
-Status: IMPLEMENTED / BLOCKBENCH REVIEWED
+Status: IMPLEMENTED / PREMIUM BLOCKBENCH REVIEWED
 
-Storm Courier was rebuilt from zero on the exact official Cobblemon 1.7.3 Pikachu models. The previous obsolete 22-bone implementation remains rejected and is not used as a template.
+Storm Courier is built on the exact official Cobblemon 1.7.3 Pikachu male and female models. The obsolete 22-bone implementation is rejected and is not used as a template.
 
 Official source pinned by CI:
 - male geometry SHA-256: `f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83`
 - female geometry SHA-256: `d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318`
 - base texture SHA-256: `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
+- official animation SHA-256: `d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384`
 - original bones per gender model: `90`
-- derived bones per gender model: `95`
+- derived bones per gender model: `94`
 
-The generator preserves all 90 official bones exactly and appends only five accessory bones: visor, harness, pack, antenna and tail clamp. Male and female models are derived independently so the official female tail UV remains intact.
+The generator preserves all 90 official bones exactly and appends only four accessory bones: goggles, harness, pack and tail clamp. Male and female models are derived independently so the official female tail remains intact.
 
-The resolver reuses `cobblemon:pikachu`, Cobblemon base/shiny textures and Cobblemon emissive layers. Ouros contributes only a transparent 128x64 accessory layer. The accessory palette occupies eight reserved texels on row `y=63`; CI verifies that those texels are outside the UV footprint of every original cube.
+The accepted premium pass concentrates detail inside those same four bones instead of adding anatomy. The goggles add layered glass, copper/brass hardware and a small three-quarter weather tab. The harness uses thickened crossed straps, an upper yoke, readable storm compass and restrained side utility pouches. The compact expedition pack keeps its bedroll and buckles while adding an asymmetric storm vial and route case for hero-view readability. The fitted tail clamp adds conductor rails while remaining local to the official flat tail plane.
 
-Visual review uses Blockbench 5.1.6 with the same orthographic camera for the untouched official male model, Storm Courier male and Storm Courier female. Front, left, right and back comparisons are required. The current review passed import, reproduction, anatomy-preservation, resolver and four-view render gates.
+The resolver reuses `cobblemon:pikachu`, Cobblemon base/shiny textures and Cobblemon emissive layers. Ouros contributes only a transparent 128×64 accessory layer. The accessory palette occupies eight reserved texels on row `y=63`; CI verifies that those texels are outside the UV footprint of every original cube.
+
+Visual acceptance uses pinned Blockbench 5.1.6. Structural comparison uses matched-camera official vs Storm Courier front/left/right/back views for male and female models. Presentation review imports the official Pikachu animations through Blockbench's Bedrock codec and records official-reference, hero, battle-ready and walking evidence. The accepted evidence preserves the original species silhouette while making the courier kit readable from front, rear and three-quarter angles.
 
 Production files:
 - `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json`

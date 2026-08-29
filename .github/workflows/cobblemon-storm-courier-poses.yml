@@ -1,6 +1,14 @@
 name: Storm Courier Real Pose Evidence
 
 on:
+  push:
+    branches:
+      - 'feat/storm-courier-*'
+    paths:
+      - '.github/workflows/cobblemon-storm-courier-poses.yml'
+      - 'tools/cobblemon-model-review/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_*.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
   pull_request:
     paths:
       - '.github/workflows/cobblemon-storm-courier-poses.yml'
@@ -10,7 +18,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: storm-courier-real-pose-evidence-${{ github.ref }}
@@ -27,6 +35,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -228,3 +238,20 @@ jobs:
           path: test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses
           if-no-files-found: error
           retention-days: 14
+
+      - name: Commit validated pose evidence to feature branch
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-real-poses'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$root"
+          if git diff --cached --quiet; then
+            echo 'Pose evidence already current.'
+            exit 0
+          fi
+          git commit -m 'Evidence: refresh premium Storm Courier Blockbench poses'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
