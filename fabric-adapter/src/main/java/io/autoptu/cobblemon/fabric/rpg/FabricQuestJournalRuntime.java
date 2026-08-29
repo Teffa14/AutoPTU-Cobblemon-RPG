@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.rpg;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestJournalQueryService;
+import io.autoptu.cobblemon.authority.CanonicalQuestTrackingService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -14,7 +15,7 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Read-only quest journal fallback backed exclusively by durable canonical server state. */
+/** Quest journal fallback backed exclusively by durable canonical server state. */
 public final class FabricQuestJournalRuntime {
     private FabricQuestJournalRuntime() {}
 
@@ -26,6 +27,12 @@ public final class FabricQuestJournalRuntime {
                         .then(CommandManager.literal("quests")
                                 .executes(context -> showJournal(context.getSource())))
                         .then(CommandManager.literal("quest")
+                                .then(CommandManager.literal("track")
+                                        .then(CommandManager.argument("id", StringArgumentType.word())
+                                                .executes(context -> trackQuest(
+                                                        context.getSource(),
+                                                        StringArgumentType.getString(context, "id")
+                                                ))))
                                 .then(CommandManager.argument("id", StringArgumentType.word())
                                         .executes(context -> showQuest(
                                                 context.getSource(),
@@ -50,6 +57,26 @@ public final class FabricQuestJournalRuntime {
             return 1;
         } catch (IllegalArgumentException error) {
             source.sendError(Text.literal(error.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int trackQuest(ServerCommandSource source, String questId) {
+        ServerPlayerEntity player = requireCanonicalPlayer(source);
+        if (player == null) return 0;
+        try {
+            var result = new CanonicalQuestTrackingService(
+                    CanonicalQuestCatalogue.DEFAULT,
+                    FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer())
+            ).track(canonicalPlayerId(player), questId);
+            player.sendMessage(Text.literal("Tracking quest " + result.questId()
+                    + " | journal rev " + result.journalRevision()), false);
+            return 1;
+        } catch (IllegalArgumentException error) {
+            source.sendError(Text.literal(error.getMessage()));
+            return 0;
+        } catch (IllegalStateException error) {
+            source.sendError(Text.literal("AutoPTU could not safely update tracked quest state."));
             return 0;
         }
     }
@@ -86,7 +113,8 @@ public final class FabricQuestJournalRuntime {
             lines.add("No accepted quests.");
         } else {
             for (var quest : journal.quests()) {
-                lines.add(quest.questId() + " | " + quest.title() + " | " + quest.state());
+                lines.add((quest.tracked() ? "[TRACKED] " : "")
+                        + quest.questId() + " | " + quest.title() + " | " + quest.state());
             }
         }
         lines.add("Journal revision: " + journal.revision());
@@ -95,7 +123,7 @@ public final class FabricQuestJournalRuntime {
 
     static List<String> formatQuestLines(CanonicalQuestJournalQueryService.QuestSnapshot quest) {
         return List.of(
-                quest.title() + " [" + quest.questId() + "]",
+                quest.title() + " [" + quest.questId() + "]" + (quest.tracked() ? " [TRACKED]" : ""),
                 "State: " + quest.state(),
                 quest.summary(),
                 "Objective: " + quest.objectiveText(),
