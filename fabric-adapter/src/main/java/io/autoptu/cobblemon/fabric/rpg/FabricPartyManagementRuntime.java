@@ -7,12 +7,14 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
@@ -21,6 +23,9 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +39,7 @@ public final class FabricPartyManagementRuntime {
     private static final int TOP_SLOT_COUNT = 27;
     private static final int[] PARTY_SLOTS = {10, 11, 12, 14, 15, 16};
     private static final int HUD_REFRESH_TICKS = 40;
+    private static final Identifier COBBLEMON_PC_ID = Identifier.of("cobblemon", "pc");
     private static int hudTickCounter;
 
     private FabricPartyManagementRuntime() {}
@@ -44,6 +50,22 @@ public final class FabricPartyManagementRuntime {
                         .then(CommandManager.literal("party")
                                 .then(CommandManager.literal("manage")
                                         .executes(context -> open(context.getSource()))))));
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (world.isClient() || hand != Hand.MAIN_HAND || !player.isSneaking()
+                    || !(player instanceof ServerPlayerEntity serverPlayer)) {
+                return ActionResult.PASS;
+            }
+            if (!COBBLEMON_PC_ID.equals(Registries.BLOCK.getId(world.getBlockState(hitResult.getBlockPos()).getBlock()))) {
+                return ActionResult.PASS;
+            }
+            CanonicalPartySummary party = queryParty(serverPlayer);
+            if (party == null || party.members().isEmpty()) {
+                serverPlayer.sendMessage(Text.literal("No persistent AutoPTU party exists yet."), false);
+                return ActionResult.FAIL;
+            }
+            openScreen(serverPlayer);
+            return ActionResult.SUCCESS;
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             hudTickCounter++;
             if (hudTickCounter < HUD_REFRESH_TICKS) return;
