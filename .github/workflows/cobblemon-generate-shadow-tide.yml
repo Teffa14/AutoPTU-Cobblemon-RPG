@@ -1,0 +1,116 @@
+name: Generate Shadow Tide From Official Cobblemon
+
+on:
+  push:
+    branches: ['feat/greninja-shadow-tide']
+    paths:
+      - '.github/workflows/cobblemon-generate-shadow-tide.yml'
+      - 'tools/cobblemon-model-review/build_shadow_tide_greninja.py'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'fabric-adapter/src/main/resources/data/cobblemon/species_features/ouros_shadow_tide.json'
+      - 'fabric-adapter/src/main/resources/data/cobblemon/species_feature_assignments/ouros_greninja_cosmetics.json'
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency:
+  group: generate-shadow-tide-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Download and pin exact official source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Shadow-Tide' 'https://api.modrinth.com/v2/project/cobblemon/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D' -o .official-source/versions.json
+          python - <<'PY'
+          import json
+          v=json.load(open('.official-source/versions.json')); r=sorted((x for x in v if x.get('version_type')=='release'),key=lambda x:x['date_published'],reverse=True)
+          assert r and r[0]['id']=='kF7CvxTo'
+          PY
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Shadow-Tide' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          python - <<'PY' > .official-source/download.env
+          import json,shlex
+          d=json.load(open('.official-source/version.json')); p=next(f for f in d['files'] if f.get('primary'))
+          assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and d['game_versions']==['1.21.1'] and p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(p['url'])); print('SHA512='+shlex.quote(p['hashes']['sha512']))
+          PY
+          source .official-source/download.env; curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" .official-source/cobblemon.jar | sha512sum --check --strict
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0658_greninja/greninja.geo.json' > .official-source/greninja.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0658_greninja/ashgreninja.geo.json' > .official-source/ashgreninja.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0658_greninja/greninja.animation.json' > .official-source/greninja.animation.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/0_greninja_base.json' > .official-source/greninja.resolver.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0658_greninja/greninja.png' > .official-source/greninja.png
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0658_greninja/license' > .official-source/model-license.txt
+          test "$(sha256sum .official-source/greninja.geo.json|awk '{print $1}')" = b9608c2eef6dc1a407da31192fde20ae2cea135e7399c14926598acce091e30d
+          test "$(sha256sum .official-source/ashgreninja.geo.json|awk '{print $1}')" = be45c61cc17a7ab6408c06e70905e53c7dbd3c99cba4e8bff0192a03849ca7f5
+          test "$(sha256sum .official-source/greninja.animation.json|awk '{print $1}')" = 9e0176549e372324127fc2c8edbaa5d72ca6009dac06088c65df89790d3548f3
+          test "$(sha256sum .official-source/greninja.resolver.json|awk '{print $1}')" = 6c437d1397d607e2dcc17f193a40c666cb206884dc2b1c5f612b44584ea607de
+          test "$(sha256sum .official-source/greninja.png|awk '{print $1}')" = 6a7b6ed1b1e93111413e47c11e9423a35e2877140e69b1bac1cb285c46ab6464
+      - name: Generate both official-form derivatives and shared overlay
+        run: |
+          python tools/cobblemon-model-review/build_shadow_tide_greninja.py --official-normal .official-source/greninja.geo.json --official-ash .official-source/ashgreninja.geo.json --normal-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0658_greninja/ouros_shadow_tide_greninja.geo.json --ash-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0658_greninja/ouros_shadow_tide_ash_greninja.geo.json --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0658_greninja/ouros_shadow_tide_accessories.png --metadata-out docs/cobblemon-skins/0658_greninja/shadow-tide-build-metadata.json
+      - name: Generate resolver by extending every official variation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import copy,json
+          from pathlib import Path
+          src=json.loads(Path('.official-source/greninja.resolver.json').read_text())
+          out={'species':src['species'],'order':90,'variations':[]}
+          for v in src['variations']:
+              nv=copy.deepcopy(v); aspects=list(nv.get('aspects',[])); nv['aspects']=['ouros_shadow_tide']+aspects
+              model=str(nv.get('model',''))
+              nv['model']='cobblemon:ouros_shadow_tide_ash_greninja.geo' if 'ash' in model.lower() else 'cobblemon:ouros_shadow_tide_greninja.geo'
+              nv.setdefault('layers',[]).append({'name':'ouros_shadow_tide','texture':'cobblemon:textures/pokemon/0658_greninja/ouros_shadow_tide_accessories.png','translucent':True})
+              out['variations'].append(nv)
+          assert len(out['variations'])==len(src['variations']) and out['variations']
+          p=Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/90_ouros_shadow_tide.json'); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(out,separators=(',',':'))+'\n')
+          print(json.dumps(out,indent=2))
+          PY
+      - name: Validate anatomy, forms, UVs and official clips
+        shell: bash
+        run: |
+          set -euo pipefail
+          n=fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0658_greninja/ouros_shadow_tide_greninja.geo.json
+          a=fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0658_greninja/ouros_shadow_tide_ash_greninja.geo.json
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/greninja.geo.json --candidate "$n"
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/ashgreninja.geo.json --candidate "$a"
+          python - <<'PY'
+          import importlib.util,json,hashlib
+          from pathlib import Path
+          from PIL import Image
+          meta=json.loads(Path('docs/cobblemon-skins/0658_greninja/shadow-tide-build-metadata.json').read_text())
+          assert meta['normalOriginalBoneCount']==78 and meta['ashOriginalBoneCount']==81 and meta['normalDerivedBoneCount']==86 and meta['ashDerivedBoneCount']==89 and meta['cosmeticBoneCount']==8 and meta['cosmeticCubeCount']>=45
+          spec=importlib.util.spec_from_file_location('b','tools/cobblemon-model-review/build_shadow_tide_greninja.py'); b=importlib.util.module_from_spec(spec); spec.loader.exec_module(b)
+          ng=json.loads(Path('.official-source/greninja.geo.json').read_text())['minecraft:geometry'][0]; ag=json.loads(Path('.official-source/ashgreninja.geo.json').read_text())['minecraft:geometry'][0]
+          reserved={tuple(v) for v in meta['palettePixels'].values()}; assert reserved.isdisjoint(b.mark_uv_usage(ng)); assert reserved.isdisjoint(b.mark_uv_usage(ag))
+          im=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0658_greninja/ouros_shadow_tide_accessories.png').convert('RGBA'); opaque={(x,y) for y in range(im.height) for x in range(im.width) if im.getpixel((x,y))[3]}; assert opaque==reserved
+          base=json.loads(Path('.official-source/greninja.resolver.json').read_text()); r=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/90_ouros_shadow_tide.json').read_text()); assert len(r['variations'])==len(base['variations'])
+          for src,v in zip(base['variations'],r['variations']):
+              assert v['aspects'][0]=='ouros_shadow_tide' and v['aspects'][1:]==src.get('aspects',[]); assert v['layers'][-1]['name']=='ouros_shadow_tide'
+              assert ('ash' in str(src.get('model','')).lower()) == ('ash' in v['model'])
+          clips=json.loads(Path('.official-source/greninja.animation.json').read_text())['animations'];
+          for name in ['animation.greninja.ground_idle','animation.greninja.ground_walk','animation.greninja.battle_idle']: assert name in clips
+          meta['officialNormalModelSha256']=hashlib.sha256(Path('.official-source/greninja.geo.json').read_bytes()).hexdigest(); meta['officialAshModelSha256']=hashlib.sha256(Path('.official-source/ashgreninja.geo.json').read_bytes()).hexdigest(); meta['officialAnimationSha256']=hashlib.sha256(Path('.official-source/greninja.animation.json').read_bytes()).hexdigest(); meta['officialResolverSha256']=hashlib.sha256(Path('.official-source/greninja.resolver.json').read_bytes()).hexdigest(); meta['officialModelLicenseSha256']=hashlib.sha256(Path('.official-source/model-license.txt').read_bytes()).hexdigest(); Path('docs/cobblemon-skins/0658_greninja/shadow-tide-build-metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
+          PY
+          cp .official-source/model-license.txt docs/cobblemon-skins/0658_greninja/official-model-license.txt
+      - name: Commit generated production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]; git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0658_greninja fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0658_greninja/90_ouros_shadow_tide.json fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0658_greninja/ouros_shadow_tide_accessories.png docs/cobblemon-skins/0658_greninja/shadow-tide-build-metadata.json docs/cobblemon-skins/0658_greninja/official-model-license.txt
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'RPG: generate Shadow Tide from official Greninja forms'
+          git pull --rebase origin "${GITHUB_REF_NAME}"; git push origin HEAD:"${GITHUB_REF_NAME}"
