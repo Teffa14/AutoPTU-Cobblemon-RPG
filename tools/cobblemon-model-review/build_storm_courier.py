@@ -89,8 +89,13 @@ def cowl_bone() -> dict:
         "parent": "head_angle",
         "pivot": [0, 16.6, 2.0],
         "cubes": [
-            # Rear shell is narrow enough to preserve the original head silhouette from front.
-            cube([-4.74, 14.18, 3.92], [9.48, 5.10, 0.44], "navy"),
+            # Segmented rear frame leaves most of the official yellow head visible from behind.
+            cube([-4.74, 18.44, 3.92], [9.48, 0.78, 0.44], "navy"),
+            cube([-4.74, 14.46, 3.92], [1.84, 4.08, 0.44], "canvas", pivot=[-3.82, 16.50, 4.14], rotation=[0, 0, -5]),
+            cube([2.90, 14.46, 3.92], [1.84, 4.08, 0.44], "canvas", pivot=[3.82, 16.50, 4.14], rotation=[0, 0, 5]),
+            cube([-0.36, 15.02, 3.94], [0.72, 3.52, 0.40], "copper"),
+            cube([-2.64, 16.42, 3.96], [1.28, 0.72, 0.14], "glass"),
+            cube([1.36, 16.42, 3.96], [1.28, 0.72, 0.14], "glass"),
             cube([-5.08, 13.90, 1.22], [0.48, 4.86, 2.90], "canvas"),
             cube([4.60, 13.90, 1.22], [0.48, 4.86, 2.90], "canvas"),
             # High collar blades become visible beside the cheeks and below the ear bases.
