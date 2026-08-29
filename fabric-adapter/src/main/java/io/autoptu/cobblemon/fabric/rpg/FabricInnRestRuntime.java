@@ -6,21 +6,24 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.BedBlock;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.enums.BedPart;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 /**
  * Authored Ouros inn/rest point using Minecraft's native bed as the physical surface.
  *
- * Ordinary beds remain vanilla. A gold block directly below the clicked bed part opts that bed into
- * the Ouros inn interaction. Sneak-use with an empty main hand invokes the same server-authoritative
- * persistent party healing service as the Healing Machine; no Cobblemon party/HP/BattleState data is
- * read and no PTU recovery rule is invented in Minecraft.
+ * Ordinary beds remain vanilla. A gold block directly below either half of a bed opts the whole bed
+ * into the Ouros inn interaction. Sneak-use with an empty main hand invokes the same
+ * server-authoritative persistent party healing service as the Healing Machine; no Cobblemon
+ * party/HP/BattleState data is read and no PTU recovery rule is invented in Minecraft.
  */
 public final class FabricInnRestRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 25.0D;
@@ -58,8 +61,20 @@ public final class FabricInnRestRuntime {
     }
 
     static boolean isInnRestPoint(World world, BlockPos bedPos) {
-        return world.getBlockState(bedPos).getBlock() instanceof BedBlock
-                && world.getBlockState(bedPos.down()).isOf(Blocks.GOLD_BLOCK);
+        BlockState state = world.getBlockState(bedPos);
+        if (!(state.getBlock() instanceof BedBlock)) return false;
+        if (world.getBlockState(bedPos.down()).isOf(Blocks.GOLD_BLOCK)) return true;
+
+        Direction facing = state.get(BedBlock.FACING);
+        BedPart part = state.get(BedBlock.PART);
+        BlockPos otherHalf = bedPos.offset(part == BedPart.FOOT ? facing : facing.getOpposite());
+        BlockState otherState = world.getBlockState(otherHalf);
+        if (!(otherState.getBlock() instanceof BedBlock)
+                || otherState.get(BedBlock.FACING) != facing
+                || otherState.get(BedBlock.PART) == part) {
+            return false;
+        }
+        return world.getBlockState(otherHalf.down()).isOf(Blocks.GOLD_BLOCK);
     }
 
     static boolean withinInteractionDistance(ServerPlayerEntity player, BlockPos bedPos) {
