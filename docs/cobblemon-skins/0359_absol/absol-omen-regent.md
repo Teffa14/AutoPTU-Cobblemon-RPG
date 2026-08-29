@@ -1,6 +1,6 @@
 # 0359 Absol — Omen Regent
 
-Status: EPIC V2 ACCEPTED IN BLOCKBENCH — repository-wide PR gates pending.
+Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
 
 ## Official source
 
@@ -22,7 +22,7 @@ Compact source inspection evidence is retained under `docs/cobblemon-skins/0359_
 
 The official model contains 73 bones. Omen Regent V2 keeps all 73 bones JSON-equivalent and in the same order, then appends eight `ouros_*` cosmetic groups for 81 total bones. `validate_original_model.py` verifies this directly against `absol.geo.json` extracted from the pinned JAR.
 
-The eight cosmetic groups are an open omen crown, armored gorget/core, asymmetric left and right pauldrons, a wide split mantle, a rear eclipse frame, a tail-root reliquary and a large asymmetric rear relic. V2 contains more than 55 cosmetic cubes. Head, face, biological horn, fur, torso, legs, feet and tail remain the exact Cobblemon anatomy beneath these additions.
+The eight cosmetic groups are an open omen crown, armored gorget/core, asymmetric left and right pauldrons, a wide split mantle, a rear eclipse frame, a tail-root reliquary and a large asymmetric rear relic. V2 contains 61 cosmetic cubes. Head, face, biological horn, fur, torso, legs, feet and tail remain the exact Cobblemon anatomy beneath these additions.
 
 ## Epic V2 visual pass
 
@@ -36,15 +36,17 @@ The official poser defines standing with `ground_idle` and walking with `ground_
 
 ## UV and resolver contract
 
-The official texture size is 128×128. Generation computes the original model's UV occupancy before assigning material swatches. Omen Regent uses eight texels proven outside that footprint; every non-transparent pixel in the Ouros overlay must equal that reserved set.
+The official texture size is 128×128. Generation computes the original model's UV occupancy before assigning material swatches. Omen Regent uses eight texels proven outside that footprint: `(32,127)`, `(33,127)`, `(60,127)`, `(61,127)`, `(62,127)`, `(63,127)`, `(64,127)` and `(65,127)`. Every non-transparent pixel in the Ouros overlay equals that reserved set.
 
 The production resolver preserves the two official branches: normal and `shiny`. It prepends only the `ouros_omen_regent` aspect, points both branches to the derived geometry and adds the transparent accessory layer. The official `cobblemon:absol` poser remains authoritative for presentation. No extra form, battle state or combat rule is introduced.
 
-## Evidence
+## Evidence and repository validation
 
 Real preview evidence is produced by pinned Blockbench 5.1.6, SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
 
 The accepted V2 evidence directory is `test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses/` and contains the matched official reference, hero three-quarter, cry three-quarter and hero front/left/right/back views plus pose metadata and PNG hashes.
+
+PR #304 merged Omen Regent after the exact final head completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully. Integration Core also completed two production Fabric + Cobblemon dedicated-server boots. The final merge commit is `2658bda967fa7d527a49eacb1de741d504793753`.
 
 ## Authority boundary
 
