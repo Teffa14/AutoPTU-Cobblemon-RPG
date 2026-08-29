@@ -22,7 +22,8 @@ import java.util.Optional;
 
 /** Durable owner-scoped quest journal. It persists RPG progression only and applies no PTU rules or rewards. */
 public final class FileCanonicalQuestJournalRepository {
-    static final int SCHEMA_VERSION = 1;
+    static final int SCHEMA_VERSION = 2;
+    private static final int LEGACY_SCHEMA_VERSION = 1;
     private static final int MAGIC = 0x4150514a; // APQJ
     private final Path journalDirectory;
 
@@ -40,7 +41,7 @@ public final class FileCanonicalQuestJournalRepository {
         String owner = requireId(playerId, "playerId");
         Path path = statePath(owner);
         if (Files.exists(path)) return read(path, owner);
-        JournalState created = new JournalState(owner, 0L, Map.of());
+        JournalState created = new JournalState(owner, 0L, Map.of(), null);
         writeAtomically(path, created);
         return created;
     }
@@ -63,9 +64,29 @@ public final class FileCanonicalQuestJournalRepository {
         QuestEntry entry = new QuestEntry(quest, QuestState.ACCEPTED, nextRevision);
         LinkedHashMap<String, QuestEntry> entries = new LinkedHashMap<>(current.entries());
         entries.put(quest, entry);
-        JournalState updated = new JournalState(owner, nextRevision, entries);
+        JournalState updated = new JournalState(owner, nextRevision, entries, current.trackedQuestId());
         writeAtomically(statePath(owner), updated);
         return new AcceptResult(AcceptStatus.ACCEPTED, updated, entry);
+    }
+
+    public synchronized TrackResult track(String playerId, String questId, long expectedRevision) {
+        String owner = requireId(playerId, "playerId");
+        String quest = requireId(questId, "questId");
+        if (expectedRevision < 0) throw new IllegalArgumentException("expectedRevision must not be negative");
+        JournalState current = findOrCreate(owner);
+        if (!current.entries().containsKey(quest)) {
+            return new TrackResult(TrackStatus.NOT_ACCEPTED, current);
+        }
+        if (quest.equals(current.trackedQuestId())) {
+            return new TrackResult(TrackStatus.ALREADY_TRACKED, current);
+        }
+        if (current.revision() != expectedRevision) {
+            return new TrackResult(TrackStatus.STALE_REVISION, current);
+        }
+        long nextRevision = Math.addExact(current.revision(), 1L);
+        JournalState updated = new JournalState(owner, nextRevision, current.entries(), quest);
+        writeAtomically(statePath(owner), updated);
+        return new TrackResult(TrackStatus.TRACKED, updated);
     }
 
     private JournalState read(Path path, String expectedPlayerId) {
@@ -73,7 +94,10 @@ public final class FileCanonicalQuestJournalRepository {
             byte[] bytes = Files.readAllBytes(path);
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(bytes))) {
                 if (input.readInt() != MAGIC) throw new IllegalStateException("invalid canonical quest journal file magic");
-                if (input.readInt() != SCHEMA_VERSION) throw new IllegalStateException("unsupported canonical quest journal schema version");
+                int schemaVersion = input.readInt();
+                if (schemaVersion != LEGACY_SCHEMA_VERSION && schemaVersion != SCHEMA_VERSION) {
+                    throw new IllegalStateException("unsupported canonical quest journal schema version");
+                }
                 String playerId = input.readUTF();
                 if (!playerId.equals(expectedPlayerId)) throw new IllegalStateException("canonical quest journal owner mismatch");
                 long revision = input.readLong();
@@ -84,8 +108,13 @@ public final class FileCanonicalQuestJournalRepository {
                     QuestEntry entry = new QuestEntry(input.readUTF(), QuestState.valueOf(input.readUTF()), input.readLong());
                     if (entries.put(entry.questId(), entry) != null) throw new IllegalStateException("duplicate canonical quest entry");
                 }
+                String trackedQuestId = null;
+                if (schemaVersion >= 2 && input.readBoolean()) trackedQuestId = input.readUTF();
+                if (trackedQuestId != null && !entries.containsKey(trackedQuestId)) {
+                    throw new IllegalStateException("tracked canonical quest is not present in the journal");
+                }
                 if (input.available() != 0) throw new IllegalStateException("unexpected trailing canonical quest journal data");
-                return new JournalState(playerId, revision, entries);
+                return new JournalState(playerId, revision, entries, trackedQuestId);
             }
         } catch (IOException error) {
             throw new UncheckedIOException("failed to read canonical quest journal", error);
@@ -129,6 +158,8 @@ public final class FileCanonicalQuestJournalRepository {
                     output.writeUTF(entry.state().name());
                     output.writeLong(entry.acceptedRevision());
                 }
+                output.writeBoolean(state.trackedQuestId() != null);
+                if (state.trackedQuestId() != null) output.writeUTF(state.trackedQuestId());
                 output.flush();
             }
             return bytes.toByteArray();
@@ -157,12 +188,18 @@ public final class FileCanonicalQuestJournalRepository {
         return value.trim();
     }
 
-    public record JournalState(String playerId, long revision, Map<String, QuestEntry> entries) {
+    public record JournalState(String playerId, long revision, Map<String, QuestEntry> entries, String trackedQuestId) {
         public JournalState {
             playerId = requireId(playerId, "playerId");
             if (revision < 0) throw new IllegalArgumentException("revision must not be negative");
             if (entries == null) throw new IllegalArgumentException("entries are required");
             entries = Map.copyOf(entries);
+            if (trackedQuestId != null) {
+                trackedQuestId = requireId(trackedQuestId, "trackedQuestId");
+                if (!entries.containsKey(trackedQuestId)) {
+                    throw new IllegalArgumentException("trackedQuestId must reference an accepted journal quest");
+                }
+            }
         }
     }
 
@@ -176,9 +213,17 @@ public final class FileCanonicalQuestJournalRepository {
 
     public enum QuestState { ACCEPTED }
     public enum AcceptStatus { ACCEPTED, ALREADY_ACCEPTED, STALE_REVISION }
+    public enum TrackStatus { TRACKED, ALREADY_TRACKED, NOT_ACCEPTED, STALE_REVISION }
 
     public record AcceptResult(AcceptStatus status, JournalState journal, QuestEntry entry) {
         public AcceptResult {
+            if (status == null) throw new IllegalArgumentException("status is required");
+            if (journal == null) throw new IllegalArgumentException("journal is required");
+        }
+    }
+
+    public record TrackResult(TrackStatus status, JournalState journal) {
+        public TrackResult {
             if (status == null) throw new IllegalArgumentException("status is required");
             if (journal == null) throw new IllegalArgumentException("journal is required");
         }
