@@ -1,6 +1,8 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalNpcDialogueCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestJournalService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -36,9 +38,7 @@ public final class FabricNpcDialogueRuntime {
 
     public static void register() {
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) {
-                return ActionResult.PASS;
-            }
+            if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) return ActionResult.PASS;
             Optional<String> npcId = npcId(entity);
             if (npcId.isEmpty()) return ActionResult.PASS;
             var dialogue = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue(npcId.get()).orElse(null);
@@ -54,8 +54,7 @@ public final class FabricNpcDialogueRuntime {
             }
             UUID entityId = entity.getUuid();
             serverPlayer.openHandledScreen(new SimpleNamedScreenHandlerFactory(
-                    (syncId, inventory, ignored) -> new DialogueScreenHandler(
-                            syncId, inventory, serverPlayer, entityId, dialogue),
+                    (syncId, inventory, ignored) -> new DialogueScreenHandler(syncId, inventory, serverPlayer, entityId, dialogue),
                     Text.literal(dialogue.displayName())
             ));
             return ActionResult.SUCCESS;
@@ -95,24 +94,11 @@ public final class FabricNpcDialogueRuntime {
         private final Map<Integer, String> optionIds = new HashMap<>();
         private String displayedText;
 
-        DialogueScreenHandler(
-                int syncId,
-                PlayerInventory inventory,
-                ServerPlayerEntity player,
-                UUID npcEntityId,
-                CanonicalNpcDialogueCatalogue.Dialogue dialogue
-        ) {
+        DialogueScreenHandler(int syncId, PlayerInventory inventory, ServerPlayerEntity player, UUID npcEntityId, CanonicalNpcDialogueCatalogue.Dialogue dialogue) {
             this(syncId, inventory, player, npcEntityId, dialogue, new SimpleInventory(TOP_SLOT_COUNT));
         }
 
-        private DialogueScreenHandler(
-                int syncId,
-                PlayerInventory inventory,
-                ServerPlayerEntity player,
-                UUID npcEntityId,
-                CanonicalNpcDialogueCatalogue.Dialogue dialogue,
-                SimpleInventory displayInventory
-        ) {
+        private DialogueScreenHandler(int syncId, PlayerInventory inventory, ServerPlayerEntity player, UUID npcEntityId, CanonicalNpcDialogueCatalogue.Dialogue dialogue, SimpleInventory displayInventory) {
             super(ScreenHandlerType.GENERIC_9X3, syncId, inventory, displayInventory, 3);
             this.displayInventory = displayInventory;
             this.player = player;
@@ -124,13 +110,9 @@ public final class FabricNpcDialogueRuntime {
 
         @Override
         public boolean canUse(PlayerEntity player) {
-            if (player != this.player || player.isRemoved() || !(player.getWorld() instanceof ServerWorld serverWorld)) {
-                return false;
-            }
+            if (player != this.player || player.isRemoved() || !(player.getWorld() instanceof ServerWorld serverWorld)) return false;
             Entity current = serverWorld.getEntity(npcEntityId);
-            return current != null
-                    && !current.isRemoved()
-                    && npcId(current).filter(dialogue.npcId()::equals).isPresent()
+            return current != null && !current.isRemoved() && npcId(current).filter(dialogue.npcId()::equals).isPresent()
                     && player.squaredDistanceTo(current) <= MAX_INTERACTION_DISTANCE_SQUARED;
         }
 
@@ -149,13 +131,21 @@ public final class FabricNpcDialogueRuntime {
                 return;
             }
             displayedText = option.response();
+            if (option.questId() != null) {
+                String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+                var service = new CanonicalQuestJournalService(
+                        CanonicalQuestCatalogue.DEFAULT,
+                        FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer())
+                );
+                var result = service.accept(playerId, dialogue.npcId(), option.questId());
+                displayedText = result.newlyAccepted()
+                        ? "Quest accepted: " + result.quest().title() + " — " + result.quest().objectiveText()
+                        : "Quest already in journal: " + result.quest().title() + " — " + result.quest().objectiveText();
+            }
             refresh();
         }
 
-        @Override
-        public ItemStack quickMove(PlayerEntity player, int slot) {
-            return ItemStack.EMPTY;
-        }
+        @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
 
         private void refresh() {
             optionIds.clear();
@@ -164,7 +154,7 @@ public final class FabricNpcDialogueRuntime {
             int slot = OPTION_START_SLOT;
             for (CanonicalNpcDialogueCatalogue.Option option : dialogue.options()) {
                 if (slot >= TOP_SLOT_COUNT) break;
-                displayInventory.setStack(slot, menuItem(Items.PAPER.getDefaultStack(), option.label()));
+                displayInventory.setStack(slot, menuItem(option.questId() == null ? Items.PAPER.getDefaultStack() : Items.WRITABLE_BOOK.getDefaultStack(), option.label()));
                 optionIds.put(slot, option.optionId());
                 slot++;
             }

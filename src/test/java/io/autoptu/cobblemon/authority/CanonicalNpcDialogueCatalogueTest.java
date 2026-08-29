@@ -13,8 +13,9 @@ class CanonicalNpcDialogueCatalogueTest {
     void defaultCatalogueExposesAuthoredCedarRangerDialogue() {
         var dialogue = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue("cedar-ranger").orElseThrow();
         assertEquals("Cedar Ranger", dialogue.displayName());
-        assertEquals(3, dialogue.options().size());
+        assertEquals(4, dialogue.options().size());
         assertEquals("meadow", dialogue.options().getFirst().optionId());
+        assertEquals("cedar-field-notes", dialogue.option("field-notes").orElseThrow().questId());
         assertTrue(dialogue.option("battles").isPresent());
         assertTrue(dialogue.option("missing").isEmpty());
     }

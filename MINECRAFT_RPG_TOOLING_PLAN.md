@@ -71,6 +71,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-028 | LIVE | physical canonical Cobblemon PC terminal | PR #255 / implementation head `1dd990700e40205cf495779585cec87507c9d2c4`. Right-clicking the real `cobblemon:pc` opens a server-authored party/box menu; every deposit/withdraw re-resolves canonical slot/ownership and delegates to the existing restart-safe transfer service without reading Cobblemon PC or Pokemon gameplay state. |
 | CUR-029 | LIVE | physical canonical Cedar Mart counter | PR #256 / implementation head `b483936f4bae43dd8c1eca77a1ecbd2d8ee8a6f6`. Right-clicking the authored emerald-over-barrel counter opens a server-authored buy/sell menu showing durable wallet, persistent stock and sellable canonical bag quantities; every click revalidates current state and delegates to SVC-029/SVC-032. |
 | CUR-030 | LIVE/PARTIAL | physical canonical NPC dialogue | PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725`. Cedar Meadow provisions a persistent Cedar Ranger villager presentation actor bound one-way to server-authored dialogue; right-click opens a server-side option menu and every selection revalidates entity UUID, canonical NPC tag, range, Trainer state and authored option before showing the response. Normal world provisioning beyond the dev Cedar Meadow placement remains follow-up work. |
+| CUR-031 | LIVE | physical canonical quest-giver acceptance | PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8`. The Cedar Ranger exposes the server-authored `cedar-field-notes` offer; selecting it accepts that exact quest once into the authenticated Trainer's durable world-save journal. Repeat selection is idempotent and objective completion/rewards remain separate systems. |
 
 ---
 
@@ -213,7 +214,7 @@ These should become the normal gameplay path.
 | WORLD-007 | LIVE | Shop counter and buy/sell menu — PR #256 / implementation head `b483936f4bae43dd8c1eca77a1ecbd2d8ee8a6f6`. Right-clicking the authored Cedar Mart counter opens a 9x6 server-side menu; green offers buy one through SVC-029, gold canonical bag entries sell one through SVC-032, and range/block/stock/bag state are revalidated before mutation. |
 | WORLD-008 | LIVE | Crafting workstation/menu. PR #227 adds the physical workstation, PR #228 shows server-owned ingredient/output contracts, PR #229 supplies the restart-safe transaction, PR #230 shows canonical material readiness, PR #231 adds server-observed ingredient deposit, PR #233 / `f12bca736699739fc9cdd67bedf640cc3b4f6f10` wires durable normal-use crafting, PR #235 / `a4f763dade77a5aaa9f315eb7b8f3d369363afd3` adds explicit server-authoritative recipe selection through `/autoptu craft`, and PR #236 / `38a3b230a5bb9ca4a3d9313065678b3a617afaa1` makes normal workstation use show an explicit selector with ready/unready state derived from canonical materials. PR #238 / implementation commit `317cb76f879315fc9cc0f496c5fbd3b4ceaf74f8` makes ingredient transfer crash-recoverable through a durable cross-store journal and reconnect recovery. |
 | WORLD-009 | LIVE/PARTIAL | NPC dialogue interaction and dialogue screen — PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725`. Cedar Meadow provisions the authored Cedar Ranger as a persistent villager presentation actor; right-click opens a 9x3 server-side menu backed by the canonical dialogue catalogue, and option selection revalidates entity identity, range, Trainer state and authored option. Quest/progression actions remain WORLD-010 and the Cedar Meadow world itself is still dev-placed. |
-| WORLD-010 | TODO | Quest-giver/quest-object interaction. |
+| WORLD-010 | LIVE/PARTIAL | Quest-giver/quest-object interaction. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` makes the physical Cedar Ranger expose one authored quest offer through the existing dialogue UI; the server revalidates NPC identity, authenticated Trainer and quest/giver binding before an idempotent durable acceptance commit. Generic quest objects and objective-event processing remain follow-up work. |
 | WORLD-011 | TODO | Trainer challenge interaction. |
 | WORLD-012 | LIVE | Visible wild Pokémon contextual encounter interaction boundary — PR #214. A registered roaming actor is the encounter surface and carries an AutoPTU-owned encounter identity without reading Cobblemon gameplay state. |
 | WORLD-013 | BLOCKED | Region/grass ecology provisioning for visible roaming wild Pokémon. Population/presence must be backed by a trusted server-authored complete canonical WILD blueprint source before reveal; it never creates invisible movement encounters. |
@@ -260,7 +261,7 @@ These should become the normal gameplay path.
 | ID | Status | System |
 |---|---|---|
 | RPG-001 | LIVE/PARTIAL | Server-owned NPC identity and dialogue-state framework. PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725` adds a validated canonical NPC dialogue catalogue, one-way physical entity binding and server-authored option resolution. Conditional/persistent dialogue state remains follow-up work. |
-| RPG-002 | TODO | Quest journal persistence. |
+| RPG-002 | LIVE | Quest journal persistence. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` adds owner-scoped world-save persistence with revision-CAS acceptance, atomic replacement, idempotent repeats and dedicated-server restart verification. The stored state currently records accepted quest identity/state only; objective processing and rewards are RPG-003/RPG-004. |
 | RPG-003 | TODO | Quest objective event processing. |
 | RPG-004 | TODO | Idempotent quest reward commit. |
 | RPG-005 | TODO | Trainer XP/level/progression persistence. |
@@ -307,7 +308,7 @@ These should become the normal gameplay path.
 | SVC-007 | TODO | `canStartBattle(player, reservation)` |
 | SVC-008 | TODO | `canManageParty(player, mutation)` |
 | SVC-009 | TODO | `canManageStorage(player, mutation)` |
-| SVC-010 | TODO | `canAcceptQuest(player, quest)` |
+| SVC-010 | LIVE/PARTIAL | `canAcceptQuest(player, quest)` — PR #258 validates that the quest is server-authored, is offered by the revalidated canonical NPC and is not trusted from client metadata. Conditional story/prerequisite eligibility remains future quest-state work. |
 | SVC-011 | TODO | `canAdvanceQuest(player, event)` |
 | SVC-012 | TODO | `canClaimReward(player, source)` |
 | SVC-013 | LIVE/PARTIAL | Item reservation/commit/rollback infrastructure exists. PR #229 adds schema-compatible consumed-but-retained reservations so multi-item craft recovery cannot expose partially consumed stacks before the durable transaction commit; expand to complete RPG inventory use. |
@@ -331,6 +332,7 @@ These should become the normal gameplay path.
 | SVC-031 | LIVE | `transferPokemonStorage(transferId, player, direction, sourceSlot)` — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. The server re-resolves source membership and canonical ownership, journals source removal and target addition, uses revision-CAS writes, resumes pending transfers at server start and verifies terminal party/box exclusivity. It applies no PTU battle or capture rule. |
 | SVC-032 | LIVE | `sell(saleId, player, shopId, itemTemplateId, quantity)` — PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e`. The server resolves explicit authored sell price/currency, selects and reserves an owned canonical stack, consumes it behind a retained transaction lock, credits currency exactly once, releases the lock only after durable credit, and resumes incomplete attempts on server start. Retail stock/replenishment and PTU item behavior are not inferred. |
 | SVC-033 | LIVE/PARTIAL | `dialogue(npcId)` / `dialogue.option(optionId)` — PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725`. The server owns canonical NPC identity, opening text, labels and responses; Fabric binds a physical presentation actor one-way and revalidates the authored option on every click. Conditional/persistent dialogue-state mutation remains future work. |
+| SVC-034 | LIVE | `acceptQuest(player, npcId, questId)` — PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8`. The server resolves authored quest/giver truth, writes one owner-scoped ACCEPTED entry through revisioned atomic persistence and returns the existing entry on duplicate retry. It grants no reward, XP, item, PTU action or battle effect. |
 
 ---
 
@@ -386,7 +388,7 @@ These are required for operations, testing and recovery. They must never be norm
 | LIVE | Durable canonical shop purchase journal — PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe`. Frozen purchase intent and stage persist under the world save; deterministic wallet, stock and item identities let startup recovery resume without double charge, double depletion or duplicate item grant. |
 | LIVE | Durable canonical shop sale journal — PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e`. Frozen item instance/revision, authored price/currency and CREATED/ITEM_RESERVED/ITEM_CONSUMED/WALLET_CREDITED/COMMITTED stages persist under the world save; startup recovery cannot consume or credit the same sale twice. |
 | LIVE | Durable canonical party/box transfer journal — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`. Transfer identity, direction, canonical Pokemon ID and CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED stage persist under the world save so startup recovery can finish an interrupted move without duplication or loss. |
-| TODO | Quest journal/objectives/reward claims. |
+| LIVE/PARTIAL | Quest journal/objectives/reward claims. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` persists owner-scoped accepted quest identity/state/revision and proves the entry across a real dedicated-server restart. Objective progress and reward claims remain TODO under RPG-003/RPG-004. |
 | TODO | NPC relationships/factions/rivals. |
 | TODO | Badges/league/tournament records. |
 | TODO | Discovery/world-event flags. |

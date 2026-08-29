@@ -10,6 +10,7 @@ import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileReposit
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonStorageRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonTransferRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalQuestJournalRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopPurchaseRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopSaleRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
@@ -40,6 +41,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalPokemonTransferRepository pokemonTransfers,
             FileCanonicalItemReservationRepository assets,
             FileCanonicalWalletRepository wallets,
+            FileCanonicalQuestJournalRepository questJournals,
             FileCanonicalShopStockRepository shopStock,
             FileCanonicalShopPurchaseRepository shopPurchases,
             FileCanonicalShopSaleRepository shopSales,
@@ -68,6 +70,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileCanonicalPokemonTransferRepository requirePokemonTransferRepository(MinecraftServer server) { return requireStores(server).pokemonTransfers(); }
     public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) { return requireStores(server).assets(); }
     public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
+    public static FileCanonicalQuestJournalRepository requireQuestJournalRepository(MinecraftServer server) { return requireStores(server).questJournals(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
     public static FileCanonicalShopPurchaseRepository requireShopPurchaseRepository(MinecraftServer server) { return requireStores(server).shopPurchases(); }
     public static FileCanonicalShopSaleRepository requireShopSaleRepository(MinecraftServer server) { return requireStores(server).shopSales(); }
@@ -104,6 +107,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         FileCanonicalPokemonTransferRepository pokemonTransfers = new FileCanonicalPokemonTransferRepository(root);
         FileCanonicalItemReservationRepository assets = new FileCanonicalItemReservationRepository(root, pokemon::findPokemon);
         FileCanonicalWalletRepository wallets = new FileCanonicalWalletRepository(root);
+        FileCanonicalQuestJournalRepository questJournals = new FileCanonicalQuestJournalRepository(root);
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
         FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
         FileCanonicalShopSaleRepository shopSales = new FileCanonicalShopSaleRepository(root);
@@ -115,6 +119,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
                 pokemonTransfers,
                 assets,
                 wallets,
+                questJournals,
                 shopStock,
                 shopPurchases,
                 shopSales,
