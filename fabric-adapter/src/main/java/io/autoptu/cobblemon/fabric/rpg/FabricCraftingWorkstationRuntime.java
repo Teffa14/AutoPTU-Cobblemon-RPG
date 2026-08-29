@@ -8,7 +8,6 @@ import io.autoptu.cobblemon.authority.WorldTaskRecipeDefinition;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
@@ -104,9 +103,7 @@ public final class FabricCraftingWorkstationRuntime {
     }
 
     static boolean isCraftingWorkstation(World world, BlockPos head) {
-        return world.getBlockState(head).isOf(Blocks.SMITHING_TABLE)
-                && world.getBlockState(head.down()).isOf(Blocks.CRAFTING_TABLE)
-                && world.getBlockState(head.down(2)).isOf(Blocks.BARREL);
+        return world.getBlockState(head).isOf(FabricRpgContent.CRAFTING_WORKSTATION);
     }
 
     static boolean withinInteractionDistance(ServerPlayerEntity player, BlockPos stationHead) {
