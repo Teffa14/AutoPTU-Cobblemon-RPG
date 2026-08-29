@@ -16,45 +16,22 @@ public final class FabricRpgContent {
     public static final Identifier CEDAR_MART_COUNTER_ID = Identifier.of(MOD_ID, "cedar_mart_counter");
     public static final Identifier ITEM_STORAGE_TERMINAL_ID = Identifier.of(MOD_ID, "item_storage_terminal");
     public static final Identifier CRAFTING_WORKSTATION_ID = Identifier.of(MOD_ID, "crafting_workstation");
+    public static final Identifier FIELD_CAMP_ID = Identifier.of(MOD_ID, "field_camp");
 
-    /**
-     * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
-     * world identity is this registry ID rather than an accidental arrangement of unrelated blocks.
-     *
-     * Do not copy BedBlock settings here: vanilla bed settings capture BedBlock-only HEAD/FOOT
-     * properties and crash when applied to a plain registered block. Bed-like presentation belongs
-     * in this mod's model/shape resources, not in inherited vanilla bed gameplay state.
-     */
-    public static final Block PTU_RECOVERY_BED = new Block(
-            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-                    .strength(1.5F)
-                    .nonOpaque()
-    );
+    public static final Block PTU_RECOVERY_BED = new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(1.5F).nonOpaque());
     public static final Item PTU_RECOVERY_BED_ITEM = new BlockItem(PTU_RECOVERY_BED, new Item.Settings());
-
-    /** Dedicated Cedar Mart identity. Shop authority remains in canonical server services. */
-    public static final Block CEDAR_MART_COUNTER = new Block(
-            AbstractBlock.Settings.copy(Blocks.BARREL)
-                    .strength(2.5F)
-    );
+    public static final Block CEDAR_MART_COUNTER = new Block(AbstractBlock.Settings.copy(Blocks.BARREL).strength(2.5F));
     public static final Item CEDAR_MART_COUNTER_ITEM = new BlockItem(CEDAR_MART_COUNTER, new Item.Settings());
-
-    /** Dedicated item-storage identity. Bag/storage authority remains in canonical server services. */
-    public static final Block ITEM_STORAGE_TERMINAL = new Block(
-            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-                    .strength(3.0F)
-    );
+    public static final Block ITEM_STORAGE_TERMINAL = new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(3.0F));
     public static final Item ITEM_STORAGE_TERMINAL_ITEM = new BlockItem(ITEM_STORAGE_TERMINAL, new Item.Settings());
-
-    /** Dedicated crafting identity. Recipe knowledge, materials and craft results remain server authoritative. */
-    public static final Block CRAFTING_WORKSTATION = new Block(
-            AbstractBlock.Settings.copy(Blocks.SMITHING_TABLE)
-                    .strength(3.5F)
-    );
+    public static final Block CRAFTING_WORKSTATION = new Block(AbstractBlock.Settings.copy(Blocks.SMITHING_TABLE).strength(3.5F));
     public static final Item CRAFTING_WORKSTATION_ITEM = new BlockItem(CRAFTING_WORKSTATION, new Item.Settings());
 
-    private static boolean registered;
+    /** Dedicated field-camp identity. Durable camp results and quality remain server authoritative. */
+    public static final Block FIELD_CAMP = new Block(AbstractBlock.Settings.copy(Blocks.CAMPFIRE).strength(2.0F).nonOpaque());
+    public static final Item FIELD_CAMP_ITEM = new BlockItem(FIELD_CAMP, new Item.Settings());
 
+    private static boolean registered;
     private FabricRpgContent() {}
 
     public static void register() {
@@ -67,6 +44,8 @@ public final class FabricRpgContent {
         Registry.register(Registries.ITEM, ITEM_STORAGE_TERMINAL_ID, ITEM_STORAGE_TERMINAL_ITEM);
         Registry.register(Registries.BLOCK, CRAFTING_WORKSTATION_ID, CRAFTING_WORKSTATION);
         Registry.register(Registries.ITEM, CRAFTING_WORKSTATION_ID, CRAFTING_WORKSTATION_ITEM);
+        Registry.register(Registries.BLOCK, FIELD_CAMP_ID, FIELD_CAMP);
+        Registry.register(Registries.ITEM, FIELD_CAMP_ID, FIELD_CAMP_ITEM);
         registered = true;
     }
 }
