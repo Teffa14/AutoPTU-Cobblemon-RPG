@@ -1,0 +1,62 @@
+{
+  "format": "ouros.cobblemon-skin-build.v1",
+  "species": "cobblemon:absol",
+  "concept": "Omen Regent",
+  "originalBoneCount": 73,
+  "derivedBoneCount": 81,
+  "cosmeticBones": [
+    "ouros_omen_crown",
+    "ouros_omen_gorget",
+    "ouros_omen_pauldron_left",
+    "ouros_omen_pauldron_right",
+    "ouros_omen_back_frame",
+    "ouros_omen_split_mantle",
+    "ouros_omen_tail_reliquary",
+    "ouros_omen_blade"
+  ],
+  "cosmeticCubeCount": 47,
+  "palettePixels": {
+    "obsidian": [
+      32,
+      127
+    ],
+    "midnight": [
+      33,
+      127
+    ],
+    "silver": [
+      60,
+      127
+    ],
+    "bone": [
+      61,
+      127
+    ],
+    "crimson": [
+      62,
+      127
+    ],
+    "violet": [
+      63,
+      127
+    ],
+    "aura": [
+      64,
+      127
+    ],
+    "gold": [
+      65,
+      127
+    ]
+  },
+  "textureSize": [
+    128,
+    128
+  ],
+  "officialModelSha256": "ed8b82b60caaeb0ee8b97597b5bd194a52d52d671da7bbc0eb35aa8dd864d462",
+  "officialAnimationSha256": "3e706148f3159fb60b51acd8221d4a1292306a8a780ab4b69a874eb72700ece4",
+  "officialPoserSha256": "d47d56606e412b794261ee3b8220d80b93da576f030f40e5b28eebe7ad8f06be",
+  "officialResolverSha256": "41048e936f18c108331a0d739388fef686a8f01be72cbf70e4a146603aa3e832",
+  "officialNormalTextureSha256": "9f0ce5dcf5ccc6bcb24e6821f2ee7c8dbd572c0e9ce8634a548d1ec8b1fc26e7",
+  "officialShinyTextureSha256": "633051ce706888f14ff59afda37e22d4d82debab5716445c3ae1d603fc97a6a1"
+}
