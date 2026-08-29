@@ -1,11 +1,14 @@
 package io.autoptu.cobblemon.fabric.persistence;
 
+import io.autoptu.cobblemon.authority.CanonicalItemStorageTransferService;
 import io.autoptu.cobblemon.authority.CanonicalPokemonStorageTransferService;
 import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalShopPurchaseService;
 import io.autoptu.cobblemon.authority.CanonicalShopSaleService;
 import io.autoptu.cobblemon.authority.CanonicalShopSellCatalogue;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalItemStorageRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalItemStorageTransferRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonStorageRepository;
@@ -40,6 +43,8 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalPokemonStorageRepository pokemonStorage,
             FileCanonicalPokemonTransferRepository pokemonTransfers,
             FileCanonicalItemReservationRepository assets,
+            FileCanonicalItemStorageRepository itemStorage,
+            FileCanonicalItemStorageTransferRepository itemStorageTransfers,
             FileCanonicalWalletRepository wallets,
             FileCanonicalQuestJournalRepository questJournals,
             FileCanonicalShopStockRepository shopStock,
@@ -69,6 +74,8 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileCanonicalPokemonStorageRepository requirePokemonStorageRepository(MinecraftServer server) { return requireStores(server).pokemonStorage(); }
     public static FileCanonicalPokemonTransferRepository requirePokemonTransferRepository(MinecraftServer server) { return requireStores(server).pokemonTransfers(); }
     public static FileCanonicalItemReservationRepository requireAssetRepository(MinecraftServer server) { return requireStores(server).assets(); }
+    public static FileCanonicalItemStorageRepository requireItemStorageRepository(MinecraftServer server) { return requireStores(server).itemStorage(); }
+    public static FileCanonicalItemStorageTransferRepository requireItemStorageTransferRepository(MinecraftServer server) { return requireStores(server).itemStorageTransfers(); }
     public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
     public static FileCanonicalQuestJournalRepository requireQuestJournalRepository(MinecraftServer server) { return requireStores(server).questJournals(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
@@ -106,51 +113,26 @@ public final class FabricCanonicalPlayerStoreRuntime {
         FileCanonicalPokemonStorageRepository pokemonStorage = new FileCanonicalPokemonStorageRepository(root);
         FileCanonicalPokemonTransferRepository pokemonTransfers = new FileCanonicalPokemonTransferRepository(root);
         FileCanonicalItemReservationRepository assets = new FileCanonicalItemReservationRepository(root, pokemon::findPokemon);
+        FileCanonicalItemStorageRepository itemStorage = new FileCanonicalItemStorageRepository(root);
+        FileCanonicalItemStorageTransferRepository itemStorageTransfers = new FileCanonicalItemStorageTransferRepository(root);
         FileCanonicalWalletRepository wallets = new FileCanonicalWalletRepository(root);
         FileCanonicalQuestJournalRepository questJournals = new FileCanonicalQuestJournalRepository(root);
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
         FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
         FileCanonicalShopSaleRepository shopSales = new FileCanonicalShopSaleRepository(root);
         Stores stores = new Stores(
-                new FileVersionedCanonicalStateRepository(root),
-                encounterProfiles,
-                pokemon,
-                pokemonStorage,
-                pokemonTransfers,
-                assets,
-                wallets,
-                questJournals,
-                shopStock,
-                shopPurchases,
-                shopSales,
-                new FileWorldTaskCraftAttemptRepository(root),
-                new FileCraftIngredientDepositHandoffRepository(root),
-                new FileFieldCampSetupAttemptRepository(root),
-                new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
-                new WorldScopedWildEncounterCorrelationRegistry()
-        );
+                new FileVersionedCanonicalStateRepository(root), encounterProfiles, pokemon, pokemonStorage, pokemonTransfers,
+                assets, itemStorage, itemStorageTransfers, wallets, questJournals, shopStock, shopPurchases, shopSales,
+                new FileWorldTaskCraftAttemptRepository(root), new FileCraftIngredientDepositHandoffRepository(root),
+                new FileFieldCampSetupAttemptRepository(root), new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
+                new WorldScopedWildEncounterCorrelationRegistry());
         synchronized (STORES) {
             if (STORES.putIfAbsent(server, stores) != null) throw new IllegalStateException("canonical stores already initialized for server");
         }
-        new CanonicalShopPurchaseService(
-                CanonicalShopCatalogue.DEFAULT,
-                wallets,
-                shopStock,
-                assets,
-                shopPurchases
-        ).recoverPending();
-        new CanonicalShopSaleService(
-                CanonicalShopSellCatalogue.DEFAULT,
-                wallets,
-                assets,
-                shopSales
-        ).recoverPending();
-        new CanonicalPokemonStorageTransferService(
-                encounterProfiles,
-                pokemonStorage,
-                pokemon,
-                pokemonTransfers
-        ).recoverPending();
+        new CanonicalShopPurchaseService(CanonicalShopCatalogue.DEFAULT, wallets, shopStock, assets, shopPurchases).recoverPending();
+        new CanonicalShopSaleService(CanonicalShopSellCatalogue.DEFAULT, wallets, assets, shopSales).recoverPending();
+        new CanonicalPokemonStorageTransferService(encounterProfiles, pokemonStorage, pokemon, pokemonTransfers).recoverPending();
+        new CanonicalItemStorageTransferService(assets, itemStorage, itemStorageTransfers).recoverPending();
     }
 
     private static void stop(MinecraftServer server) {
