@@ -1,6 +1,6 @@
 # 0448 Lucario — Aura Sentinel
 
-Status: ARTISTICALLY ACCEPTED IN BLOCKBENCH; PLAYABLE/CORE CI PENDING
+Status: EPIC ACCEPTED; BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Aura Sentinel is an Ouros presentation-only cosmetic built around the exact normal Lucario model distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It does not implement or consume Cobblemon battle-state authority.
 
@@ -65,7 +65,7 @@ Lucario walking is deliberately not represented by a fabricated Bedrock clip. It
 
 The first real Blockbench review was accepted artistically. The variant reads as a distinct armored aura sentinel at gameplay distance, especially in three-quarter and battle views. The left/right shoulder treatment and bracers produce useful asymmetry, the chest remains recognizably Lucario, and the original face, ears, sensors, spike and tail remain legible. The tested ground-idle and battle-idle states show no severe cosmetic detachment.
 
-Playable Fabric and Integration Core checks remain required before the status can be promoted to fully validated/mergeable.
+Playable Fabric and Integration Core validation completed successfully before PR #296 merged; Aura Sentinel is fully validated as presentation content.
 
 ## Production files
 

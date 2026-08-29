@@ -89,7 +89,7 @@ Detailed provenance and design notes: `docs/cobblemon-skins/0025_pikachu/pikachu
 
 ## 0448 Lucario — Aura Sentinel
 
-Status: ARTISTICALLY ACCEPTED IN BLOCKBENCH — PLAYABLE/CORE CI PENDING
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Aura Sentinel is derived from the single normal Lucario geometry distributed in the exact official Cobblemon 1.7.3 Fabric JAR. CI pins the source model (`ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9`), animation (`ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563`), poser (`7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`), resolver (`a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`) and normal/shiny textures (`98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a` / `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`).
 
@@ -100,6 +100,20 @@ The first real Blockbench 5.1.6 review accepted the visual direction: a ceremoni
 The resolver reuses `cobblemon:lucario`, supports the official normal and shiny textures and adds only the transparent Aura Sentinel accessory overlay. UV palette texels are dynamically selected from positions proven unused by the original 128×64 geometry. No new emissive or particle runtime is claimed.
 
 Detailed provenance, license preservation, geometry contract and review notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
+
+## 0094 Gengar — Rift Warden
+
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+
+Rift Warden is derived from the single official Gengar geometry in the Cobblemon 1.7.3 Fabric JAR. CI pins model `57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38`, animation `68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f`, resolver `aeecefe6571d99bc9ab38a3b22af5e34769b346ed9858335292c82209ee95afc` and the exact normal, shiny, emissive and Pokemopolis textures.
+
+All 78 official Gengar bones remain JSON-equivalent and in order. Eight `ouros_*` cosmetic bones bring the production model to 86 bones with 44 cosmetic cubes. The signature silhouette uses a broken planar rift halo, asymmetric shoulder shrouds, rear collar guards, twin dimensional pylons, warded wrists and a split shadow mantle. Eyes, mouth states, tongue, ears, limbs, feet and tail remain the original model.
+
+The resolver preserves all three official presentation branches: normal, shiny and `color-green`/Pokemopolis. Official emissive layers remain in the normal and shiny branches. The Ouros overlay occupies only eight proven UV-free texels on the 128×128 texture and does not repaint the body.
+
+Real Blockbench 5.1.6 review accepted the silhouette after direct visual inspection. Matched-camera official vs skin evidence shows a strong front and three-quarter change without masking Gengar's eyes or grin. Official `ground_idle`, `air_idle` and `air_fly` clips keep the attached equipment coherent. The detached center halo fragment is intentional rift imagery and stays stable through the tested frames. The official animation JSON contains no battle or walking clip, so the pipeline does not fabricate either; `air_fly` is used as the locomotion evidence. Playable Fabric, Cobblemon Official Model Review and Integration Core all completed successfully on PR #298 before merge eligibility.
+
+Detailed provenance, license, geometry and QA notes: `docs/cobblemon-skins/0094_gengar/gengar-rift-warden.md`.
 
 ## Authority boundary
 
