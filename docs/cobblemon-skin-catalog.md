@@ -29,7 +29,7 @@ A preview is evidence only when:
 
 ## 0025 Pikachu — Storm Courier
 
-Status: IMPLEMENTED / PREMIUM ACCESSORY PASS IN REVIEW
+Status: IMPLEMENTED / PREMIUM BLOCKBENCH REVIEWED
 
 Storm Courier is built on the exact official Cobblemon 1.7.3 Pikachu male and female models. The obsolete 22-bone implementation is rejected and is not used as a template.
 
@@ -43,11 +43,11 @@ Official source pinned by CI:
 
 The generator preserves all 90 official bones exactly and appends only four accessory bones: goggles, harness, pack and tail clamp. Male and female models are derived independently so the official female tail remains intact.
 
-The premium pass deliberately adds detail inside those same four bones instead of adding anatomy: layered storm goggles with hardware; a three-dimensional crossed courier harness with a weather clasp; a compact expedition pack with pockets, bedroll, straps, buckles and storm mark; and a fitted grounding clamp on the official tail plane.
+The accepted premium pass concentrates detail inside those same four bones instead of adding anatomy. The goggles add layered glass, copper/brass hardware and a small three-quarter weather tab. The harness uses thickened crossed straps, an upper yoke, readable storm compass and restrained side utility pouches. The compact expedition pack keeps its bedroll and buckles while adding an asymmetric storm vial and route case for hero-view readability. The fitted tail clamp adds conductor rails while remaining local to the official flat tail plane.
 
 The resolver reuses `cobblemon:pikachu`, Cobblemon base/shiny textures and Cobblemon emissive layers. Ouros contributes only a transparent 128×64 accessory layer. The accessory palette occupies eight reserved texels on row `y=63`; CI verifies that those texels are outside the UV footprint of every original cube.
 
-Visual review uses pinned Blockbench 5.1.6. Structural comparison uses matched-camera official vs Storm Courier front/left/right/back views. Presentation review imports official Pikachu animations through Blockbench's Bedrock codec and records official-reference, hero, battle-ready and walking three-quarter evidence.
+Visual acceptance uses pinned Blockbench 5.1.6. Structural comparison uses matched-camera official vs Storm Courier front/left/right/back views for male and female models. Presentation review imports the official Pikachu animations through Blockbench's Bedrock codec and records official-reference, hero, battle-ready and walking evidence. The accepted evidence preserves the original species silhouette while making the courier kit readable from front, rear and three-quarter angles.
 
 Production files:
 - `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json`
