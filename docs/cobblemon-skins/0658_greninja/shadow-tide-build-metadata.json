@@ -15,7 +15,7 @@
     "ouros_shadow_tide_back_frame",
     "ouros_shadow_tide_split_mantle"
   ],
-  "cosmeticCubeCount": 51,
+  "cosmeticCubeCount": 60,
   "textureSize": [
     128,
     64
@@ -58,5 +58,6 @@
   "officialAshModelSha256": "be45c61cc17a7ab6408c06e70905e53c7dbd3c99cba4e8bff0192a03849ca7f5",
   "officialAnimationSha256": "9e0176549e372324127fc2c8edbaa5d72ca6009dac06088c65df89790d3548f3",
   "officialResolverSha256": "6c437d1397d607e2dcc17f193a40c666cb206884dc2b1c5f612b44584ea607de",
-  "officialModelLicenseSha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"
+  "officialModelLicenseSha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660",
+  "artPass": "v2-executioner-glaive"
 }
