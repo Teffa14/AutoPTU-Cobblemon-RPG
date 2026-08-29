@@ -1,6 +1,6 @@
 # 0094 Gengar — Rift Warden
 
-Status: BLOCKBENCH ARTISTIC REVIEW PENDING
+Status: EPIC ACCEPTED IN BLOCKBENCH — PLAYABLE/CORE CI PENDING
 
 Rift Warden is a presentation-only Ouros cosmetic derived from the exact Gengar model distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It does not implement or consume Cobblemon battle-state authority.
 
@@ -27,11 +27,11 @@ The exact model license distributed in the JAR is preserved beside this document
 
 The official resolver names `cobblemon:gengar` as the poser/model runtime. Unlike Lucario and Pikachu, the official 1.7.3 JAR contains no Gengar poser JSON resource. It contains the runtime `GengarModel.class`. Rift Warden therefore does not invent a poser JSON or duplicate pose authority.
 
-The exact official Bedrock animation JSON exposes five clips: `animation.gengar.ground_idle`, `animation.gengar.air_idle`, `animation.gengar.air_fly`, `animation.gengar.blink` and `animation.gengar.cry`. There is no dedicated battle clip and no walking clip in that file. Blockbench evidence must not fabricate either. `air_fly` is the available official locomotion clip.
+The exact official Bedrock animation JSON exposes five clips: `animation.gengar.ground_idle`, `animation.gengar.air_idle`, `animation.gengar.air_fly`, `animation.gengar.blink` and `animation.gengar.cry`. There is no dedicated battle clip and no walking clip in that file. Blockbench evidence does not fabricate either. `air_fly` is the available official locomotion clip.
 
 ## Geometry contract
 
-The official model contains 78 bones. Rift Warden preserves all 78 JSON-equivalently and in original order. The generator changes only the geometry identifier and appends eight cosmetic bones, producing 86 total:
+The official model contains 78 bones. Rift Warden preserves all 78 JSON-equivalently and in original order. The generator changes only the geometry identifier and appends eight cosmetic bones, producing 86 total and 44 cosmetic cubes:
 
 - `ouros_rift_halo` → `torso`
 - `ouros_rift_collar` → `torso`
@@ -46,9 +46,9 @@ The official face, eyes, eyelids, mouth states, tongue, ears, arms, hands, legs,
 
 ## Epic visual direction
 
-The fantasy is a spectral rift guardian rather than Gengar with small equipment. The intended signature read is a broken planar halo behind the head, twin dimensional pylons behind the shoulders, asymmetric spectral shoulder shrouds, rear collar guards, warded wrists and a split shadow mantle. The largest pieces stay behind or outside the official face plane so Gengar's eyes and grin remain dominant.
+The fantasy is a spectral rift guardian rather than Gengar with small equipment. The signature read is a broken planar halo behind the head, twin dimensional pylons behind the shoulders, asymmetric spectral shoulder shrouds, rear collar guards, warded wrists and a split shadow mantle. The largest pieces stay behind or outside the official face plane so Gengar's eyes and grin remain dominant.
 
-The palette uses void-black, obsidian, violet, magenta, translucent rift-purple, silver, bone and ember accents. The accessory overlay occupies only UV-free palette texels dynamically selected against the official 128×128 geometry. CI proves that the reserved texels are disjoint from every original cube UV footprint.
+The palette uses void-black, obsidian, violet, magenta, translucent rift-purple, silver, bone and ember accents. The accessory overlay occupies eight UV-free palette texels at x=0..7, y=127 on the official 128×128 layout. CI proves that those texels are disjoint from every original cube UV footprint.
 
 ## Official variants
 
@@ -60,9 +60,13 @@ No new particle runtime, emissive behavior or battle-state behavior is claimed b
 
 Pinned viewer: Blockbench 5.1.6, SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
 
-Required evidence directory: `test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses/`.
+Evidence directory: `test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses/`.
 
-The review must load the production `.geo.json`, official texture and Ouros overlay, compare the official and cosmetic model with matched camera/scale/frame, and inspect hero front/left/right/back plus official `ground_idle`, `air_idle` and `air_fly` states. Artistic acceptance requires a clearly stronger silhouette at gameplay distance without obscuring Gengar's species identity or causing severe detachment in official animation clips.
+The accepted review loads the exact production `.geo.json`, official texture and Ouros overlay. It compares official and cosmetic Gengar with matched camera/scale/frame and records hero front/left/right/back plus official `ground_idle`, `air_idle` and `air_fly` states. The front silhouette changes immediately through the shoulder shrouds and rear pylons, the three-quarter view gains a strong vertical rift-frame hierarchy, and the official eyes and grin remain unobstructed. The split halo fragment above the head is intentionally detached spatially as a rift motif; it remains visually stable across idle and flight. No severe cosmetic detachment appears in the tested official clips.
+
+No `battle_ready` PNG is claimed because the official Gengar animation JSON has no dedicated battle clip. No walking PNG is claimed because that JSON has no walking clip; `air_fly` is used as the official locomotion evidence instead.
+
+Playable Fabric and Integration Core checks are still required before this status can be promoted to fully validated/mergeable.
 
 ## Production files
 
