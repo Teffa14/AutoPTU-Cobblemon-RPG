@@ -1,4 +1,4 @@
-name: Cobblemon Release Asset Inspection
+name: Cobblemon Official Model Review
 
 on:
   push:
@@ -6,156 +6,225 @@ on:
       - feat/cobblemon-skin-studio-clean-v2
     paths:
       - '.github/workflows/cobblemon-model-preview.yml'
+      - 'tools/cobblemon-model-review/**'
       - 'docs/cobblemon-skin-catalog.md'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-model-preview.yml'
+      - 'tools/cobblemon-model-review/**'
+      - 'docs/cobblemon-skin-catalog.md'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: cobblemon-release-asset-inspection-${{ github.ref }}
+  group: cobblemon-official-model-review-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   COBBLEMON_VERSION_ID: kF7CvxTo
+  BLOCKBENCH_VERSION: 5.1.6
+  BLOCKBENCH_SHA256: c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e
+  MODEL_PATH: assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json
+  ANIMATION_PATH: assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json
+  POSER_PATH: assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json
+  RESOLVER_PATH: assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json
+  TEXTURE_PATH: assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png
 
 jobs:
-  inspect-release:
+  blockbench-baseline:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Download exact official Modrinth release
+      - name: Install independent viewer runtime
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .upstream
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+
+      - name: Download exact official Cobblemon release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .preview-input
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/model-review' \
             "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
-            -o .upstream/version.json
-          python - <<'PY' > .upstream/download.env
+            -o .preview-input/version.json
+
+          python - <<'PY' > .preview-input/download.env
           import json, shlex
-          data = json.load(open('.upstream/version.json', encoding='utf-8'))
+          data = json.load(open('.preview-input/version.json', encoding='utf-8'))
           assert data['id'] == 'kF7CvxTo', data['id']
           assert data['version_number'] == '1.7.3', data['version_number']
           assert '1.21.1' in data['game_versions'], data['game_versions']
           assert 'fabric' in data['loaders'], data['loaders']
           primary = next((f for f in data['files'] if f.get('primary')), data['files'][0])
+          assert primary['filename'] == 'Cobblemon-fabric-1.7.3+1.21.1.jar', primary['filename']
           print('DOWNLOAD_URL=' + shlex.quote(primary['url']))
           print('EXPECTED_SHA512=' + shlex.quote(primary['hashes']['sha512']))
-          print('EXPECTED_SHA1=' + shlex.quote(primary['hashes']['sha1']))
-          print('JAR_FILENAME=' + shlex.quote(primary['filename']))
           PY
-          source .upstream/download.env
+          source .preview-input/download.env
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            "$DOWNLOAD_URL" -o .upstream/cobblemon.jar
-          test "$(sha512sum .upstream/cobblemon.jar | awk '{print $1}')" = "$EXPECTED_SHA512"
-          test "$(sha1sum .upstream/cobblemon.jar | awk '{print $1}')" = "$EXPECTED_SHA1"
-          echo "Official release verified: $JAR_FILENAME"
+            "$DOWNLOAD_URL" -o .preview-input/cobblemon.jar
+          printf '%s  %s\n' "$EXPECTED_SHA512" '.preview-input/cobblemon.jar' | sha512sum --check --strict
 
-      - name: Inspect exact Pikachu production assets
+      - name: Extract exact current Pikachu production assets
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p test-evidence/visual/cobblemon-skins/upstream
+          unzip -p .preview-input/cobblemon.jar "$MODEL_PATH" > .preview-input/pikachu_male.geo.json
+          unzip -p .preview-input/cobblemon.jar "$ANIMATION_PATH" > .preview-input/pikachu.animation.json
+          unzip -p .preview-input/cobblemon.jar "$POSER_PATH" > .preview-input/pikachu.poser.json
+          unzip -p .preview-input/cobblemon.jar "$RESOLVER_PATH" > .preview-input/pikachu.resolver.json
+          unzip -p .preview-input/cobblemon.jar "$TEXTURE_PATH" > .preview-input/pikachu.png
+          for file in .preview-input/pikachu_male.geo.json .preview-input/pikachu.animation.json .preview-input/pikachu.poser.json .preview-input/pikachu.resolver.json .preview-input/pikachu.png; do
+            test -s "$file"
+          done
+
+          python tools/cobblemon-model-review/validate_original_model.py \
+            --official .preview-input/pikachu_male.geo.json \
+            --candidate .preview-input/pikachu_male.geo.json \
+            > .preview-input/preservation-baseline.json
+
           python - <<'PY'
-          import hashlib, json, zipfile
+          import hashlib, json
           from pathlib import Path
 
-          jar = Path('.upstream/cobblemon.jar')
-          version = json.loads(Path('.upstream/version.json').read_text(encoding='utf-8'))
-          with zipfile.ZipFile(jar) as z:
-              names = set(z.namelist())
-              required = {
-                  'model': 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json',
-                  'animation': 'assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json',
-                  'poser': 'assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json',
-                  'resolver': 'assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json',
-                  'texture': 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png',
-              }
-              missing = {key: path for key, path in required.items() if path not in names}
-              if missing:
-                  candidates = sorted(n for n in names if '0025_pikachu' in n or ('pikachu' in n.lower() and '/posers/' in n))
-                  raise AssertionError('Missing expected production assets: ' + repr(missing) + '\nCandidates:\n' + '\n'.join(candidates))
-
-              blobs = {key: z.read(path) for key, path in required.items()}
-              model = json.loads(blobs['model'])
-              animation = json.loads(blobs['animation'])
-              poser = json.loads(blobs['poser'])
-              resolver = json.loads(blobs['resolver'])
-
+          model_path = Path('.preview-input/pikachu_male.geo.json')
+          texture_path = Path('.preview-input/pikachu.png')
+          model = json.loads(model_path.read_text(encoding='utf-8'))
           geo = model['minecraft:geometry'][0]
           desc = geo['description']
-          bones = geo.get('bones', [])
-          assert (desc['texture_width'], desc['texture_height']) == (128, 64)
+          bones = geo['bones']
+          assert (desc['texture_width'], desc['texture_height']) == (128, 64), desc
           assert len(bones) >= 80, len(bones)
-          bone_names = [b['name'] for b in bones]
-          for name in ('torso2','neck','head_angle','muzzle','tail2','tail3','locator_item_face','locator_item_hat'):
-              assert name in bone_names, name
+          names = [bone['name'] for bone in bones]
+          for required in ('torso2', 'neck', 'head_angle', 'muzzle', 'tail2', 'tail3', 'locator_item_face', 'locator_item_hat'):
+              assert required in names, required
 
-          def summarize_pose(name, pose):
-              return {
-                  'name': name,
-                  'poseName': pose.get('poseName'),
-                  'poseTypes': pose.get('poseTypes', []),
-                  'isBattle': pose.get('isBattle'),
-                  'animations': pose.get('animations', []),
-                  'transformedParts': pose.get('transformedParts', []),
-                  'quirks': pose.get('quirks', []),
-              }
-
-          poses = poser.get('poses', {})
-          manifest = {
-              'format': 'ouros.cobblemon-official-release-inspection.v1',
-              'source': {
-                  'provider': 'Modrinth',
-                  'project': 'Cobblemon',
-                  'versionId': version['id'],
-                  'versionNumber': version['version_number'],
-                  'gameVersions': version['game_versions'],
-                  'loaders': version['loaders'],
-                  'jarFilename': next((f['filename'] for f in version['files'] if f.get('primary')), version['files'][0]['filename']),
-                  'jarSha512': hashlib.sha512(jar.read_bytes()).hexdigest(),
-              },
-              'assets': {
-                  key: {'path': required[key], 'sha256': hashlib.sha256(blob).hexdigest(), 'bytes': len(blob)}
-                  for key, blob in blobs.items()
-              },
-              'model': {
-                  'identifier': desc.get('identifier'),
-                  'textureSize': [desc['texture_width'], desc['texture_height']],
-                  'boneCount': len(bones),
-                  'boneNames': bone_names,
-              },
-              'poser': {
-                  'rootBone': poser.get('rootBone'),
-                  'portraitScale': poser.get('portraitScale'),
-                  'profileScale': poser.get('profileScale'),
-                  'poses': [summarize_pose(name, pose) for name, pose in poses.items()],
-              },
-              'animationNames': sorted(animation.get('animations', {}).keys()),
-              'resolverKeys': sorted(resolver.keys()),
+          version = json.loads(Path('.preview-input/version.json').read_text(encoding='utf-8'))
+          provenance = {
+              'format': 'ouros.cobblemon-official-model-source.v2',
+              'provider': 'Modrinth',
+              'versionId': version['id'],
+              'versionNumber': version['version_number'],
+              'jarFilename': next((f['filename'] for f in version['files'] if f.get('primary')), version['files'][0]['filename']),
+              'modelJarPath': 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json',
+              'textureJarPath': 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png',
+              'modelSha256': hashlib.sha256(model_path.read_bytes()).hexdigest(),
+              'textureSha256': hashlib.sha256(texture_path.read_bytes()).hexdigest(),
+              'textureSize': [desc['texture_width'], desc['texture_height']],
+              'boneCount': len(bones),
+              'boneNames': names,
           }
-          out = Path('test-evidence/visual/cobblemon-skins/upstream/pikachu-1.7.3-manifest.json')
-          out.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-          print(json.dumps(manifest['source'], indent=2))
-          print('Pikachu bones:', len(bones))
-          print('Pikachu poses:', [p['name'] for p in manifest['poser']['poses']])
+          Path('.preview-input/provenance.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps({k: provenance[k] for k in ('versionNumber', 'modelSha256', 'textureSize', 'boneCount')}, indent=2))
           PY
 
-      - name: Commit release inspection manifest
+      - name: Download pinned Blockbench
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add test-evidence/visual/cobblemon-skins/upstream/pikachu-1.7.3-manifest.json
-          if git diff --cached --quiet; then
-            echo 'Manifest already current.'
-            exit 0
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" \
+            -o .preview-input/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" '.preview-input/blockbench.AppImage' | sha256sum --check --strict
+          chmod +x .preview-input/blockbench.AppImage
+          (
+            cd .preview-input
+            ./blockbench.AppImage --appimage-extract >/dev/null
+          )
+          test -x .preview-input/squashfs-root/AppRun
+
+      - name: Render untouched official model in Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          output='test-evidence/visual/cobblemon-skins/0025_pikachu/official-1.7.3-blockbench'
+          rm -rf "$output"
+          mkdir -p "$output" .blockbench-user
+
+          xvfb-run -a -s '-screen 0 1600x1200x24' \
+            .preview-input/squashfs-root/AppRun \
+            --no-sandbox \
+            --disable-gpu-sandbox \
+            --remote-debugging-port=9222 \
+            --userData "$PWD/.blockbench-user" \
+            "$PWD/.preview-input/pikachu_male.geo.json" \
+            > .preview-input/blockbench.log 2>&1 &
+          BLOCKBENCH_PID=$!
+          trap 'kill "$BLOCKBENCH_PID" 2>/dev/null || true' EXIT
+
+          ready=0
+          for _ in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:9222/json/version >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$BLOCKBENCH_PID" 2>/dev/null; then
+              cat .preview-input/blockbench.log
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat .preview-input/blockbench.log
+            exit 1
           fi
-          git commit -m 'Evidence: pin official Cobblemon 1.7.3 Pikachu assets'
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+          node tools/cobblemon-model-review/blockbench_capture.mjs \
+            --endpoint http://127.0.0.1:9222 \
+            --texture "$PWD/.preview-input/pikachu.png" \
+            --output-dir "$output"
+
+          cp .preview-input/provenance.json "$output/provenance.json"
+          cp .preview-input/preservation-baseline.json "$output/preservation-baseline.json"
+          cp .preview-input/blockbench.log "$output/blockbench.log"
+
+      - name: Validate independent viewer evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, struct
+          from pathlib import Path
+
+          root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/official-1.7.3-blockbench')
+          metadata = json.loads((root / 'blockbench-metadata.json').read_text(encoding='utf-8'))
+          assert metadata['viewer'] == 'Blockbench'
+          assert metadata['modelInfo']['formatId'].startswith('bedrock'), metadata['modelInfo']['formatId']
+          assert metadata['modelInfo']['textureWidth'] == 128, metadata['modelInfo']
+          assert metadata['modelInfo']['textureHeight'] == 64, metadata['modelInfo']
+          assert metadata['modelInfo']['boneCount'] >= 80, metadata['modelInfo']['boneCount']
+
+          hashes = {}
+          for view in ('front', 'left', 'right', 'back'):
+              path = root / f'{view}.png'
+              raw = path.read_bytes()
+              assert raw.startswith(b'\x89PNG\r\n\x1a\n'), view
+              width, height = struct.unpack('>II', raw[16:24])
+              assert (width, height) == (1024, 1024), (view, width, height)
+              assert len(raw) > 4096, (view, len(raw))
+              hashes[view] = hashlib.sha256(raw).hexdigest()
+          assert len(set(hashes.values())) == 4, hashes
+          print(json.dumps(hashes, indent=2))
+          PY
+
+      - name: Upload Blockbench baseline evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobblemon-pikachu-official-1.7.3-blockbench
+          path: test-evidence/visual/cobblemon-skins/0025_pikachu/official-1.7.3-blockbench
+          if-no-files-found: error
+          retention-days: 14
