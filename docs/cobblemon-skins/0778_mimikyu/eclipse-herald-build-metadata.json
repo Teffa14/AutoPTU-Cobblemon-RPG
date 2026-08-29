@@ -1,0 +1,56 @@
+{
+  "format": "ouros.cobblemon-skin-build.v1",
+  "species": "cobblemon:mimikyu",
+  "concept": "Eclipse Herald",
+  "originalBoneCount": 48,
+  "derivedBoneCount": 56,
+  "cosmeticBones": [
+    "ouros_eclipse_halo",
+    "ouros_eclipse_cowl",
+    "ouros_eclipse_mantle",
+    "ouros_eclipse_pennant_left",
+    "ouros_eclipse_pennant_right",
+    "ouros_eclipse_tail_reliquary",
+    "ouros_eclipse_hand_charm_right",
+    "ouros_eclipse_hand_charm_left"
+  ],
+  "cosmeticCubeCount": 44,
+  "palettePixels": {
+    "void": [
+      0,
+      63
+    ],
+    "cloth": [
+      1,
+      63
+    ],
+    "moon": [
+      2,
+      63
+    ],
+    "silver": [
+      3,
+      63
+    ],
+    "violet": [
+      4,
+      63
+    ],
+    "aura": [
+      5,
+      63
+    ],
+    "ember": [
+      6,
+      63
+    ],
+    "teal": [
+      7,
+      63
+    ]
+  },
+  "textureSize": [
+    64,
+    64
+  ]
+}
