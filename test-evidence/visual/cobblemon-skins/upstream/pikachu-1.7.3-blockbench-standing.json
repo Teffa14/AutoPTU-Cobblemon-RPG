@@ -1,0 +1,46 @@
+{
+  "format": "ouros.blockbench-cobblemon-review.v1",
+  "viewer": {
+    "name": "Blockbench",
+    "version": "5.1.6",
+    "sourceTag": "v5.1.6",
+    "renderer": "Blockbench WebGL canvas"
+  },
+  "inputs": {
+    "model": {
+      "file": "pikachu_male.geo.json",
+      "sha256": "f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83"
+    },
+    "texture": {
+      "file": "pikachu.png",
+      "sha256": "df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e"
+    },
+    "animation": {
+      "file": "pikachu.animation.json",
+      "sha256": "d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384"
+    },
+    "animationName": "animation.pikachu.ground_idle"
+  },
+  "blockbenchState": {
+    "format": "bedrock",
+    "geometryName": "pikachu_male",
+    "groupCount": 90,
+    "cubeCount": 53,
+    "textureCount": 1,
+    "selectedAnimation": "animation.pikachu.ground_idle",
+    "timelineTime": 0,
+    "mode": "animate",
+    "canvasWidth": 596,
+    "canvasHeight": 568
+  },
+  "output": {
+    "file": "pikachu-1.7.3-blockbench-standing.png",
+    "sha256": "2437c6f4a88e7e7763c6edb190b832621262390318ce6cdef020dfe8163cb737",
+    "bytes": 19151
+  },
+  "assertions": {
+    "customGeometryRendererUsed": false,
+    "projectAuthoredBoneTransformsUsed": false,
+    "modelEditedBeforeCapture": false
+  }
+}
