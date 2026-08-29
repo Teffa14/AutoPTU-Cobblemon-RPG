@@ -1,64 +1,76 @@
 {
-  "format": "ouros.cobblemon-model-review.v2",
-  "sourceModel": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json",
-  "sourceModelSha256": "0fde04dd2c7a968a9888ea83dba50d3bc7f02a55ad5d340b00727cebc5fea497",
-  "baseTexture": "Cobblemon-Mirror:0025_pikachu/pikachu.png",
-  "accessoryTexture": "assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png",
-  "renderer": "tools/cobblemon-model-review/render_bedrock_model.py",
-  "orthographicViews": {
-    "front": "0db82587503963cc4b13d10101fd8ee72cac19d41b3d6a1e39a7fedd144f11ce",
-    "left": "bcc6ae705cd2368371596d3bd0c7906e4a1c27ae3ab03307063bc05793ecfed2",
-    "right": "7cb5f18b3c21b98c99340fe86695bcd409433da80268522afe264617eba98a73",
-    "back": "30be745d1a48b39e4b4219bf98ee26901d12a5ad40d3032411312b70ffac84c9"
+  "format": "ouros.cobblemon-model-review.v3",
+  "cobblemonVersion": "1.7.3",
+  "pinnedSourceCommit": "e428d34ea7f4aeca6dc9031488fb51fe0e315218",
+  "sourceModelSha256": "cd52a5bc86adf0e80ea3a24f6ff9a8831a056ca14c723d9b15d7697a4c2e864f",
+  "outputModelSha256": "eec9dbf2a31844fc714a05e2537f0cfe7263f6346c9d0aa41845b60681112d86",
+  "sourceBoneCount": 90,
+  "outputBoneCount": 94,
+  "baseAtlas": [
+    128,
+    64
+  ],
+  "reviewStates": {
+    "front": "ground_idle@0.0 front",
+    "left": "ground_idle@0.0 left",
+    "right": "ground_idle@0.0 right",
+    "back": "ground_idle@0.0 back",
+    "hero_three_quarter": "ground_idle@0.0 camera 34/5",
+    "battle_ready": "battle_idle@0.0 camera -30/3",
+    "walking": "ground_walk@0.14 camera 26/1"
   },
-  "decisionPoses": {
-    "hero_three_quarter": "cae7025b557528e68b289c3bfed6624e756bb3eab31332755766c18d221aac69",
-    "battle_ready": "a9c8ff33b577e7ed809f58f95bb0832966d298aac34caca4616d5500029936ba",
-    "walking": "7e44d7556c2759fd5baa6e69f3fe0ad0cdb5c7825db083249396cf85a89a786a"
+  "hashes": {
+    "front": "27a074fa4fda6402567e6895c2df0c572c24cc531c2573b0a000533476080525",
+    "left": "6e764db52eae2cbbadace99e6102b29e162b9a352c4af9a788a7b76818a6726c",
+    "right": "f1bd222e76a0fb9854ed53817ba5a6231bfeb894c6ae2dea3d25a1ca06ad23e1",
+    "back": "2f214e792a0f646d403f3556899dea2d532bdfc029435fab259a8c129e658ec6",
+    "hero_three_quarter": "c0e41f796b788d793a230ca45d6ec8f1c6e1f202d2cb82252bd93aa1bdba42cd",
+    "battle_ready": "d72b01eb930e3502cad1258ce53b6e1387928410e2ac5c1a2411df0a4bea92dd",
+    "walking": "b1fb477e26641f3e0f1030685e83aed4a436c47830969b0689667d5c697e2afe"
   },
   "boundingBoxes": {
     "front": [
-      158,
+      277,
       67,
-      866,
+      747,
       956
     ],
     "left": [
-      107,
+      185,
       67,
-      917,
+      839,
       956
     ],
     "right": [
-      107,
+      185,
       67,
-      917,
+      839,
       956
     ],
     "back": [
-      158,
+      277,
       67,
-      866,
+      747,
       956
     ],
     "hero_three_quarter": [
-      124,
+      273,
       67,
-      899,
+      750,
       956
     ],
     "battle_ready": [
-      182,
       67,
-      842,
-      956
+      113,
+      956,
+      910
     ],
     "walking": [
-      166,
+      280,
       67,
-      857,
+      744,
       956
     ]
   },
-  "note": "Software-rasterized from the exact Bedrock geometry and textures. Decision poses articulate the model existing bone hierarchy only; they are not generative imagery and do not modify production animation data."
+  "note": "Model is built from pinned Cobblemon 1.7.3 Pikachu anatomy. Review poses use official Cobblemon animation transforms; no generative imagery."
 }

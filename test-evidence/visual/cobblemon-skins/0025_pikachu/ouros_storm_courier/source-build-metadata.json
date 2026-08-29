@@ -1,0 +1,36 @@
+{
+  "format": "ouros.storm-courier-build.v2",
+  "source": ".preview-input/pikachu_male.geo.json",
+  "sourceSha256": "cd52a5bc86adf0e80ea3a24f6ff9a8831a056ca14c723d9b15d7697a4c2e864f",
+  "sourceAtlas": [
+    128,
+    64
+  ],
+  "sourceBoneCount": 90,
+  "outputBoneCount": 94,
+  "addedBones": [
+    "ouros_courier_goggles",
+    "ouros_courier_harness",
+    "ouros_courier_pack",
+    "ouros_courier_tail_clamp"
+  ],
+  "accessoryPixels": {
+    "charcoal": [
+      127,
+      63
+    ],
+    "leather": [
+      126,
+      63
+    ],
+    "copper": [
+      125,
+      63
+    ],
+    "storm_glass": [
+      124,
+      63
+    ]
+  },
+  "anatomyPreserved": true
+}
