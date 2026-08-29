@@ -1,0 +1,62 @@
+name: Patch WORLD-011 plan
+
+on:
+  push:
+    branches:
+      - rpg/world-011-trainer-challenge
+    paths:
+      - .github/workflows/patch-plan-world011.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/world-011-trainer-challenge
+          fetch-depth: 0
+      - name: Apply exact plan updates
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          changes = [
+              (
+                  '| CUR-038 | LIVE | canonical Pokémon summary screen | PR #267 / implementation head `2270c21384d01b61fb3fc6f4b76d7f405ec38a40`. Right-clicking a member in the normal Ouros Party screen opens the same server-authored 9x6 read-only summary used by `/autoptu pokemon <slot>`, after party revision/Pokémon identity revalidation. The view consumes only `CanonicalPokemonDetail`; canonical level, HP, statuses, injuries, types, abilities, moves, combat stats, movement, accuracy/evasion, capabilities, held-item presence and revision are projected, while XP remains explicitly unavailable until durable server-owned XP exists. |',
+                  '| CUR-038 | LIVE | canonical Pokémon summary screen | PR #267 / implementation head `2270c21384d01b61fb3fc6f4b76d7f405ec38a40`. Right-clicking a member in the normal Ouros Party screen opens the same server-authored 9x6 read-only summary used by `/autoptu pokemon <slot>`, after party revision/Pokémon identity revalidation. The view consumes only `CanonicalPokemonDetail`; canonical level, HP, statuses, injuries, types, abilities, moves, combat stats, movement, accuracy/evasion, capabilities, held-item presence and revision are projected, while XP remains explicitly unavailable until durable server-owned XP exists. |\n| CUR-039 | LIVE | physical canonical Trainer challenge request | PR #268 / implementation head `2a48165f5011f41dcdffb1766add7ce2a4a39df8`. The Cedar Ranger dialogue exposes an authored field-spar challenge; the server revalidates physical NPC identity/range, authenticated Trainer state, challenge-to-NPC binding and a non-empty canonical party before producing an immutable request snapshot with party identities and revision. Minecraft does not start or resolve the PTU battle. |'
+              ),
+              (
+                  '| WORLD-011 | NEXT | Trainer challenge interaction. |',
+                  '| WORLD-011 | BLOCKED/PARTIAL | Trainer challenge interaction — PR #268 / implementation head `2a48165f5011f41dcdffb1766add7ce2a4a39df8`. The physical Cedar Ranger now offers a server-authored field-spar option and validates Trainer/NPC/challenge/party state into an immutable challenge request. The remaining Trainer-vs-Trainer battle-start handoff is blocked until the authoritative AutoPTU battle contract can accept the opponent side without Minecraft inventing combatants, legality or outcomes. |'
+              ),
+              (
+                  '| WORLD-016 | TODO | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |',
+                  '| WORLD-016 | NEXT | Interactive chests, switches, doors, terminals and shrines through `canInteract`. |'
+              ),
+              (
+                  '| SVC-037 | LIVE | `inspectItemStorage(player)` / `transferItemStorage(transferId, player, direction, item, quantity)` — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. The server resolves bag ownership/reservation state or stored quantity, journals CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED, uses idempotent storage receipts and retained bag locks, resumes pending transfers on startup and never interprets item effects. |',
+                  '| SVC-037 | LIVE | `inspectItemStorage(player)` / `transferItemStorage(transferId, player, direction, item, quantity)` — PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. The server resolves bag ownership/reservation state or stored quantity, journals CREATED/SOURCE_REMOVED/TARGET_ADDED/COMMITTED, uses idempotent storage receipts and retained bag locks, resumes pending transfers on startup and never interprets item effects. |\n| SVC-038 | LIVE | `requestTrainerChallenge(player, npcId, challengeId)` — PR #268 / implementation head `2a48165f5011f41dcdffb1766add7ce2a4a39df8`. Resolves only server-authored challenge/NPC identity plus authenticated Trainer and persistent party state, then returns an immutable party identity/revision snapshot. It performs no PTU battle-start legality, RNG, action, damage, result or reward mutation. |'
+              ),
+          ]
+          for old, new in changes:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one plan match, found {count}: {old[:80]}')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit plan and remove helper
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/patch-plan-world011.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "docs: record WORLD-011 trainer challenge slice"
+          git push origin HEAD:rpg/world-011-trainer-challenge
