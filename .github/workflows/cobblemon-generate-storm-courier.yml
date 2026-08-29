@@ -94,16 +94,20 @@ jobs:
           from pathlib import Path
           expected = [
               'ouros_storm_goggles',
+              'ouros_storm_cowl',
+              'ouros_storm_mantle',
               'ouros_storm_harness',
               'ouros_storm_pack',
+              'ouros_storm_coils',
               'ouros_storm_tail_clamp',
+              'ouros_storm_tail_vanes',
           ]
           for path in (
               Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json'),
               Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json'),
           ):
               bones = json.loads(path.read_text(encoding='utf-8'))['minecraft:geometry'][0]['bones']
-              assert len(bones) == 94, (path, len(bones))
+              assert len(bones) == 98, (path, len(bones))
               assert [bone['name'] for bone in bones[90:]] == expected, path
           PY
 
@@ -174,6 +178,6 @@ jobs:
             echo 'Generated assets already current.'
             exit 0
           fi
-          git commit -m 'RPG: generate premium Storm Courier from official Cobblemon 1.7.3 models'
+          git commit -m 'RPG: generate epic Storm Courier from official Cobblemon 1.7.3 models'
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin HEAD:"${GITHUB_REF_NAME}"
