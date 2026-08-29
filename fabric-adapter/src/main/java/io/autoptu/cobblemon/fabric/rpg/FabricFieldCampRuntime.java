@@ -8,7 +8,6 @@ import io.autoptu.cobblemon.authority.WorldTaskDefinition;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -32,9 +31,9 @@ public final class FabricFieldCampRuntime {
                 return ActionResult.PASS;
             }
 
-            BlockPos campfire = hitResult.getBlockPos();
-            if (!isFieldCamp(world, campfire)) return ActionResult.PASS;
-            if (!withinInteractionDistance(serverPlayer, campfire)) {
+            BlockPos camp = hitResult.getBlockPos();
+            if (!isFieldCamp(world, camp)) return ActionResult.PASS;
+            if (!withinInteractionDistance(serverPlayer, camp)) {
                 serverPlayer.sendMessage(Text.literal("You are too far away to establish this AutoPTU field camp."), false);
                 return ActionResult.FAIL;
             }
@@ -49,7 +48,7 @@ public final class FabricFieldCampRuntime {
                 return ActionResult.FAIL;
             }
 
-            String campId = campId(world, campfire);
+            String campId = campId(world, camp);
             String attemptId = "field-camp:" + campId;
             WorldTaskDefinition task = CATALOGUE.find(WorldTaskCatalogue.FIELD_CAMP_SETUP).orElseThrow();
             FieldCampSetupService service = new FieldCampSetupService(
@@ -76,22 +75,21 @@ public final class FabricFieldCampRuntime {
         });
     }
 
-    static String campId(World world, BlockPos campfire) {
+    static String campId(World world, BlockPos camp) {
         return world.getRegistryKey().getValue()
-                + ":" + campfire.getX()
-                + ":" + campfire.getY()
-                + ":" + campfire.getZ();
+                + ":" + camp.getX()
+                + ":" + camp.getY()
+                + ":" + camp.getZ();
     }
 
-    static boolean isFieldCamp(World world, BlockPos campfire) {
-        return world.getBlockState(campfire).isOf(Blocks.CAMPFIRE)
-                && world.getBlockState(campfire.down()).isOf(Blocks.BARREL);
+    static boolean isFieldCamp(World world, BlockPos camp) {
+        return world.getBlockState(camp).isOf(FabricRpgContent.FIELD_CAMP);
     }
 
-    static boolean withinInteractionDistance(ServerPlayerEntity player, BlockPos campfire) {
-        double x = campfire.getX() + 0.5D;
-        double y = campfire.getY() + 0.5D;
-        double z = campfire.getZ() + 0.5D;
+    static boolean withinInteractionDistance(ServerPlayerEntity player, BlockPos camp) {
+        double x = camp.getX() + 0.5D;
+        double y = camp.getY() + 0.5D;
+        double z = camp.getZ() + 0.5D;
         return player.squaredDistanceTo(x, y, z) <= MAX_INTERACTION_DISTANCE_SQUARED;
     }
 }
