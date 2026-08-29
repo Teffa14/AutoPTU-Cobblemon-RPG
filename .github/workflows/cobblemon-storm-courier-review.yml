@@ -76,10 +76,19 @@ jobs:
           set -euo pipefail
           unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json' > .review/official/pikachu_male.geo.json
           unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json' > .review/official/pikachu_female.geo.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json' > .review/official/pikachu.animation.json
           unzip -p .review/cobblemon.jar 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png' > .review/official/pikachu.png
           test "$(sha256sum .review/official/pikachu_male.geo.json | awk '{print $1}')" = 'f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83'
           test "$(sha256sum .review/official/pikachu_female.geo.json | awk '{print $1}')" = 'd49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318'
+          test "$(sha256sum .review/official/pikachu.animation.json | awk '{print $1}')" = 'd9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384'
           test "$(sha256sum .review/official/pikachu.png | awk '{print $1}')" = 'df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e'
+          python - <<'PY'
+          import json
+          animation = json.load(open('.review/official/pikachu.animation.json', encoding='utf-8'))
+          assert 'animation.pikachu.ground_idle' in animation['animations']
+          assert 'animation.pikachu.battle_idle' in animation['animations']
+          assert 'animation.pikachu.ground_walk' in animation['animations']
+          PY
 
       - name: Validate and reproduce committed cosmetic
         shell: bash
@@ -145,7 +154,7 @@ jobs:
           (cd .review && ./blockbench.AppImage --appimage-extract >/dev/null)
           test -x .review/squashfs-root/AppRun
 
-      - name: Render official and Storm Courier through Blockbench
+      - name: Render official and Storm Courier through Blockbench official idle
         shell: bash
         run: |
           set -euo pipefail
@@ -181,6 +190,9 @@ jobs:
             node tools/cobblemon-model-review/blockbench_capture.mjs \
               --endpoint "http://127.0.0.1:${port}" \
               --texture "$texture" \
+              --animation "$PWD/.review/official/pikachu.animation.json" \
+              --animation-name 'animation.pikachu.ground_idle' \
+              --animation-time '0.35' \
               --output-dir "$output"
             kill "$pid" 2>/dev/null || true
           }
@@ -193,6 +205,24 @@ jobs:
           cp .review/storm-male.log "$root/storm-male/blockbench.log"
           cp .review/storm-female.log "$root/storm-female/blockbench.log"
 
+      - name: Prove Blockbench applied official animation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-blockbench-review')
+          for variant in ('official-male', 'storm-male', 'storm-female'):
+              metadata = json.loads((root / variant / 'blockbench-metadata.json').read_text(encoding='utf-8'))
+              assert metadata['viewer'] == 'Blockbench'
+              assert metadata['sourceOfTransforms'] == 'Blockbench Bedrock animation codec'
+              applied = metadata['modelInfo']['appliedAnimation']
+              assert applied['name'] == 'animation.pikachu.ground_idle'
+              assert applied['codec'] == 'bedrock'
+              assert abs(applied['requestedTime'] - 0.35) < 1e-9
+          PY
+
       - name: Build side-by-side review sheets
         shell: bash
         run: |
@@ -200,7 +230,7 @@ jobs:
           python - <<'PY'
           import hashlib
           from pathlib import Path
-          from PIL import Image, ImageOps, ImageDraw
+          from PIL import Image, ImageDraw
 
           root = Path('test-evidence/visual/cobblemon-skins/0025_pikachu/storm-courier-blockbench-review')
           summary = []
@@ -216,9 +246,9 @@ jobs:
               sheet.alpha_composite(storm, (1024, 56))
               sheet.alpha_composite(female, (2048, 56))
               draw = ImageDraw.Draw(sheet)
-              draw.text((20, 18), f'{view.upper()} — OFFICIAL MALE', fill=(255,255,255,255))
-              draw.text((1044, 18), f'{view.upper()} — STORM MALE', fill=(255,255,255,255))
-              draw.text((2068, 18), f'{view.upper()} — STORM FEMALE', fill=(255,255,255,255))
+              draw.text((20, 18), f'{view.upper()} — OFFICIAL MALE / GROUND IDLE', fill=(255,255,255,255))
+              draw.text((1044, 18), f'{view.upper()} — STORM MALE / SAME FRAME', fill=(255,255,255,255))
+              draw.text((2068, 18), f'{view.upper()} — STORM FEMALE / SAME FRAME', fill=(255,255,255,255))
               sheet.save(root / f'compare-{view}.png', optimize=True)
               summary.append(view)
           print('Blockbench comparisons:', summary)
