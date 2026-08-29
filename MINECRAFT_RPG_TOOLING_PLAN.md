@@ -75,6 +75,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-032 | LIVE | canonical quest journal read surface | PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`. `/autoptu journal`, `/autoptu quests` and `/autoptu quest <id>` project only the authenticated Trainer's durable accepted entries plus server-authored quest metadata; unknown or unaccepted detail requests fail closed and no objective/reward state is inferred. |
 | CUR-033 | LIVE | persistent tracked quest selection | PR #260 / implementation head `d2d554d67c418881280df02f7ed848bc53b23220`. `/autoptu quest track <id>` selects exactly one already-accepted server-authored quest for the authenticated Trainer, persists the pointer through journal revision CAS, and exposes tracked state through the existing journal projection without advancing objectives or granting rewards. |
 | CUR-034 | LIVE | restart-safe canonical item storage fallback | PR #261 / implementation head `a9f7882d3da7cf8b7767903d03be35ee5cd582f2`. `/autoptu storage` projects owner-scoped stored quantities; deposit/withdraw move opaque canonical item quantities between the active bag and storage through a durable staged journal, keeping stored items outside bag sale/crafting/reservation reads and recovering pending transfers on server start. |
+| CUR-035 | LIVE | physical canonical item storage terminal | PR #262 / implementation head `ff27bfd65b8a0df7c093035847d2fb29b6bba094`. Right-clicking the authored iron-block-over-barrel terminal opens a server-side bag/storage menu; every click revalidates canonical bag stack or storage revision/quantity and delegates one-item movement to SVC-037 without exposing stored quantities as active bag inventory. |
 
 ---
 
@@ -211,7 +212,7 @@ These should become the normal gameplay path.
 
 | ID | Status | Interaction |
 |---|---|---|
-| WORLD-001 | TODO | First-join Trainer/onboarding screen. |
+| WORLD-001 | NEXT | First-join Trainer/onboarding screen. |
 | WORLD-002 | TODO | Starter-selection screen with Pokémon preview. |
 | WORLD-003 | TODO | Party HUD and party management screen. |
 | WORLD-004 | TODO | Pokémon summary screen. |
@@ -236,7 +237,7 @@ These should become the normal gameplay path.
 | WORLD-023 | TODO | Discovery/location trigger. |
 | WORLD-024 | TODO | Persistent world-event objects. |
 | WORLD-025 | TODO | Ambient Pokémon behavior framework that never becomes PTU stat truth. |
-| WORLD-026 | NEXT | Physical item storage terminal/menu backed by SVC-037, so normal players can manage bag versus storage without slash commands. The world object must revalidate proximity/context and must never expose stored items as active bag inventory. |
+| WORLD-026 | LIVE | Physical item storage terminal/menu — PR #262 / implementation head `ff27bfd65b8a0df7c093035847d2fb29b6bba094`. The authored iron-block-over-barrel world surface opens a 9x6 server-authored bag/storage menu, revalidates proximity/block identity and stale canonical quantities before each click, and delegates movement to SVC-037. Stored items remain excluded from active bag sale/crafting/reservation reads. |
 
 ---
 
