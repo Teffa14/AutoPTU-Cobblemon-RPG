@@ -1,0 +1,121 @@
+name: Storm Courier Epic V3 Cowl Fix
+
+on:
+  push:
+    branches:
+      - feat/storm-courier-epic-v3
+    paths:
+      - '.github/workflows/storm-courier-epic-v3-cowl-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deterministic image dependency
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
+      - name: Replace slab cowl with segmented rear frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tools/cobblemon-model-review/build_storm_courier.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''            # Rear shell is narrow enough to preserve the original head silhouette from front.\n            cube([-4.74, 14.18, 3.92], [9.48, 5.10, 0.44], "navy"),\n            cube([-5.08, 13.90, 1.22], [0.48, 4.86, 2.90], "canvas"),\n            cube([4.60, 13.90, 1.22], [0.48, 4.86, 2.90], "canvas"),'''
+          new = '''            # Segmented rear frame leaves most of the official yellow head visible from behind.\n            cube([-4.74, 18.44, 3.92], [9.48, 0.78, 0.44], "navy"),\n            cube([-4.74, 14.46, 3.92], [1.84, 4.08, 0.44], "canvas", pivot=[-3.82, 16.50, 4.14], rotation=[0, 0, -5]),\n            cube([2.90, 14.46, 3.92], [1.84, 4.08, 0.44], "canvas", pivot=[3.82, 16.50, 4.14], rotation=[0, 0, 5]),\n            cube([-0.36, 15.02, 3.94], [0.72, 3.52, 0.40], "copper"),\n            cube([-2.64, 16.42, 3.96], [1.28, 0.72, 0.14], "glass"),\n            cube([1.36, 16.42, 3.96], [1.28, 0.72, 0.14], "glass"),\n            cube([-5.08, 13.90, 1.22], [0.48, 4.86, 2.90], "canvas"),\n            cube([4.60, 13.90, 1.22], [0.48, 4.86, 2.90], "canvas"),'''
+          if old not in text:
+              raise SystemExit('expected cowl slab block not found; refuse ambiguous patch')
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Download verified official Cobblemon source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/epic-v3-cowl-fix' \
+            'https://api.modrinth.com/v2/version/kF7CvxTo' \
+            -o .official-source/version.json
+          python - <<'PY' > .official-source/download.env
+          import json, shlex
+          data = json.load(open('.official-source/version.json', encoding='utf-8'))
+          assert data['version_number'] == '1.7.3'
+          primary = next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename'] == 'Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL=' + shlex.quote(primary['url']))
+          print('SHA512=' + shlex.quote(primary['hashes']['sha512']))
+          PY
+          source .official-source/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" '.official-source/cobblemon.jar' | sha512sum --check --strict
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json' > .official-source/pikachu_male.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json' > .official-source/pikachu_female.geo.json
+          test "$(sha256sum .official-source/pikachu_male.geo.json | awk '{print $1}')" = 'f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83'
+          test "$(sha256sum .official-source/pikachu_female.geo.json | awk '{print $1}')" = 'd49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318'
+
+      - name: Regenerate both production models from official originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/build_storm_courier.py \
+            --male .official-source/pikachu_male.geo.json \
+            --female .official-source/pikachu_female.geo.json \
+            --male-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json \
+            --female-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json \
+            --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png
+
+          python tools/cobblemon-model-review/validate_original_model.py \
+            --official .official-source/pikachu_male.geo.json \
+            --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json
+          python tools/cobblemon-model-review/validate_original_model.py \
+            --official .official-source/pikachu_female.geo.json \
+            --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected = [
+              'ouros_storm_goggles', 'ouros_storm_cowl', 'ouros_storm_mantle',
+              'ouros_storm_harness', 'ouros_storm_pack', 'ouros_storm_coils',
+              'ouros_storm_tail_clamp', 'ouros_storm_tail_vanes'
+          ]
+          for p in [
+              Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json'),
+              Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json')
+          ]:
+              bones = json.loads(p.read_text(encoding='utf-8'))['minecraft:geometry'][0]['bones']
+              assert len(bones) == 98
+              assert [b['name'] for b in bones[90:]] == expected
+          PY
+
+      - name: Commit corrected builder and generated models
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            tools/cobblemon-model-review/build_storm_courier.py \
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json \
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png
+          git commit -m 'RPG: segment Storm Courier rear cowl'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
