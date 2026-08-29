@@ -2,13 +2,14 @@ name: Cobblemon Model Preview
 
 on:
   push:
-    branches:
-      - fix/storm-courier-real-model-previews
+    branches-ignore:
+      - main
     paths:
       - 'tools/cobblemon-model-review/**'
       - '.github/workflows/cobblemon-model-preview.yml'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu.geo.json'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fix/storm-courier-real-model-previews
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -45,7 +46,7 @@ jobs:
           print('Cobblemon Pikachu texture:', img.size, img.mode)
           PY
 
-      - name: Render exact model four-view evidence
+      - name: Render exact model orthographic and decision poses
         shell: bash
         run: |
           set -euo pipefail
@@ -56,9 +57,10 @@ jobs:
             --base-texture .preview-input/pikachu.png \
             --accessory-texture fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png \
             --output-dir "$out" \
+            --pose-set all \
             --size 1024
 
-      - name: Validate PNG evidence is non-empty and model-derived
+      - name: Validate PNG evidence is non-empty, distinct and model-derived
         shell: bash
         run: |
           set -euo pipefail
@@ -72,37 +74,62 @@ jobs:
           model = json.loads(model_path.read_text(encoding='utf-8'))
           bones = model['minecraft:geometry'][0]['bones']
           names = {b['name'] for b in bones}
-          required = {'pikachu', 'head', 'torso', 'tail', 'ouros_courier_goggles', 'ouros_courier_harness', 'ouros_courier_pack', 'ouros_courier_tail_clamp'}
-          assert required <= names
+          original = {
+              'pikachu', 'body', 'torso', 'head', 'mouth_closed', 'mouth_open', 'eyes',
+              'eye_right', 'eyelid_right', 'eye_left', 'eyelid_left', 'ear_left', 'ear_right',
+              'arm_right', 'arm_left', 'tail', 'leg_right', 'foot_right', 'toes_right',
+              'leg_left', 'foot_left', 'toes_left'
+          }
+          accessories = {
+              'ouros_courier_goggles', 'ouros_courier_harness',
+              'ouros_courier_pack', 'ouros_courier_tail_clamp'
+          }
+          assert original <= names
+          assert accessories <= names
           assert len(bones) == 26, len(bones)
 
+          files = {
+              'front': root / 'front.png',
+              'left': root / 'left.png',
+              'right': root / 'right.png',
+              'back': root / 'back.png',
+              'hero_three_quarter': root / 'poses/hero_three_quarter.png',
+              'battle_ready': root / 'poses/battle_ready.png',
+              'walking': root / 'poses/walking.png',
+          }
           hashes = {}
-          for view in ('front', 'left', 'right', 'back'):
-              path = root / f'{view}.png'
+          bboxes = {}
+          for name, path in files.items():
               img = Image.open(path).convert('RGBA')
-              assert img.size == (1024, 1024), img.size
-              alpha = img.getchannel('A')
-              bbox = alpha.getbbox()
-              assert bbox is not None, view
-              assert (bbox[2] - bbox[0]) > 180, (view, bbox)
-              assert (bbox[3] - bbox[1]) > 300, (view, bbox)
-              hashes[view] = hashlib.sha256(path.read_bytes()).hexdigest()
-          assert len(set(hashes.values())) == 4, hashes
+              assert img.size == (1024, 1024), (name, img.size)
+              bbox = img.getchannel('A').getbbox()
+              assert bbox is not None, name
+              assert (bbox[2] - bbox[0]) > 180, (name, bbox)
+              assert (bbox[3] - bbox[1]) > 300, (name, bbox)
+              hashes[name] = hashlib.sha256(path.read_bytes()).hexdigest()
+              bboxes[name] = bbox
+          assert len(set(hashes.values())) == len(hashes), hashes
+          for posed in ('hero_three_quarter', 'battle_ready', 'walking'):
+              assert hashes[posed] not in {hashes[v] for v in ('front', 'left', 'right', 'back')}
+
           metadata = {
-              'format': 'ouros.cobblemon-model-review.v1',
+              'format': 'ouros.cobblemon-model-review.v2',
               'sourceModel': str(model_path),
               'sourceModelSha256': hashlib.sha256(model_path.read_bytes()).hexdigest(),
               'baseTexture': 'Cobblemon-Mirror:0025_pikachu/pikachu.png',
               'accessoryTexture': 'assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png',
               'renderer': 'tools/cobblemon-model-review/render_bedrock_model.py',
-              'views': hashes,
-              'note': 'Software-rasterized from the exact Bedrock geometry and textures; not generative imagery.'
+              'orthographicViews': {k: hashes[k] for k in ('front', 'left', 'right', 'back')},
+              'decisionPoses': {k: hashes[k] for k in ('hero_three_quarter', 'battle_ready', 'walking')},
+              'boundingBoxes': {k: list(v) for k, v in bboxes.items()},
+              'note': 'Software-rasterized from the exact Bedrock geometry and textures. Decision poses articulate the model existing bone hierarchy only; they are not generative imagery and do not modify production animation data.'
           }
           (root / 'render-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
           print(json.dumps(metadata, indent=2))
           PY
 
       - name: Commit real model previews to branch
+        if: github.ref_name != 'main'
         shell: bash
         run: |
           set -euo pipefail
@@ -113,5 +140,5 @@ jobs:
             echo 'No preview changes to commit.'
             exit 0
           fi
-          git commit -m 'RPG: add real Storm Courier model previews'
-          git push origin HEAD:fix/storm-courier-real-model-previews
+          git commit -m 'RPG: add Storm Courier decision pose previews'
+          git push origin HEAD:"${GITHUB_REF_NAME}"
