@@ -1,0 +1,1 @@
+Final art gate: render the regenerated 98-bone Storm Courier after segmenting the rear cowl. Inspect hero, battle, walking, and matched-camera structural views before accepting the PR.
