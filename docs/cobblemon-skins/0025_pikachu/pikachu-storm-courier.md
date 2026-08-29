@@ -22,23 +22,23 @@ Exactly four Ouros bones are appended. No original Cobblemon bone is rewritten:
 - `ouros_storm_pack` → parent `torso2`
 - `ouros_storm_tail_clamp` → parent `tail2`
 
-The premium pass increases detail inside those same four cosmetic bones instead of adding anatomy or unrelated silhouette pieces.
+The premium pass increases detail inside those same four cosmetic bones instead of adding anatomy or unrelated silhouette pieces. The current signature-readability pass was tuned against real Blockbench hero, battle-ready, walking and matched-camera structural evidence rather than against concept art.
 
 ### Goggles
 
-The goggles use two translucent glass lenses, charcoal lower/side frames, copper brow pieces and bridge, a brass nose keeper, leather temple straps and small brass rivets. They stay on the official eye line and do not replace the eyes, muzzle or forehead.
+The goggles use two translucent glass lenses, charcoal lower/side frames, copper brow pieces and bridge, a brass nose keeper, leather temple straps and small brass rivets. The latest pass adds restrained navy side retention and a tiny right-temple copper/glass weather tab so the equipment reads from three-quarter angles without covering the original eyes, muzzle or forehead.
 
 ### Harness
 
-The harness is real three-dimensional geometry rather than a painted line. Two crossed front straps, a lower belt, side wraps, shoulder hardware and a layered brass/glass weather clasp follow `torso2`. The body remains visible between the straps.
+The harness is real three-dimensional geometry rather than a painted line. Two crossed front straps, a lower belt and side wraps follow `torso2`. The signature pass thickens those straps slightly for gameplay readability, adds a shallow upper yoke that remains visible above the arms, promotes the central brass/glass element into a readable storm compass and adds compact canvas utility pouches at the sides. The body remains visible between the equipment and no torso cube is replaced.
 
 ### Expedition pack
 
-The pack remains compact but is deliberately readable from three-quarter and rear views. It has a canvas body, reinforced lower section, leather flap, side pockets, rolled weather cloth, retention straps, brass buckles and a small copper/brass lightning mark. It does not replace or inflate Pikachu's torso.
+The pack remains compact but is deliberately readable from three-quarter and rear views. It has a canvas body, reinforced lower section, leather flap, side pockets, rolled weather cloth, retention straps, brass buckles and a small copper/brass lightning mark. The signature pass shifts the field-kit profile slightly off-center and adds a right-side translucent storm vial plus a left-side folded route case. The asymmetry improves hero-view recognition without making the pack wider than Pikachu's body silhouette.
 
 ### Tail clamp
 
-The clamp is fitted locally to `tail2` as a shallow copper collar with charcoal rails, brass grounding hub, translucent indicator and two small leather keepers. It remains hardware on the official flat tail plane rather than becoming a new tail shape.
+The clamp is fitted locally to `tail2` as a shallow copper collar with charcoal rails, brass grounding hub, translucent indicator and leather keepers. The signature pass extends two thin conductor rails and adds a navy insulator block. It remains hardware on the official flat tail plane rather than becoming a new tail shape.
 
 ## Texture contract
 
