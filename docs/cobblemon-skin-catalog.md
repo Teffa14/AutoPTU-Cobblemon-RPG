@@ -125,13 +125,13 @@ Real Blockbench 5.1.6 review uses the official `ground_idle`, `physical` and `gr
 
 ## 0006 Charizard — Solar Legion
 
-Status: EPIC ARTISTIC PASS ACCEPTED — BLOCKBENCH VALIDATED; REPOSITORY-WIDE PR GATES PENDING
+Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 Solar Legion is built from the exact official Charizard model in Cobblemon 1.7.3 / Minecraft 1.21.1, Modrinth `kF7CvxTo`. CI pins the official model (`b0e4a255876ef0cda88d0f61c9773bdcb7aee852cde929da49cda0da817bcadb`), animation (`f16a510fec4fb00d8669ba07bee40e4ee80fb41e7cf4d798597a97da33d3880b`), poser (`89bfe55055fea4d7f0c0398e13060cc6fb724988028c50e2d341dd6b94c8ec8e`) and resolver (`fa46e648441b555d33bea16be49ab1abd0e1a5ac68958427b5ac914341b51711`).
 
 All 130 official bones remain JSON-equivalent and in order. Eight attached `ouros_*` groups produce 138 bones and 55 cosmetic cubes: open solar crown, gorget/chest core, asymmetric pauldrons, unequal wing-root standards, a tail brazier around the original flame root and a split legion mantle. The overlay uses only `(0..7,127)` on the official 256×128 texture, proven UV-free by generation CI.
 
-The resolver keeps the official `cobblemon:charizard` poser, normal/shiny bodies, separate normal/shiny animated flame frames and `alpha_eyes` presentation branch. Real Blockbench 5.1.6 evidence covers matched official reference, hero, battle idle, ground walk, flight and four-view structure. Direct artistic review accepted the silhouette and confirmed motion-safe attachment through `battle_idle`, `ground_walk` and `air_fly`. Detailed provenance and QA: `docs/cobblemon-skins/0006_charizard/charizard-solar-legion.md`.
+The resolver keeps the official `cobblemon:charizard` poser, normal/shiny bodies, separate normal/shiny animated flame frames and `alpha_eyes` presentation branch. Real Blockbench 5.1.6 evidence covers matched official reference, hero, battle idle, ground walk, flight and four-view structure. Direct artistic review accepted the silhouette and confirmed motion-safe attachment through `battle_idle`, `ground_walk` and `air_fly`. PR #302 completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully; Integration Core booted the production Fabric + Cobblemon dedicated server twice. Detailed provenance and QA: `docs/cobblemon-skins/0006_charizard/charizard-solar-legion.md`.
 
 ## Authority boundary
 
