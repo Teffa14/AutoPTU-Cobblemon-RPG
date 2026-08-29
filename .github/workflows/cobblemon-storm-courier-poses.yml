@@ -122,36 +122,71 @@ jobs:
           rm -rf "$root" .pose/renders
           mkdir -p "$root" .pose/renders
 
-          render_model() {
-            model="$1"; texture="$2"; animation="$3"; frame="$4"; output="$5"; port="$6"; name="$7"
-            userdata="$PWD/.pose/user-$name"
-            log="$PWD/.pose/$name.log"
+          cleanup_blockbench() {
+            pid="${1:-}"
+            if [ -n "$pid" ]; then
+              kill "$pid" 2>/dev/null || true
+              wait "$pid" 2>/dev/null || true
+            fi
+            pkill -f "$PWD/.pose/squashfs-root/blockbench" 2>/dev/null || true
+            pkill -f "$PWD/.pose/squashfs-root/AppRun" 2>/dev/null || true
+            sleep 2
+          }
+
+          render_model_once() {
+            model="$1"; texture="$2"; animation="$3"; frame="$4"; output="$5"; port="$6"; name="$7"; attempt="$8"
+            userdata="$PWD/.pose/user-${name}-${attempt}"
+            log="$PWD/.pose/${name}-${attempt}.log"
             rm -rf "$userdata" "$output"
             mkdir -p "$userdata" "$output"
             xvfb-run -a -s '-screen 0 1600x1200x24' \
               env APPDIR="$PWD/.pose/squashfs-root" \
               .pose/squashfs-root/AppRun \
-              --no-sandbox --disable-gpu-sandbox \
+              --no-sandbox --disable-gpu-sandbox --disable-vulkan \
+              --use-angle=swiftshader --use-gl=angle \
               --remote-debugging-port="$port" --userData "$userdata" \
               "$model" > "$log" 2>&1 &
             pid=$!
-            trap 'kill "$pid" 2>/dev/null || true' RETURN
             ready=0
             for _ in $(seq 1 90); do
               if curl --fail --silent "http://127.0.0.1:${port}/json/version" >/dev/null 2>&1; then ready=1; break; fi
-              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; return 1; fi
+              if ! kill -0 "$pid" 2>/dev/null; then
+                cat "$log"
+                cleanup_blockbench "$pid"
+                return 1
+              fi
               sleep 1
             done
-            if [ "$ready" -ne 1 ]; then cat "$log"; return 1; fi
-            node tools/cobblemon-model-review/blockbench_capture.mjs \
+            if [ "$ready" -ne 1 ]; then
+              cat "$log"
+              cleanup_blockbench "$pid"
+              return 1
+            fi
+            if ! node tools/cobblemon-model-review/blockbench_capture.mjs \
               --endpoint "http://127.0.0.1:${port}" \
               --texture "$texture" \
               --animation "$PWD/.pose/official/pikachu.animation.json" \
               --animation-name "$animation" \
               --animation-time "$frame" \
-              --output-dir "$output"
-            kill "$pid" 2>/dev/null || true
-            trap - RETURN
+              --output-dir "$output"; then
+              cat "$log"
+              cleanup_blockbench "$pid"
+              return 1
+            fi
+            cleanup_blockbench "$pid"
+          }
+
+          render_model() {
+            model="$1"; texture="$2"; animation="$3"; frame="$4"; output="$5"; port="$6"; name="$7"
+            for attempt in 1 2 3; do
+              echo "Blockbench render ${name}: attempt ${attempt}/3"
+              if render_model_once "$model" "$texture" "$animation" "$frame" "$output" "$port" "$name" "$attempt"; then
+                return 0
+              fi
+              echo "Retrying ${name} after hosted-runner graphics failure."
+            done
+            echo "Blockbench render ${name} failed after 3 attempts."
+            return 1
           }
 
           official="$PWD/.pose/official/pikachu_male.geo.json"
