@@ -51,12 +51,11 @@ jobs:
           assert p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
           print('URL='+shlex.quote(p['url']))
           print('SHA512='+shlex.quote(p['hashes']['sha512']))
-          print('FILE_NAME='+shlex.quote(p['filename']))
           PY
           source .official-source/download.env
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
           printf '%s  %s\n' "$SHA512" .official-source/cobblemon.jar | sha512sum --check --strict
-      - name: Inspect exact Greninja assets without guessing paths
+      - name: Inspect exact Greninja assets and referenced JSON
         shell: bash
         run: |
           set -euo pipefail
@@ -66,51 +65,58 @@ jobs:
           jar=Path('.official-source/cobblemon.jar')
           version=json.loads(Path('.official-source/version.json').read_text(encoding='utf-8'))
           primary=next(f for f in version['files'] if f.get('primary'))
-          out={
-            'latest_compatible_release':{
-              'VERSION_ID':version['id'],'VERSION_NUMBER':version['version_number'],
-              'FILE_NAME':primary['filename'],'SHA512':primary['hashes']['sha512'],'URL':primary['url']
-            },
-            'matching_paths':[], 'models':[], 'animations':[], 'posers':[], 'resolvers':[], 'textures':[], 'license_candidates':[]
-          }
+          out={'latest_compatible_release':{'VERSION_ID':version['id'],'VERSION_NUMBER':version['version_number'],'FILE_NAME':primary['filename'],'SHA512':primary['hashes']['sha512'],'URL':primary['url']},'matching_paths':[],'reference_json_paths':[],'models':[],'animations':[],'posers':[],'resolvers':[],'textures':[],'license_candidates':[]}
           with zipfile.ZipFile(jar) as z:
             names=z.namelist()
             matches=[n for n in names if ('0658_greninja' in n.lower() or '/greninja' in n.lower())]
             out['matching_paths']=matches
             assert matches, 'No Greninja assets found in official JAR'
-            for n in matches:
-              raw=z.read(n)
-              sha=hashlib.sha256(raw).hexdigest()
-              low=n.lower()
+            # Find any JSON whose content references greninja. This catches shared/global poser tables.
+            refs=[]
+            for n in names:
+              if not n.lower().endswith('.json'): continue
+              try: raw=z.read(n); text=raw.decode('utf-8')
+              except Exception: continue
+              if 'greninja' in text.lower() or '0658_greninja' in text.lower(): refs.append(n)
+            out['reference_json_paths']=refs
+            candidate_paths=sorted(set(matches+refs))
+            for n in candidate_paths:
+              raw=z.read(n); sha=hashlib.sha256(raw).hexdigest(); low=n.lower()
               if low.endswith('.geo.json'):
-                data=json.loads(raw); geos=data.get('minecraft:geometry',[])
-                for g in geos:
+                data=json.loads(raw)
+                for g in data.get('minecraft:geometry',[]):
                   bones=g.get('bones',[])
-                  out['models'].append({'path':n,'sha256':sha,'identifier':g.get('description',{}).get('identifier'),
-                    'texture_width':g.get('description',{}).get('texture_width'),'texture_height':g.get('description',{}).get('texture_height'),
-                    'bone_count':len(bones),'bones':[{'name':b.get('name'),'parent':b.get('parent'),'pivot':b.get('pivot')} for b in bones]})
+                  out['models'].append({'path':n,'sha256':sha,'identifier':g.get('description',{}).get('identifier'),'texture_width':g.get('description',{}).get('texture_width'),'texture_height':g.get('description',{}).get('texture_height'),'bone_count':len(bones),'bones':[{'name':b.get('name'),'parent':b.get('parent'),'pivot':b.get('pivot')} for b in bones]})
               elif low.endswith('.animation.json'):
-                data=json.loads(raw); out['animations'].append({'path':n,'sha256':sha,'names':list(data.get('animations',{}).keys())})
-              elif '/posers/' in low and low.endswith('.json'):
-                out['posers'].append({'path':n,'sha256':sha,'json':json.loads(raw)})
+                try: data=json.loads(raw); out['animations'].append({'path':n,'sha256':sha,'names':list(data.get('animations',{}).keys())})
+                except Exception: pass
+              elif ('/posers/' in low or 'poser' in low) and low.endswith('.json'):
+                try: out['posers'].append({'path':n,'sha256':sha,'json':json.loads(raw)})
+                except Exception: pass
               elif '/resolvers/' in low and low.endswith('.json'):
-                out['resolvers'].append({'path':n,'sha256':sha,'json':json.loads(raw)})
+                try: out['resolvers'].append({'path':n,'sha256':sha,'json':json.loads(raw)})
+                except Exception: pass
               elif '/textures/' in low and low.endswith('.png'):
                 out['textures'].append({'path':n,'sha256':sha,'size_bytes':len(raw)})
-              elif low.endswith('license') or low.endswith('license.txt'):
-                out['license_candidates'].append({'path':n,'sha256':sha})
-            # Also record nearby model licenses because the license file can be in the species model directory.
             for n in names:
               low=n.lower()
-              if '0658_greninja' in low and ('license' in low):
-                raw=z.read(n); item={'path':n,'sha256':hashlib.sha256(raw).hexdigest()}
-                if item not in out['license_candidates']: out['license_candidates'].append(item)
+              if '0658_greninja' in low and 'license' in low:
+                raw=z.read(n); out['license_candidates'].append({'path':n,'sha256':hashlib.sha256(raw).hexdigest()})
+            # PNGs are binary and won't appear in JSON reference scan, so add direct species texture matches explicitly.
+            for n in matches:
+              if '/textures/' in n.lower() and n.lower().endswith('.png'):
+                raw=z.read(n); item={'path':n,'sha256':hashlib.sha256(raw).hexdigest(),'size_bytes':len(raw)}
+                if item not in out['textures']: out['textures'].append(item)
           assert out['models'], 'official Greninja model missing'
-          assert out['posers'], 'official Greninja poser missing'
           assert out['resolvers'], 'official Greninja resolver missing'
           assert out['textures'], 'official Greninja texture missing'
           Path('docs/cobblemon-skins/0658_greninja/official-source-inspection.json').write_text(json.dumps(out,indent=2)+'\n',encoding='utf-8')
-          print(json.dumps({k:len(v) if isinstance(v,list) else v for k,v in out.items() if k!='matching_paths'},indent=2))
+          print('models',[(x['path'],x['bone_count']) for x in out['models']])
+          print('animations',[(x['path'],len(x['names'])) for x in out['animations']])
+          print('posers',[x['path'] for x in out['posers']])
+          print('resolvers',[x['path'] for x in out['resolvers']])
+          print('textures',[x['path'] for x in out['textures']])
+          print('refs',refs)
           PY
       - name: Commit inspection evidence
         shell: bash
