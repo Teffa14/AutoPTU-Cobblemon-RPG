@@ -1,0 +1,59 @@
+{
+  "format": "ouros.cobblemon-skin-build.v1",
+  "species": "cobblemon:gengar",
+  "concept": "Rift Warden",
+  "sourceGeometryIdentifier": "geometry.gengar",
+  "derivedGeometryIdentifier": "geometry.ouros_rift_warden_gengar",
+  "originalBoneCount": 78,
+  "derivedBoneCount": 86,
+  "cosmeticBones": [
+    "ouros_rift_halo",
+    "ouros_rift_collar",
+    "ouros_rift_shroud_left",
+    "ouros_rift_shroud_right",
+    "ouros_rift_back_pylons",
+    "ouros_rift_wrist_left",
+    "ouros_rift_wrist_right",
+    "ouros_rift_shadow_mantle"
+  ],
+  "cosmeticCubeCount": 44,
+  "palettePixels": {
+    "void": [
+      0,
+      127
+    ],
+    "obsidian": [
+      1,
+      127
+    ],
+    "violet": [
+      2,
+      127
+    ],
+    "magenta": [
+      3,
+      127
+    ],
+    "rift": [
+      4,
+      127
+    ],
+    "silver": [
+      5,
+      127
+    ],
+    "bone": [
+      6,
+      127
+    ],
+    "ember": [
+      7,
+      127
+    ]
+  },
+  "textureSize": [
+    128,
+    128
+  ],
+  "artDirection": "broken rift halo, asymmetric spectral shoulder shrouds, twin back pylons, warded wrists and split shadow mantle; official face, mouth, ears, limbs and tail remain unobstructed"
+}
