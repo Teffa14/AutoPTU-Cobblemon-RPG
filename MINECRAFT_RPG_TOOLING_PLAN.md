@@ -239,8 +239,8 @@ These should become the normal gameplay path.
 | WORLD-015 | TODO | Water/fishing ecology provisioning for visible/swimming/fishable wild actors; no context-only battle trigger. |
 | WORLD-016 | LIVE | Interactive chests, switches, doors, terminals and shrines through `canInteract` — PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a`. A gold-block authored footprint opts supported vanilla objects into server-side Trainer identity, object-kind and range revalidation; ordinary Minecraft objects remain vanilla. |
 | WORLD-017 | LIVE | Minecraft-native fast-travel point — PR #273 / merge `16468f2cd43ee90ad6bc04d18fabc7441ca43190`. Sneak-use a vanilla Lodestone with an empty main hand to submit a server-authoritative travel request; the current server-authored destination is the Overworld spawn and Minecraft's own player teleport primitive performs the move. Normal lodestone/compass behavior remains vanilla. |
-| WORLD-018 | NEXT | Inn/rest point. |
-| WORLD-019 | TODO | Move tutor/relearner NPC shell. |
+| WORLD-018 | LIVE | Minecraft-native authored inn/rest point — PR #275 / merge `b23d2f03fb09fcb90a8d03c28488e3d84b4b37bb`. Sneak-use an authored vanilla bed with an empty main hand to invoke the existing server-authoritative canonical party HP healing service; ordinary beds remain vanilla. The dedicated-server smoke verifies marked and unmarked behavior. Statuses and injuries remain unchanged rather than being inferred locally. |
+| WORLD-019 | NEXT | Move tutor/relearner NPC shell. |
 | WORLD-020 | TODO | Gym/league registration desk. |
 | WORLD-021 | TODO | Gates/doors controlled by canonical badge/key/progression state. |
 | WORLD-022 | LIVE | Camp interaction. PR #240 adds the physical campfire-over-barrel assessment surface. PR #241 / implementation head `fcc356e4f2260caf4e7d142a23a4c03d5bf02d23` adds the actual server-owned Ouros camp result keyed by dimension/block position and reuses the persisted result after reconnect/restart. |
