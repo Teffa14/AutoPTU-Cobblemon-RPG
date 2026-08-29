@@ -168,6 +168,9 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static MoveResolutionInput demoMoveInput() {
+        // These are server-owned scenario inputs to the upstream resolver. DB 4 is a real supported
+        // PTU table entry; attack/defense are chosen so every landed hit advances the visible demo.
+        // Rolls, crit state, damage arithmetic, action consumption and HP mutation remain in Java.
         return new MoveResolutionInput(
                 2,
                 0,
