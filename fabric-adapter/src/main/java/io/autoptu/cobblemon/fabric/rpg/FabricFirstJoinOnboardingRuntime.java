@@ -119,8 +119,7 @@ public final class FabricFirstJoinOnboardingRuntime {
             }
             if (slotIndex != NEXT_SLOT) return;
             player.closeHandledScreen();
-            player.sendMessage(Text.literal("Trainer loaded. Choose your starter to begin your Ouros journey."), false);
-            player.sendMessage(Text.literal("Use /autoptu starter list, then /autoptu starter choose <species>."), false);
+            FabricStarterSelectionRuntime.openSelectionScreen(player);
         }
 
         @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
@@ -137,7 +136,7 @@ public final class FabricFirstJoinOnboardingRuntime {
             ));
             displayInventory.setStack(NEXT_SLOT, named(
                     Items.COMPASS.getDefaultStack(),
-                    "Continue to starter selection"
+                    "Choose your starter"
             ));
             displayInventory.markDirty();
             sendContentUpdates();
