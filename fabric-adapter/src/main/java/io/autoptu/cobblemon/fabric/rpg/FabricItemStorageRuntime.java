@@ -19,26 +19,33 @@ public final class FabricItemStorageRuntime {
     private FabricItemStorageRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("storage")
-                                .executes(context -> show(context.getSource()))
-                                .then(CommandManager.literal("deposit")
-                                        .then(CommandManager.argument("item", StringArgumentType.word())
-                                                .executes(context -> deposit(context.getSource(),
-                                                        StringArgumentType.getString(context, "item"), 1))
-                                                .then(CommandManager.argument("quantity", IntegerArgumentType.integer(1))
-                                                        .executes(context -> deposit(context.getSource(),
-                                                                StringArgumentType.getString(context, "item"),
-                                                                IntegerArgumentType.getInteger(context, "quantity"))))))
-                                .then(CommandManager.literal("withdraw")
-                                        .then(CommandManager.argument("item", StringArgumentType.word())
-                                                .executes(context -> withdraw(context.getSource(),
-                                                        StringArgumentType.getString(context, "item"), 1))
-                                                .then(CommandManager.argument("quantity", IntegerArgumentType.integer(1))
-                                                        .executes(context -> withdraw(context.getSource(),
-                                                                StringArgumentType.getString(context, "item"),
-                                                                IntegerArgumentType.getInteger(context, "quantity"))))))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var storage = CommandManager.literal("storage")
+                    .executes(context -> show(context.getSource()))
+                    .then(CommandManager.literal("deposit")
+                            .then(CommandManager.argument("item", StringArgumentType.word())
+                                    .executes(context -> deposit(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "item"),
+                                            1))
+                                    .then(CommandManager.argument("quantity", IntegerArgumentType.integer(1))
+                                            .executes(context -> deposit(
+                                                    context.getSource(),
+                                                    StringArgumentType.getString(context, "item"),
+                                                    IntegerArgumentType.getInteger(context, "quantity"))))))
+                    .then(CommandManager.literal("withdraw")
+                            .then(CommandManager.argument("item", StringArgumentType.word())
+                                    .executes(context -> withdraw(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "item"),
+                                            1))
+                                    .then(CommandManager.argument("quantity", IntegerArgumentType.integer(1))
+                                            .executes(context -> withdraw(
+                                                    context.getSource(),
+                                                    StringArgumentType.getString(context, "item"),
+                                                    IntegerArgumentType.getInteger(context, "quantity"))))));
+            dispatcher.register(CommandManager.literal("autoptu").then(storage));
+        });
     }
 
     private static int show(ServerCommandSource source) {
