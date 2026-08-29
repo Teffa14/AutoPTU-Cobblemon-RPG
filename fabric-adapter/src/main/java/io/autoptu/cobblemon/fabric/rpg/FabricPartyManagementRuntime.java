@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Server-authored party management surface. Minecraft renders canonical party state and submits only
  * slot selections. The server re-resolves party identity/revision before delegating lead mutation to
- * the existing durable authority service.
+ * the existing durable authority service or opening the read-only canonical Pokemon summary.
  */
 public final class FabricPartyManagementRuntime {
     private static final int TOP_SLOT_COUNT = 27;
@@ -188,7 +188,7 @@ public final class FabricPartyManagementRuntime {
 
         @Override
         public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity clickingPlayer) {
-            if (clickingPlayer != player || actionType != SlotActionType.PICKUP || button != 0) return;
+            if (clickingPlayer != player || actionType != SlotActionType.PICKUP || (button != 0 && button != 1)) return;
             if (!canUse(clickingPlayer)) {
                 player.closeHandledScreen();
                 return;
@@ -207,6 +207,14 @@ public final class FabricPartyManagementRuntime {
                     || !currentMember.pokemonId().equals(displayedMember.pokemonId())) {
                 refresh();
                 player.sendMessage(Text.literal("Party changed on the server. The screen was refreshed."), true);
+                return;
+            }
+
+            if (button == 1) {
+                if (!FabricPokemonDetailRuntime.openScreen(player, partySlot)) {
+                    refresh();
+                    player.sendMessage(Text.literal("Pokemon summary could not be opened from canonical state."), false);
+                }
                 return;
             }
 
@@ -241,7 +249,7 @@ public final class FabricPartyManagementRuntime {
                 }
                 displayInventory.setStack(22, named(
                         Items.COMPASS.getDefaultStack(),
-                        "Click a party member to make it lead"
+                        "Left click: lead | Right click: summary"
                 ));
             }
             displayInventory.markDirty();
