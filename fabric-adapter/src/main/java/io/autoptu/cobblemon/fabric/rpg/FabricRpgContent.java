@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
 public final class FabricRpgContent {
     public static final String MOD_ID = "autoptu_cobblemon_rpg_fabric_adapter";
     public static final Identifier PTU_RECOVERY_BED_ID = Identifier.of(MOD_ID, "ptu_recovery_bed");
+    public static final Identifier CEDAR_MART_COUNTER_ID = Identifier.of(MOD_ID, "cedar_mart_counter");
 
     /**
      * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
@@ -29,6 +30,13 @@ public final class FabricRpgContent {
     );
     public static final Item PTU_RECOVERY_BED_ITEM = new BlockItem(PTU_RECOVERY_BED, new Item.Settings());
 
+    /** Dedicated Cedar Mart identity. Shop authority remains in canonical server services. */
+    public static final Block CEDAR_MART_COUNTER = new Block(
+            AbstractBlock.Settings.copy(Blocks.BARREL)
+                    .strength(2.5F)
+    );
+    public static final Item CEDAR_MART_COUNTER_ITEM = new BlockItem(CEDAR_MART_COUNTER, new Item.Settings());
+
     private static boolean registered;
 
     private FabricRpgContent() {}
@@ -37,6 +45,8 @@ public final class FabricRpgContent {
         if (registered) return;
         Registry.register(Registries.BLOCK, PTU_RECOVERY_BED_ID, PTU_RECOVERY_BED);
         Registry.register(Registries.ITEM, PTU_RECOVERY_BED_ID, PTU_RECOVERY_BED_ITEM);
+        Registry.register(Registries.BLOCK, CEDAR_MART_COUNTER_ID, CEDAR_MART_COUNTER);
+        Registry.register(Registries.ITEM, CEDAR_MART_COUNTER_ID, CEDAR_MART_COUNTER_ITEM);
         registered = true;
     }
 }
