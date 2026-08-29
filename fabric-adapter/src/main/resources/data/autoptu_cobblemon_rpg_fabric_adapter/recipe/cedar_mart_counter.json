@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " E ",
+    "BBB",
+    " B "
+  ],
+  "key": {
+    "E": { "item": "minecraft:emerald_block" },
+    "B": { "item": "minecraft:barrel" }
+  },
+  "result": {
+    "id": "autoptu_cobblemon_rpg_fabric_adapter:cedar_mart_counter",
+    "count": 1
+  }
+}

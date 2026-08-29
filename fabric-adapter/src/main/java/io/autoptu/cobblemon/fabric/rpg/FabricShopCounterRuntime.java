@@ -10,7 +10,6 @@ import io.autoptu.cobblemon.authority.CanonicalWalletQueryService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -64,8 +63,7 @@ public final class FabricShopCounterRuntime {
     }
 
     static boolean isShopCounter(World world, BlockPos pos) {
-        return world.getBlockState(pos).isOf(Blocks.EMERALD_BLOCK)
-                && world.getBlockState(pos.down()).isOf(Blocks.BARREL);
+        return world.getBlockState(pos).isOf(FabricRpgContent.CEDAR_MART_COUNTER);
     }
 
     static boolean withinInteractionDistance(ServerPlayerEntity player, BlockPos pos) {
