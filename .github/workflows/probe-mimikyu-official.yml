@@ -1,0 +1,77 @@
+name: Probe Official Mimikyu Assets
+
+on:
+  push:
+    branches:
+      - 'skin/mimikyu-eclipse-herald'
+    paths:
+      - '.github/workflows/probe-mimikyu-official.yml'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact Cobblemon 1.7.3 Fabric JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/model-probe' \
+            'https://api.modrinth.com/v2/version/kF7CvxTo' -o version.json
+          python - <<'PY' > download.env
+          import json, shlex
+          data=json.load(open('version.json', encoding='utf-8'))
+          assert data['id']=='kF7CvxTo'
+          assert data['version_number']=='1.7.3'
+          assert data['game_versions']==['1.21.1']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          print('URL='+shlex.quote(primary['url']))
+          print('SHA512='+shlex.quote(primary['hashes']['sha512']))
+          print('FILENAME='+shlex.quote(primary['filename']))
+          PY
+          source download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o cobblemon.jar
+          printf '%s  %s\n' "$SHA512" cobblemon.jar | sha512sum --check --strict
+          echo "OFFICIAL_FILE=$FILENAME"
+      - name: Discover exact Mimikyu resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -Z1 cobblemon.jar | grep -iE '(^|/)(0778_mimikyu|mimikyu)(/|\.|_)' | sort | tee mimikyu-paths.txt
+          test -s mimikyu-paths.txt
+      - name: Report hashes, bone contract and presentation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import PurePosixPath
+          z=zipfile.ZipFile('cobblemon.jar')
+          names=[n for n in z.namelist() if 'mimikyu' in n.lower()]
+          print('=== PATHS + SHA256 ===')
+          for n in sorted(names):
+              if n.endswith('/'):
+                  continue
+              raw=z.read(n)
+              print(hashlib.sha256(raw).hexdigest(), n)
+          geos=[n for n in names if n.endswith('.geo.json')]
+          print('=== GEOMETRY CONTRACT ===')
+          for n in sorted(geos):
+              data=json.loads(z.read(n))
+              for g in data.get('minecraft:geometry', []):
+                  print('GEOMETRY', n)
+                  print('IDENTIFIER', g.get('description',{}).get('identifier'))
+                  bones=g.get('bones',[])
+                  print('BONE_COUNT', len(bones))
+                  for i,b in enumerate(bones):
+                      print(f'BONE {i:03d} name={b.get("name")} parent={b.get("parent")} pivot={b.get("pivot")} cubes={len(b.get("cubes",[]))}')
+          print('=== SMALL JSON CONTENT ===')
+          for n in sorted(names):
+              if any(k in n for k in ('resolvers/','posers/')) and n.endswith('.json'):
+                  raw=z.read(n).decode('utf-8')
+                  if len(raw) < 30000:
+                      print('FILE', n)
+                      print(raw)
+          PY
