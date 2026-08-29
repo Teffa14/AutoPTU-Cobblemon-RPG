@@ -1,0 +1,31 @@
+{
+  "format": "ouros.cobblemon-blockbench-pose-evidence.v1",
+  "viewer": "Blockbench 5.1.6",
+  "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo",
+  "animationSource": "official pikachu.animation.json imported through Blockbench Bedrock animation codec",
+  "originalBoneCount": 90,
+  "stormBoneCount": 94,
+  "poses": {
+    "hero": {
+      "animation": "animation.pikachu.ground_idle",
+      "time": 0.35
+    },
+    "battle_ready": {
+      "animation": "animation.pikachu.battle_idle",
+      "time": 0.35
+    },
+    "walking": {
+      "animation": "animation.pikachu.ground_walk",
+      "time": 0.25
+    }
+  },
+  "files": {
+    "official_reference_three_quarter.png": "bb60acc03aa8ff7f584b8608cd06207759fc4a30a277820978979319ef28971d",
+    "hero_three_quarter.png": "bfc2b17d53810f56f545a9dec389155d8ca16d822fef36b28371f6b590f8b561",
+    "battle_ready_three_quarter.png": "58655bec0db49f9d5b625f48acacb4d5ba33ba9df526738a0dd0cd4f526cf604",
+    "walking_three_quarter.png": "42c094c9ece91061322a73786fa3b3f6aaf29cde56f691356725ca0df3b69698",
+    "hero_front.png": "fc95d87fdc477f2a232b0d3dd28a9a9d2c115a1bb0e4549ff9a350e066774664",
+    "battle_ready_front.png": "0a2829699339777d58b7063946f61d55920e9a7d01dd046477df18217b94911f",
+    "walking_front.png": "162e44ede69aecc660117a611038d2746e12be6adee10ffd94011741f331af14"
+  }
+}
