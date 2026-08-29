@@ -1,0 +1,56 @@
+name: Inspect Absol From Official Cobblemon
+
+on:
+  push:
+    branches: ['feat/absol-omen-regent']
+    paths: ['.github/workflows/cobblemon-inspect-absol.yml']
+  workflow_dispatch:
+permissions: {contents: write}
+env: {COBBLEMON_VERSION_ID: kF7CvxTo}
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - name: Download exact latest-compatible official source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source docs/cobblemon-skins/0359_absol/official-inspection
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Absol-Inspection' 'https://api.modrinth.com/v2/project/cobblemon/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D' -o .official-source/versions.json
+          python - <<'PY'
+          import json
+          r=sorted((x for x in json.load(open('.official-source/versions.json')) if x.get('version_type')=='release'),key=lambda x:x['date_published'],reverse=True); assert r and r[0]['id']=='kF7CvxTo'
+          PY
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Absol-Inspection' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          python - <<'PY' > .official-source/env
+          import json,shlex
+          d=json.load(open('.official-source/version.json')); p=next(f for f in d['files'] if f.get('primary')); assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and d['game_versions']==['1.21.1'] and p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'; print('URL='+shlex.quote(p['url'])); print('SHA512='+shlex.quote(p['hashes']['sha512']))
+          PY
+          source .official-source/env; curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar; printf '%s  %s\n' "$SHA512" .official-source/cobblemon.jar | sha512sum --check --strict
+      - name: Record exact Absol inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=docs/cobblemon-skins/0359_absol/official-inspection
+          unzip -l .official-source/cobblemon.jar | awk '{print $4}' | grep '0359_absol' | sort > "$root/jar-paths.txt"
+          python - <<'PY'
+          import zipfile,hashlib,json,pathlib
+          z=zipfile.ZipFile('.official-source/cobblemon.jar'); root=pathlib.Path('docs/cobblemon-skins/0359_absol/official-inspection'); paths=[p for p in z.namelist() if '0359_absol' in p]
+          out={}
+          for p in sorted(paths):
+              b=z.read(p); out[p]={'sha256':hashlib.sha256(b).hexdigest(),'size':len(b)}
+              if p.endswith('.json'):
+                  (root/(p.split('/')[-1])).write_bytes(b)
+          (root/'manifest.json').write_text(json.dumps(out,indent=2)+'\n')
+          PY
+      - name: Commit inspection evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]; git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/cobblemon-skins/0359_absol/official-inspection
+          git commit -m 'Evidence: inspect official Absol assets' || exit 0
+          git pull --rebase origin "${GITHUB_REF_NAME}"; git push origin HEAD:"${GITHUB_REF_NAME}"
