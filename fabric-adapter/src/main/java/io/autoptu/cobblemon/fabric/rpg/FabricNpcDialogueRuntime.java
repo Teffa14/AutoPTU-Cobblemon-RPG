@@ -3,6 +3,8 @@ package io.autoptu.cobblemon.fabric.rpg;
 import io.autoptu.cobblemon.authority.CanonicalNpcDialogueCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestJournalService;
+import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -131,8 +133,8 @@ public final class FabricNpcDialogueRuntime {
                 return;
             }
             displayedText = option.response();
+            String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
             if (option.questId() != null) {
-                String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
                 var service = new CanonicalQuestJournalService(
                         CanonicalQuestCatalogue.DEFAULT,
                         FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer())
@@ -141,6 +143,16 @@ public final class FabricNpcDialogueRuntime {
                 displayedText = result.newlyAccepted()
                         ? "Quest accepted: " + result.quest().title() + " — " + result.quest().objectiveText()
                         : "Quest already in journal: " + result.quest().title() + " — " + result.quest().objectiveText();
+            } else if (option.challengeId() != null) {
+                var service = new CanonicalTrainerChallengeRequestService(
+                        CanonicalTrainerChallengeCatalogue.DEFAULT,
+                        FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
+                        FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer())
+                );
+                var result = service.request(playerId, dialogue.npcId(), option.challengeId());
+                displayedText = result.accepted()
+                        ? "Challenge ready: " + result.challenge().displayName() + ". AutoPTU must authorize any battle start and resolve every battle outcome."
+                        : "Challenge unavailable: " + result.detail();
             }
             refresh();
         }
@@ -154,7 +166,10 @@ public final class FabricNpcDialogueRuntime {
             int slot = OPTION_START_SLOT;
             for (CanonicalNpcDialogueCatalogue.Option option : dialogue.options()) {
                 if (slot >= TOP_SLOT_COUNT) break;
-                displayInventory.setStack(slot, menuItem(option.questId() == null ? Items.PAPER.getDefaultStack() : Items.WRITABLE_BOOK.getDefaultStack(), option.label()));
+                ItemStack icon = option.questId() != null
+                        ? Items.WRITABLE_BOOK.getDefaultStack()
+                        : option.challengeId() != null ? Items.IRON_SWORD.getDefaultStack() : Items.PAPER.getDefaultStack();
+                displayInventory.setStack(slot, menuItem(icon, option.label()));
                 optionIds.put(slot, option.optionId());
                 slot++;
             }
