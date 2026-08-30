@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Aura Sentinel — Resonance Ronin V26",
+  "concept": "Aura Sentinel — Resonance Ronin V27",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "aee989a2d17bde28cd7a63f026b5b9553677a9f5dc13f3d2d1399ec7453a0066",
-    "productionBoneCount": 91,
-    "cosmeticBoneCount": 4,
-    "cosmeticCubeCount": 6,
+    "modelSha256": "7077976f8ae18f71b7507d04fdaa50a8a7e6b46266505ec66f9e9e9a8d295901",
+    "productionBoneCount": 92,
+    "cosmeticBoneCount": 5,
+    "cosmeticCubeCount": 8,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -65,10 +65,10 @@
       {
         "role": "BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
-        "sha256": "7e5d3a86b6d76c1b679586ad4c8242581404c5038f2586de13b79f3222ed317f",
+        "sha256": "0638a3232a3fe9fba8d0743f23f98870a50ad379642f6f2431e159167962ade5",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v26-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v27-derived-normal.json"
       },
       {
         "role": "OVERLAY",
@@ -86,7 +86,7 @@
       {
         "role": "SHINY_BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
-        "sha256": "82e4dff6a96a2a615c5c516d8a03df00418d471d7b6b86af4146121f44c96b92"
+        "sha256": "7ce504ac9d7cc55ac363a8ce385c75d64b8ea7b9e00cab7c57cd7e9682b44353"
       }
     ]
   },
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v26-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v26-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v27-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v27-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -154,13 +154,13 @@
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Compact deep shoulder/back mantle shell",
-      "Short rising crown built from overlapping volumes rather than fins",
-      "Single quiet chest edge that connects the shell to the torso"
+      "Open diagonal aura collar framing the chest spike",
+      "Two-stage torso resonance rib following the waist taper",
+      "Opposed forearm and shin traces that continue the diagonal rhythm through the full body"
     ],
-    "macroFormPlan": "V26 removes the entire V25 descending chain after direct rear-view QA showed thin fins. Two deep shoulder roots overlap two broad crown volumes and one short back shell, producing a single compact asymmetric mass with no lower bar tips or forked panels.",
-    "paintPlan": "Normal and shiny remain independently derived from exact 1.7.3 baselines. Blue biology is repainted as deep lacquered cobalt using multi-level value shaping, sparse facing highlights and deterministic microvariation; dark biology receives stronger indigo occlusion and edge accents. Cream spikes, white landmarks, red eyes, UV layout, dimensions and alpha semantics remain intact.",
-    "gameplayReadGoal": "At 160 px read one dark cobalt shoulder/back crest with a broad diagonal outer contour. No fins, hanging slabs, backpack rectangle or detached bars may survive.",
+    "macroFormPlan": "V27 deletes the rejected shoulder/back mantle architecture entirely. Five anatomy-parented systems trace a diagonal collar-rib-hip line and answer it on the opposite forearm/shin. The head, dorsal outline and tail stay deliberately open; silhouette change comes from distributed contour gestures rather than one backpack-like mass.",
+    "paintPlan": "Normal and shiny remain independently derived from exact 1.7.3 baselines. Cobalt biology uses three deterministic local value bands, stronger indigo occlusion and sparse directional edge glints; dark biology receives separate indigo shaping. Cream spikes, whites, eyes, dimensions, UV layout and alpha semantics remain protected.",
+    "gameplayReadGoal": "At 160 px read a coherent diagonal resonance path across collar, torso, hip and opposite limbs. No shoulder backpack, mantle rectangle, cage, repeated fins or large slabs may appear.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -168,18 +168,18 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V25 passed technical floors but direct Blockbench QA still showed stacked head-side slabs and multiple rear fins. V26 deletes the descending chain, reduces the cosmetic system to six cubes, deepens the remaining shells, and increases authored paint contrast instead of adding geometry."
+    "iterationNote": "V26 passed technical floors but direct Blockbench QA still read the compact shoulder/back shell as a backpack-like cuboid mass. V27 abandons that architecture instead of shrinking or thickening it again, distributing eight thin rotated contour volumes across the anatomy and asking paint to carry more of the transformation."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves the exact official 87-bone Lucario geometry and uses a validated V26 normal texture independently derived from the exact official 1.7.3 baseline."
+        "coverage": "Default preserves the exact official 87-bone Lucario geometry and uses a validated V27 normal texture independently derived from the exact official 1.7.3 baseline."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses the same V26 cosmetic geometry and overlay plus an independently derived V26 texture from the exact official shiny 1.7.3 baseline."
+        "coverage": "Shiny uses the same V27 cosmetic geometry and overlay plus an independently derived V27 texture from the exact official shiny 1.7.3 baseline."
       },
       {
         "name": "sex/forms",
