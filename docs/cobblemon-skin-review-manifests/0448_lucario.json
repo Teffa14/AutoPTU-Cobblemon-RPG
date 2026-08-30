@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "a1c341414230084b823e6c9864680b71064b106b6c4089963fb365993c5e83bd",
+    "modelSha256": "df7d5f547a17e973f1ee751cb72f28df32f643ed0a603fae810c315306929ac2",
     "productionBoneCount": 95,
     "cosmeticBoneCount": 8,
-    "cosmeticCubeCount": 19,
+    "cosmeticCubeCount": 20,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
