@@ -30,43 +30,37 @@ jobs:
           source .probe/download.env
           curl --fail --silent --show-error --location "$URL" -o .probe/cobblemon.jar
           printf '%s  %s\n' "$SHA512" .probe/cobblemon.jar | sha512sum -c --strict
-      - name: Inspect Tyranitar assets
+      - name: Write compact rig summary
         run: |
-          set -euo pipefail
           python - <<'PY'
-          import json, zipfile, hashlib, re
+          import json, zipfile, hashlib
           from pathlib import Path
-          jar=Path('.probe/cobblemon.jar')
+          with zipfile.ZipFile('.probe/cobblemon.jar') as z:
+            geo='assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/tyranitar.geo.json'
+            anim='assets/cobblemon/bedrock/pokemon/animations/0248_tyranitar/tyranitar.animation.json'
+            resolver='assets/cobblemon/bedrock/pokemon/resolvers/0248_tyranitar/0_tyranitar_base.json'
+            tex='assets/cobblemon/textures/pokemon/0248_tyranitar/tyranitar.png'
+            shiny='assets/cobblemon/textures/pokemon/0248_tyranitar/tyranitar_shiny.png'
+            graw=z.read(geo); araw=z.read(anim); rraw=z.read(resolver)
+            g=json.loads(graw)['minecraft:geometry'][0]
+            report={
+              'source':{'version':'1.7.3','minecraft':'1.21.1','modrinth':'kF7CvxTo'},
+              'hashes':{'model':hashlib.sha256(graw).hexdigest(),'animation':hashlib.sha256(araw).hexdigest(),'resolver':hashlib.sha256(rraw).hexdigest(),'texture':hashlib.sha256(z.read(tex)).hexdigest(),'shiny':hashlib.sha256(z.read(shiny)).hexdigest()},
+              'description':g['description'],
+              'bones':[{'name':b['name'],'parent':b.get('parent'),'pivot':b.get('pivot'),'rotation':b.get('rotation'),'cube_count':len(b.get('cubes',[]))} for b in g['bones']],
+              'animations':list(json.loads(araw).get('animations',{}).keys()),
+              'resolver':json.loads(rraw),
+              'all_paths':[n for n in z.namelist() if 'tyranitar' in n.lower()]
+            }
           out=Path('test-evidence/probe'); out.mkdir(parents=True,exist_ok=True)
-          with zipfile.ZipFile(jar) as z:
-            names=z.namelist()
-            matches=[n for n in names if 'tyranitar' in n.lower()]
-            def raw(n): return z.read(n)
-            geos=[n for n in matches if n.endswith('.geo.json')]
-            anims=[n for n in matches if n.endswith('.animation.json')]
-            posers=[n for n in matches if '/posers/' in n and n.endswith('.json')]
-            resolvers=[n for n in matches if '/resolvers/' in n and n.endswith('.json')]
-            textures=[n for n in matches if n.endswith('.png')]
-            report={'matches':matches,'geometry':{},'animations':{},'posers':{},'resolvers':{},'textures':{}}
-            for n in geos:
-              data=json.loads(raw(n)); geom=data['minecraft:geometry'][0]; desc=geom['description']; bones=geom['bones']
-              report['geometry'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'identifier':desc.get('identifier'),'texture_width':desc.get('texture_width'),'texture_height':desc.get('texture_height'),'bone_count':len(bones),'bones':[{'name':b.get('name'),'parent':b.get('parent'),'pivot':b.get('pivot'),'rotation':b.get('rotation'),'cube_count':len(b.get('cubes',[])),'cubes':b.get('cubes',[])} for b in bones]}
-            for n in anims:
-              data=json.loads(raw(n)); report['animations'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'names':list(data.get('animations',{}))}
-            for n in posers:
-              report['posers'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'content':json.loads(raw(n))}
-            for n in resolvers:
-              report['resolvers'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'content':json.loads(raw(n))}
-            for n in textures:
-              report['textures'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'size':len(raw(n))}
-          (out/'tyranitar-official.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
-          print(json.dumps({k:list(v) if isinstance(v,dict) else v for k,v in report.items() if k!='matches'},indent=2))
+          (out/'tyranitar-summary.json').write_text(json.dumps(report,indent=2)+'\n')
           PY
-      - name: Commit probe report
+      - name: Commit compact summary
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add test-evidence/probe/tyranitar-official.json
-          git commit -m 'Evidence: record official Tyranitar asset probe'
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git add test-evidence/probe/tyranitar-summary.json
+          git commit -m 'Evidence: compact official Tyranitar rig summary'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
