@@ -2,7 +2,7 @@
 
 This catalog records Ouros-authored visual Pokemon variants and their current technical and artistic acceptance state.
 
-The authoritative art contract is `docs/cobblemon-skin-art-direction.md`. Technical validity alone never establishes artistic acceptance.
+The authoritative art contract is `docs/cobblemon-skin-art-direction.md`. Technical validity alone never establishes artistic acceptance. The production-engineering contract is `docs/cobblemon-skin-professional-pipeline.md`.
 
 ## Owner quality decision — 2026-08-30
 
@@ -43,23 +43,28 @@ The required result is a premium, authored full-character transformation at game
 
 Large silhouette pushes are allowed, but large geometry alone is not evidence of quality. The goal is not to maximize cube count. Solve the character.
 
-## Official biological texture contract
+## Biological texture and premium paint contract
 
-For the current pipeline the official normal/shiny biological textures are immutable production baselines.
+The exact official normal/shiny/form textures are immutable **source baselines**, not a prohibition against authored painting.
+
+A production skin may choose either an official-identical body texture or a deliberate texture derived from the exact official baseline. Derived repaint/recolor is explicitly allowed when it materially improves the premium design, provided that it follows `docs/cobblemon-skin-art-direction.md` and passes `validate_derived_texture.py`.
 
 A new or re-audited skin must:
 
-- keep the production body texture byte-identical to the corresponding exact official texture extracted from the pinned JAR;
-- prove the SHA-256 equality in CI;
-- keep every original UV unchanged;
-- keep `bodyTexelRework: NONE`;
-- place Ouros accessory material swatches only on verified official alpha-zero/free texels or another explicitly validated compatible accessory mechanism;
-- reject any accessory overlay that paints an occupied biological texel;
-- preserve official transparency, sex/form and resolver semantics.
+- extract the exact relevant official body texture from the pinned current JAR and record its SHA-256;
+- preserve canvas dimensions and every original model UV mapping;
+- preserve alpha/transparency semantics unless an explicit reviewed runtime requirement documents a safe exception;
+- derive normal, shiny and distinct official forms independently from their corresponding exact baselines;
+- record production body-texture SHA-256 and whether the body is `OFFICIAL_IDENTICAL` or `DERIVED_FROM_OFFICIAL`;
+- for derived bodies, record repaint regions, palette/material intent and provenance metadata;
+- keep species-critical facial/anatomical landmarks readable;
+- use painted depth/value/material structure rather than a flat hue rotation, flood fill or uniform multiply;
+- keep accessory overlays on a separately validated compatible mechanism when overlays are used;
+- never copy third-party texture artwork, UV arrangements, palettes, markings or distinctive motifs unless an explicit compatible derivative license permits that exact use.
 
-Recoloring the biological body is not an artistic shortcut. The transformation must come from connected geometry, layering, silhouette, equipment material separation and composition.
+Premium painting should use local value ramps, occlusion/shadows where forms meet, lighter facing planes, controlled edge highlights, hue/value variation and material-specific breakup for cloth, leather, metal, stone, bone, lacquer, energy or other authored surfaces.
 
-Required metadata includes the official body-texture SHA-256, production body-texture SHA-256, `bodyTexelRework`, palette/material intent and accessory overlay/UV reservation when used.
+Historical metadata such as `bodyTexelRework: NONE` remains valid for the old asset it describes. It is **not** a global rule for future skins. The newer derived-texture contract supersedes the old byte-identical-only limitation.
 
 ## Physical attachment — NO FLOATING PIECES
 
@@ -75,7 +80,7 @@ Do not relax attachment thresholds to rescue an existing asset. Fix its geometry
 
 The old in-repo Python software renderer is rejected as acceptance evidence. Blockbench remains the primary independent viewer.
 
-The review must load the exact production `.geo.json`, exact official body texture, exact accessory overlay and official animation file through the Bedrock workflow. Official reference and skin use the same camera, projection, scale, pose and animation frame. Independent auto-fit is not an accepted comparison.
+The review must load the exact production `.geo.json`, exact official or validated derived body texture, exact accessory overlay when used and official animation file through the Bedrock workflow. Official reference and skin use the same camera, projection, scale, pose and animation frame. Independent auto-fit is not an accepted comparison.
 
 When official equivalents exist, evidence includes `official_reference_three_quarter`, `hero_three_quarter`, `battle_ready_three_quarter`, `walking_three_quarter` and structural front/left/right/back views. Never fabricate a battle or locomotion pose when Cobblemon does not provide an equivalent animation.
 
@@ -100,50 +105,38 @@ Every candidate also needs a real gameplay-scale sample with the Pokemon approxi
 | Pokemon | Concept | Technical baseline | Current art status | Next action |
 | --- | --- | --- | --- | --- |
 | Pikachu | Storm Courier | existing implementation/evidence retained | USER REJECTED — REWORK REQUIRED | Redesign to premium authored full-character quality; show new current Blockbench evidence for owner approval |
-| Lucario | Aura Sentinel | exact 87-bone official source + 10 cosmetic groups / 97 total; prior gates green | USER REJECTED — REWORK REQUIRED | Keep technical baseline; redesign visual model substantially before asking for approval again |
-| Gengar | Rift Warden | exact official-source V2 technical work exists on rejected PR #327 | USER REJECTED — REWORK REQUIRED | Do not merge V2; redesign actual geometry, not just add more/larger boxes |
+| Lucario | Aura Sentinel | exact 87-bone official source + historical cosmetic work; prior technical gates retained | USER REJECTED — REWORK REQUIRED | Keep exact official baseline; redesign visual model substantially and use the current professional manifest/Blockbench pipeline before owner review |
+| Gengar | Rift Warden | exact official-source V2 technical work exists on rejected PR #327 | USER REJECTED — REWORK REQUIRED | Satisfy the current 3-reference Cobblemon-pack gate, then redesign actual geometry rather than add more/larger boxes |
 | Mimikyu | Eclipse Herald | historical technical baseline | USER REJECTED — REWORK REQUIRED | Rebuild/rework to premium standard and present exact current Blockbench evidence |
 | Charizard | Solar Legion | historical 138-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Charizard source and redesign visual language |
 | Greninja | Shadow Tide | historical normal/Ash technical pass | USER REJECTED — REWORK REQUIRED | Rebuild official forms independently and redesign visual language |
 | Absol | Omen Regent | historical 81-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Absol source and redesign visual language |
-| Tyranitar | Abyssal Bastion | historical 69-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Tyranitar source and redesign visual language |
+| Tyranitar | Abyssal Bastion | historical 69-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Tyranitar source and redesign the fortress fantasy as premium connected wearable architecture |
 
-## 0448 Lucario — Aura Sentinel technical baseline retained, art rejected
+## 0448 Lucario — Aura Sentinel technical history retained, art rejected
 
-Aura Sentinel previously closed several engineering failure modes: it used the exact current official model, preserved anatomy, used the immutable official biological texture and passed attachment/build/runtime gates. Those facts remain valid technical history.
+Aura Sentinel previously closed several engineering failure modes: it used an exact current official model, preserved anatomy, and passed recorded attachment/build/runtime gates for historical heads. Those facts remain technical history, not artistic acceptance.
 
-Pinned official source:
+Pinned historical official source recorded by that slice:
 
 - model SHA-256 `ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9`
 - animation SHA-256 `ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563`
 - poser SHA-256 `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`
 - base resolver SHA-256 `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`
-- official/production normal texture SHA-256 `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
-- official/production shiny texture SHA-256 `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
-- accessory overlay SHA-256 `7deb8211b976a7c43970ec78a70ccd41f1af0e575c4aab0d3c08b08c2ec4b43a`
+- historical official/production normal texture SHA-256 `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
+- historical official/production shiny texture SHA-256 `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
+- historical accessory overlay SHA-256 `7deb8211b976a7c43970ec78a70ccd41f1af0e575c4aab0d3c08b08c2ec4b43a`
 - original bones: 87
-- derived bones: 97
-- cosmetic groups: 10
-- cosmetic cubes: 87
-- biological body texel rework: `NONE`
 
-Historical Blockbench/gate evidence:
+Historical Blockbench/gate evidence remains useful only for provenance/regression analysis. A future Lucario production candidate must use the current exact-source/reference/professional-review gates and a current manifest/evidence set.
 
-- `Aura Sentinel V4 Current Official Model Review` push run `33303254385` — PASS
-- PR run `33303256190` — PASS
-- reviewed technical head `21ab68752caebffb1e79d5f444ed72de0bb9bf36`
-- artifact `aura-sentinel-v4-current-blockbench-review`, id `9729627010`
-- Cobblemon Official Model Review — PASS, run `33303256090`
-- Playable Test Build — PASS, run `33303256118`
-- Integration Core CI — PASS, run `33303256095`
-
-These passes now mean `TECHNICALLY VALID` only. The owner has rejected the current model-quality level, so the artistic status is `USER REJECTED — REWORK REQUIRED`. No old acceptance wording overrides that decision.
-
-Detailed notes remain at `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`; any historical acceptance language there is subordinate to this catalog and the current art-direction contract until the species doc is revised.
+Current artistic status remains `USER REJECTED — REWORK REQUIRED` until explicit owner approval of a materially improved exact current evidence set.
 
 ## 0094 Gengar — Rift Warden
 
 PR #327 was closed unmerged after owner visual rejection. Its exact-source/anatomy/texture/Blockbench/build evidence remains a technical baseline only. V2 must be materially redesigned before another owner review. Do not reopen or merge the same visual model merely because its checks are green.
+
+The current mandatory reference gate must also be satisfied before new Gengar production geometry is generated.
 
 ## Other legacy species
 
@@ -160,10 +153,10 @@ Current artistic status: `USER REJECTED — REWORK REQUIRED`. Normal Greninja an
 Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the exact current official Absol geometry before a new visual review.
 
 ### 0248 Tyranitar — Abyssal Bastion
-Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the exact current official Tyranitar geometry and redesign the fortress fantasy as premium connected wearable architecture rather than block scaffolding.
+Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the exact current Tyranitar geometry and redesign the fortress fantasy as premium connected wearable architecture rather than block scaffolding.
 
 ## Required final report for every future slice
 
-Report the Pokemon/concept, official release and hashes, original bones preserved, cosmetic bones/cubes, signature pieces, body/overlay texture details, official animations used, four clickable current Blockbench PNGs, concrete internal artistic evaluation, validators/tests/build/CI, PR/merge state, sex/form differences, **owner approval state**, and the next slice.
+Report the Pokemon/concept, three or more same-species Cobblemon-pack references actually inspected, official release and hashes, original bones preserved, cosmetic bones/cubes, signature pieces, body/overlay texture derivation and hashes, official animations used, four clickable current Blockbench PNGs, concrete internal artistic evaluation, professional manifest/evidence-set hash, validators/tests/build/CI, PR/merge state, sex/form differences, **owner approval state**, and the next slice.
 
 Never report `ART ACCEPTED`, `FULL TRANSFORMATION ACCEPTED`, `EPIC ACCEPTED`, ready-to-merge artistic status, or equivalent without explicit owner approval of the exact current evidence set.
