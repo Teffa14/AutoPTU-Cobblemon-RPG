@@ -1,0 +1,97 @@
+name: Aura Sentinel V7.1 Current Blockbench Review
+
+on:
+  push:
+    branches: ['art/lucario-aura-sentinel-v7-reference-led']
+    paths: ['.github/workflows/cobblemon-aura-sentinel-v71-review.yml']
+  workflow_dispatch:
+
+permissions: {contents: read}
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  JAR_SHA256: f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3
+  MODEL_SHA256: ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9
+  ANIMATION_SHA256: ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563
+  NORMAL_SHA256: 98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a
+  BLOCKBENCH_VERSION: '5.1.6'
+  BLOCKBENCH_SHA256: c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: |
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64 >/dev/null
+      - name: Verify official source and candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .review/official .review/output
+          curl -fLsS --retry 4 "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .review/version.json
+          python - <<'PY' > .review/url
+          import json
+          d=json.load(open('.review/version.json')); f=next(x for x in d['files'] if x.get('primary'))
+          assert d['version_number']=='1.7.3' and '1.21.1' in d['game_versions'] and 'fabric' in d['loaders']
+          assert f['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print(f['url'])
+          PY
+          curl -fLsS --retry 4 "$(cat .review/url)" -o .review/cobblemon.jar
+          echo "$JAR_SHA256  .review/cobblemon.jar" | sha256sum -c --strict
+          unzip -p .review/cobblemon.jar assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json > .review/official/lucario.geo.json
+          unzip -p .review/cobblemon.jar assets/cobblemon/bedrock/pokemon/animations/0448_lucario/lucario.animation.json > .review/official/lucario.animation.json
+          unzip -p .review/cobblemon.jar assets/cobblemon/textures/pokemon/0448_lucario/lucario.png > .review/official/lucario.png
+          echo "$MODEL_SHA256  .review/official/lucario.geo.json" | sha256sum -c --strict
+          echo "$ANIMATION_SHA256  .review/official/lucario.animation.json" | sha256sum -c --strict
+          echo "$NORMAL_SHA256  .review/official/lucario.png" | sha256sum -c --strict
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py docs/cobblemon-skin-reference-dossiers/0448_lucario.json --expected-species lucario
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+          python tools/cobblemon-model-review/validate_original_model.py --official .review/official/lucario.geo.json --candidate "$model"
+          python tools/cobblemon-model-review/validate_cosmetic_attachment.py --official .review/official/lucario.geo.json --candidate "$model" --anchor-gap 1.50 --piece-gap 1.00
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          root=Path('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario')
+          Image.alpha_composite(Image.open(root/'ouros_aura_sentinel.png').convert('RGBA'),Image.open(root/'ouros_aura_sentinel_accessories.png').convert('RGBA')).save('.review/aura.png',optimize=True)
+          PY
+      - name: Install pinned Blockbench
+        run: |
+          curl -fLsS --retry 4 "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" -o .review/blockbench.AppImage
+          echo "$BLOCKBENCH_SHA256  .review/blockbench.AppImage" | sha256sum -c --strict
+          chmod +x .review/blockbench.AppImage
+          (cd .review && ./blockbench.AppImage --appimage-extract >/dev/null)
+      - name: Capture exact matched-camera evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup(){ pid="${1:-}"; [ -z "$pid" ] || { kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; }; pkill -f "$PWD/.review/squashfs-root/blockbench" 2>/dev/null || true; pkill -f "$PWD/.review/squashfs-root/AppRun" 2>/dev/null || true; sleep 2; }
+          once(){ model="$1"; tex="$2"; anim="$3"; t="$4"; out="$5"; port="$6"; pin="$7"; pout="$8"; attempt="$9"; ud="$PWD/.review/u-${port}-${attempt}"; log="$PWD/.review/bb-${port}-${attempt}.log"; rm -rf "$out" "$ud"; mkdir -p "$out" "$ud"; xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.review/squashfs-root" .review/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$ud" "$model" >"$log" 2>&1 & pid=$!; ready=0; for _ in $(seq 1 90); do curl -fs "http://127.0.0.1:$port/json/version" >/dev/null 2>&1 && { ready=1; break; }; kill -0 "$pid" 2>/dev/null || { cat "$log"; cleanup "$pid"; return 1; }; sleep 1; done; [ "$ready" = 1 ] || { cat "$log"; cleanup "$pid"; return 1; }; args=(--endpoint "http://127.0.0.1:$port" --texture "$tex" --animation "$PWD/.review/official/lucario.animation.json" --animation-name "$anim" --animation-time "$t" --gameplay-resolution 160 --output-dir "$out"); [ -z "$pin" ] || args+=(--camera-profile-in "$pin"); [ -z "$pout" ] || args+=(--camera-profile-out "$pout"); node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}" || { cat "$log"; cleanup "$pid"; return 1; }; cleanup "$pid"; }
+          capture(){ for a in 1 2 3; do once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$a" && return 0; done; return 1; }
+          official="$PWD/.review/official/lucario.geo.json"; candidate="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json"
+          capture "$official" "$PWD/.review/official/lucario.png" animation.lucario.ground_idle 0.35 "$PWD/.review/o" 9322 '' "$PWD/.review/camera.json"
+          capture "$candidate" "$PWD/.review/aura.png" animation.lucario.ground_idle 0.35 "$PWD/.review/h" 9323 "$PWD/.review/camera.json" ''
+          capture "$candidate" "$PWD/.review/aura.png" animation.lucario.battle_idle 0.35 "$PWD/.review/b" 9324 "$PWD/.review/camera.json" ''
+          cp .review/o/three_quarter.png .review/output/official_reference_three_quarter.png
+          cp .review/h/three_quarter.png .review/output/hero_three_quarter.png
+          cp .review/b/three_quarter.png .review/output/battle_ready_three_quarter.png
+          cp .review/h/front.png .review/output/hero_front.png
+          cp .review/h/left.png .review/output/hero_left.png
+          cp .review/h/right.png .review/output/hero_right.png
+          cp .review/h/back.png .review/output/hero_back.png
+          cp .review/h/three_quarter_gameplay_160.png .review/output/hero_gameplay_160.png
+          cp .review/b/three_quarter_gameplay_160.png .review/output/battle_ready_gameplay_160.png
+          sha256sum .review/output/*.png | sort > .review/output/png-sha256.txt
+          printf 'head=%s\nblockbench=%s\nofficial_model=%s\nanimation=%s\nwalking=procedural_q.biped_walk_plus_q.bimanual_swing\n' "$GITHUB_SHA" "$BLOCKBENCH_VERSION" "$MODEL_SHA256" "$ANIMATION_SHA256" > .review/output/review-contract.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aura-sentinel-v71-current-blockbench-review
+          path: .review/output
+          if-no-files-found: error
+          retention-days: 14
