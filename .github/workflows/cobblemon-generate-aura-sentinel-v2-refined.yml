@@ -1,4 +1,4 @@
-name: Generate Aura Sentinel V3 Current Official Model
+name: Generate Aura Sentinel V4 Current Official Model
 
 on:
   push:
@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: aura-sentinel-v3-current-generate-${{ github.ref }}
+  group: aura-sentinel-v4-current-generate-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .official-source
-          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-AutoPTU-Cobblemon-RPG/aura-v3-current' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-AutoPTU-Cobblemon-RPG/aura-v4-current' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
           python - <<'PY' > .official-source/download.env
           import json, shlex
           data=json.load(open('.official-source/version.json'))
@@ -112,21 +112,10 @@ jobs:
           model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
           normal='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png'
           shiny='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png'
-
-          python tools/cobblemon-model-review/validate_original_model.py \
-            --official .official-source/lucario.geo.json --candidate "$model"
-          python tools/cobblemon-model-review/validate_preserved_texture.py \
-            --official .official-source/lucario.png --candidate "$normal" \
-            --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json \
-            --expected-official-sha256 "$OFFICIAL_NORMAL_SHA256"
-          python tools/cobblemon-model-review/validate_preserved_texture.py \
-            --official .official-source/lucario_shiny.png --candidate "$shiny" \
-            --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json \
-            --expected-official-sha256 "$OFFICIAL_SHINY_SHA256"
-          python tools/cobblemon-model-review/validate_cosmetic_attachment.py \
-            --official .official-source/lucario.geo.json --candidate "$model" \
-            --anchor-gap 1.50 --piece-gap 1.00
-
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/lucario.geo.json --candidate "$model"
+          python tools/cobblemon-model-review/validate_preserved_texture.py --official .official-source/lucario.png --candidate "$normal" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json --expected-official-sha256 "$OFFICIAL_NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_preserved_texture.py --official .official-source/lucario_shiny.png --candidate "$shiny" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json --expected-official-sha256 "$OFFICIAL_SHINY_SHA256"
+          python tools/cobblemon-model-review/validate_cosmetic_attachment.py --official .official-source/lucario.geo.json --candidate "$model" --anchor-gap 1.50 --piece-gap 1.00
           python - <<'PY'
           import hashlib, json
           from pathlib import Path
@@ -134,16 +123,17 @@ jobs:
           model=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json').read_text())['minecraft:geometry'][0]
           assert len(official['bones'])==87
           assert model['bones'][:87]==official['bones']
-          assert len(model['bones'])==95
+          assert len(model['bones'])==97
           extras=model['bones'][87:]
-          expected=['ouros_aura_helm_system','ouros_aura_mantle_shell','ouros_aura_breastplate','ouros_aura_shrine_frame','ouros_aura_left_armguard','ouros_aura_right_armguard','ouros_aura_waistcoat','ouros_aura_relic_fin']
+          expected=['ouros_aura_helm_system','ouros_aura_mantle_shell','ouros_aura_breastplate','ouros_aura_shrine_frame','ouros_aura_left_armguard','ouros_aura_right_armguard','ouros_aura_waistcoat','ouros_aura_relic_fin','ouros_aura_left_greave','ouros_aura_right_greave']
           assert [b['name'] for b in extras]==expected
           cubes=sum(len(b.get('cubes',[])) for b in extras)
-          assert cubes==101,cubes
+          assert cubes==87,cubes
           prefix=json.dumps(model['bones'][:87],separators=(',',':'),sort_keys=False).encode()
           official_prefix=json.dumps(official['bones'],separators=(',',':'),sort_keys=False).encode()
           assert hashlib.sha256(prefix).digest()==hashlib.sha256(official_prefix).digest()
           print('exact official Lucario bones preserved:',len(official['bones']))
+          print('attached Ouros cosmetic bones:',len(extras))
           print('attached Ouros cosmetic cubes:',cubes)
           PY
           cp .official-source/model-license.txt docs/cobblemon-skins/0448_lucario/official-model-license.txt
