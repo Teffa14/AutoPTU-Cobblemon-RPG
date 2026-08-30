@@ -1,7 +1,7 @@
 {
   "format": "ouros.aura-sentinel-v2-build.v1",
   "originalBoneCount": 87,
-  "derivedBoneCount": 95,
+  "derivedBoneCount": 97,
   "cosmeticBones": [
     "ouros_aura_helm_system",
     "ouros_aura_mantle_shell",
@@ -10,9 +10,11 @@
     "ouros_aura_left_armguard",
     "ouros_aura_right_armguard",
     "ouros_aura_waistcoat",
-    "ouros_aura_relic_fin"
+    "ouros_aura_relic_fin",
+    "ouros_aura_left_greave",
+    "ouros_aura_right_greave"
   ],
-  "cosmeticCubeCount": 101,
+  "cosmeticCubeCount": 87,
   "palettePixels": {
     "void": [
       80,

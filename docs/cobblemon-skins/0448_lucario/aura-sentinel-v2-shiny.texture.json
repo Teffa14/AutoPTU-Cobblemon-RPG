@@ -3,7 +3,7 @@
   "derivedTexture": "ouros_aura_sentinel_shiny.png",
   "derivedTextureSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
   "bodyTexelRework": "NONE",
-  "paletteIntent": "Official Lucario biological texture is preserved exactly. Ouros colors are limited to validated free-texel accessory material swatches.",
-  "materialIntent": "Transformation is carried by connected 3D armor, mantle, shrine-frame, coat and relic geometry rather than repainting Lucario anatomy.",
+  "paletteIntent": "Official Lucario biological pixels stay exact. Midnight indigo, cobalt, gold, amethyst and aura-cyan belong only to appended equipment geometry on verified UV-free texels.",
+  "materialIntent": "One connected shrine-sentinel armor language: cowl/visor, mantle, cuirass, dorsal shrine, asymmetric relic fin, split coat, arm guards and articulated greaves. No biological repaint.",
   "allowAlphaSemanticsChange": false
 }
