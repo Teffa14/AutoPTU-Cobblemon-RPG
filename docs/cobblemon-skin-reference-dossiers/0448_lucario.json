@@ -10,6 +10,7 @@
       "species": "lucario",
       "referenceClass": "CUSTOM_GEOMETRY_SKIN",
       "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystem": "COBBLEMON_PACK",
       "geometryMateriallyChanged": true,
       "customVisualIdentity": true,
       "project": "Lucario Overhaul",
@@ -41,6 +42,7 @@
       "species": "lucario",
       "referenceClass": "CUSTOM_GEOMETRY_SKIN",
       "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystem": "COBBLEMON_PACK",
       "geometryMateriallyChanged": true,
       "customVisualIdentity": true,
       "project": "Styles Upon Styles - Cobblemon Costume Pack",
@@ -72,6 +74,7 @@
       "species": "lucario",
       "referenceClass": "CUSTOM_GEOMETRY_SKIN",
       "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystem": "COBBLEMON_PACK",
       "geometryMateriallyChanged": true,
       "customVisualIdentity": true,
       "project": "Cobblemon FailSkins",
@@ -103,8 +106,8 @@
   "candidateReferences": [],
   "productionModelingGate": "OPEN_ONLY_AFTER_STRICT_VALIDATOR_AND_PACKAGE_HASH_CROSSCHECK_PASS",
   "notes": [
-    "All three counted references are non-canonical custom Lucario skins with materially changed geometry and distinct visual identities.",
-    "Mega Lucario assets, shiny variants and plain base remodels are excluded.",
+    "All three counted references are non-canonical custom Lucario skins with materially changed geometry and distinct visual identities from real Cobblemon packs.",
+    "Mega Lucario assets, shiny variants, standalone 3D models/viewers and plain base remodels are excluded.",
     "No third-party asset bytes are committed into Ouros production by this dossier."
   ]
 }
