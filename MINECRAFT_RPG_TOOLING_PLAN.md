@@ -152,7 +152,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-024 | LIVE | `/autoptu box` — PR #252 / implementation head `272ce7c6273cef95f64413432c8aef7163a05bfa`; shows only the authenticated Trainer's durable canonical boxed Pokemon and revision, with ownership and party-overlap validation. |
 | CMD-025 | LIVE | `/autoptu box deposit <partySlot>` — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`; the server resolves the current party slot, canonical ownership and box membership, refuses to remove the last active party Pokemon, and commits through a restart-recoverable transfer journal. |
 | CMD-026 | LIVE | `/autoptu box withdraw <boxSlot>` — PR #253 / implementation head `525df330861bb12d1c06a5d9077edf84eb026767`; the server resolves the current box slot and canonical ownership, then moves that Pokemon into the active party through the same recoverable authority boundary. |
-| CMD-027 | TODO | `/autoptu pokemon nickname <slot> <name>` with server validation |
+| CMD-027 | LIVE | `/autoptu pokemon nickname <slot> <name>` — PR #329 / implementation head `44b067dbbcec53100751ca87b8249120dfd04949`; authenticated server-side slot and ownership resolution, 1–24 code-point nickname validation, idempotent revision-CAS persistence and atomic world-save storage for RPG-only presentation metadata. No Cobblemon gameplay state or PTU rule is used. |
 
 ## Care
 
