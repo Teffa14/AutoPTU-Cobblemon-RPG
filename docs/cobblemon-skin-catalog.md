@@ -4,6 +4,14 @@ This catalog records Ouros-authored visual Pokemon variants and their current te
 
 The authoritative art contract is `docs/cobblemon-skin-art-direction.md`. Technical validity alone never establishes artistic acceptance.
 
+## Owner quality decision — 2026-08-30
+
+The owner rejected the current artistic quality of the model set. Therefore there are currently **no artistically accepted Ouros Cobblemon skins** in this catalog.
+
+Previous CI, source-provenance, anatomy, resolver, Blockbench, Playable Test Build and Integration Core results remain useful technical evidence. They do not imply visual acceptance. A model can return to `FULL TRANSFORMATION ACCEPTED` only after a materially improved exact current model is shown through the required Blockbench evidence and the owner explicitly approves that exact evidence set.
+
+Assistant review and green CI are not owner approval. No future model may self-promote from `OWNER REVIEW REQUIRED` to an accepted artistic state.
+
 ## Production source target
 
 Current repository target:
@@ -25,17 +33,15 @@ All original bones must remain JSON-equivalent and in the same order unless an e
 
 This workflow never gives battle-state authority to Cobblemon or Minecraft. Cobblemon/Minecraft may provide models, textures, animations and rendering/presentation hooks. AutoPTU/Ouros decides combatants, legality, HP/status, tactical positions, RNG, damage and results.
 
-## Visual acceptance — FULL TRANSFORMATION OR REJECTED
+## Visual acceptance — PREMIUM FULL TRANSFORMATION OR REJECTED
 
 Technical validity is necessary but does not make a good skin.
 
-A skin fails artistic review when it still reads as the base Pokemon with small blocks attached to the head, arms or back. The required result is a complete visual transformation at gameplay distance while the official biological model remains intact underneath.
+A skin fails artistic review when it still reads as the base Pokemon with small blocks attached to the head, arms or back. It also fails when the dominant read is a procedural scaffold, rectangular cage, generic armor frame, repeated straight bars, boxy slabs or an arbitrary collection of cuboids around the Pokemon.
 
-The design must establish one strong fantasy, a strong three-quarter silhouette, one to three dominant signature pieces, large connected masses, coherent equipment/material treatment, real layering, readable asymmetry where useful, and front/side/rear coherence. Small hardware detail comes only after the large read works.
+The required result is a premium, authored full-character transformation at gameplay distance while the official biological model remains intact underneath. Major forms must have intentional shape language, respond to the Pokemon's anatomy, use connected masses and layered depth, and remain coherent from front, three-quarter, side and rear views.
 
-Large external silhouette pushes are allowed and often desirable. Armor, mantles, cowls, coats, pauldrons, packs, banners, field equipment, fins, conductors, coils and ornaments may substantially change the outer outline provided the Pokemon remains clearly identifiable and the original anatomy is untouched below them.
-
-The goal is not to maximize the number of cubes. Solve the whole character first.
+Large silhouette pushes are allowed, but large geometry alone is not evidence of quality. The goal is not to maximize cube count. Solve the character.
 
 ## Official biological texture contract
 
@@ -75,34 +81,36 @@ When official equivalents exist, evidence includes `official_reference_three_qua
 
 Every work pass must expose four clickable current PNGs. When a dedicated official walking clip does not exist, substitute a current structural/gameplay-scale Blockbench view and record the reason.
 
-Every accepted skin also needs a real gameplay-scale sample with the Pokemon approximately 128–192 px tall. Reject the skin if the concept disappears at that size, signature pieces collapse into noise, or the first read becomes the untouched base Pokemon again.
+Every candidate also needs a real gameplay-scale sample with the Pokemon approximately 128–192 px tall. Reject the skin if the concept disappears at that size, signature pieces collapse into noise, the first read becomes the untouched base Pokemon again, or the silhouette becomes generic rectangular hardware.
 
 ## Status meanings
 
-`TECHNICALLY VALID` means official-source provenance, anatomy preservation and recorded integration/build gates were satisfied for a historical pass.
+`TECHNICALLY VALID` means official-source provenance, anatomy preservation and recorded integration/build gates were satisfied. It makes no artistic claim.
 
-`ART RE-AUDIT REQUIRED` means a historical pass is not accepted under the current current-model/full-transformation/no-floating-pieces contract.
+`ART RE-AUDIT REQUIRED` means a historical pass has not yet been judged under the current source/attachment/premium-shape-language contract.
 
-`ART ACCEPTED; FINAL PR GATES PENDING` means current real Blockbench evidence has passed human visual review but applicable current-head repository gates are not all green yet.
+`USER REJECTED — REWORK REQUIRED` means the owner has explicitly rejected the current visual result. CI and assistant review cannot override this status.
 
-`FULL TRANSFORMATION ACCEPTED` means the actual current production model was generated from the exact pinned official model, biological texture preservation and attachment gates pass, current real Blockbench evidence has been visually accepted, gameplay-scale read is acceptable, and applicable build/CI gates pass on the reviewed asset head.
+`OWNER REVIEW REQUIRED` means internal technical and visual-preflight gates may be green, but the exact current Blockbench evidence has not yet received explicit owner approval.
+
+`FULL TRANSFORMATION ACCEPTED` means the exact current production model passes all technical gates **and** the owner explicitly approved the exact current Blockbench evidence set. Any later production-asset change invalidates that approval.
 
 ## Legacy audit queue
 
 | Pokemon | Concept | Technical baseline | Current art status | Next action |
 | --- | --- | --- | --- | --- |
-| Pikachu | Storm Courier | existing full-transformation implementation | RE-AUDIT WHEN ACTIVE | Re-prove against exact current male/female source and current no-body-repaint/no-floating contract before treating old acceptance as final |
-| Lucario | Aura Sentinel | exact 87-bone official source + 10 connected cosmetic groups / 97 total | FULL TRANSFORMATION ACCEPTED | Merge PR #318 after final documentation head is confirmed not to change reviewed production assets |
-| Gengar | Rift Warden | historical pass | ART RE-AUDIT REQUIRED | Rebuild/review from exact current official source before acceptance |
-| Mimikyu | Eclipse Herald | historical pass | ART RE-AUDIT REQUIRED | Rebuild/review from exact current official source before acceptance |
-| Charizard | Solar Legion | historical 138-bone pass | ART RE-AUDIT REQUIRED | Rebuild from exact current Charizard model; eliminate old-model drift and floating pieces; redo artistic pass |
-| Greninja | Shadow Tide | historical normal/Ash pass | ART RE-AUDIT REQUIRED | Rebuild each official form independently and redo artistic pass |
-| Absol | Omen Regent | historical 81-bone pass | ART RE-AUDIT REQUIRED | Rebuild from exact current Absol model; eliminate old-model drift and floating pieces; redo artistic pass |
-| Tyranitar | Abyssal Bastion | historical 69-bone pass | ART RE-AUDIT REQUIRED | Rebuild from exact current Tyranitar model; eliminate old-model drift and floating pieces; redo fortress transformation |
+| Pikachu | Storm Courier | existing implementation/evidence retained | USER REJECTED — REWORK REQUIRED | Redesign to premium authored full-character quality; show new current Blockbench evidence for owner approval |
+| Lucario | Aura Sentinel | exact 87-bone official source + 10 cosmetic groups / 97 total; prior gates green | USER REJECTED — REWORK REQUIRED | Keep technical baseline; redesign visual model substantially before asking for approval again |
+| Gengar | Rift Warden | exact official-source V2 technical work exists on rejected PR #327 | USER REJECTED — REWORK REQUIRED | Do not merge V2; redesign actual geometry, not just add more/larger boxes |
+| Mimikyu | Eclipse Herald | historical technical baseline | USER REJECTED — REWORK REQUIRED | Rebuild/rework to premium standard and present exact current Blockbench evidence |
+| Charizard | Solar Legion | historical 138-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Charizard source and redesign visual language |
+| Greninja | Shadow Tide | historical normal/Ash technical pass | USER REJECTED — REWORK REQUIRED | Rebuild official forms independently and redesign visual language |
+| Absol | Omen Regent | historical 81-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Absol source and redesign visual language |
+| Tyranitar | Abyssal Bastion | historical 69-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Tyranitar source and redesign visual language |
 
-## 0448 Lucario — Aura Sentinel current correction
+## 0448 Lucario — Aura Sentinel technical baseline retained, art rejected
 
-Aura Sentinel is the first legacy slice reworked specifically to close both observed failure modes: editing an old body while showing a correct current reference, and technically parented but visually floating cosmetic pieces.
+Aura Sentinel previously closed several engineering failure modes: it used the exact current official model, preserved anatomy, used the immutable official biological texture and passed attachment/build/runtime gates. Those facts remain valid technical history.
 
 Pinned official source:
 
@@ -119,56 +127,43 @@ Pinned official source:
 - cosmetic cubes: 87
 - biological body texel rework: `NONE`
 
-The ten cosmetic groups are the connected helm/cowl, mantle, breastplate, dorsal shrine frame, two armguards, rooted split waistcoat, asymmetric relic fin and two leg-following greaves. The v4 correction deliberately removes the old scattered-rod/halo read and adds lower-body transformation rather than concentrating all design weight on the torso.
+Historical Blockbench/gate evidence:
 
-Current real Blockbench 5.1.6 matched-camera review:
-
-- workflow `Aura Sentinel V4 Current Official Model Review`
-- push run `33303254385` — PASS
+- `Aura Sentinel V4 Current Official Model Review` push run `33303254385` — PASS
 - PR run `33303256190` — PASS
-- reviewed human head `21ab68752caebffb1e79d5f444ed72de0bb9bf36`
-- artifact `aura-sentinel-v4-current-blockbench-review`
-- artifact id `9729627010`
-- artifact digest `sha256:61e2384bedb07478d3db4a3df9b777975f92aeaaa3559e9e087d1c14020bfccf`
-
-The PNG artifact was opened and inspected. The current production candidate is the same modern Lucario anatomy as the official reference. The first read is now a complete shrine-sentinel armor system: cowl/visor, broad shoulder/chest architecture, compact rooted dorsal shrine, asymmetric relic wing, coat masses and greaves. The hero and battle captures keep the equipment connected; side/rear views do not expose obvious hovering islands. At 160 px the silhouette and cyan/gold hierarchy remain legible while Lucario remains unmistakable.
-
-Walking is intentionally not fabricated. In this release Lucario locomotion is poser/procedural (`q.biped_walk` + `q.bimanual_swing`) rather than a dedicated standalone Lucario Bedrock walking animation clip.
-
-On reviewed head `21ab68752caebffb1e79d5f444ed72de0bb9bf36`:
-
-- Aura Sentinel V4 Current Official Model Review — PASS
+- reviewed technical head `21ab68752caebffb1e79d5f444ed72de0bb9bf36`
+- artifact `aura-sentinel-v4-current-blockbench-review`, id `9729627010`
 - Cobblemon Official Model Review — PASS, run `33303256090`
 - Playable Test Build — PASS, run `33303256118`
 - Integration Core CI — PASS, run `33303256095`
-- legacy Aura Sentinel evidence compatibility check — PASS, run `33303256101`
 
-Artistic/technical status: `FULL TRANSFORMATION ACCEPTED` for the exact reviewed production assets above.
+These passes now mean `TECHNICALLY VALID` only. The owner has rejected the current model-quality level, so the artistic status is `USER REJECTED — REWORK REQUIRED`. No old acceptance wording overrides that decision.
 
-Detailed notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
+Detailed notes remain at `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`; any historical acceptance language there is subordinate to this catalog and the current art-direction contract until the species doc is revised.
+
+## 0094 Gengar — Rift Warden
+
+PR #327 was closed unmerged after owner visual rejection. Its exact-source/anatomy/texture/Blockbench/build evidence remains a technical baseline only. V2 must be materially redesigned before another owner review. Do not reopen or merge the same visual model merely because its checks are green.
 
 ## Other legacy species
 
-### 0094 Gengar — Rift Warden
-Historical engineering evidence remains useful, but current artistic status is `ART RE-AUDIT REQUIRED` until rebuilt/re-proved from the exact current official source.
-
 ### 0778 Mimikyu — Eclipse Herald
-Historical engineering evidence remains useful, but current artistic status is `ART RE-AUDIT REQUIRED` until rebuilt/re-proved from the exact current official source.
+Current artistic status: `USER REJECTED — REWORK REQUIRED`.
 
 ### 0006 Charizard — Solar Legion
-The historical pass is not accepted as current. Rebuild from the exact current official Charizard geometry and independently verify any official forms/sex differences. The next accepted pass must remove any model-age drift and any visually floating armor/hardware.
+Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the exact current official Charizard geometry and independently verify official forms/sex differences before a new visual review.
 
 ### 0658 Greninja — Shadow Tide
-Normal Greninja and any official alternate geometry must be independently sourced and validated. No battle-form authority is introduced by the cosmetic workflow.
+Current artistic status: `USER REJECTED — REWORK REQUIRED`. Normal Greninja and any official alternate geometry must be independently sourced and validated. No battle-form authority is introduced by the cosmetic workflow.
 
 ### 0359 Absol — Omen Regent
-The historical pass is not accepted as current. Rebuild from the exact current official Absol geometry and eliminate old-model or floating-piece defects before artistic review.
+Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the exact current official Absol geometry before a new visual review.
 
 ### 0248 Tyranitar — Abyssal Bastion
-The historical pass is not accepted as current. Rebuild from the exact current official Tyranitar geometry and redesign the fortress fantasy as connected wearable architecture before artistic review.
+Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the exact current official Tyranitar geometry and redesign the fortress fantasy as premium connected wearable architecture rather than block scaffolding.
 
 ## Required final report for every future slice
 
-Report the Pokemon/concept, official release and hashes, original bones preserved, cosmetic bones/cubes, signature pieces, body/overlay texture details, official animations used, four clickable current Blockbench PNGs, concrete artistic evaluation, validators/tests/build/CI, PR/merge state, sex/form differences and the next slice.
+Report the Pokemon/concept, official release and hashes, original bones preserved, cosmetic bones/cubes, signature pieces, body/overlay texture details, official animations used, four clickable current Blockbench PNGs, concrete internal artistic evaluation, validators/tests/build/CI, PR/merge state, sex/form differences, **owner approval state**, and the next slice.
 
-If a claim was not validated against the official JAR or real Blockbench evidence, do not report it as completed.
+Never report `ART ACCEPTED`, `FULL TRANSFORMATION ACCEPTED`, `EPIC ACCEPTED`, ready-to-merge artistic status, or equivalent without explicit owner approval of the exact current evidence set.
