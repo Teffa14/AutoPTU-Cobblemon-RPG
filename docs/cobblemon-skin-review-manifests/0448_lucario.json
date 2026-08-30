@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v12.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v13.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v12.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v13.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Shoulder-rooted vertical half-cloak using five overlapping rotated surfaces that taper from cap to hip",
-      "Narrow back bridge resolving into unequal separated tails instead of a lateral wing or plate chain",
-      "Open-face cowl and sparse diagonal front sash preserving face, chest spike and biological torso read"
+      "Single torso-rooted shoulder-to-back-to-opposite-hip contour wrap with six unequal compound-rotated sections",
+      "Asymmetric long terminal tail plus short counter-tail separated by deliberate rear negative space",
+      "Open cowl and one diagonal chest tie that leave Lucario's face, chest spike and lower-front anatomy unobstructed"
     ],
-    "macroFormPlan": "V12 rejects V11's technically successful but artistically failed horizontal shoulder slabs. The signature system now travels vertically from the official left shoulder toward the hip in five overlapping surfaces whose width, angle and depth progressively change, creating wrap and taper. A narrow back bridge connects it to two unequal tails. No quality threshold is relaxed.",
-    "paintPlan": "Keep exact official biological normal/shiny bytes. Use the twelve-texel accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the silhouette should read as a one-sided ceremonial half-cloak wrapped around Lucario rather than a rigid wing, backpack, cage or stack of plates. The unchanged technical floors remain 0.0800 pixel difference and 0.0400 silhouette delta.",
+    "macroFormPlan": "V13 removes V12's visible panel ladder and all lower-front plate masses. One connected contour-wrap system now crosses the body diagonally from the left shoulder, turns through the back, hugs the opposite hip and resolves into unequal tails. Each section changes width, depth and compound rotation so the outside edge bends around the anatomy rather than reading as repeated slabs.",
+    "paintPlan": "Keep exact official biological normal/shiny bytes. Use the accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
+    "gameplayReadGoal": "At 160 px the first read should be a single asymmetric ceremonial wrap cutting a strong diagonal silhouette through Lucario, with the chest and legs still clearly biological. The transformation must remain legible without any cage, wing, shorts or stacked-panel read.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V12 follows direct inspection of V11: V11 passed metrics but was ARTISTIC FAIL because the shoulder macro-form read as broad horizontal slabs. Owner approval remains absent."
+    "iterationNote": "V13 follows direct V12 Blockbench rejection. V12 passed engineering floors but remained ARTISTIC FAIL because the half-cloak read as a rectangular panel cascade and the lower-front composition resembled oversized shorts/plates. V13 deliberately reduces cosmetic systems and concentrates authorship into one continuous diagonal macroform. Owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
