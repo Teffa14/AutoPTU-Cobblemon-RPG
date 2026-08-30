@@ -21,6 +21,8 @@ CI must pin the release id, filename and cryptographic hash of the JAR. Each ski
 
 Before a new slice starts, verify the current repository target and verify whether Modrinth has a newer stable Cobblemon release compatible with that target. If the official source has advanced, migrate the source before adding new cosmetic work.
 
+A reference render from the current official model is not sufficient. The production edited model itself must be generated from that same extracted official `.geo.json`. Builders must not silently use a repository-stored legacy body as their editable base.
+
 ## Anatomy preservation
 
 Original anatomy stays intact underneath the skin.
@@ -54,38 +56,42 @@ The required design hierarchy is:
 
 Large external silhouette changes are encouraged when coherent. Armor, mantles, cowls, collars, coats, pauldrons, packs, banners, fins, conductor systems, coils, field equipment, ornaments and similar attached forms may extend well beyond the original outline. The species must remain unmistakable and the biological model must remain intact underneath.
 
-## Full-surface derived texture contract
+The goal is not to maximize the number of accessory cubes. Solve the whole character. Large masses must form an intentional costume/equipment architecture, and smaller details only support that architecture.
 
-The previous "transparent overlay only on a handful of unused texels" rule is no longer the artistic default. It created a systematic incentive to leave the Pokemon visually unchanged and compensate with small attached boxes.
+## Official biological texture preservation
 
-A premium Ouros skin may use a full derived texture based on the exact official Cobblemon texture.
+The exact official Cobblemon normal/shiny biological texture is an immutable baseline for Ouros skins unless a future runtime-specific mechanism is explicitly documented and approved as a separate contract.
 
-The derived texture must:
+For the current pipeline:
 
-- keep the exact official pixel dimensions;
-- keep the official model UV layout unchanged;
-- keep the official texture as a pinned immutable baseline with SHA-256 provenance;
-- record the SHA-256 of the derived texture;
-- intentionally document which occupied body texels were recolored or rematerialized;
-- preserve transparency semantics required by the official model/resolver;
-- preserve sex/form-specific texture behavior when official assets differ;
-- avoid copying third-party skins, texture motifs, logos or protected distinctive designs.
+- do not repaint occupied biological body texels;
+- do not remap original UVs;
+- keep the production body texture byte-identical to the exact official source texture extracted from the pinned JAR;
+- record the official SHA-256 and prove the production body texture has the same SHA-256;
+- use validated transparent/free texels or a separate compatible accessory overlay/atlas region for added geometry;
+- preserve official transparency, sex/form behavior and resolver semantics;
+- do not copy third-party skins, texture motifs, logos or protected distinctive designs.
 
-Recoloring is permitted and expected when it supports the concept. Recoloring alone is never sufficient for a completed epic skin. Geometry, silhouette, layering and material hierarchy must carry the transformation as well.
-
-A separate overlay may still be used for added geometry when appropriate. If so, its UV reservation must remain validated. Added geometry must not silently remap or corrupt original UVs.
+Recoloring the biological body is not a substitute for design. The transformation must come from connected geometry, layering, silhouette, material separation on the added equipment and deliberate composition.
 
 Required texture metadata for new and re-audited skins:
 
 - `officialTextureBaselineSha256`
-- `derivedTextureSha256`
-- `derivedTexture`
-- `bodyTexelRework`
-- `paletteIntent`
-- `materialIntent`
-- any accessory-overlay path and UV reservation, if used
+- production texture SHA-256;
+- `bodyTexelRework: NONE` under this contract;
+- `paletteIntent`;
+- `materialIntent`;
+- accessory overlay path and validated UV reservation when one is used.
 
-`bodyTexelRework` must describe the affected visual regions and purpose. It is not enough to say "recolored".
+## Physical attachment — no floating pieces
+
+A valid bone parent is necessary but does not prove a cosmetic object is physically or visually attached.
+
+Every large cosmetic system must have a deliberate root/contact mass that joins it to the Pokemon or to another already-attached cosmetic mass. A halo, banner, fin, coat panel, pack, mantle, shoulder system or ornament that visibly hovers near the body fails even when its parent is technically valid.
+
+Automated attachment gates must reject missing parents, cycles, cosmetic chains that do not terminate in an official bone, detached groups and isolated cubes. The structural gate is only a first pass. Because pivots, rotations and animation can expose detachment that bind-pose AABBs cannot detect, Blockbench review must also inspect contact in official idle, battle and locomotion states where those states exist.
+
+Do not weaken an attachment threshold merely to make an existing asset pass. Correct the geometry/root instead.
 
 ## Composition reference rule
 
@@ -97,7 +103,7 @@ Do not copy geometry, UVs, texture layouts, logos, motifs, costume patterns or d
 
 Blockbench is the primary independent viewer. Do not use the deprecated project Python renderer as artistic evidence and do not create a replacement homemade renderer.
 
-The exact production `.geo.json`, exact official baseline texture, exact derived texture/overlay and exact official animation file must be loaded through the Blockbench Bedrock workflow.
+The exact production `.geo.json`, exact official baseline body texture, exact accessory overlay and exact official animation file must be loaded through the Blockbench Bedrock workflow.
 
 Every accepted review must include an untouched official reference and the Ouros skin using the same species, camera, projection, scale, pose and animation frame. Auto-fit each model independently is not sufficient evidence because it can hide silhouette scale differences.
 
@@ -107,11 +113,13 @@ Minimum evidence when the official species provides equivalent animations:
 - `hero_three_quarter`
 - `battle_ready_three_quarter`
 - `walking_three_quarter`
-- structural front, left, right and back views when useful
+- structural front, left, right and back views when useful.
 
 If the official species does not ship an equivalent battle/walking clip, record that fact and do not fabricate a pose.
 
-Review metadata must record Cobblemon version, JAR provenance, official model/texture/animation hashes, derived texture hash, Blockbench version/hash, original/derived bone counts, animation name, frame/time and PNG hashes.
+Every work pass must expose four clickable current PNGs. Prefer the four views above. If an official state does not exist, substitute an actual current structural/gameplay-scale Blockbench view and record why.
+
+Review metadata must record Cobblemon version, JAR provenance, official model/texture/animation hashes, production/overlay texture hashes, Blockbench version/hash, original/derived bone counts, animation name, frame/time and PNG hashes.
 
 ## Gameplay-scale gate
 
@@ -124,7 +132,7 @@ A reviewer must be able to answer yes to all of these:
 - Does the first glance change materially from the official Pokemon?
 - Is there a signature silhouette?
 - Are the dominant pieces recognizable as deliberate objects rather than scattered cuboids?
-- Does the palette/material treatment unite the body and equipment?
+- Does the material treatment unite the body and equipment without repainting biological texels?
 - Does the skin look premium from three-quarter view?
 - Is the fantasy understandable without the skin name?
 - Is the Pokemon still clearly the original species?
@@ -134,14 +142,16 @@ If any answer is no, iterate before PR even if automated checks are green.
 
 ## Legacy re-audit
 
-The existing Storm Courier, Aura Sentinel, Rift Warden, Eclipse Herald, Solar Legion, Shadow Tide, Omen Regent and Abyssal Bastion passes remain useful technical baselines for official-source provenance, anatomy preservation and Blockbench/CI infrastructure. Their previous "EPIC ACCEPTED" labels do not automatically satisfy this new art standard.
+The existing Storm Courier, Aura Sentinel, Rift Warden, Eclipse Herald, Solar Legion, Shadow Tide, Omen Regent and Abyssal Bastion passes remain useful technical baselines for provenance and CI infrastructure. Their previous "EPIC ACCEPTED" labels do not automatically satisfy this standard.
 
-They must be re-audited against full-surface transformation, coherent material treatment, connected large forms and gameplay-scale readability. A technically valid legacy skin may remain in the repository while its art status is `RE-AUDIT REQUIRED`.
+Every legacy skin must be re-audited from its exact current official model, with immutable original bones/body texture, connected large forms, no floating pieces and gameplay-scale readability. A technically valid legacy skin may remain in the repository while its art status is `RE-AUDIT REQUIRED`.
 
-Storm Courier is the first reference overhaul because the old direction most clearly exposes the failure mode. Its next accepted version must stop reading as "Pikachu with goggles, straps and a backpack" and instead read as a complete storm-runner/courier transformation. The official male/female Pikachu models remain untouched underneath.
+This re-audit applies equally to legacy Absol, Tyranitar, Charizard and other previously authored species; an old edited model cannot be accepted merely because a new official reference image looks correct.
 
 ## PR and CI acceptance
 
-A skin PR may be marked ready only after artistic review accepts the real Blockbench evidence. Automated checks must still validate the official JAR/source hashes, exact original-bone preservation, sex/forms, texture dimensions and provenance, resolver/poser/animation paths, added `ouros_*` bones, overlay UV reservations when present, Playable Test Build and Integration Core CI.
+A skin PR may be marked ready only after artistic review accepts the real Blockbench evidence from the exact generated PR head. Automated checks must still validate the official JAR/source hashes, exact original-bone preservation, sex/forms, exact official body-texture preservation, resolver/poser/animation paths, added `ouros_*` bones, cosmetic attachment/overlay UV reservations, Playable Test Build and Integration Core CI.
 
-Do not merge with red checks. Do not claim emissive, particles, material hooks or runtime behavior unless the repository contains real, syntax-valid and runtime-validated support for them.
+If a bot regenerates production assets, the subsequent evidence and normal CI must run against that regenerated head. Create a later human-authored head when GitHub's security model marks bot-triggered PR workflows `action_required`.
+
+Do not merge with red or unexecuted required checks. Do not claim emissive, particles, material hooks or runtime behavior unless the repository contains real, syntax-valid and runtime-validated support for them.

@@ -1,0 +1,56 @@
+{
+  "format": "ouros.aura-sentinel-v2-build.v1",
+  "originalBoneCount": 87,
+  "derivedBoneCount": 97,
+  "cosmeticBones": [
+    "ouros_aura_helm_system",
+    "ouros_aura_mantle_shell",
+    "ouros_aura_breastplate",
+    "ouros_aura_shrine_frame",
+    "ouros_aura_left_armguard",
+    "ouros_aura_right_armguard",
+    "ouros_aura_waistcoat",
+    "ouros_aura_relic_fin",
+    "ouros_aura_left_greave",
+    "ouros_aura_right_greave"
+  ],
+  "cosmeticCubeCount": 87,
+  "palettePixels": {
+    "void": [
+      80,
+      63
+    ],
+    "indigo": [
+      81,
+      63
+    ],
+    "cobalt": [
+      82,
+      63
+    ],
+    "silver": [
+      83,
+      63
+    ],
+    "gold": [
+      84,
+      63
+    ],
+    "ivory": [
+      85,
+      63
+    ],
+    "aura": [
+      86,
+      63
+    ],
+    "amethyst": [
+      87,
+      63
+    ]
+  },
+  "normalTextureSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
+  "shinyTextureSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
+  "officialNormalSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
+  "officialShinySha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d"
+}

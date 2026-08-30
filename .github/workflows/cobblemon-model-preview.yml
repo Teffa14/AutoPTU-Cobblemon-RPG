@@ -160,6 +160,9 @@ jobs:
             .preview-input/squashfs-root/AppRun \
             --no-sandbox \
             --disable-gpu-sandbox \
+            --disable-vulkan \
+            --use-angle=swiftshader \
+            --use-gl=angle \
             --remote-debugging-port=9222 \
             --userData "$PWD/.blockbench-user" \
             "$PWD/.preview-input/pikachu_male.geo.json" \

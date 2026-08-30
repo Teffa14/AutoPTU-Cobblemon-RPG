@@ -1,80 +1,185 @@
 # 0448 Lucario — Aura Sentinel
 
-Status: EPIC ACCEPTED; BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Status: FULL TRANSFORMATION ACCEPTED; V4 HUMAN VISUAL QA PASSED; FINAL HUMAN HEAD CI REQUIRED
 
-Aura Sentinel is an Ouros presentation-only cosmetic built around the exact normal Lucario model distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It does not implement or consume Cobblemon battle-state authority.
+Aura Sentinel is an Ouros presentation-only cosmetic derived from the exact Lucario assets distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It never grants Cobblemon or Minecraft battle-state authority. AutoPTU/Ouros remains authoritative for combatants, legality, HP/status, tactical positions, RNG, damage and outcomes.
 
 ## Exact official source
 
 - Cobblemon release: 1.7.3
 - Minecraft target: 1.21.1
 - Modrinth version id: `kF7CvxTo`
-- official model: `assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json`
+- official JAR: `Cobblemon-fabric-1.7.3+1.21.1.jar`
+- JAR SHA-256: `f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3`
+- JAR SHA-512: `7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e`
+- model: `assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json`
 - model SHA-256: `ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9`
 - animation SHA-256: `ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563`
 - poser SHA-256: `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`
 - base resolver SHA-256: `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`
-- normal texture SHA-256: `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
-- shiny texture SHA-256: `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
-- model license file SHA-256: `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`
+- official normal texture SHA-256: `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
+- official shiny texture SHA-256: `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
+- model license SHA-256: `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`
 
-The exact model license text extracted from that JAR is preserved at `official-model-license.txt`. Its terms include attribution and non-commercial restrictions; distribution/use of the adapted model must remain compatible with those terms.
+The exact model license extracted from the pinned official JAR is preserved at `official-model-license.txt`.
+
+## Superseded passes
+
+The original Aura Sentinel accessory-first pass and the later full-body-repaint experiment are engineering history only. They do not define the current accepted asset. V4 was regenerated directly from the exact current official Lucario geometry and restores the strict biological-texture preservation contract.
+
+Any old documentation that described thousands of occupied biological pixels being recolored is superseded by this V4 record.
 
 ## Geometry contract
 
-The official model contains 87 bones. Aura Sentinel preserves those 87 bones JSON-equivalently and in the same order. The generator changes only the geometry identifier and appends eight cosmetic bones, giving 95 total:
+The official Lucario geometry contains 87 bones. Aura Sentinel V4 preserves all 87 original bones JSON-equivalently and in the same order, including names, parents, pivots, rotations, cubes, locators, hierarchy and UV definitions.
 
-- `ouros_aura_crown` → `head_angle`
-- `ouros_aura_pauldron_left` → `shoulder_left`
-- `ouros_aura_pauldron_right` → `shoulder_right`
-- `ouros_aura_core` → `torso3`
-- `ouros_aura_backframe` → `torso3`
-- `ouros_aura_bracer_left` → `arm_left2`
-- `ouros_aura_bracer_right` → `arm_right2`
-- `ouros_aura_waist_mantle` → `torso`
+V4 appends ten cosmetic groups for 97 total bones:
 
-No original head, muzzle, eye, ear, aura-sensor, chest-spike, torso, limb, hand, foot or tail geometry is replaced.
+- `ouros_aura_helm_system`
+- `ouros_aura_mantle_shell`
+- `ouros_aura_breastplate`
+- `ouros_aura_shrine_frame`
+- `ouros_aura_left_armguard`
+- `ouros_aura_right_armguard`
+- `ouros_aura_waistcoat`
+- `ouros_aura_relic_fin`
+- `ouros_aura_left_greave`
+- `ouros_aura_right_greave`
 
-## Epic visual direction
+The V4 candidate contains exactly 87 cosmetic cubes across those ten groups. Cube count is only a validation contract; the artistic objective is connected macro-form, not primitive count.
 
-The fantasy is an aura sentinel / ceremonial field knight rather than Lucario wearing small utility accessories. The signature read comes from an angular temple crown, deliberately asymmetric shoulder armor, an open chest-core frame around the original spike, a rear aura frame, armored bracers and a split ceremonial waist mantle.
+No original head, muzzle, eyes, ears, aura sensors, chest spike, torso, arms, hands, legs, feet or tail are replaced, simplified, remapped or rebuilt.
 
-The materials use obsidian, steel, silver, gold, royal blue, deep cloth, ivory and a translucent aura-cyan accent. The overlay uses only dynamically detected UV-free palette texels from the official 128×64 texture; CI proves those texels do not overlap any original cube UV footprint.
+## Signature design
 
-## Resolver and variants
+The fantasy is a ceremonial aura knight / shrine sentinel.
 
-The resolver keeps the official `cobblemon:lucario` poser and supports normal and shiny base textures. The official JAR exposes one normal Lucario geometry for this resolver; there is no male/female geometry split to duplicate. The Pokédex data also advertises a Mega form, but this cosmetic does not claim to implement or alter Mega Lucario.
+The first-read hierarchy is:
 
-No custom emissive layer or custom particle runtime is claimed by this slice. Cobblemon contains official Lucario aura particle assets, but Aura Sentinel does not bind new particle behavior to them.
+1. a deep open-face helm/cowl with one continuous aura visor;
+2. one broad shoulder mantle and cuirass mass tying the head, chest and back together;
+3. a dominant dorsal shrine/reliquary frame with strong rear depth;
+4. one asymmetric stepped relic wing that materially changes the three-quarter silhouette;
+5. a split lower waistcoat plus articulated leg greaves that carry the transformation through the full body.
 
-## Blockbench evidence
+Arm guards and small accents support these dominant systems rather than becoming the design by themselves.
 
-Visual acceptance uses pinned Blockbench 5.1.6, SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`, loading the exact production `.geo.json`, exact official texture and exact Ouros overlay.
+## Biological texture preservation
 
-Evidence directory: `test-evidence/visual/cobblemon-skins/0448_lucario/aura-sentinel-real-poses/`
+V4 keeps the exact official biological textures byte-for-byte.
 
-Validated states:
-- official reference: `animation.lucario.ground_idle` at 0.35
-- Aura Sentinel hero: `animation.lucario.ground_idle` at 0.35
-- Aura Sentinel battle-ready: `animation.lucario.battle_idle` at 0.35
-- hero front / left / right / back structural views from the same production model
+Normal production texture:
 
-Lucario walking is deliberately not represented by a fabricated Bedrock clip. Its official poser uses `q.biped_walk` plus `q.bimanual_swing` and `ground_idle`, rather than a dedicated `animation.lucario.ground_walk`. The current independent evidence pipeline imports official Bedrock animation clips. It records this limitation instead of inventing manual transforms.
+- `ouros_aura_sentinel.png`
+- SHA-256 `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
+- identical to the pinned official normal texture
+- `bodyTexelRework: NONE`
 
-## Artistic QA
+Shiny production texture:
 
-The first real Blockbench review was accepted artistically. The variant reads as a distinct armored aura sentinel at gameplay distance, especially in three-quarter and battle views. The left/right shoulder treatment and bracers produce useful asymmetry, the chest remains recognizably Lucario, and the original face, ears, sensors, spike and tail remain legible. The tested ground-idle and battle-idle states show no severe cosmetic detachment.
+- `ouros_aura_sentinel_shiny.png`
+- SHA-256 `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
+- identical to the pinned official shiny texture
+- `bodyTexelRework: NONE`
 
-Playable Fabric and Integration Core validation completed successfully before PR #296 merged; Aura Sentinel is fully validated as presentation content.
+Added equipment uses the accessory overlay `ouros_aura_sentinel_accessories.png`:
+
+- overlay SHA-256: `7deb8211b976a7c43970ec78a70ccd41f1af0e575c4aab0d3c08b08c2ec4b43a`
+- dimensions: 128×64
+- non-transparent accessory texels: 8
+- verified reservation: x=80..87, y=63
+- occupied official texel conflicts: 0
+- free-texel overlay gate: PASS
+
+The palette on added equipment is midnight/void, indigo, cobalt, silver, gold, ivory, aura-cyan and amethyst. Original biological UVs and occupied biological pixels are unchanged.
+
+## Resolver and forms
+
+The cosmetic resolver retains the official `cobblemon:lucario` poser and supplies normal/shiny branches for the same V4 model while keeping the exact corresponding official body texture.
+
+Cobblemon 1.7.3 exposes one standard Lucario geometry for this resolver path. There is no male/female model split to duplicate. Mega Lucario is not implemented or modified by this cosmetic.
+
+No custom emissive runtime, particle behavior or battle behavior is claimed by this slice.
+
+## Current real Blockbench evidence
+
+Primary viewer: Blockbench 5.1.6.
+
+Pinned Blockbench SHA-256: `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
+
+Current V4 matched-camera review:
+
+- workflow: `Aura Sentinel V4 Current Official Model Review`
+- run: `33303254385`
+- reviewed human head: `21ab68752caebffb1e79d5f444ed72de0bb9bf36`
+- artifact: `aura-sentinel-v4-current-blockbench-review`
+- artifact id: `9729627010`
+- artifact digest: `sha256:61e2384bedb07478d3db4a3df9b777975f92aeaaa3559e9e087d1c14020bfccf`
+
+The review downloads the exact pinned official JAR, extracts the official Lucario model/animation/poser/resolver/textures, validates the production asset, then loads the exact production `.geo.json` and official animation file in Blockbench through the Bedrock codec. Candidate captures reuse the official-reference camera profile rather than independently auto-fitting the transformed model.
+
+Evidence hashes:
+
+- `official_reference_three_quarter.png`: `e1fcfc4fe881ca8a1ce263bd6c89c572e42741adcbe78202e629559261f1839d`
+- `hero_three_quarter.png`: `94f2c50fef8a005f9ae17e147ef94d6fcf24574920c2b7428a7585249ed23e12`
+- `battle_ready_three_quarter.png`: `6c344867c7fdb3d1f03b1c5ef30bac38c771902aae61a5f5759d82b58d453c2c`
+- `hero_front.png`: `9858fd48e7501bc1c27c40f54e71de2b9c5bcd79b44e4f71f141dd42b5c903da`
+- `hero_left.png`: `4580eadab44797c5b0b1c0429e1d48c4c5960f0794da56753e9d3dd02a1570c9`
+- `hero_right.png`: `f22c241795f7c8ec2b2cbca39ea76eb4365b802ed49934398b626e4eeaff393d`
+- `hero_back.png`: `4fcbbb8dc2fbbc96e226b5627b8905ccfd4359eb2595f1d215d88223504cb4b2`
+- `official_reference_gameplay_160.png`: `717546a43a59baadc539847cc6ea2f83dfb574410f7b788f0f490d93cbb90e00`
+- `hero_gameplay_160.png`: `18c494deaf961de7fd2108ea9c4dce205459aafd3132f5d56a441bb2a60f2162`
+- `battle_ready_gameplay_160.png`: `6c29316c9afbc259e1a80c3a6f6e635eedefcab54f2c46e67b17b79732747520`
+- `shiny_three_quarter.png`: `e56575a128137c9fbf351bf5684382288e5149d37d2b132182c5eeb307756d9c`
+- `shiny_gameplay_160.png`: `e8d8e9e39a81124e5fe07cfecbdf1ed793e9aa796a573c3317fbc0a801164689`
+
+Official animation states used:
+
+- reference/hero: `animation.lucario.ground_idle` at 0.35
+- battle-ready: `animation.lucario.battle_idle` at 0.35
+
+Walking evidence is intentionally omitted. Official Lucario locomotion is procedural `q.biped_walk` plus `q.bimanual_swing`; there is no dedicated Lucario Bedrock walking clip for this independent evidence path. No manual walking pose is fabricated.
+
+## Human artistic QA
+
+The V4 PNG artifact was opened and inspected after the strict texture-preserving production assets were generated.
+
+The three-quarter view no longer reads as ordinary Lucario with small accessories. The connected cowl/visor, broad shoulder/chest armor, shrine back architecture and asymmetric relic wing establish a strong silhouette immediately. The split lower garment and articulated greaves carry the costume through the legs instead of leaving the lower half visually untreated.
+
+The rear view has a dominant shrine/mantle silhouette. Left and right views show real depth rather than flat straps or floating plates. At 160 px gameplay scale the armored shrine-sentinel fantasy still survives, including the cyan/gold equipment hierarchy. Lucario remains clearly identifiable underneath.
+
+The official battle-idle capture keeps the armor coherent without catastrophic detachment or severe obvious clipping. The structural attachment validator also reports PASS for all ten cosmetic groups.
+
+Artistic status: `FULL TRANSFORMATION ACCEPTED` for the reviewed V4 asset set.
+
+## Reviewed-head repository gates
+
+On reviewed human head `21ab68752caebffb1e79d5f444ed72de0bb9bf36`:
+
+- Aura Sentinel V4 Current Official Model Review — PASS, push run `33303254385`
+- Aura Sentinel V4 Current Official Model Review — PASS, PR run `33303256190`
+- Cobblemon Official Model Review — PASS, run `33303256090`
+- Playable Test Build — PASS, run `33303256118`
+- Integration Core CI — PASS, run `33303256095`
+- legacy Aura Sentinel evidence stub — PASS, run `33303256101`
+
+The Integration Core run includes authority tests and boots the production Fabric + Cobblemon dedicated server twice.
+
+This documentation update creates a newer human-authored PR head. The current V4 production model/textures must remain unchanged and all applicable final-head checks must be green before merge.
 
 ## Production files
 
-- `assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json`
-- `assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json`
-- `assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png`
+- `fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json`
+- `fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json`
+- `fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png`
+- `fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png`
+- `fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png`
+- `docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-build-metadata.json`
+- `docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json`
+- `docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json`
 - `data/cobblemon/species_features/ouros_aura_sentinel.json`
 - `data/cobblemon/species_feature_assignments/ouros_lucario_cosmetics.json`
 
 ## Authority boundary
 
-This skin is presentation-only. Model selection, textures, animation presentation and cosmetic attachment may use Cobblemon systems. Ouros/AutoPTU remains authoritative for combatants, legality, HP/status, positions, RNG, damage and tactical outcomes.
+This skin is presentation-only. Cobblemon supplies official model, texture, poser, resolver, animation and rendering surfaces. Ouros/AutoPTU remains authoritative for combatants, legality, HP/status, positions, RNG, damage and tactical outcomes.
