@@ -14,7 +14,7 @@
     "ouros_bastion_gauntlet_right",
     "ouros_bastion_tail_bulwark"
   ],
-  "cosmeticCubeCount": 60,
+  "cosmeticCubeCount": 80,
   "palettePixels": {
     "basalt": [
       0,
@@ -53,5 +53,5 @@
     256,
     256
   ],
-  "artPass": "v1-epic-silhouette"
+  "artPass": "v2-epic-fortress-silhouette"
 }
