@@ -35,6 +35,29 @@ jobs:
             tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py
 
+      - name: Prove production path coverage includes Cobblemon namespace
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          path = Path('tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py')
+          spec = importlib.util.spec_from_file_location('gate', path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec.loader
+          spec.loader.exec_module(module)
+          expected = {
+              'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json': '0094_gengar',
+              'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png': '0094_gengar',
+              'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json': '0448_lucario',
+          }
+          for asset, slug in expected.items():
+              matches = [pattern.match(asset) for pattern in module.PRODUCTION_PATTERNS]
+              found = [match.group('slug') for match in matches if match]
+              assert found == [slug], (asset, found)
+          print('production reference-gate path coverage PASS')
+          PY
+
       - name: Exercise strict custom-geometry skin dossier validator
         run: |
           set -euo pipefail
