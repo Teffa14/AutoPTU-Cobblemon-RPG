@@ -135,7 +135,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-002 | LIVE | `/autoptu trainer` — PR #322 / merge `0a0fe3cc22b3b46a7c350d6b9a7c13ae5f50e442`; authenticated read-only projection from the canonical Trainer aggregate through `CanonicalTrainerSummaryService`. |
 | CMD-003 | LIVE | `/autoptu trainer skills` — PR #323 / merge `8bc5d40ed0ded20066925dddb0153cbb6113af40`; authenticated read-only projection of durable canonical skill IDs/ranks and revision through `CanonicalTrainerSummaryService`. |
 | CMD-004 | LIVE | `/autoptu trainer classes` — PR #324 / merge `2972182fef7325d22bd753cab226dccefd8dd6cf`; authenticated read-only projection of durable canonical Trainer class IDs and revision through `CanonicalTrainerSummaryService`, without local class derivation or PTU rule interpretation. |
-| CMD-005 | TODO | `/autoptu trainer features` |
+| CMD-005 | LIVE | `/autoptu trainer features` — PR #325 / merge `6c56ea2979e323f33196b2f27498764717caa57e`; authenticated read-only projection of durable canonical Trainer Feature IDs and revision through `CanonicalTrainerSummaryService`, without deriving Features from classes, skills, capabilities or local PTU rules. |
 | CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
 | CMD-007 | LIVE | `/autoptu starter choose <species>` — PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d` |
 | CMD-008 | BLOCKED/PARTIAL | `/autoptu trainer actions` — PR #224. Server-owned monotonic RPG day and Daily reservation are live; the final action list is blocked on authoritative PTU action-cost/frequency definitions and must not classify every Feature as Daily. |
