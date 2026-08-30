@@ -1,0 +1,164 @@
+name: Inspect Official Hitmonlee Presentation Source
+
+on:
+  push:
+    branches:
+      - 'art/hitmonlee-cobra-dojo-v1'
+    paths:
+      - '.github/workflows/cobblemon-hitmonlee-source-inspect.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_VERSION: '1.7.3'
+  MINECRAFT_VERSION: '1.21.1'
+  COBBLEMON_FILENAME: 'Cobblemon-fabric-1.7.3+1.21.1.jar'
+  COBBLEMON_JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+  COBBLEMON_JAR_SHA512: '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify pinned release is latest stable compatible Fabric release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .hitmonlee-inspect
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/hitmonlee-source-inspect' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
+            -o .hitmonlee-inspect/version.json
+          python - <<'PY' > .hitmonlee-inspect/project.env
+          import json, os, shlex
+          data=json.load(open('.hitmonlee-inspect/version.json', encoding='utf-8'))
+          assert data['id']==os.environ['COBBLEMON_VERSION_ID']
+          assert data['version_number']==os.environ['COBBLEMON_VERSION']
+          assert os.environ['MINECRAFT_VERSION'] in data['game_versions']
+          assert 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']==os.environ['COBBLEMON_FILENAME']
+          assert primary['hashes']['sha512']==os.environ['COBBLEMON_JAR_SHA512']
+          print('PROJECT_ID='+shlex.quote(data['project_id']))
+          print('JAR_URL='+shlex.quote(primary['url']))
+          PY
+          source .hitmonlee-inspect/project.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/hitmonlee-source-inspect' \
+            "https://api.modrinth.com/v2/project/${PROJECT_ID}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D" \
+            -o .hitmonlee-inspect/compatible.json
+          python - <<'PY'
+          import json, os
+          versions=json.load(open('.hitmonlee-inspect/compatible.json', encoding='utf-8'))
+          stable=[v for v in versions if v.get('version_type')=='release']
+          assert stable, 'no stable compatible release returned by Modrinth'
+          latest=max(stable, key=lambda v:v['date_published'])
+          assert latest['id']==os.environ['COBBLEMON_VERSION_ID'], f"Pinned {os.environ['COBBLEMON_VERSION_ID']} is not latest stable compatible; latest={latest['id']} {latest['version_number']}"
+          print('latest stable compatible:', latest['id'], latest['version_number'], latest['date_published'])
+          PY
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$JAR_URL" -o .hitmonlee-inspect/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" '.hitmonlee-inspect/cobblemon.jar' | sha256sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" '.hitmonlee-inspect/cobblemon.jar' | sha512sum --check --strict
+
+      - name: Extract exact Hitmonlee presentation inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, zipfile
+          from pathlib import Path
+
+          root=Path('.hitmonlee-inspect')
+          extracted=root/'official'
+          extracted.mkdir(parents=True, exist_ok=True)
+          jar=root/'cobblemon.jar'
+          def sha(b): return hashlib.sha256(b).hexdigest()
+
+          report={
+            'format':'ouros.cobblemon-official-species-inspection.v1',
+            'species':'cobblemon:hitmonlee',
+            'nationalDex':106,
+            'minecraftVersion':os.environ['MINECRAFT_VERSION'],
+            'cobblemonVersion':os.environ['COBBLEMON_VERSION'],
+            'modrinthVersionId':os.environ['COBBLEMON_VERSION_ID'],
+            'filename':os.environ['COBBLEMON_FILENAME'],
+            'jarSha256':hashlib.sha256(jar.read_bytes()).hexdigest(),
+            'jarSha512':hashlib.sha512(jar.read_bytes()).hexdigest(),
+            'matches':[], 'models':{}, 'textures':{}, 'animations':{}, 'json':{}
+          }
+          with zipfile.ZipFile(jar) as z:
+            names=z.namelist()
+            candidates=set()
+            for n in names:
+              low=n.lower()
+              if 'hitmonlee' in low or '0106' in low or '/106_' in low or '/106/' in low:
+                candidates.add(n)
+            for n in names:
+              if not n.endswith('.json'): continue
+              try: payload=z.read(n)
+              except KeyError: continue
+              if b'hitmonlee' in payload.lower() or b'cobblemon:hitmonlee' in payload.lower():
+                candidates.add(n)
+            for n in sorted(candidates):
+              if n.endswith('/'):
+                continue
+              payload=z.read(n)
+              info={'path':n,'sha256':sha(payload),'size':len(payload)}
+              report['matches'].append(info)
+              lower=n.lower()
+              if n.endswith('.geo.json'):
+                data=json.loads(payload)
+                geos=data.get('minecraft:geometry',[])
+                if len(geos)==1:
+                  bones=geos[0].get('bones',[])
+                  report['models'][n]={
+                    'sha256':sha(payload),
+                    'identifier':geos[0].get('description',{}).get('identifier'),
+                    'description':geos[0].get('description',{}),
+                    'boneCount':len(bones),
+                    'bones':[{'index':i,'name':b.get('name'),'parent':b.get('parent'),'pivot':b.get('pivot'),'rotation':b.get('rotation'),'cubeCount':len(b.get('cubes',[])),'locators':list((b.get('locators') or {}).keys()) if isinstance(b.get('locators'),dict) else []} for i,b in enumerate(bones)]
+                  }
+              elif n.endswith('.animation.json') or '/animations/' in lower:
+                try: data=json.loads(payload)
+                except Exception: data={}
+                names2=list((data.get('animations') or {}).keys()) if isinstance(data,dict) else []
+                report['animations'][n]={'sha256':sha(payload),'animationNames':names2}
+              elif n.endswith('.png') and '/textures/pokemon/' in lower:
+                report['textures'][n]={'sha256':sha(payload)}
+              elif n.endswith('.json'):
+                try: data=json.loads(payload)
+                except Exception: data=None
+                report['json'][n]={'sha256':sha(payload),'data':data}
+
+              if any(t in lower for t in ('/bedrock/','/textures/pokemon/','/species/','species_feature')):
+                out=extracted/n
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_bytes(payload)
+
+          if not report['models']:
+            raise SystemExit('Hitmonlee official geometry not found in pinned release')
+          if not report['textures']:
+            raise SystemExit('Hitmonlee official Pokemon texture not found in pinned release')
+          (root/'hitmonlee-source-report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+          print(json.dumps({'models':report['models'],'textures':report['textures'],'animations':report['animations'],'jsonPaths':list(report['json'])}, indent=2))
+          PY
+
+      - name: Upload exact official source inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: hitmonlee-official-source-inspection
+          path: |
+            .hitmonlee-inspect/hitmonlee-source-report.json
+            .hitmonlee-inspect/official/
+          if-no-files-found: error
+          retention-days: 14
