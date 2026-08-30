@@ -1,0 +1,11 @@
+{
+  "officialTextureBaselineSha256": "a677824d9be92b46ff6359ce58118e67fce1078632908cfc0ac80816e7c1c065",
+  "derivedTexture": "ouros_cobra_dojo_hitmonlee_shiny.png",
+  "derivedTextureSha256": "b86cc4ec9abeda1edd4deed190fd8e187059c25d14c2a7608ca32fa51ff70ee9",
+  "bodyTexelRework": "The exact official shiny Hitmonlee UV layout is preserved independently. Its green body family is rematerialized into a distinct deep olive-black/charcoal treatment rather than copying the normal texture, while official eye semantics remain intact. The same ten previously transparent, original-model-unused y=63 texels are reserved for Ouros material swatches.",
+  "paletteIntent": "Shiny keeps a colder deep olive-black undertone under the same controlled gold/cream dojo equipment hierarchy so normal and shiny remain visibly distinct without changing geometry.",
+  "materialIntent": "Matte dojo cloth and wraps remain dominant, with lacquered strike guards and restrained metallic-gold edges. Shiny identity is carried by the underlying olive-black material family, not by a cloned normal texture.",
+  "allowAlphaSemanticsChange": true,
+  "alphaSemanticsChangeReason": "Exactly ten free transparent texels on row 63 become material swatches for new ouros_* geometry. The official Hitmonlee bones do not reference those texels; original model UVs remain unchanged.",
+  "reservedMaterialTexels": {"dojo_black":[0,63],"charcoal":[1,63],"charcoal_light":[2,63],"gold":[3,63],"gold_dark":[4,63],"wrap":[5,63],"cream":[6,63],"cobra_green":[7,63],"lacquer":[8,63],"shadow":[9,63]}
+}

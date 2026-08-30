@@ -1,0 +1,11 @@
+{
+  "officialTextureBaselineSha256": "cbf05271a594e788e7173fd3e34ee32b35488781dd97b7e100455fe57d919574",
+  "derivedTexture": "ouros_cobra_dojo_hitmonlee.png",
+  "derivedTextureSha256": "64d2ec2a641e57862b12259bc18d75dff9053cefdaaae1981f9d27b7ac2f6c99",
+  "bodyTexelRework": "The exact official Hitmonlee UV layout is preserved. Occupied warm body texels are rematerialized into warm-black and charcoal dojo fabric/skin shading while the official eye whites and dark eye marks remain intact. Official cream/yellow highlight families become controlled gold hierarchy. Ten previously transparent, original-model-unused texels at y=63 are reserved as 1x1 material swatches exclusively for appended Ouros geometry.",
+  "paletteIntent": "Predominantly dojo black and charcoal with readable gold edging, restrained cream, a small lacquer-brown accent, and one muted cobra-green clasp. No third-party logo, text, dojo insignia, or copied costume pattern is used.",
+  "materialIntent": "Matte heavy gi cloth and wraps contrast with lacquered guards and restrained metallic-gold edge hardware. Large connected masses carry the transformation before small detail.",
+  "allowAlphaSemanticsChange": true,
+  "alphaSemanticsChangeReason": "Exactly ten free transparent texels on row 63 become material swatches for new ouros_* geometry. The official Hitmonlee bones do not reference those texels; original model UVs remain unchanged.",
+  "reservedMaterialTexels": {"dojo_black":[0,63],"charcoal":[1,63],"charcoal_light":[2,63],"gold":[3,63],"gold_dark":[4,63],"wrap":[5,63],"cream":[6,63],"cobra_green":[7,63],"lacquer":[8,63],"shadow":[9,63]}
+}
