@@ -1,0 +1,76 @@
+name: Discover Public Gengar CC0 Reference Assets
+
+on:
+  push:
+    branches:
+      - 'art/gengar-overtime-reference-inspection'
+    paths:
+      - '.github/workflows/cobblemon-gengar-meshy-reference-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - slug: mars-attack
+            id: 019d9f8c-4884-7c4b-97d9-e42baa48df79
+          - slug: gumball-machine
+            id: 0199e7ee-f19d-7a8e-83c7-5b32f8b24b92
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch public Meshy community page
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .external/${{ matrix.slug }}
+          curl --fail --silent --show-error --location --retry 3 \
+            -A 'Mozilla/5.0 Ouros-Reference-Research' \
+            "https://www.meshy.ai/3d-models/${{ matrix.id }}" \
+            -o .external/${{ matrix.slug }}/page.html
+          wc -c .external/${{ matrix.slug }}/page.html
+
+      - name: Extract public asset and API candidates from page source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import html,json,re,urllib.parse
+          from pathlib import Path
+          slug='${{ matrix.slug }}'
+          model_id='${{ matrix.id }}'
+          text=Path(f'.external/{slug}/page.html').read_text(encoding='utf-8',errors='replace')
+          decoded=html.unescape(text).replace('\\u0026','&').replace('\\/','/')
+          patterns=[
+            r'https?://[^"\'<>\\ ]+',
+            r'/(?:api|trpc|graphql)/[^"\'<>\\ ]+',
+          ]
+          values=set()
+          for pattern in patterns:
+            for value in re.findall(pattern,decoded):
+              value=urllib.parse.unquote(value).rstrip('),;]')
+              low=value.lower()
+              if any(token in low for token in ('meshy','assets.','model','glb','fbx','obj','download','api','task')):
+                values.add(value)
+          selected=sorted(values)
+          Path(f'.external/{slug}/url-candidates.json').write_text(json.dumps(selected,indent=2)+'\n')
+          print('model id',model_id,'candidate count',len(selected))
+          for value in selected[:200]: print(value)
+          for token in ('model_urls','model_url','download','assets.meshy.ai','.glb','.obj','.fbx',model_id):
+            print('TOKEN',token,'COUNT',decoded.lower().count(token.lower()))
+          PY
+
+      - name: Upload discovery evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gengar-${{ matrix.slug }}-public-asset-discovery
+          path: |
+            .external/${{ matrix.slug }}/url-candidates.json
+          if-no-files-found: error
+          retention-days: 14
