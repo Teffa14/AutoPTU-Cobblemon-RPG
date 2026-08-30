@@ -8,6 +8,11 @@ on:
       - '.github/workflows/cobblemon-lucario-reference-audit.yml'
       - 'tools/cobblemon-model-review/audit_reference_package.py'
       - 'docs/cobblemon-skin-reference-dossiers/0448_lucario.json'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-lucario-reference-audit.yml'
+      - 'tools/cobblemon-model-review/audit_reference_package.py'
+      - 'docs/cobblemon-skin-reference-dossiers/0448_lucario.json'
   workflow_dispatch:
 
 permissions:
