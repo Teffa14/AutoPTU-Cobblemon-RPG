@@ -202,12 +202,12 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 
 | ID | Status | Command/service |
 |---|---|---|
-| CMD-120 | TODO | `/autoptu encounter status` |
-| CMD-121 | TODO | `/autoptu battle status` |
+| CMD-120 | LIVE | `/autoptu encounter status` — PR #357 / merge `adb0b72e9a3ebdb44553be495b667046dc31a9a7`; projects only the authenticated player's server-owned persistent encounter profile/readiness inputs and leaves reservation/start legality unavailable when no authoritative boundary exists. |
+| CMD-121 | LIVE | `/autoptu battle status` — PR #359 / merge `20813de74f1d2415b522fdcc2a7836ca18408515`; projects only the server-bound actor plus a fresh authoritative legal-choice count when available, without inferring turn, HP, faint or result. |
 | CMD-122 | LIVE | `/autoptu battle choices` — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; reads a fresh authoritative action space for the server-bound battle actor. |
 | CMD-123 | LIVE | `/autoptu battle choose <choiceId>` — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; re-fetches legal choices and executes only the exact still-present authoritative stable key. |
 | CMD-124 | BLOCKED | `/autoptu battle forfeit` until upstream owns/validates the outcome |
-| CMD-125 | TODO | `/autoptu battle spectate <battleId>` |
+| CMD-125 | LIVE | `/autoptu battle spectate <battleId>` — PR #362 / merge `fc5c5f028c7f1c532dcc18a83ec462ad5cd86a1c`; participants receive an opaque server-generated spectate ID, authenticated spectators can attach only while that server-owned session remains active, receive read-only status/HUD projection, and never enter the participant binding used by battle choices or execution. |
 | CMD-126 | DEV_ONLY | Current `/autoptu testbattle ...`; later move to `/autoptu admin battle demo ...` |
 
 ---
@@ -281,7 +281,7 @@ These should become the normal gameplay path.
 | BUI-011 | TODO | Faint/KO presentation. |
 | BUI-012 | TODO | Winner/loser/result screen. |
 | BUI-013 | TODO | Post-battle result/reward screen. |
-| BUI-014 | TODO | Spectator mode. |
+| BUI-014 | LIVE/PARTIAL | Spectator mode — PR #362 / merge `fc5c5f028c7f1c532dcc18a83ec462ad5cd86a1c` adds server-generated opaque battle IDs, authenticated read-only attachment and a spectator HUD/status projection. Full semantic playback fan-out/camera remains follow-up presentation work. |
 | BUI-015 | TODO | Semantic battle trace/replay evidence. |
 | BUI-016 | TODO | Battle soft-lock detection and safe-checkpoint recovery. |
 
@@ -304,7 +304,7 @@ These should become the normal gameplay path.
 | RPG-011 | TODO | Trainer records: wins/losses/badges/tournaments. |
 | RPG-012 | TODO | World story flags and choice consequences. |
 | RPG-013 | TODO | Mail/message system with idempotent rewards. |
-| RPG-014 | LIVE | Calendar/world-time hooks for events. PR #224 supplies the durable monotonic RPG day. PR #239 / implementation commit `7b888c957f1e4457dd3c0c5d86286879afde27ad` projects that day into server-authored Ouros year/season/week/day coordinates, publishes stable authored world-event keys, announces forward day transitions/events in Minecraft, and exposes `/autoptu calendar` as a fallback view. Calendar hooks grant no PTU frequency, Feature cost, battle legality, RNG, or outcomes. |
+| RPG-014 | LIVE | Calendar/world-time hooks for events. PR #224 supplies the durable monotonic RPG day. PR #239 / implementation commit `7b888c957f1e4457dd3c0c5d86286879afde27ad`. Players can inspect the current durable calendar with `/autoptu calendar`; online players receive server-authored day-transition/event announcements. Stable event keys are world hooks only and carry no PTU rules or rewards by themselves. |
 | RPG-015 | BLOCKED/PARTIAL | Trainer PTU world-action usage ledger. PR #224 persists per-Trainer/per-action Daily usage and exposes a server-only atomic reservation boundary. Concrete Standard/Swift/etc action costs and Daily/Scene/Encounter policy remain blocked on authoritative PTU definitions; Minecraft must not synthesize them. |
 
 ---
