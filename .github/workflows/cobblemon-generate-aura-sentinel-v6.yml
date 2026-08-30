@@ -1,0 +1,79 @@
+name: Generate Aura Sentinel V6 Platework
+
+on:
+  push:
+    branches: ['art/lucario-aura-sentinel-v5-authored-shapes']
+    paths:
+      - '.github/workflows/cobblemon-generate-aura-sentinel-v6.yml'
+      - 'tools/cobblemon-model-review/build_aura_sentinel_v6_platework.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aura-sentinel-v6-generate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  JAR_SHA256: f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3
+  MODEL_SHA256: ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9
+  NORMAL_SHA256: 98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a
+  SHINY_SHA256: b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Extract pinned official Lucario
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source
+          curl --fail --silent --show-error --location --retry 4 "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          python - <<'PY' > .official-source/url
+          import json
+          d=json.load(open('.official-source/version.json'))
+          assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and 'fabric' in d['loaders'] and '1.21.1' in d['game_versions']
+          print(next(f for f in d['files'] if f.get('primary'))['url'])
+          PY
+          curl --fail --silent --show-error --location --retry 4 "$(cat .official-source/url)" -o .official-source/cobblemon.jar
+          test "$(sha256sum .official-source/cobblemon.jar | cut -d' ' -f1)" = "$JAR_SHA256"
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json' > .official-source/lucario.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0448_lucario/lucario.png' > .official-source/lucario.png
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0448_lucario/lucario_shiny.png' > .official-source/lucario_shiny.png
+          test "$(sha256sum .official-source/lucario.geo.json | cut -d' ' -f1)" = "$MODEL_SHA256"
+          test "$(sha256sum .official-source/lucario.png | cut -d' ' -f1)" = "$NORMAL_SHA256"
+          test "$(sha256sum .official-source/lucario_shiny.png | cut -d' ' -f1)" = "$SHINY_SHA256"
+      - name: Generate and validate V6
+        shell: bash
+        run: |
+          set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+          normal='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png'
+          shiny='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png'
+          overlay='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png'
+          python tools/cobblemon-model-review/build_aura_sentinel_v6_platework.py --official .official-source/lucario.geo.json --official-normal .official-source/lucario.png --official-shiny .official-source/lucario_shiny.png --model-out "$model" --normal-out "$normal" --shiny-out "$shiny" --overlay-out "$overlay" --normal-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json --shiny-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json --build-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-build-metadata.json
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/lucario.geo.json --candidate "$model"
+          python tools/cobblemon-model-review/validate_preserved_texture.py --official .official-source/lucario.png --candidate "$normal" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json --expected-official-sha256 "$NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_preserved_texture.py --official .official-source/lucario_shiny.png --candidate "$shiny" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json --expected-official-sha256 "$SHINY_SHA256"
+          python tools/cobblemon-model-review/validate_accessory_overlay.py --official .official-source/lucario.png --overlay "$overlay" --expected-official-sha256 "$NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_cosmetic_attachment.py --official .official-source/lucario.geo.json --candidate "$model" --anchor-gap 1.50 --piece-gap 1.00
+      - name: Commit V6 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel*.png docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-*.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'art: generate Aura Sentinel V6 platework assets'
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
