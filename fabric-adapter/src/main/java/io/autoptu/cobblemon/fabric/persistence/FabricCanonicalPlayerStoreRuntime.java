@@ -9,6 +9,7 @@ import io.autoptu.cobblemon.authority.CanonicalShopSellCatalogue;
 import io.autoptu.cobblemon.authority.FileCanonicalItemReservationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalItemStorageRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalItemStorageTransferRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalLocationDiscoveryRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPlayerEncounterProfileRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalPokemonStorageRepository;
@@ -18,6 +19,7 @@ import io.autoptu.cobblemon.authority.FileCanonicalShopPurchaseRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopSaleRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWalletRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalWorldEventObjectRepository;
 import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepository;
 import io.autoptu.cobblemon.authority.FileFieldCampSetupAttemptRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
@@ -47,6 +49,8 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalItemStorageTransferRepository itemStorageTransfers,
             FileCanonicalWalletRepository wallets,
             FileCanonicalQuestJournalRepository questJournals,
+            FileCanonicalLocationDiscoveryRepository locationDiscoveries,
+            FileCanonicalWorldEventObjectRepository worldEventObjects,
             FileCanonicalShopStockRepository shopStock,
             FileCanonicalShopPurchaseRepository shopPurchases,
             FileCanonicalShopSaleRepository shopSales,
@@ -78,6 +82,8 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileCanonicalItemStorageTransferRepository requireItemStorageTransferRepository(MinecraftServer server) { return requireStores(server).itemStorageTransfers(); }
     public static FileCanonicalWalletRepository requireWalletRepository(MinecraftServer server) { return requireStores(server).wallets(); }
     public static FileCanonicalQuestJournalRepository requireQuestJournalRepository(MinecraftServer server) { return requireStores(server).questJournals(); }
+    public static FileCanonicalLocationDiscoveryRepository requireLocationDiscoveryRepository(MinecraftServer server) { return requireStores(server).locationDiscoveries(); }
+    public static FileCanonicalWorldEventObjectRepository requireWorldEventObjectRepository(MinecraftServer server) { return requireStores(server).worldEventObjects(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
     public static FileCanonicalShopPurchaseRepository requireShopPurchaseRepository(MinecraftServer server) { return requireStores(server).shopPurchases(); }
     public static FileCanonicalShopSaleRepository requireShopSaleRepository(MinecraftServer server) { return requireStores(server).shopSales(); }
@@ -117,12 +123,14 @@ public final class FabricCanonicalPlayerStoreRuntime {
         FileCanonicalItemStorageTransferRepository itemStorageTransfers = new FileCanonicalItemStorageTransferRepository(root);
         FileCanonicalWalletRepository wallets = new FileCanonicalWalletRepository(root);
         FileCanonicalQuestJournalRepository questJournals = new FileCanonicalQuestJournalRepository(root);
+        FileCanonicalLocationDiscoveryRepository locationDiscoveries = new FileCanonicalLocationDiscoveryRepository(root);
+        FileCanonicalWorldEventObjectRepository worldEventObjects = new FileCanonicalWorldEventObjectRepository(root);
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
         FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
         FileCanonicalShopSaleRepository shopSales = new FileCanonicalShopSaleRepository(root);
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root), encounterProfiles, pokemon, pokemonStorage, pokemonTransfers,
-                assets, itemStorage, itemStorageTransfers, wallets, questJournals, shopStock, shopPurchases, shopSales,
+                assets, itemStorage, itemStorageTransfers, wallets, questJournals, locationDiscoveries, worldEventObjects, shopStock, shopPurchases, shopSales,
                 new FileWorldTaskCraftAttemptRepository(root), new FileCraftIngredientDepositHandoffRepository(root),
                 new FileFieldCampSetupAttemptRepository(root), new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
                 new WorldScopedWildEncounterCorrelationRegistry());

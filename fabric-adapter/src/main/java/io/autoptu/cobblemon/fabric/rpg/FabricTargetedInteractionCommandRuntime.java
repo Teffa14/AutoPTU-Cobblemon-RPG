@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalWorldEventObjectService;
 import io.autoptu.cobblemon.authority.CanonicalWorldInteractionService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -12,20 +13,11 @@ import net.minecraft.util.hit.BlockHitResult;
 
 import java.util.Optional;
 
-/**
- * Server-authoritative fallback for the registered Ouros world object currently targeted by a player.
- *
- * <p>The command accepts no object id, position, kind or outcome from the client. The server raycasts
- * from the authenticated player, resolves the authored binding from the observed block, revalidates
- * the canonical Trainer and delegates permission to the same {@link CanonicalWorldInteractionService}
- * used by normal block interaction. Minecraft-native chest/switch/door behavior remains native; this
- * fallback reports authorization instead of fabricating a synthetic vanilla use action.
- */
+/** Server-authoritative fallback for the registered Ouros world object currently targeted by a player. */
 public final class FabricTargetedInteractionCommandRuntime {
     private static final double MAX_TARGET_DISTANCE = 5.0D;
     private static final double MAX_DISTANCE_SQUARED = 25.0D;
-    private static final CanonicalWorldInteractionService SERVICE =
-            new CanonicalWorldInteractionService(MAX_DISTANCE_SQUARED);
+    private static final CanonicalWorldInteractionService SERVICE = new CanonicalWorldInteractionService(MAX_DISTANCE_SQUARED);
 
     private FabricTargetedInteractionCommandRuntime() {}
 
@@ -85,7 +77,18 @@ public final class FabricTargetedInteractionCommandRuntime {
             return 1;
         }
         if (object.kind() == CanonicalWorldInteractionService.Kind.SHRINE) {
-            player.sendMessage(Text.literal("The Ouros shrine recognizes your Trainer profile."), false);
+            var eventService = new CanonicalWorldEventObjectService(
+                    FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
+                    FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(player.getServer())
+            );
+            var event = eventService.activateShrine(playerId, object.objectId());
+            if (!event.allowed()) {
+                player.sendMessage(Text.literal("Ouros shrine denied: " + event.detail()), true);
+                return 0;
+            }
+            player.sendMessage(Text.literal(event.newlyActivated()
+                    ? "The Ouros shrine awakens. Its world state is now persistent."
+                    : "The Ouros shrine is already awake."), false);
             return 1;
         }
 
