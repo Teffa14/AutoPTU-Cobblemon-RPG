@@ -1,0 +1,120 @@
+{
+  "format": "ouros.cobblemon-species-reference-dossier.v1",
+  "species": "gengar",
+  "nationalDex": 94,
+  "researchDate": "2026-08-30",
+  "status": "REFERENCE BLOCKED",
+  "notes": "Current Gengar production rework is blocked until actual model/texture files from at least three of these external implementations are inspected and hashed. Public project pages confirm the variants exist, but screenshots/changelogs do not satisfy the new gate.",
+  "references": [
+    {
+      "referenceId": "cobbleverse-1.2.2-gengar-animated",
+      "species": "gengar",
+      "project": "COBBLEVERSE - Pokemon Adventure",
+      "sourceUrl": "https://modrinth.com/modpack/cobbleverse/version/1.2.2",
+      "sourceVersion": "1.2.2",
+      "implementationName": "Gengar animated model",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "licenseStatus": "ARR",
+      "license": {
+        "name": "All Rights Reserved",
+        "sourceUrl": "https://modrinth.com/modpack/cobbleverse",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none for study-only; do not redistribute asset bytes",
+      "techniqueLessons": [
+        "PENDING actual asset inspection: study how the animated Gengar distributes silhouette changes across the body.",
+        "PENDING actual asset inspection: inspect parent/pivot choices that keep the model coherent in animation.",
+        "PENDING actual asset inspection: inspect texture/material hierarchy and gameplay-scale readability."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "Exact Cobbleverse Gengar geometry, silhouette, UVs, textures, animation expression and any distinctive markings."
+      ]
+    },
+    {
+      "referenceId": "cobble-remodels-v4-gengar",
+      "species": "gengar",
+      "project": "Cobble-Remodels",
+      "sourceUrl": "https://modrinth.com/datapack/cobble-remodels/version/4.0",
+      "sourceVersion": "4.0",
+      "implementationName": "Gengar moderate remodel with texture fixes",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "licenseStatus": "ARR",
+      "license": {
+        "name": "All Rights Reserved",
+        "sourceUrl": "https://modrinth.com/datapack/cobble-remodels",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none for study-only; do not redistribute asset bytes",
+      "techniqueLessons": [
+        "PENDING actual asset inspection: compare its moderate anatomy/silhouette edits against official Gengar to see where small geometric changes create a stronger read.",
+        "PENDING actual asset inspection: inspect model-to-texture alignment because v4 explicitly fixed Gengar texture errors.",
+        "PENDING actual asset inspection: inspect animation/quirk integration and how expression is supported without turning the model into a box scaffold."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "Exact remodel geometry, facial proportions, Mega Gengar design, laugh-quirk expression assets, UV layout and texture treatment."
+      ]
+    },
+    {
+      "referenceId": "cobblemon-delta-ultra-gengar",
+      "species": "gengar",
+      "project": "Cobblemon Delta",
+      "sourceUrl": "https://wiki.cobblemondelta.com/ultraspace",
+      "sourceVersion": "2.1.x / current public Ultra Space implementation",
+      "implementationName": "Ultra Gengar",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "licenseStatus": "ARR",
+      "license": {
+        "name": "All Rights Reserved",
+        "sourceUrl": "https://modrinth.com/modpack/cobblemondelta",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none for study-only; do not redistribute asset bytes",
+      "techniqueLessons": [
+        "PENDING actual asset inspection: inspect how an alternate Gengar identity is communicated while the species remains instantly recognizable.",
+        "PENDING actual asset inspection: inspect full-surface palette/material changes and how values remain readable in a dark Ultra Space environment.",
+        "PENDING actual asset inspection: inspect whether geometry or texture carries the variant and how detail is distributed at gameplay scale."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "Exact Ultra Gengar palette, markings, motifs, geometry, texture layout and Delta-specific variant identity."
+      ]
+    },
+    {
+      "referenceId": "better-shiny-mon-gengar",
+      "species": "gengar",
+      "project": "Cobblemon Better Shiny Mon",
+      "sourceUrl": "https://modrinth.com/resourcepack/cobblemon-better-shiny-mon",
+      "sourceVersion": "1.0.7+ / current Gengar shiny implementation",
+      "implementationName": "Hand-crafted Gengar shiny redesign",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "licenseStatus": "CUSTOM_LICENSE_UNVERIFIED_FOR_DERIVATIVES",
+      "license": {
+        "name": "Cobblemon Better Shiny Mon License / custom license",
+        "sourceUrl": "https://modrinth.com/resourcepack/cobblemon-better-shiny-mon",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none for study-only; derivative reuse requires a separate explicit license review",
+      "techniqueLessons": [
+        "PENDING actual asset inspection: inspect value-ramp and hue choices that make the Gengar shiny look intentional instead of a flat palette swap.",
+        "PENDING actual asset inspection: inspect edge accents, face contrast and material breakup on the official UV layout.",
+        "PENDING actual asset inspection: inspect which biological regions are repainted and which landmarks are preserved for species recognition."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "Exact shiny palette, markings, pixel clusters, gradients, highlights and any distinctive texture motif."
+      ]
+    }
+  ],
+  "minimumCompleteReferencesRequired": 3,
+  "productionModelingGate": "BLOCKED_UNTIL_VALIDATOR_PASS"
+}

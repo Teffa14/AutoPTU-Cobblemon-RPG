@@ -24,6 +24,33 @@ Once a species becomes the active artistic slice, continue that exact model unti
 
 Do not skip a rejected model to accumulate more superficially finished skins.
 
+## Mandatory three-reference species gate — no modeling before research
+
+Before creating, regenerating or materially reworking any production skin for a Pokemon, the workflow must inspect **at least three already-made external skins/models for that exact species**. This is a hard pre-modeling gate, not an optional inspiration step.
+
+A valid reference dossier must exist under `docs/cobblemon-skin-reference-dossiers/` and pass `tools/cobblemon-model-review/validate_species_reference_dossier.py` before production geometry work begins.
+
+Each of the three or more references must:
+- depict or implement the same Pokemon species being modeled;
+- come from a real external Cobblemon pack/modpack/resource pack/server pack or equivalent community implementation;
+- be a distinct skin/model implementation, not three screenshots or three versions of the same unchanged asset;
+- be studied from the actual model/texture/resource files when those files are publicly and lawfully accessible, not only from marketing screenshots;
+- record project/source URL, version when known, asset type, license/provenance status and inspection status;
+- identify concrete reusable *techniques* such as contour/wrap, taper, overlap, silhouette distribution, bone grouping, material breakup, painted depth, edge treatment, asymmetry, negative space, animation-safe attachment or full-body detail distribution;
+- identify distinctive geometry, markings, motifs, logos, palettes or costume shapes that must **not** be copied.
+
+The dossier must contain at least three references with `assetInspectionStatus: COMPLETE` before a builder may generate production geometry. If fewer than three real assets can be inspected, the species is `REFERENCE BLOCKED` and modeling stops until the gate can be satisfied.
+
+Internet research is mandatory. Search broadly rather than relying on the same two packs for every species. Prefer current, high-quality community examples and inspect multiple independent projects when available.
+
+### External derivative-base use
+
+Third-party assets may be modified or used as a derivative starting point **only when their explicit license grants the required derivative and redistribution rights** and the intended use is compatible with those terms. Record the license, attribution requirements, source version and exact asset provenance before any derivative use.
+
+`ARR`, no-license, unknown-license and licenses that do not clearly permit derivatives/redistribution are **study-only**. They may inform general technique but their geometry, UVs, textures, palettes, markings, motifs and distinctive silhouettes must not be copied into Ouros production.
+
+Even when an external model is permissively licensed, the current official Cobblemon model remains the authoritative biological/anatomical baseline for the species. A licensed external asset can be used as a donor/reference for cosmetic construction or technique, but the final Ouros production model must still preserve the exact current official Cobblemon original bones, hierarchy, pivots, cubes, locators and UV definitions required by this contract.
+
 ## Official source or reject
 
 For a Pokemon that exists in Cobblemon, start from the exact model shipped in the latest stable Cobblemon release compatible with the repository target.
@@ -134,7 +161,7 @@ The technique-study rules are documented in `docs/cobblemon-skin-technique-libra
 Important:
 - Do not copy or redistribute third-party model or texture files unless an explicit license permits it.
 - Do not copy geometry, UVs, texture layouts, palettes, logos, markings, costume motifs or distinctive silhouettes.
-- Reimplement only generic techniques in original Ouros assets.
+- Reimplement only generic techniques in original Ouros assets unless a compatible license explicitly allows derivative use.
 
 Cobbleverse and Cobblemon Delta are explicitly **study-only** references under the current audit. Their assets are not production sources.
 
@@ -212,6 +239,7 @@ A skin PR may exist as WIP for engineering validation.
 
 Before merge as accepted production art, require:
 - owner approval of the exact current Blockbench evidence;
+- passing three-reference species dossier gate;
 - official JAR/source hash validation;
 - original-bone equality;
 - correct sex/forms;
@@ -230,6 +258,8 @@ Do not merge with red/unexecuted required checks. Do not merge art solely becaus
 
 Every skin pass reports:
 - species/concept;
+- the three or more same-species external references actually inspected and the concrete techniques learned from each;
+- license/reuse status for every external reference;
 - exact official release/source hashes;
 - original/derived bone counts;
 - cosmetic groups;
@@ -238,7 +268,7 @@ Every skin pass reports:
 - official animations used;
 - four current clickable Blockbench PNGs;
 - concrete artistic evaluation;
-- status (`ARTISTIC FAIL`, `USER REJECTED — REWORK REQUIRED`, `OWNER REVIEW REQUIRED`, or owner-approved state);
+- status (`REFERENCE BLOCKED`, `ARTISTIC FAIL`, `USER REJECTED — REWORK REQUIRED`, `OWNER REVIEW REQUIRED`, or owner-approved state);
 - validators/tests/build/CI;
 - branch/PR/merge state;
 - sex/forms;
