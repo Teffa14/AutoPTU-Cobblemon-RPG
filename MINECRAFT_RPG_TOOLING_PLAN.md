@@ -134,7 +134,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-001 | LIVE | `/autoptu status` — verified on main `843e71a1fb6e9bc6cd1272342432cff7804d8dbe` |
 | CMD-002 | LIVE | `/autoptu trainer` — PR #322 / merge `0a0fe3cc22b3b46a7c350d6b9a7c13ae5f50e442`; authenticated read-only projection from the canonical Trainer aggregate through `CanonicalTrainerSummaryService`. |
 | CMD-003 | LIVE | `/autoptu trainer skills` — PR #323 / merge `8bc5d40ed0ded20066925dddb0153cbb6113af40`; authenticated read-only projection of durable canonical skill IDs/ranks and revision through `CanonicalTrainerSummaryService`. |
-| CMD-004 | TODO | `/autoptu trainer classes` |
+| CMD-004 | LIVE | `/autoptu trainer classes` — PR #324 / merge `2972182fef7325d22bd753cab226dccefd8dd6cf`; authenticated read-only projection of durable canonical Trainer class IDs and revision through `CanonicalTrainerSummaryService`, without local class derivation or PTU rule interpretation. |
 | CMD-005 | TODO | `/autoptu trainer features` |
 | CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
 | CMD-007 | LIVE | `/autoptu starter choose <species>` — PR #203 / `fb74ac9470ceaf25c13ab02337038ef3b75e2b3d` |
