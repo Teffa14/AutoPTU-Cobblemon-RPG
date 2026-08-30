@@ -12,7 +12,7 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Fallback read surface for persistent server-owned Pokemon care state. */
+/** `/autoptu care status` fallback projection of persistent server-owned Pokemon care state. */
 public final class FabricCareStatusRuntime {
     private FabricCareStatusRuntime() {}
 
