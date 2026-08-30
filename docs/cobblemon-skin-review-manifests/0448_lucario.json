@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v9.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v10.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v9.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v10.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Single seven-stage shoulder-rooted resonance haori with broad outer crescent and continuous taper",
-      "Open diagonal lapel/sash that visually ties the haori into the torso while preserving the chest spike",
-      "Subordinate articulation-safe arm, shin and tail accents"
+      "Back-weighted shoulder mantle with one broad upper mass and two long asymmetrical tails separated by negative space",
+      "Compact open-face resonance cowl preserving eyes, muzzle, ears and aura sensors",
+      "Minimal diagonal lapel plus articulation-safe arm, shin and tail accents"
     ],
-    "macroFormPlan": "V9 keeps V8's clean biological front but widens the signature into one connected shoulder-rooted haori. Seven deeply overlapping thin stages turn progressively outward/back, grow into a broad middle crescent, then taper to one terminal point. No skirt, shorts, cage, backpack, repeated bar or armor-shell system is introduced.",
-    "paintPlan": "Keep exact official biological normal/shiny bytes. Use the V6 twelve-texel accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px Lucario must read with one unmistakable asymmetric haori crescent from shoulder through hip, while the face, chest spike, limbs and tail remain species-clear. The matched-camera pixel floor stays at 0.0800 and must be exceeded by authored silhouette rather than threshold relaxation.",
+    "macroFormPlan": "V10 rejects V9's lateral tile-chain read. The signature mass now sits behind the anatomy: a broad shoulder yoke flows into two overlapping back planes, then splits into two long asymmetrical tails with a clear centre gap. The head gains a compact open-face cowl; the front keeps only a diagonal lapel and obi. No skirt, shorts, cage, backpack, repeated bar or armor-shell system is introduced.",
+    "paintPlan": "Keep exact official biological normal/shiny bytes. Use the twelve-texel accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
+    "gameplayReadGoal": "At 160 px Lucario must read as a ceremonial ronin with one continuous rear mantle and open-face cowl, not as Lucario with a stack of side plates. The technical floors remain 0.0800 pixel difference and 0.0400 silhouette delta and may not be relaxed.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V9 production bytes were deterministically materialized on the active PR branch before this human review head; no artistic approval is implied."
+    "iterationNote": "V10 follows a direct internal rejection of V9's plate-chain silhouette; owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
