@@ -12,8 +12,10 @@ Current repository target:
 - Cobblemon 1.7.3 Fabric
 - official Modrinth version id `kF7CvxTo`
 - official file `Cobblemon-fabric-1.7.3+1.21.1.jar`
+- official JAR SHA-256 `f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3`
+- official JAR SHA-512 `7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e`
 
-The compatible stable release must be checked again before every skin slice. At adoption of the full-transformation standard on 2026-08-30, the official Modrinth 1.21.1/Fabric listing still resolves to Cobblemon 1.7.3.
+The compatible stable release must be checked again before every skin slice. The source check for the Aura Sentinel v2 slice on 2026-08-30 still resolved the compatible Minecraft 1.21.1/Fabric target to Cobblemon 1.7.3.
 
 For a Pokemon that already exists in Cobblemon, Ouros MUST begin from the exact original model distributed by the pinned official release. Do not rebuild anatomy, substitute a mirror, copy a fork, use screenshots as geometry or approximate the Pokemon with replacement cubes.
 
@@ -69,6 +71,8 @@ Every accepted skin also needs a real Blockbench gameplay-scale readability samp
 
 `ART RE-AUDIT REQUIRED` means the historical pass was accepted under the older accessory-first visual standard and is not an approved artistic reference under the full-transformation standard.
 
+`ART ACCEPTED; FINAL PR GATES PENDING` means real Blockbench matched-camera/gameplay-scale review has passed, but the final human PR head still needs Playable Test Build, Integration Core CI and other applicable repository gates.
+
 `FULL TRANSFORMATION ACCEPTED` may only be assigned after real Blockbench review, matched-camera evidence, gameplay-scale review, coherent full-surface material treatment where appropriate, and all required CI/build gates pass on the actual reviewed assets.
 
 Previous labels such as `EPIC ACCEPTED` are historical only and do not override this standard.
@@ -77,8 +81,8 @@ Previous labels such as `EPIC ACCEPTED` are historical only and do not override 
 
 | Pokemon | Concept | Technical baseline | Current art status | Next action |
 | --- | --- | --- | --- | --- |
-| Pikachu | Storm Courier | 98-bone male/female pass validated under prior workflow | OVERHAUL IN PROGRESS | First reference implementation for full-surface transformation |
-| Lucario | Aura Sentinel | 95-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess silhouette, body material treatment and gameplay-scale read |
+| Pikachu | Storm Courier | exact 90-bone male/female source + 8 macro cosmetic groups | FULL TRANSFORMATION ACCEPTED | Merged in PR #309; use as engineering/art-process reference, not as a design template |
+| Lucario | Aura Sentinel | exact 87-bone source + 8 macro cosmetic groups / 95 total | ART ACCEPTED; FINAL PR GATES PENDING | Finish issue #311 PR gates and merge only if all final checks stay green |
 | Gengar | Rift Warden | 86-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess connected masses and full-body visual integration |
 | Mimikyu | Eclipse Herald | 56-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess costume coverage and material hierarchy |
 | Charizard | Solar Legion | 138-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess large connected armor forms and body palette integration |
@@ -88,7 +92,7 @@ Previous labels such as `EPIC ACCEPTED` are historical only and do not override 
 
 ## 0025 Pikachu — Storm Courier
 
-Storm Courier is the first mandatory overhaul under issue #308 because it demonstrates the old failure mode most clearly.
+Storm Courier is the first completed implementation of the issue #308 full-transformation standard. PR #309 merged the accepted v4 pass to `main`.
 
 Pinned Cobblemon 1.7.3 official inputs:
 
@@ -97,19 +101,36 @@ Pinned Cobblemon 1.7.3 official inputs:
 - official `pikachu.png` SHA-256 `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
 - official `pikachu.animation.json` SHA-256 `d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384`
 - original bones per sex model: 90
-- historical epic-v3 derived bones per sex model: 98
+- accepted v4 derived bones per sex model: 98
 
-Male and female remain independent derivations. The official female tail difference must remain intact.
+Male and female remain independent derivations. The official female tail difference remains intact.
 
-The previous v3 equipment set — visor, cowl, mantle, harness, pack, pylons and tail hardware — is retained only as a technical starting point. The overhaul is not accepted by merely making those cubes larger. The new pass must visually unify head, torso, equipment and tail through a deliberate storm-runner material system, stronger connected garment/armor masses, dominant power equipment and body-surface recolor/retexturing derived from the exact official UV layout.
+The accepted v4 first read is a coherent storm courier system: integrated head/visor assembly, connected mantle/torso suit, chest storm core, expedition power-frame, field pylons and tail conductor system. It also uses full derived normal/shiny textures instead of leaving the original yellow body treatment dominant.
 
-The target first read is a complete fantasy storm courier. "Pikachu wearing goggles and a backpack" is an explicit rejection condition.
-
-Detailed source and historical notes remain in `docs/cobblemon-skins/0025_pikachu/pikachu-storm-courier.md`.
+Detailed source and acceptance notes remain in `docs/cobblemon-skins/0025_pikachu/pikachu-storm-courier.md`.
 
 ## 0448 Lucario — Aura Sentinel
 
-Technical baseline provenance remains recorded in the species document. The historical pass preserved all 87 official bones and appended eight `ouros_*` groups for 95 total. Its previous Blockbench/build acceptance remains useful engineering evidence, but its artistic status is now `ART RE-AUDIT REQUIRED`.
+Aura Sentinel v2 is the second re-audit under the new standard and the first slice after Storm Courier.
+
+Pinned official source:
+
+- model SHA-256 `ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9`
+- animation SHA-256 `ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563`
+- poser SHA-256 `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`
+- base resolver SHA-256 `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`
+- normal texture SHA-256 `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
+- shiny texture SHA-256 `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
+- original bones: 87
+- derived bones: 95
+- cosmetic groups: 8
+- refined cosmetic cubes: 87
+
+The old accessory-only pass is superseded. V2 uses full derived normal/shiny textures plus an integrated open-face aura helm/visor, broad mantle/breastplate, dorsal shrine/halo frame, split waistcoat, armguards and relic fin. The normal derived texture SHA-256 is `1cbb1ca7fe260d01a4e0ca7a2f0a28ea424475f856267caf19d0b4276ed19752`; shiny is `7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725`.
+
+Real Blockbench 5.1.6 matched-camera review passed on refined review run `33285682959`. The 160 px gameplay sample still reads as an aura knight rather than ordinary Lucario with small accessories. `ground_idle` and `battle_idle` were used from the official animation file. Walking is not fabricated because official Lucario locomotion is procedural rather than a dedicated Bedrock walking clip.
+
+Art is accepted. Final PR-level Playable Test Build, Integration Core CI and applicable source/model checks are still required before the catalog can mark this slice `FULL TRANSFORMATION ACCEPTED`.
 
 Detailed notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
 
