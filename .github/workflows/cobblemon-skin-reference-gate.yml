@@ -12,6 +12,7 @@ on:
       - 'tools/cobblemon-model-review/validate_species_reference_dossier.py'
       - 'tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py'
       - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json'
+      - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_blocked_candidates.json'
       - '.github/workflows/cobblemon-skin-reference-gate.yml'
 
 permissions:
@@ -32,14 +33,24 @@ jobs:
             tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py
 
-      - name: Exercise custom-geometry skin dossier validator
+      - name: Exercise strict custom-geometry skin dossier validator
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json \
             --expected-species testmon
 
-      - name: Validate eligible same-species custom skins before production skin changes
+      - name: Exercise research-only blocked candidate staging
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py \
+            tools/cobblemon-model-review/fixtures/reference_dossier_validator_blocked_candidates.json \
+            --expected-species testmon \
+            --allow-blocked | tee /tmp/blocked-candidate-report.json
+          grep -q '"status": "REFERENCE_BLOCKED"' /tmp/blocked-candidate-report.json
+          grep -q '"productionModelingGate": "BLOCKED"' /tmp/blocked-candidate-report.json
+
+      - name: Validate research dossiers and enforce eligible skins before production changes
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
