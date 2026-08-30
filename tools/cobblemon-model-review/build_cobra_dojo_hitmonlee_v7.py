@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build Hitmonlee Cobra Dojo v7 from exact Cobblemon 1.7.3 Hitmonlee.
 
-V7 applies the approved direction from the v6 review:
-- the gi rises higher around the upper chest without covering Hitmonlee's eyes;
-- dedicated shoulder bones create large martial-arts shoulder flaps instead of a hood/backpack;
-- every telescoping leg segment gets layered wraps plus a longitudinal kick guard;
-- the headband, wide belt, split coat tails and original Ouros cobra-dojo crest remain.
+This refined v7 applies the visual review literally:
+- the sleeveless gi rises higher and covers more of the upper torso while preserving a V opening;
+- stepped shoulder caps read as martial-arts gi shoulders instead of horizontal boards;
+- every telescoping leg segment gets layered wraps, a strike rail and a segmented front kick plate;
+- headband, wide belt, split coat tails and an original Ouros cobra-dojo crest remain.
 
 The official 30 bones are copied without edits and remain in original order.
 Official biological texture pixels are unchanged; accessory materials occupy
@@ -73,63 +73,62 @@ def champion_headband() -> dict:
 
 
 def champion_gi() -> dict:
-    """Higher sleeveless wrap gi around the exact 8x5x6 official torso."""
+    """Higher, wider sleeveless wrap gi around the exact 8x5x6 official torso."""
     return {
         "name": "ouros_champion_gi",
         "parent": "torso",
-        "pivot": [0, 14.8, 0],
+        "pivot": [0, 15.0, 0],
         "cubes": [
-            # Taller front panels. The centre stays open in a strong V so Hitmonlee remains visible.
-            cube([-4.28, 11.95, -3.30], [2.48, 5.92, 0.36], "dojo_black", pivot=[-3.02, 14.90, -3.12], rotation=[0, 0, -7]),
-            cube([1.80, 11.95, -3.30], [2.48, 5.92, 0.36], "charcoal", pivot=[3.02, 14.90, -3.12], rotation=[0, 0, 7]),
-            # High gold lapel edges climb to y~18 but stop well below the eyes (eye pivot y=21).
-            cube([-3.76, 14.05, -3.58], [0.36, 4.36, 0.18], "gold", pivot=[-3.58, 16.18, -3.49], rotation=[0, 0, -32]),
-            cube([3.40, 14.05, -3.58], [0.36, 4.36, 0.18], "gold", pivot=[3.58, 16.18, -3.49], rotation=[0, 0, 32]),
-            # Secondary black lapel ridges make the V read as fabric rather than two panels.
-            cube([-3.48, 14.28, -3.46], [0.52, 3.88, 0.16], "shadow", pivot=[-3.22, 16.16, -3.38], rotation=[0, 0, -32]),
-            cube([2.96, 14.28, -3.46], [0.52, 3.88, 0.16], "shadow", pivot=[3.22, 16.16, -3.38], rotation=[0, 0, 32]),
-            # Side seams and shallow rear jacket preserve a garment read from every view.
-            cube([-4.34, 11.86, -2.80], [0.40, 6.00, 5.60], "dojo_black"),
-            cube([3.94, 11.86, -2.80], [0.40, 6.00, 5.60], "charcoal"),
-            cube([-4.14, 11.92, 3.03], [8.28, 5.94, 0.36], "dojo_black"),
-            cube([-3.82, 17.50, 3.38], [7.64, 0.30, 0.18], "gold_dark"),
-            # Original small chest crest. It is not a third-party logo.
-            cube([1.62, 14.22, -3.56], [1.52, 1.52, 0.18], "gold_dark", pivot=[2.38, 14.98, -3.47], rotation=[0, 0, 45]),
-            cube([2.06, 14.66, -3.78], [0.64, 0.64, 0.16], "cobra_green"),
-            cube([1.84, 15.42, -3.74], [1.08, 0.22, 0.14], "gold"),
-            # Large geometric back crest: cobra-chevron silhouette, original Ouros design.
-            cube([-2.92, 13.02, 3.42], [2.62, 0.48, 0.18], "gold", pivot=[-1.61, 13.26, 3.51], rotation=[0, 0, -34]),
-            cube([0.30, 13.02, 3.42], [2.62, 0.48, 0.18], "gold", pivot=[1.61, 13.26, 3.51], rotation=[0, 0, 34]),
-            cube([-0.82, 13.72, 3.44], [1.64, 1.64, 0.18], "cobra_green", pivot=[0, 14.54, 3.53], rotation=[0, 0, 45]),
-            cube([-1.72, 15.18, 3.44], [3.44, 0.34, 0.18], "gold_dark"),
-            cube([-0.36, 15.56, 3.46], [0.72, 1.18, 0.16], "gold"),
+            # Wider panels leave a deliberate but much narrower biological V opening.
+            cube([-4.34, 11.88, -3.32], [3.14, 6.34, 0.38], "dojo_black", pivot=[-2.78, 15.02, -3.13], rotation=[0, 0, -4]),
+            cube([1.20, 11.88, -3.32], [3.14, 6.34, 0.38], "charcoal", pivot=[2.78, 15.02, -3.13], rotation=[0, 0, 4]),
+            # Strong high V piping reaches the base of the head but remains below eye level.
+            cube([-3.46, 13.72, -3.62], [0.40, 4.82, 0.18], "gold", pivot=[-3.26, 16.08, -3.53], rotation=[0, 0, -34]),
+            cube([3.06, 13.72, -3.62], [0.40, 4.82, 0.18], "gold", pivot=[3.26, 16.08, -3.53], rotation=[0, 0, 34]),
+            cube([-3.18, 14.04, -3.48], [0.56, 4.24, 0.16], "shadow", pivot=[-2.90, 16.10, -3.40], rotation=[0, 0, -34]),
+            cube([2.62, 14.04, -3.48], [0.56, 4.24, 0.16], "shadow", pivot=[2.90, 16.10, -3.40], rotation=[0, 0, 34]),
+            # Full side seams and shallow rear panel unify the garment in all views.
+            cube([-4.38, 11.82, -2.82], [0.44, 6.36, 5.64], "dojo_black"),
+            cube([3.94, 11.82, -2.82], [0.44, 6.36, 5.64], "charcoal"),
+            cube([-4.16, 11.88, 3.03], [8.32, 6.30, 0.38], "dojo_black"),
+            cube([-3.84, 17.82, 3.40], [7.68, 0.30, 0.18], "gold_dark"),
+            # Original chest crest, intentionally small and geometric rather than a copied logo.
+            cube([1.62, 14.40, -3.58], [1.56, 1.56, 0.18], "gold_dark", pivot=[2.40, 15.18, -3.49], rotation=[0, 0, 45]),
+            cube([2.06, 14.84, -3.80], [0.68, 0.68, 0.16], "cobra_green"),
+            cube([1.84, 15.64, -3.76], [1.12, 0.22, 0.14], "gold"),
+            # Large original back crest, scaled up to read at gameplay distance.
+            cube([-3.28, 12.90, 3.44], [2.94, 0.52, 0.18], "gold", pivot=[-1.81, 13.16, 3.53], rotation=[0, 0, -34]),
+            cube([0.34, 12.90, 3.44], [2.94, 0.52, 0.18], "gold", pivot=[1.81, 13.16, 3.53], rotation=[0, 0, 34]),
+            cube([-1.02, 13.64, 3.46], [2.04, 2.04, 0.18], "cobra_green", pivot=[0, 14.66, 3.55], rotation=[0, 0, 45]),
+            cube([-2.02, 15.48, 3.46], [4.04, 0.38, 0.18], "gold_dark"),
+            cube([-0.40, 15.86, 3.48], [0.80, 1.42, 0.16], "gold"),
         ],
     }
 
 
 def shoulder_guard(name: str, left: bool) -> dict:
-    """Large structured sleeveless-gi shoulder flap parented to upper-body bone."""
+    """Stepped cap-sleeve silhouette around the lower sides of Hitmonlee's head."""
+    sign = -1 if left else 1
+    accent = "gold" if left else "gold_dark"
+    material = "dojo_black" if left else "charcoal"
     if left:
-        x_outer, x_inner, sign = -7.18, -4.34, -1
-        accent = "gold"
+        steps = [(-5.40, 17.48, 0.98), (-6.58, 17.02, 1.22), (-7.86, 16.56, 1.30)]
     else:
-        x_outer, x_inner, sign = 4.34, 7.18, 1
-        accent = "gold_dark"
-    width = x_inner - x_outer
+        steps = [(4.42, 17.48, 0.98), (5.36, 17.02, 1.22), (6.54, 16.56, 1.30)]
+    cubes = []
+    for x0, y0, width in steps:
+        cubes.append(cube([x0, y0, -2.82], [width, 1.18, 5.64], material, pivot=[x0 + width/2, y0 + 0.59, 0], rotation=[0, 0, sign*5]))
+        cubes.append(cube([x0 + 0.08, y0 + 1.10, -2.68], [width - 0.16, 0.22, 5.36], accent, pivot=[x0 + width/2, y0 + 1.21, 0], rotation=[0, 0, sign*5]))
+    # Dark underside joins the three steps so it reads as one cloth shoulder, not separate bars.
+    if left:
+        cubes.append(cube([-7.52, 16.30, -2.42], [2.86, 0.42, 4.84], "shadow", pivot=[-6.09, 16.51, 0], rotation=[0, 0, -5]))
+    else:
+        cubes.append(cube([4.66, 16.30, -2.42], [2.86, 0.42, 4.84], "shadow", pivot=[6.09, 16.51, 0], rotation=[0, 0, 5]))
     return {
         "name": name,
         "parent": "torso2",
-        "pivot": [(x_outer + x_inner) / 2, 17.55, 0],
-        "cubes": [
-            # Broad top flap and lowered outer skirt create a real shoulder silhouette.
-            cube([x_outer, 16.92, -2.72], [width, 1.06, 5.44], "dojo_black" if left else "charcoal", pivot=[(x_outer+x_inner)/2,17.45,0], rotation=[0,0,sign*8]),
-            cube([x_outer + (0.14 if left else 0.10), 16.48, -2.58], [width-0.24, 0.72, 5.16], "shadow", pivot=[(x_outer+x_inner)/2,16.84,0], rotation=[0,0,sign*8]),
-            # Gold outline reads like the yellow piping on a karate gi.
-            cube([x_outer + 0.12, 17.82, -2.60], [width-0.24, 0.24, 5.20], accent, pivot=[(x_outer+x_inner)/2,17.94,0], rotation=[0,0,sign*8]),
-            cube([x_outer + (0.08 if left else width-0.28), 16.54, -2.46], [0.20, 1.28, 4.92], accent, pivot=[(x_outer+x_inner)/2,17.18,0], rotation=[0,0,sign*8]),
-            # Small under-layer prevents a flat single-slab appearance.
-            cube([x_outer + 0.42, 16.18, -2.30], [width-0.84, 0.42, 4.60], "charcoal", pivot=[(x_outer+x_inner)/2,16.39,0], rotation=[0,0,sign*8]),
-        ],
+        "pivot": [-6.05 if left else 6.05, 17.35, 0],
+        "cubes": cubes,
     }
 
 
@@ -173,7 +172,7 @@ def forearm_guard(name: str, parent: str, left: bool) -> dict:
 
 
 def kick_guard(name: str, parent: str, x0: float, y0: float, left: bool, accent: str) -> dict:
-    """Layered wrap + thin strike plate for one 3x3x3 telescoping leg segment."""
+    """Layered cloth plus a segmented front/outer kick guard for one telescoping segment."""
     outer_x = x0 + (2.76 if left else -0.04)
     strap_rotation = -14 if left else 14
     return {
@@ -181,14 +180,14 @@ def kick_guard(name: str, parent: str, x0: float, y0: float, left: bool, accent:
         "parent": parent,
         "pivot": [x0 + 1.5, y0 + 1.5, -1.5],
         "cubes": [
-            # Two cloth bands establish the layered karate-wrap read.
             cube([x0 + 0.08, y0 + 2.34, -1.74], [2.84, 0.28, 0.22], "cream"),
             cube([x0 + 0.18, y0 + 0.42, -1.74], [2.64, 0.30, 0.22], "wrap"),
-            # Longitudinal outside strike rail keeps the kick specialist silhouette.
             cube([outer_x, y0 + 0.30, -1.84], [0.30, 2.34, 0.36], "dojo_black"),
             cube([outer_x + 0.05, y0 + 0.66, -2.10], [0.20, 1.62, 0.16], accent),
-            # One diagonal strap breaks the stack into a deliberate martial design.
             cube([x0 + 0.40, y0 + 1.22, -1.96], [2.18, 0.26, 0.16], "shadow", pivot=[x0 + 1.49, y0 + 1.35, -1.88], rotation=[0, 0, strap_rotation]),
+            # Central segmented pad aligns across all three telescoping bones.
+            cube([x0 + 0.82, y0 + 0.82, -1.94], [1.36, 1.34, 0.20], "dojo_black"),
+            cube([x0 + 0.94, y0 + 0.72, -2.14], [1.12, 0.18, 0.14], accent),
         ],
     }
 
@@ -279,7 +278,7 @@ def main() -> None:
         "cosmeticNames": [b["name"] for b in cosmetics],
         "palettePixels": PIXELS,
         "bodyTexturePolicy": "official biological texels unchanged; only verified transparent y=63 accessory swatches added",
-        "artDirection": "v7 karate champion: higher gi + dedicated broad shoulders + layered telescoping-leg kick guards",
+        "artDirection": "refined v7: higher/wider gi + stepped cap sleeves + layered segmented kick plates",
     }
     (args.output_root / "build-report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
