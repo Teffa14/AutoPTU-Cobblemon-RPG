@@ -4,7 +4,7 @@ Status: ARTISTIC FAIL
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-Lucario remains the active one-model artistic slice. V5 failed internal Blockbench QA. V6 preserved the exact official anatomy and passed source, attachment and reproducibility checks, but failed the matched-camera visual floor with silhouetteDeltaRatio 0.0108 against the required 0.0400. V7 is the current production candidate and remains unapproved until exact current Blockbench evidence is reviewed.
+Lucario remains the active one-model artistic slice. V5 failed internal visual QA. V6 failed the matched-camera silhouette floor at 0.0108 versus 0.0400. V7 cleared the technical floor, but its exact Blockbench PNGs were visually rejected because the lower blue panels read as oversized shorts and the outer cape fragmented into detached-looking tiles. V8 is the current production candidate and remains unapproved until its exact current Blockbench evidence is reviewed.
 
 ## Authority boundary
 
@@ -24,26 +24,26 @@ Poser SHA-256 `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`
 Base resolver SHA-256 `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`.
 Model license SHA-256 `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`.
 
-The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with three complete eligible custom-geometry Lucario references across two external projects. All are STUDY_ONLY. V7 uses only general lessons about layered drape, overlapping shells, contour distribution, hierarchy and animation-safe attachment.
+The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with three complete custom-geometry Lucario references across two external projects. All are STUDY_ONLY. Only general techniques such as overlapping drape, contour distribution, shell hierarchy and animation-safe parenting are used.
 
-## V7 design
+## V8 design
 
-Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v7.py`.
+Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v8.py`.
 
-V7 rebuilds all Ouros cosmetics while preserving the exact immutable 87-bone official Lucario prefix. The signature piece is a four-stage left shoulder crescent that deliberately extends outside the official arm silhouette. It overlaps into a four-panel diagonal rear resonance cape and then into three long separated rear coat tails. The chest is intentionally quiet: one diagonal sash and one low brace leave the biological chest spike and torso open. Head, arms, shins and tail use thin subordinate accents.
+V8 removes every thigh-covering coat/skirt panel and discards the segmented outer crescent from V7. Its signature system is one deeply overlapping shoulder-to-side drape: a torso-contact shoulder root feeds four paper-thin panels that overlap strongly, progressively narrow and terminate in one pointed lower contour. The front uses only a diagonal sash and slim waist obi. Arms, shins and tail retain minimal articulation-safe accents.
 
-Production bones: 97. Official bones: 87. Cosmetic bones: 10. Current production hashes and cube count are authoritative in `docs/cobblemon-skin-review-manifests/0448_lucario.json` and are reproduced by the V7 builder.
+The builder reconstructs the exact official 87-bone Lucario prefix and appends 8 `ouros_*` cosmetic bones. Current production counts, hashes and attachment limits are authoritative in `docs/cobblemon-skin-review-manifests/0448_lucario.json`.
 
 ## Texture and material contract
 
-Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay retains twelve verified reserved alpha-zero texels with separate shadow, mid and facing-plane values for indigo cloth, lacquer, metal, antique gold and aura cyan. Cosmetic faces use darker occluded values and lighter facing/top values. Original biological UVs remain unchanged.
+Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay uses twelve verified alpha-zero texels with distinct shadow, mid and facing-plane values for indigo cloth, lacquer, metal, antique gold and aura cyan. Biological UVs are unchanged.
 
 ## Runtime and forms
 
-The resolver keeps the official `cobblemon:lucario` poser and routes the same presentation-only V7 cosmetics over exact normal and shiny official biology. Cobblemon 1.7.3 exposes one standard Lucario geometry on this resolver path; no male/female geometry split exists here. Mega Lucario is outside this cosmetic slice.
+The resolver keeps the official `cobblemon:lucario` poser and routes the same V8 presentation cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
 
 ## Evidence contract
 
-Blockbench 5.1.6 is the required external viewer. Official reference and candidate use the same camera. Review states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at t=0.35. A walking PNG is not fabricated because this Lucario path uses procedural locomotion rather than a dedicated Bedrock walking clip.
+Blockbench 5.1.6 is mandatory with matched official camera. Review states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at t=0.35. No walking PNG is fabricated because this path uses procedural locomotion rather than a dedicated Bedrock walking clip.
 
-Green CI proves engineering only. The current status remains ARTISTIC FAIL until the exact V7 PNG set is opened and judged. If internal visual QA succeeds, the maximum pre-owner status is OWNER REVIEW REQUIRED. Only explicit owner approval of the exact head/evidence set can approve the art.
+Green CI is engineering evidence only. Current status remains ARTISTIC FAIL until the exact V8 PNG set is opened and judged. If internal QA succeeds, the maximum pre-owner state is OWNER REVIEW REQUIRED. Only explicit owner approval of the exact head/evidence set can approve the art.
