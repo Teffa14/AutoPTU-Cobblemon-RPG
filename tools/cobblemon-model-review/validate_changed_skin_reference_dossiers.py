@@ -9,9 +9,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Ouros currently ships custom Pokemon presentation assets in both namespaces:
+# - autoptu-owned Bedrock model/texture folders used by newer slices; and
+# - cobblemon-namespace resource-pack overrides used by legacy/current species
+#   integrations such as Gengar Rift Warden.
+# The hard reference gate must cover both or a blocked species could bypass CI.
 PRODUCTION_PATTERNS = (
-    re.compile(r"^fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/(?P<slug>\d{4}_[^/]+)/"),
+    re.compile(r"^fabric-adapter/src/main/resources/assets/(?:autoptu|cobblemon)/bedrock/pokemon/models/(?P<slug>\d{4}_[^/]+)/"),
     re.compile(r"^fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/(?P<slug>\d{4}_[^/]+)/"),
+    re.compile(r"^fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/(?P<slug>\d{4}_[^/]+)/"),
     re.compile(r"^src/main/resources/data/autoptu/cobblemon/skins/(?P<slug>\d{4}_[^/]+)/"),
     re.compile(r"^docs/cobblemon-skins/(?P<slug>\d{4}_[^/]+)/"),
 )
@@ -79,8 +85,8 @@ def main() -> None:
         if run_validator(validator, slug, allow_blocked=True) != 0:
             failures += 1
 
-    # Any production/species asset edit keeps the original hard gate. A staged
-    # candidate never opens production; three COMPLETE counted references do.
+    # Any production/species asset edit keeps the hard gate. A staged candidate
+    # never opens production; three COMPLETE counted references do.
     for slug in sorted(production_slugs):
         if run_validator(validator, slug, allow_blocked=False) != 0:
             failures += 1
