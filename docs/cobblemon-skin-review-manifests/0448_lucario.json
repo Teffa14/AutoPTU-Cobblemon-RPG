@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "e129caedac65afde398f65da55a55c3674e5891f602e1816d0bcbf768e4cbbb8",
+    "modelSha256": "a7d5857fe914e2da817a8dc761ff03fcfbd3e68f1281fd209f0b220432aefa62",
     "productionBoneCount": 97,
     "cosmeticBoneCount": 10,
-    "cosmeticCubeCount": 30,
+    "cosmeticCubeCount": 26,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v6.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v7.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v6.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v7.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Scalloped left shoulder veil formed by progressively rotated overlapping shells",
-      "Thin resonance veil descending from left scapula to hip as the dominant rear contour",
-      "Three rear-biased long coat tails that preserve the front leg silhouette"
+      "Four-stage left shoulder crescent extending materially beyond the official arm silhouette",
+      "Four-panel diagonal rear resonance cape from scapula to lower-left outer contour",
+      "Three long separated rear coat tails preserving front-leg negative space"
     ],
-    "macroFormPlan": "V6 removes the V5 backpack and oversized front-short reads. Thin overlapping shoulder shells feed a rear resonance veil, while the chest uses one diagonal sash and minimal lower braces. Three long rear-biased tails carry the silhouette downward without covering the thighs.",
-    "paintPlan": "Accessory overlay expands to twelve verified reserved texels with separate shadow, mid and facing values for indigo cloth, lacquer, metal, gold and aura. Each cosmetic cube assigns darker occluded faces and lighter facing/top planes; biological body pixels remain exact official bytes.",
-    "gameplayReadGoal": "At 160 px the left shoulder-to-hip veil and three long rear tails must remain legible while the face, chest spike, thighs and biological tail stay unobstructed.",
+    "macroFormPlan": "V7 answers the V6 1.08% silhouette-floor failure by moving authored cloth outside the official silhouette rather than thickening armor. A four-stage rotated shoulder crescent reaches past the official arm envelope, then overlaps into a diagonal rear cape and three long rear tails. The chest remains almost empty so Lucario's spike, face, aura sensors and athletic body stay unequivocal.",
+    "paintPlan": "Keep exact official biological normal/shiny bytes. Use the V6 twelve-texel accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
+    "gameplayReadGoal": "Matched-camera 160 px must retain the left shoulder crescent, diagonal cape edge and separated long rear tails as one premium asymmetrical silhouette, while avoiding backpack, shorts, cage, bar or box-armor reads.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
