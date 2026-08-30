@@ -6,6 +6,20 @@ This document is the visual acceptance contract for Ouros-authored Cobblemon ski
 
 This workflow is presentation-only. Cobblemon/Minecraft may provide the official Pokemon model, textures, animations, render hooks, networking and presentation systems. They do not decide combatants, legality, HP/status, positions, tactical RNG, damage or battle results. AutoPTU/Ouros remains authoritative for all tactical battle facts.
 
+## Owner visual approval is mandatory
+
+Artistic acceptance is owned by the project owner. CI, Blockbench validity, geometry metrics, cube counts, silhouette measurements, automated image checks, and assistant visual review can only produce a candidate for review. They cannot mark a skin `ART ACCEPTED`, `FULL TRANSFORMATION ACCEPTED`, `EPIC ACCEPTED`, ready to merge, or equivalent by themselves.
+
+A skin reaches an accepted artistic state only after the owner explicitly approves the exact current Blockbench evidence set for the exact current production asset head. If the owner rejects a model, that rejection immediately overrides any previous assistant/CI acceptance. The technical evidence may remain useful, but the art status becomes `USER REJECTED — REWORK REQUIRED` until a materially reworked model is shown and explicitly approved.
+
+Do not infer approval from silence, from a previous concept, from approval of another version, or from green CI. Never self-approve a model on the owner's behalf.
+
+## One-model lock — do not skip failed quality
+
+Once a species/model becomes the active artistic slice, keep working that same model until one of two things happens: the owner explicitly approves the exact current Blockbench evidence, or the owner explicitly tells the workflow to abandon/switch the slice. A failed or rejected model must not be bypassed by starting another Pokemon simply to keep producing new variants.
+
+Technical blockers may pause a model, but they do not silently clear the active-slice lock. Record the blocker and solve the blocking tooling/source problem or wait for an explicit owner decision. Do not accumulate a queue of superficially finished but unapproved models.
+
 ## Official source or reject
 
 For a Pokemon that exists in Cobblemon, the starting point is the exact model shipped in the latest stable Cobblemon release compatible with the repository Minecraft target.
@@ -37,24 +51,27 @@ If Cobblemon ships separate male, female or form models, derive each Ouros varia
 
 Technical validity is necessary but is not artistic acceptance.
 
-A skin fails when the first read is still "base Pokemon plus small cuboids". Passing CI, preserving bones and loading in Blockbench do not make that result acceptable.
+A skin fails when the first read is still "base Pokemon plus small cuboids". It also fails when it reads as a procedural scaffold, rectangular cage, generic armor frame, stack of orthogonal plates, or a generated collection of boxes around the official Pokemon. Passing CI, preserving bones, adding many cubes, creating a larger silhouette, and loading in Blockbench do not make that result acceptable.
 
-The intended read is a complete visual transformation while the official Pokemon remains anatomically intact underneath. At normal gameplay distance the player should immediately understand a strong fantasy, class, culture, role or material identity without reading the skin name.
+The intended read is a complete, authored visual transformation while the official Pokemon remains anatomically intact underneath. At normal gameplay distance the player should immediately understand a strong fantasy, class, culture, role or material identity without reading the skin name.
 
 The required design hierarchy is:
 
-1. one strong three-quarter silhouette;
+1. one premium three-quarter silhouette;
 2. one immediately legible fantasy;
-3. one to three dominant signature pieces;
+3. one to three dominant signature pieces with intentional shape language;
 4. large connected masses before micro-detail;
-5. coherent palette and material breakup across the whole character;
-6. deliberate layering and depth;
-7. meaningful asymmetry where it strengthens the concept;
-8. front, side and rear readability;
-9. motion-safe attachment through official animations;
-10. secondary hardware and small detail only after the large read works.
+5. forms that contour, wrap, taper, overlap, or otherwise respond to the Pokemon's anatomy instead of behaving like an external box scaffold;
+6. coherent palette and material breakup across the whole character;
+7. deliberate layering and depth;
+8. meaningful asymmetry where it strengthens the concept;
+9. front, side and rear readability;
+10. motion-safe attachment through official animations;
+11. secondary hardware and small detail only after the large read works.
 
 Large external silhouette changes are encouraged when coherent. Armor, mantles, cowls, collars, coats, pauldrons, packs, banners, fins, conductor systems, coils, field equipment, ornaments and similar attached forms may extend well beyond the original outline. The species must remain unmistakable and the biological model must remain intact underneath.
+
+Large geometry is not automatically good geometry. Avoid making the dominant visual read from repeated straight bars, flat rectangular portal frames, oversized floating rectangles, boxy shoulder slabs, or symmetrical cuboid cages unless the exact concept genuinely requires that language and the owner explicitly approves the result. Use rotated/subdivided geometry, stepped contours, tapering, overlapping planes, depth changes, negative space and anatomy-following masses to create intentional form rather than procedural construction.
 
 The goal is not to maximize the number of accessory cubes. Solve the whole character. Large masses must form an intentional costume/equipment architecture, and smaller details only support that architecture.
 
@@ -97,6 +114,8 @@ Do not weaken an attachment threshold merely to make an existing asset pass. Cor
 
 External reference images may be used only to set the level of ambition and to study broad composition principles such as complete-costume coverage, connected masses, material hierarchy, palette coherence and gameplay-scale readability.
 
+Reference review must compare the candidate against the ambition of the approved reference board, not merely against the untouched official Pokemon. "More transformed than base" is not enough. The candidate must reach the project's premium model/skin quality bar in overall silhouette, authored shape language, surface hierarchy, connected costume architecture and gameplay-scale read.
+
 Do not copy geometry, UVs, texture layouts, logos, motifs, costume patterns or distinctive designs from Pokemon Unite, fan mods, servers, skin packs or other third parties. Ouros concepts must remain original.
 
 ## Blockbench review contract
@@ -105,7 +124,7 @@ Blockbench is the primary independent viewer. Do not use the deprecated project 
 
 The exact production `.geo.json`, exact official baseline body texture, exact accessory overlay and exact official animation file must be loaded through the Blockbench Bedrock workflow.
 
-Every accepted review must include an untouched official reference and the Ouros skin using the same species, camera, projection, scale, pose and animation frame. Auto-fit each model independently is not sufficient evidence because it can hide silhouette scale differences.
+Every review candidate must include an untouched official reference and the Ouros skin using the same species, camera, projection, scale, pose and animation frame. Auto-fit each model independently is not sufficient evidence because it can hide silhouette scale differences.
 
 Minimum evidence when the official species provides equivalent animations:
 
@@ -125,33 +144,40 @@ Review metadata must record Cobblemon version, JAR provenance, official model/te
 
 Every artistic review must include a gameplay-scale readability check. Produce a thumbnail from the real Blockbench render with the Pokemon approximately 128–192 px tall while preserving the same view.
 
-Reject the skin if the large concept disappears at that scale, if signature pieces collapse into pixel noise, or if the result again reads primarily as the untouched base Pokemon.
+Reject the skin if the large concept disappears at that scale, if signature pieces collapse into pixel noise, if the result again reads primarily as the untouched base Pokemon, or if the silhouette reads as generic rectangular hardware rather than a deliberate premium skin.
 
-A reviewer must be able to answer yes to all of these:
+Before presenting a candidate for owner approval, the internal reviewer must be able to answer yes to all of these:
 
 - Does the first glance change materially from the official Pokemon?
 - Is there a signature silhouette?
-- Are the dominant pieces recognizable as deliberate objects rather than scattered cuboids?
+- Are the dominant pieces recognizable as deliberate objects rather than scattered cuboids or generic scaffold pieces?
+- Do major forms follow or intentionally counter the Pokemon's anatomy rather than simply enclosing it in boxes?
 - Does the material treatment unite the body and equipment without repainting biological texels?
 - Does the skin look premium from three-quarter view?
 - Is the fantasy understandable without the skin name?
 - Is the Pokemon still clearly the original species?
 - Are serious clipping, detachment and motion failures absent in tested official animations?
 
-If any answer is no, iterate before PR even if automated checks are green.
+If any answer is no, iterate before PR even if automated checks are green. If all answers are yes, the result is still only `OWNER REVIEW REQUIRED` until the owner explicitly approves the exact evidence set.
 
 ## Legacy re-audit
 
-The existing Storm Courier, Aura Sentinel, Rift Warden, Eclipse Herald, Solar Legion, Shadow Tide, Omen Regent and Abyssal Bastion passes remain useful technical baselines for provenance and CI infrastructure. Their previous "EPIC ACCEPTED" labels do not automatically satisfy this standard.
+The existing Storm Courier, Aura Sentinel, Rift Warden, Eclipse Herald, Solar Legion, Shadow Tide, Omen Regent and Abyssal Bastion passes remain useful technical baselines for provenance and CI infrastructure. Their previous `EPIC ACCEPTED`, `ART ACCEPTED` or `FULL TRANSFORMATION ACCEPTED` labels do not automatically satisfy this standard.
 
-Every legacy skin must be re-audited from its exact current official model, with immutable original bones/body texture, connected large forms, no floating pieces and gameplay-scale readability. A technically valid legacy skin may remain in the repository while its art status is `RE-AUDIT REQUIRED`.
+Owner feedback on 2026-08-30 rejects the current artistic quality of the model set. Until the owner explicitly re-approves a materially reworked exact current evidence set, no existing Ouros Cobblemon skin is artistically accepted. Technical validation remains recorded separately.
+
+Every legacy skin must be re-audited from its exact current official model, with immutable original bones/body texture, connected large forms, no floating pieces, premium authored shape language and gameplay-scale readability. A technically valid legacy skin may remain in the repository while its art status is `USER REJECTED — REWORK REQUIRED` or `RE-AUDIT REQUIRED`.
 
 This re-audit applies equally to legacy Absol, Tyranitar, Charizard and other previously authored species; an old edited model cannot be accepted merely because a new official reference image looks correct.
 
 ## PR and CI acceptance
 
-A skin PR may be marked ready only after artistic review accepts the real Blockbench evidence from the exact generated PR head. Automated checks must still validate the official JAR/source hashes, exact original-bone preservation, sex/forms, exact official body-texture preservation, resolver/poser/animation paths, added `ouros_*` bones, cosmetic attachment/overlay UV reservations, Playable Test Build and Integration Core CI.
+A skin PR may be opened as work-in-progress for engineering validation, but it may not be marked ready for artistic acceptance or merged as an accepted skin until the owner explicitly approves the real Blockbench evidence from the exact generated PR head.
+
+Automated checks must still validate the official JAR/source hashes, exact original-bone preservation, sex/forms, exact official body-texture preservation, resolver/poser/animation paths, added `ouros_*` bones, cosmetic attachment/overlay UV reservations, Playable Test Build and Integration Core CI.
 
 If a bot regenerates production assets, the subsequent evidence and normal CI must run against that regenerated head. Create a later human-authored head when GitHub's security model marks bot-triggered PR workflows `action_required`.
 
-Do not merge with red or unexecuted required checks. Do not claim emissive, particles, material hooks or runtime behavior unless the repository contains real, syntax-valid and runtime-validated support for them.
+Any production-asset change after owner approval invalidates that approval and returns the candidate to `OWNER REVIEW REQUIRED`. Documentation-only changes may retain approval only when they do not change any reviewed production asset or evidence file.
+
+Do not merge with red or unexecuted required checks. Do not merge a skin solely because checks are green. Do not claim emissive, particles, material hooks or runtime behavior unless the repository contains real, syntax-valid and runtime-validated support for them.
