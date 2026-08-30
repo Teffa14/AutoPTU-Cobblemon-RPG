@@ -1,9 +1,9 @@
 {
   "officialTextureBaselineSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
   "derivedTexture": "ouros_aura_sentinel_shiny.png",
-  "derivedTextureSha256": "7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725",
-  "bodyTexelRework": "Full-surface shiny Lucario material pass changes 6163 occupied pixels while preserving the exact 128x64 canvas, UV coordinates and transparency semantics.",
-  "paletteIntent": "Normal uses midnight indigo/cobalt, obsidian, ivory, gold and aura-cyan. Shiny deliberately shifts to graphite, cool silver, amethyst and brighter aura accents rather than silently reusing normal pixels.",
-  "materialIntent": "Biological color regions are rematerialized as a coherent ceremonial aura-knight suit language; large added geometry uses armor, cloth, metal and aura-energy roles while the original anatomy stays intact underneath.",
+  "derivedTextureSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
+  "bodyTexelRework": "NONE",
+  "paletteIntent": "Official Lucario biological texture is preserved exactly. Ouros colors are limited to validated free-texel accessory material swatches.",
+  "materialIntent": "Transformation is carried by connected 3D armor, mantle, shrine-frame, coat and relic geometry rather than repainting Lucario anatomy.",
   "allowAlphaSemanticsChange": false
 }
