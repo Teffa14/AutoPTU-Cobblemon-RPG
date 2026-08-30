@@ -22,7 +22,9 @@ public final class FabricTrainerSummaryRuntime {
                         .then(CommandManager.literal("trainer")
                                 .executes(context -> show(context.getSource()))
                                 .then(CommandManager.literal("skills")
-                                        .executes(context -> showSkills(context.getSource()))))));
+                                        .executes(context -> showSkills(context.getSource())))
+                                .then(CommandManager.literal("classes")
+                                        .executes(context -> showClasses(context.getSource()))))));
     }
 
     private static int show(ServerCommandSource source) {
@@ -36,6 +38,13 @@ public final class FabricTrainerSummaryRuntime {
         TrainerRequest request = resolve(source);
         if (request == null) return 0;
         for (String line : formatSkillLines(request.summary())) request.player().sendMessage(Text.literal(line), false);
+        return 1;
+    }
+
+    private static int showClasses(ServerCommandSource source) {
+        TrainerRequest request = resolve(source);
+        if (request == null) return 0;
+        for (String line : formatClassLines(request.summary())) request.player().sendMessage(Text.literal(line), false);
         return 1;
     }
 
@@ -80,6 +89,20 @@ public final class FabricTrainerSummaryRuntime {
         } else {
             for (CanonicalTrainerSummaryService.Skill skill : summary.skills()) {
                 lines.add(skill.id() + ": " + skill.rank());
+            }
+        }
+        lines.add("Revision: " + summary.revision());
+        return List.copyOf(lines);
+    }
+
+    static List<String> formatClassLines(CanonicalTrainerSummaryService.Summary summary) {
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add("AutoPTU Trainer classes");
+        if (summary.trainerClasses().isEmpty()) {
+            lines.add("No canonical Trainer classes are available.");
+        } else {
+            for (String trainerClass : summary.trainerClasses()) {
+                lines.add(trainerClass);
             }
         }
         lines.add("Revision: " + summary.revision());
