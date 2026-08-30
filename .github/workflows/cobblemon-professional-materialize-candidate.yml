@@ -1,0 +1,75 @@
+name: Cobblemon Professional Candidate Materializer
+
+on:
+  push:
+    branches:
+      - 'art/**'
+    paths:
+      - 'tools/cobblemon-model-review/build_*_professional.py'
+      - '.github/workflows/cobblemon-professional-materialize-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: ${{ !contains(github.event.head_commit.message || '', '[materialized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Install deterministic image dependency
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Select the one professional builder changed from main
+        id: builder
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          mapfile -t builders < <(git diff --name-only origin/main...HEAD -- 'tools/cobblemon-model-review/build_*_professional.py')
+          if [ "${#builders[@]}" -ne 1 ]; then
+            printf 'Expected exactly one changed professional builder; found %s\n' "${#builders[@]}" >&2
+            printf '%s\n' "${builders[@]}" >&2
+            exit 1
+          fi
+          echo "path=${builders[0]}" >> "$GITHUB_OUTPUT"
+      - name: Materialize candidate and professional contract
+        env:
+          BUILDER: ${{ steps.builder.outputs.path }}
+        run: |
+          set -euo pipefail
+          python "$BUILDER" --bootstrap
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py \
+            docs/cobblemon-skin-reference-dossiers/0448_lucario.json --expected-species lucario
+          python tools/cobblemon-model-review/validate_professional_skin_manifest.py \
+            docs/cobblemon-skin-review-manifests/0448_lucario.json
+          python tools/cobblemon-model-review/validate_skin_registry.py
+          python tools/cobblemon-model-review/run_manifest_builder.py \
+            docs/cobblemon-skin-review-manifests/0448_lucario.json
+      - name: Commit exact generated candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet && git diff --cached --quiet; then
+            echo 'Candidate already materialized; nothing to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json \
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png \
+            docs/cobblemon-skin-review-manifests/0448_lucario.json \
+            docs/cobblemon-skin-registry.json \
+            docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md
+          git commit -m 'Skin Studio: materialize Aura Sentinel professional candidate [materialized]'
+          git push origin HEAD:${GITHUB_REF_NAME}
