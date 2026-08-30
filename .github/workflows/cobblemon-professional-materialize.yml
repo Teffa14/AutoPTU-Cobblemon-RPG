@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install deterministic texture dependency
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
       - name: Resolve active professional manifest
         id: active
         run: |
@@ -127,5 +130,5 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Lucario: materialize deterministic V9 production bytes'
+          git commit -m 'Lucario: materialize deterministic professional candidate bytes'
           git push origin "HEAD:${HEAD_REF}"
