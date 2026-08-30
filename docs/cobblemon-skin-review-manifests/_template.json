@@ -1,0 +1,152 @@
+{
+  "format": "ouros.cobblemon-professional-skin-review.v1",
+  "species": "replace_species",
+  "nationalDex": 1,
+  "concept": "Replace Concept",
+  "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
+  "artStatus": "OWNER REVIEW REQUIRED",
+  "ownerApproval": {
+    "required": true,
+    "approved": false,
+    "approvedHeadSha": null,
+    "evidenceSetSha256": null,
+    "approvalRecord": null
+  },
+  "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0001_replace_species.json",
+  "officialSource": {
+    "modrinthVersionId": "kF7CvxTo",
+    "version": "1.7.3",
+    "minecraftVersion": "1.21.1",
+    "loader": "fabric",
+    "jarFilename": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+    "jarSha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
+    "jarSha512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+    "modelPath": "assets/cobblemon/bedrock/pokemon/models/0001_replace_species/replace_species.geo.json",
+    "modelSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "officialBoneCount": 1,
+    "referenceTexture": {
+      "path": "assets/cobblemon/textures/pokemon/0001_replace_species/replace_species.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "animationPath": "assets/cobblemon/bedrock/pokemon/animations/0001_replace_species/replace_species.animation.json",
+    "animationSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "production": {
+    "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0001_replace_species/ouros_replace_concept.geo.json",
+    "modelSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "productionBoneCount": 2,
+    "cosmeticBoneCount": 1,
+    "cosmeticCubeCount": 1,
+    "attachmentGate": {
+      "anchorGap": 1.5,
+      "pieceGap": 1.0
+    },
+    "textures": [
+      {
+        "role": "BODY",
+        "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept.png",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "derivation": "DERIVED_FROM_OFFICIAL",
+        "officialBaselineSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "derivedMetadataPath": "docs/cobblemon-skins/0001_replace_species/replace-concept-texture-metadata.json"
+      },
+      {
+        "role": "OVERLAY",
+        "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept_accessories.png",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "derivation": "ACCESSORY_OVERLAY"
+      }
+    ]
+  },
+  "builder": {
+    "deterministic": true,
+    "scriptPath": "tools/cobblemon-model-review/build_replace_concept.py",
+    "command": [
+      "python",
+      "tools/cobblemon-model-review/build_replace_concept.py"
+    ],
+    "outputs": [
+      "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0001_replace_species/ouros_replace_concept.geo.json",
+      "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept.png",
+      "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept_accessories.png"
+    ]
+  },
+  "blockbench": {
+    "version": "5.1.6",
+    "appImageSha256": "c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e",
+    "matchedCamera": true,
+    "gameplayResolution": 160,
+    "heroAnimation": "animation.replace_species.ground_idle",
+    "heroAnimationTime": 0.35,
+    "battleAnimation": "animation.replace_species.battle_idle",
+    "battleAnimationTime": 0.35,
+    "requiredEvidenceNames": [
+      "official_reference_three_quarter.png",
+      "hero_three_quarter.png",
+      "battle_ready_three_quarter.png",
+      "hero_front.png",
+      "hero_back.png",
+      "hero_gameplay_160.png"
+    ],
+    "technicalVisualFloor": {
+      "minimumPixelDifferenceRatio": 0.03,
+      "minimumSilhouetteDeltaRatio": 0.02
+    }
+  },
+  "evidence": {
+    "artifactName": "replace-species-replace-concept-professional-review",
+    "reviewContractFile": "review-contract.json",
+    "pngHashManifestFile": "png-sha256.txt",
+    "requiredFiles": [
+      "official_reference_three_quarter.png",
+      "hero_three_quarter.png",
+      "battle_ready_three_quarter.png",
+      "hero_front.png",
+      "hero_back.png",
+      "hero_gameplay_160.png",
+      "contact_sheet.png",
+      "review-contract.json",
+      "png-sha256.txt"
+    ]
+  },
+  "qualityIntent": {
+    "referenceLessons": [
+      "Replace with a same-species geometry lesson from reference 1.",
+      "Replace with a same-species material/paint lesson from reference 2.",
+      "Replace with a same-species motion/attachment lesson from reference 3."
+    ],
+    "signaturePieces": [
+      "One dominant authored signature piece"
+    ],
+    "macroFormPlan": "Describe contour, wrap, taper, overlap, negative space and whole-body distribution before micro-detail.",
+    "paintPlan": "Describe derived texture value ramps, occlusion, highlights, hue/value variation and material breakup.",
+    "gameplayReadGoal": "Describe what must remain readable at 128-192 px.",
+    "antiPatternsToReject": [
+      "Pokemon base plus scattered accessories",
+      "rectangular cage or portal-frame silhouette",
+      "flat recolor without painted depth"
+    ],
+    "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR"
+  },
+  "variantCoverage": {
+    "audited": true,
+    "variants": [
+      {
+        "name": "default",
+        "coverage": "Derived from and validated against the exact official default model/texture."
+      }
+    ]
+  },
+  "technicalChecks": [
+    "REFERENCE_DOSSIER",
+    "OFFICIAL_SOURCE_HASHES",
+    "ORIGINAL_BONE_EQUALITY",
+    "COSMETIC_ATTACHMENT",
+    "BUILDER_REPRODUCIBILITY",
+    "DERIVED_TEXTURE_PROVENANCE",
+    "BLOCKBENCH_MATCHED_CAMERA",
+    "GAMEPLAY_SCALE_EVIDENCE",
+    "PLAYABLE_TEST_BUILD",
+    "INTEGRATION_CORE_CI"
+  ]
+}
