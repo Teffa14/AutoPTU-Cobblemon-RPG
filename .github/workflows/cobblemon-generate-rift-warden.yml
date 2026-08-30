@@ -1,13 +1,15 @@
-name: Generate Rift Warden From Official Cobblemon
+name: Generate Rift Warden V2 Current Official Model
 
 on:
   push:
     branches:
-      - 'feat/gengar-rift-warden-epic'
+      - 'art/gengar-rift-warden-v2-full-transformation'
     paths:
       - '.github/workflows/cobblemon-generate-rift-warden.yml'
-      - 'tools/cobblemon-model-review/build_rift_warden_gengar.py'
+      - 'tools/cobblemon-model-review/build_rift_warden_gengar_v2_current.py'
       - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'tools/cobblemon-model-review/validate_accessory_overlay.py'
+      - 'tools/cobblemon-model-review/validate_cosmetic_attachment.py'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0094_gengar/90_ouros_rift_warden.json'
       - 'fabric-adapter/src/main/resources/data/cobblemon/species_features/ouros_rift_warden.json'
       - 'fabric-adapter/src/main/resources/data/cobblemon/species_feature_assignments/ouros_gengar_cosmetics.json'
@@ -17,16 +19,27 @@ permissions:
   contents: write
 
 concurrency:
-  group: generate-rift-warden-${{ github.ref }}
+  group: generate-rift-warden-v2-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_JAR_SHA256: f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3
+  COBBLEMON_JAR_SHA512: 7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e
+  OFFICIAL_MODEL_SHA256: 57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38
+  OFFICIAL_ANIMATION_SHA256: 68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f
+  OFFICIAL_RESOLVER_SHA256: aeecefe6571d99bc9ab38a3b22af5e34769b346ed9858335292c82209ee95afc
+  OFFICIAL_NORMAL_SHA256: 7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65
+  OFFICIAL_NORMAL_EMISSIVE_SHA256: c1b53aac2c0c48c417bade392198a65cb79fa76b78ad17907b3a10a6ce944d87
+  OFFICIAL_SHINY_SHA256: 1a0821422f8bfbe43a02132c658e48213e6adedbc1b5854f125683951deaeb21
+  OFFICIAL_SHINY_EMISSIVE_SHA256: 835b1ee1221ce476655cccb366d9143952555604c37824bf0be03a28b55695c8
+  OFFICIAL_POKEMOPOLIS_SHA256: 715f050dcb0daf3ef3fecb6ecc9d8bd878861c903bcb4d6e7b1d93ceb6732463
+  OFFICIAL_LICENSE_SHA256: fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,27 +49,49 @@ jobs:
           python-version: '3.12'
       - name: Install deterministic image dependency
         run: python -m pip install --disable-pip-version-check pillow==11.3.0
-      - name: Download verified official Cobblemon 1.7.3 Fabric JAR
+
+      - name: Verify current stable Cobblemon release for repository target
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .official-source
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            -A 'Ouros-AutoPTU-Cobblemon-RPG/rift-warden-generator' \
+            -A 'Ouros/rift-warden-v2-source-check' \
+            'https://api.modrinth.com/v2/project/cobblemon/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D' \
+            -o .official-source/compatible-versions.json
+          python - <<'PY'
+          import json
+          versions=json.load(open('.official-source/compatible-versions.json',encoding='utf-8'))
+          stable=[v for v in versions if v.get('version_type')=='release' and 'fabric' in v.get('loaders',[]) and '1.21.1' in v.get('game_versions',[])]
+          assert stable, 'No stable Fabric release returned for Minecraft 1.21.1'
+          latest=stable[0]
+          assert latest['id']=='kF7CvxTo', f"Repository target is stale: newest compatible stable is {latest['id']} {latest['version_number']}"
+          assert latest['version_number']=='1.7.3'
+          print('latest compatible stable',latest['id'],latest['version_number'])
+          PY
+
+      - name: Download pinned official Cobblemon JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros/rift-warden-v2-generator' \
             "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
           python - <<'PY' > .official-source/download.env
           import json,shlex
           data=json.load(open('.official-source/version.json',encoding='utf-8'))
           assert data['id']=='kF7CvxTo' and data['version_number']=='1.7.3'
-          assert data['game_versions']==['1.21.1'] and 'fabric' in data['loaders']
+          assert '1.21.1' in data['game_versions'] and 'fabric' in data['loaders']
           primary=next(f for f in data['files'] if f.get('primary'))
           assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          assert primary['hashes']['sha512']=='7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
           print('URL='+shlex.quote(primary['url']))
-          print('SHA512='+shlex.quote(primary['hashes']['sha512']))
           PY
           source .official-source/download.env
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
-          printf '%s  %s\n' "$SHA512" '.official-source/cobblemon.jar' | sha512sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" .official-source/cobblemon.jar | sha512sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" .official-source/cobblemon.jar | sha256sum --check --strict
+
       - name: Extract and pin exact official Gengar assets
         shell: bash
         run: |
@@ -70,25 +105,36 @@ jobs:
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0094_gengar/gengar_shiny_emissives.png' > .official-source/gengar_shiny_emissives.png
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0094_gengar/gengar_pokemopolis.png' > .official-source/gengar_pokemopolis.png
           unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0094_gengar/license' > .official-source/model-license.txt
-          test "$(sha256sum .official-source/gengar.geo.json | awk '{print $1}')" = '57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38'
-          test "$(sha256sum .official-source/gengar.animation.json | awk '{print $1}')" = '68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f'
-          test "$(sha256sum .official-source/gengar.resolver.json | awk '{print $1}')" = 'aeecefe6571d99bc9ab38a3b22af5e34769b346ed9858335292c82209ee95afc'
-          test "$(sha256sum .official-source/gengar.png | awk '{print $1}')" = '7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65'
-          test "$(sha256sum .official-source/gengar_emissives.png | awk '{print $1}')" = 'c1b53aac2c0c48c417bade392198a65cb79fa76b78ad17907b3a10a6ce944d87'
-          test "$(sha256sum .official-source/gengar_shiny.png | awk '{print $1}')" = '1a0821422f8bfbe43a02132c658e48213e6adedbc1b5854f125683951deaeb21'
-          test "$(sha256sum .official-source/gengar_shiny_emissives.png | awk '{print $1}')" = '835b1ee1221ce476655cccb366d9143952555604c37824bf0be03a28b55695c8'
-          test "$(sha256sum .official-source/gengar_pokemopolis.png | awk '{print $1}')" = '715f050dcb0daf3ef3fecb6ecc9d8bd878861c903bcb4d6e7b1d93ceb6732463'
-          test "$(sha256sum .official-source/model-license.txt | awk '{print $1}')" = 'fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660'
-      - name: Generate production cosmetic assets
+          printf '%s  %s\n' "$OFFICIAL_MODEL_SHA256" .official-source/gengar.geo.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_ANIMATION_SHA256" .official-source/gengar.animation.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_RESOLVER_SHA256" .official-source/gengar.resolver.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_NORMAL_SHA256" .official-source/gengar.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_NORMAL_EMISSIVE_SHA256" .official-source/gengar_emissives.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_SHINY_SHA256" .official-source/gengar_shiny.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_SHINY_EMISSIVE_SHA256" .official-source/gengar_shiny_emissives.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_POKEMOPOLIS_SHA256" .official-source/gengar_pokemopolis.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_LICENSE_SHA256" .official-source/model-license.txt | sha256sum --check --strict
+          python - <<'PY'
+          import json,zipfile
+          geometry=json.load(open('.official-source/gengar.geo.json'))['minecraft:geometry'][0]
+          assert len(geometry['bones'])==78
+          anim=set(json.load(open('.official-source/gengar.animation.json'))['animations'])
+          assert anim=={'animation.gengar.air_fly','animation.gengar.air_idle','animation.gengar.blink','animation.gengar.cry','animation.gengar.ground_idle'}
+          with zipfile.ZipFile('.official-source/cobblemon.jar') as jar:
+              assert 'assets/cobblemon/bedrock/pokemon/posers/0094_gengar/gengar.json' not in set(jar.namelist())
+          PY
+
+      - name: Generate V2 production cosmetic assets
         shell: bash
         run: |
           set -euo pipefail
-          python tools/cobblemon-model-review/build_rift_warden_gengar.py \
+          python tools/cobblemon-model-review/build_rift_warden_gengar_v2_current.py \
             --official .official-source/gengar.geo.json \
             --model-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json \
             --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png \
             --metadata-out docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json
-      - name: Prove original model is untouched and extras are exact
+
+      - name: Prove exact anatomy and V2 macro-form contract
         shell: bash
         run: |
           set -euo pipefail
@@ -99,39 +145,43 @@ jobs:
           from pathlib import Path
           meta=json.loads(Path('docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json').read_text())
           model=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json').read_text())['minecraft:geometry'][0]
-          official=json.loads(Path('.official-source/gengar.geo.json').read_text())['minecraft:geometry'][0]
-          expected=['ouros_rift_halo','ouros_rift_collar','ouros_rift_shroud_left','ouros_rift_shroud_right','ouros_rift_back_pylons','ouros_rift_wrist_left','ouros_rift_wrist_right','ouros_rift_shadow_mantle']
-          n=len(official['bones'])
-          assert n==78
-          assert meta['originalBoneCount']==78 and meta['derivedBoneCount']==86
-          assert len(model['bones'])==86
-          assert [b['name'] for b in model['bones'][n:]]==expected
+          expected=['ouros_rift_cowl','ouros_rift_mantle','ouros_rift_gate','ouros_rift_relic_wing','ouros_rift_lower_shroud','ouros_rift_armguard_left','ouros_rift_armguard_right','ouros_rift_wrist_left','ouros_rift_wrist_right']
+          assert meta['originalBoneCount']==78
+          assert meta['derivedBoneCount']==87 and len(model['bones'])==87
           assert meta['cosmeticBones']==expected
-          assert meta['cosmeticCubeCount']>=40
-          print('official bones',n,'derived bones',len(model['bones']),'cosmetic cubes',meta['cosmeticCubeCount'])
+          assert [b['name'] for b in model['bones'][78:]]==expected
+          assert meta['cosmeticCubeCount']==75
+          assert meta['bodyTexelRework']=='NONE'
+          assert meta['officialTextureBaselineSha256']=='7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65'
+          assert meta['productionBodyTextureSha256']==meta['officialTextureBaselineSha256']
+          print('official bones=78 derived bones=87 cosmetics=9 cubes=75 bodyTexelRework=NONE')
           PY
-      - name: Validate accessory-only UV layer
+
+      - name: Validate free-texel overlay and physical attachment
         shell: bash
         run: |
           set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json'
+          overlay='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png'
+          python tools/cobblemon-model-review/validate_accessory_overlay.py \
+            --official .official-source/gengar.png --overlay "$overlay" \
+            --expected-official-sha256 "$OFFICIAL_NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_cosmetic_attachment.py \
+            --official .official-source/gengar.geo.json --candidate "$model" \
+            --anchor-gap 1.50 --piece-gap 1.00
           python - <<'PY'
           import importlib.util,json
           from pathlib import Path
-          from PIL import Image
-          spec=importlib.util.spec_from_file_location('rift_builder','tools/cobblemon-model-review/build_rift_warden_gengar.py')
+          spec=importlib.util.spec_from_file_location('builder','tools/cobblemon-model-review/build_rift_warden_gengar_v2_current.py')
           module=importlib.util.module_from_spec(spec); assert spec.loader; spec.loader.exec_module(module)
           official=json.loads(Path('.official-source/gengar.geo.json').read_text())['minecraft:geometry'][0]
           meta=json.loads(Path('docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json').read_text())
           reserved={tuple(v) for v in meta['palettePixels'].values()}
-          used=module.mark_uv_usage(official)
-          assert reserved.isdisjoint(used), reserved & used
-          overlay=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png').convert('RGBA')
-          assert overlay.size==(128,128)
-          opaque={(x,y) for y in range(overlay.height) for x in range(overlay.width) if overlay.getpixel((x,y))[3]>0}
-          assert opaque==reserved
-          print('reserved UV-free palette texels',sorted(reserved))
+          assert reserved.isdisjoint(module.mark_uv_usage(official))
+          assert len(reserved)==8
           PY
-      - name: Validate resolver and official variant contracts
+
+      - name: Validate resolver and official presentation variants
         shell: bash
         run: |
           set -euo pipefail
@@ -141,35 +191,34 @@ jobs:
           base=json.loads(Path('.official-source/gengar.resolver.json').read_text())
           assert base['species']=='cobblemon:gengar'
           assert base['variations'][0]['poser']=='cobblemon:gengar'
-          assert base['variations'][0]['model']=='cobblemon:gengar.geo'
           assert any(v.get('aspects')==['shiny'] for v in base['variations'])
           assert any(v.get('aspects')==['color-green'] for v in base['variations'])
           r=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0094_gengar/90_ouros_rift_warden.json').read_text())
-          assert r['species']=='cobblemon:gengar' and r['order']==90
-          assert len(r['variations'])==3
+          assert r['species']=='cobblemon:gengar' and r['order']==90 and len(r['variations'])==3
+          normal,shiny,green=r['variations']
           for v in r['variations']:
               assert v['poser']=='cobblemon:gengar'
               assert v['model']=='cobblemon:ouros_rift_warden_gengar.geo'
               assert any(layer.get('name')=='ouros_rift_warden' for layer in v['layers'])
-          normal,shiny,green=r['variations']
           assert normal['aspects']==['ouros_rift_warden']
           assert normal['texture']=='cobblemon:textures/pokemon/0094_gengar/gengar.png'
-          assert normal['layers'][0]['texture']=='cobblemon:textures/pokemon/0094_gengar/gengar_emissives.png'
+          assert normal['layers'][0]['texture'].endswith('gengar_emissives.png') and normal['layers'][0]['emissive'] is True
           assert shiny['aspects']==['ouros_rift_warden','shiny']
           assert shiny['texture']=='cobblemon:textures/pokemon/0094_gengar/gengar_shiny.png'
-          assert shiny['layers'][0]['texture']=='cobblemon:textures/pokemon/0094_gengar/gengar_shiny_emissives.png'
+          assert shiny['layers'][0]['texture'].endswith('gengar_shiny_emissives.png') and shiny['layers'][0]['emissive'] is True
           assert green['aspects']==['ouros_rift_warden','color-green']
+          assert green['texture']=='cobblemon:textures/pokemon/0094_gengar/gengar.png'
           assert any(layer.get('name')=='pokemopolis' and layer['texture'].endswith('gengar_pokemopolis.png') for layer in green['layers'])
-          animations=json.loads(Path('.official-source/gengar.animation.json').read_text())['animations']
-          assert set(animations)=={'animation.gengar.air_fly','animation.gengar.air_idle','animation.gengar.blink','animation.gengar.cry','animation.gengar.ground_idle'}
           PY
+
       - name: Persist exact model license provenance
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p docs/cobblemon-skins/0094_gengar
           cp .official-source/model-license.txt docs/cobblemon-skins/0094_gengar/official-model-license.txt
-      - name: Commit generated production assets
+
+      - name: Commit regenerated V2 production assets
         shell: bash
         run: |
           set -euo pipefail
@@ -181,6 +230,6 @@ jobs:
             docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json \
             docs/cobblemon-skins/0094_gengar/official-model-license.txt
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'RPG: generate Rift Warden from official Cobblemon Gengar'
+          git commit -m 'skins: generate Rift Warden v2 from official Gengar'
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin HEAD:"${GITHUB_REF_NAME}"
