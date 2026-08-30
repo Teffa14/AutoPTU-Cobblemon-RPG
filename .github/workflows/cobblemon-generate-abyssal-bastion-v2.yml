@@ -1,0 +1,68 @@
+name: Generate Abyssal Bastion V2
+on:
+  push:
+    branches: ['feat/tyranitar-abyssal-bastion']
+    paths:
+      - '.github/workflows/cobblemon-generate-abyssal-bastion-v2.yml'
+      - 'tools/cobblemon-model-review/build_abyssal_bastion_tyranitar_v2.py'
+  workflow_dispatch:
+permissions: {contents: write}
+env: {COBBLEMON_VERSION_ID: kF7CvxTo}
+jobs:
+  generate-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Fetch and verify exact official source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official/version.json
+          python - <<'PY' > .official/env
+          import json,shlex
+          d=json.load(open('.official/version.json')); p=next(f for f in d['files'] if f.get('primary'))
+          assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and d['game_versions']==['1.21.1'] and 'fabric' in d['loaders'] and p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(p['url'])); print('SHA512='+shlex.quote(p['hashes']['sha512']))
+          PY
+          source .official/env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" .official/cobblemon.jar | sha512sum --check --strict
+          unzip -p .official/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/tyranitar.geo.json' > .official/tyranitar.geo.json
+          test "$(sha256sum .official/tyranitar.geo.json|awk '{print $1}')" = 541ac55dd56e5d8f0caeea3d5947ba3ab32437978e1d676ad335ffaef79c93a9
+      - name: Build epic v2 production assets
+        run: |
+          PYTHONPATH=tools/cobblemon-model-review python tools/cobblemon-model-review/build_abyssal_bastion_tyranitar_v2.py --official .official/tyranitar.geo.json --model-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png --metadata-out docs/cobblemon-skins/0248_tyranitar/abyssal-bastion-build-metadata.json
+      - name: Revalidate anatomy and UV isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_original_model.py --official .official/tyranitar.geo.json --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json
+          PYTHONPATH=tools/cobblemon-model-review python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          import build_abyssal_bastion_tyranitar as base
+          o=json.loads(Path('.official/tyranitar.geo.json').read_text())['minecraft:geometry'][0]
+          m=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json').read_text())['minecraft:geometry'][0]
+          meta=json.loads(Path('docs/cobblemon-skins/0248_tyranitar/abyssal-bastion-build-metadata.json').read_text())
+          assert len(o['bones'])==61 and len(m['bones'])==69 and meta['artPass']=='v2-epic-fortress-silhouette' and meta['cosmeticCubeCount']>=70
+          reserved={tuple(v) for v in meta['palettePixels'].values()}; assert reserved.isdisjoint(base.mark_uv_usage(o))
+          im=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png').convert('RGBA')
+          assert {(x,y) for y in range(im.height) for x in range(im.width) if im.getpixel((x,y))[3]}==reserved
+          print('v2 validated',meta['cosmeticCubeCount'],'cubes',meta['palettePixels'])
+          PY
+      - name: Commit refined assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]; git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png docs/cobblemon-skins/0248_tyranitar/abyssal-bastion-build-metadata.json
+          git commit -m 'RPG: refine Abyssal Bastion fortress silhouette' || exit 0
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
