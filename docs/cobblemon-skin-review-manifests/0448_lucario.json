@@ -161,7 +161,8 @@
       "Detached floating fins or equipment islands",
       "Flat recolor used as a substitute for authored geometry"
     ],
-    "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR"
+    "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
+    "iterationNote": "V9 production bytes were deterministically materialized on the active PR branch before this human review head; no artistic approval is implied."
   },
   "variantCoverage": {
     "audited": true,
@@ -176,7 +177,7 @@
       },
       {
         "name": "sex/forms",
-        "coverage": "No male/female geometry split exists on this official Lucario resolver path, and Mega Lucario is outside this cosmetic slice."
+        "coverage": "No male/female geometry split exists on this official resolver path, and Mega Lucario is outside this cosmetic slice."
       }
     ]
   },
