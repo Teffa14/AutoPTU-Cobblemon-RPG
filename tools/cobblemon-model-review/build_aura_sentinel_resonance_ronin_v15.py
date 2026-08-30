@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Resonance Ronin V15b: authored crescent-contour rework after exact V15 floor failure.
+"""Resonance Ronin V15c: ribbon-sweep iteration after V15b visual QA failure.
 
-Exact V15 Blockbench evidence measured silhouetteDeltaRatio=0.0303 against the
-unchanged 0.0400 floor. V15b does not lower that floor and does not add a cage,
-portal frame, broad rectangular pauldron, or alternate body rig. It keeps V14c's
-narrow shoulder-to-hip mantle architecture, then replaces V15's small pennons with
-one visually continuous shoulder-rooted crescent sweep: four overlapping thin
-segments progressively taper, rotate and recede from the official left shoulder.
-A paired hip flourish continues the same diagonal rhythm with explicit negative
-space around Lucario's biological tail. Official Lucario anatomy remains untouched.
+V15b cleared the unchanged technical visual floors but its four-stage shoulder
+crescent still read in real Blockbench evidence as a staircase of rectangular
+plates. V15c keeps V14c's narrow mantle architecture and replaces that stepped
+system with a two-stage shoulder-rooted ceremonial ribbon: long, thin, strongly
+compound-rotated facets overlap at a real shoulder contact and taper sharply as
+they travel up/back. The opposite hip uses two shorter unequal ribbons. This
+preserves a strong asymmetric contour while removing the repeated slab cadence.
+Official Lucario anatomy remains untouched and owner approval remains absent.
 """
 from __future__ import annotations
 
@@ -32,32 +32,24 @@ write_overlay = v14.write_overlay
 def v15_bones() -> list[dict]:
     bones = v14.v14_bones()
 
-    # Signature system: a shoulder-rooted crescent made from overlapping cloth
-    # facets. The contact/root piece is deliberately substantial enough to make
-    # the sweep feel worn, while the following segments narrow and rotate away.
-    # Gaps stay visible at the outer edge so the contour reads as layered cloth,
-    # not one rectangular wing.
+    # One readable shoulder gesture rather than a plate staircase. The first
+    # ribbon overlaps the official shoulder/contact zone and the second narrows
+    # hard while rotating farther back. Their proportions and compound rotations
+    # create a bent ceremonial streamer without a parallel-bar cadence.
     shoulder_sweep = v1.bone("ouros_resonance_shoulder_sweep", "shoulder_left", [7.5, 30.4, .7], [
-        mcube((5.85, 29.35, .85), (3.45, 2.55, .56), 81, light=83, dark=88,
-              pivot=(7.15, 30.55, 1.12), rotation=(-10, -13, -20)),
-        mcube((7.45, 30.45, 1.18), (3.15, 5.65, .38), 82, light=83, dark=81,
-              pivot=(8.15, 31.45, 1.37), rotation=(-17, -22, -33)),
-        mcube((9.55, 31.65, 1.65), (2.65, 5.30, .34), 81, light=85, dark=88,
-              pivot=(10.05, 32.55, 1.82), rotation=(-21, -27, -44)),
-        mcube((11.65, 32.55, 2.12), (2.05, 4.55, .29), 84, light=85, dark=80,
-              pivot=(11.95, 33.30, 2.26), rotation=(-27, -31, -56)),
+        mcube((6.45, 27.55, .92), (2.20, 8.20, .36), 82, light=83, dark=81,
+              pivot=(7.35, 30.10, 1.10), rotation=(-24, -23, -36)),
+        mcube((8.35, 31.45, 1.48), (1.25, 7.15, .27), 84, light=85, dark=80,
+              pivot=(8.75, 32.25, 1.62), rotation=(-31, -34, -56)),
     ])
 
-    # The hip flourish is intentionally shorter than the shoulder crescent. It
-    # resolves the diagonal composition without mirroring it or enclosing the
-    # body. Two tapered ribbons split around the biological tail with clear air.
+    # Short unequal hip response; it terminates the diagonal rhythm without
+    # mirroring the shoulder or enclosing Lucario's biological tail.
     hip_streamers = v1.bone("ouros_resonance_hip_streamers", "torso", [0, 15.0, 1.4], [
-        mcube((-5.75, 8.25, 1.25), (2.05, 6.55, .38), 82, light=83, dark=81,
-              pivot=(-4.75, 12.25, 1.44), rotation=(-27, 17, 24)),
-        mcube((-7.45, 6.15, 1.72), (1.55, 5.15, .31), 84, light=85, dark=80,
-              pivot=(-6.45, 9.65, 1.87), rotation=(-34, 22, 36)),
-        mcube((2.15, 8.75, 2.38), (1.30, 4.70, .28), 81, light=85, dark=88,
-              pivot=(2.65, 11.75, 2.52), rotation=(-29, -15, -24)),
+        mcube((-5.85, 7.65, 1.30), (1.80, 6.65, .34), 82, light=83, dark=81,
+              pivot=(-4.95, 11.80, 1.47), rotation=(-30, 18, 27)),
+        mcube((2.15, 9.05, 2.42), (1.15, 4.40, .26), 84, light=85, dark=80,
+              pivot=(2.62, 11.70, 2.55), rotation=(-27, -16, -25)),
     ])
     return bones + [shoulder_sweep, hip_streamers]
 
@@ -96,18 +88,18 @@ def patch_manifest(cubes: int) -> None:
     data["builder"]["scriptPath"] = "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v15.py"
     data["builder"]["command"] = ["python", "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v15.py"]
     data["qualityIntent"]["signaturePieces"] = [
-        "Continuous cowl/collar/shoulder/back/hip mantle arc with the official chest spike and face left open",
-        "One shoulder-rooted four-stage crescent sweep whose overlapping facets taper and rotate progressively instead of forming a slab or repeated bars",
-        "Asymmetric hip knot with split tapered ribbons preserving negative space around Lucario's biological tail",
+        "Continuous cowl/collar/shoulder/back/hip mantle arc leaving Lucario's face and chest spike open",
+        "One two-stage shoulder-rooted ceremonial ribbon whose long thin facets overlap, taper sharply and turn in compound rotation rather than forming a stepped plate fan",
+        "Asymmetric hip knot with two short unequal ribbon responses and negative space around the biological tail",
     ]
     data["qualityIntent"]["macroFormPlan"] = (
-        "V15b preserves V14c's narrow mantle architecture but replaces V15's undersized separated pennons with one connected visual crescent. Four thin overlapping shoulder facets expand outward only after a substantial shoulder contact mass, progressively narrowing and rotating to create a curved silhouette. The opposite hip resolves the same diagonal with three shorter split ribbons. No threshold changes and no biological edits."
+        "V15c preserves V14c's narrow mantle architecture and removes V15b's four-stage stepped crescent after direct Blockbench QA. The signature contour is now one shoulder-rooted ribbon gesture built from only two long, thin, strongly rotated overlapping facets, with an unequal two-ribbon hip response. The design spends silhouette on curvature and directional flow rather than repeated slabs. No threshold changes and no biological edits."
     )
     data["qualityIntent"]["gameplayReadGoal"] = (
-        "At 160 px the first read should be a single ceremonial crescent sweeping from Lucario's left shoulder around the back into the opposite hip. The outer edge must remain legible as tapered cloth motion with visible negative space, while the face, ears, aura sensors, chest spike, hands, feet and biological tail remain unmistakably Lucario."
+        "At 160 px the first read should be a single asymmetric ceremonial sweep, with one narrow ribbon rising/back from the left shoulder and a much shorter response at the opposite hip. The silhouette should read as cloth motion rather than armor plates while Lucario's ears, aura sensors, chest spike, hands, feet and biological tail remain unmistakable."
     )
     data["qualityIntent"]["iterationNote"] = (
-        "Exact V15 head 0bf6e61c00fc01f7d22a55e3ca123534e283725f passed reference, source, builder, bone, attachment and rendering stages but failed the unchanged matched-camera silhouette floor at 0.0303 < 0.0400. V15b materially reauthors the signature contour rather than lowering the floor; owner approval remains absent."
+        "Exact V15b head a814ee180d5ee272d1ec3bf09e0ab7e79f061901 passed the unchanged technical floors at pixelDifferenceRatio=0.11852 and silhouetteDeltaRatio=0.053315, but direct inspection of its Blockbench PNGs remained ARTISTIC FAIL because the shoulder crescent read as a staircase of rectangular plates. V15c removes that cadence rather than adding volume or relaxing thresholds; owner approval remains absent."
     )
     v1.MANIFEST.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -127,14 +119,14 @@ def main() -> None:
         patch_manifest(cubes)
     print(json.dumps({
         "status": "BUILT",
-        "concept": "Aura Sentinel — Resonance Ronin V15b",
+        "concept": "Aura Sentinel — Resonance Ronin V15c",
         "officialBones": v1.OFFICIAL_BONES,
         "cosmeticBones": 13,
         "cosmeticCubes": cubes,
         "modelSha256": v1.sha256(v1.MODEL),
         "overlaySha256": v1.sha256(v1.OVERLAY),
         "bodyTexelRework": "NONE",
-        "visualChange": "shoulder-rooted tapered crescent plus asymmetric hip resolution; unchanged technical floors",
+        "visualChange": "two-stage tapered shoulder ribbon plus unequal hip response; unchanged technical floors",
     }, indent=2))
 
 
