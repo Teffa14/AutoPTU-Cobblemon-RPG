@@ -1,0 +1,189 @@
+name: Hitmonlee Cobra Dojo V6 Blockbench Review
+
+on:
+  push:
+    branches: ['art/hitmonlee-cobra-dojo-v6-champion']
+    paths:
+      - '.github/workflows/cobblemon-hitmonlee-cobra-dojo-v6-review.yml'
+      - 'tools/cobblemon-model-review/build_cobra_dojo_hitmonlee_v6.py'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee*.png'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_VERSION: '1.7.3'
+  MINECRAFT_VERSION: '1.21.1'
+  COBBLEMON_JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+  COBBLEMON_JAR_SHA512: '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+  OFFICIAL_MODEL_SHA256: 'f92b067c781f9210dec305860bdb09141efad5c238396ac7988c4bbbed82840d'
+  OFFICIAL_ANIMATION_SHA256: 'd9f2b9e3c01ace9773368584fd034b015276a085d6ccb8d5624967bb7d9e8b7c'
+  OFFICIAL_NORMAL_SHA256: 'cbf05271a594e788e7173fd3e34ee32b35488781dd97b7e100455fe57d919574'
+  OFFICIAL_SHINY_SHA256: 'a677824d9be92b46ff6359ce58118e67fce1078632908cfc0ac80816e7c1c065'
+  DERIVED_MODEL_SHA256: '527faf52729e12bbd026e016d5829e1cffd8cf4dce443dbe029876a21e2266e5'
+  DERIVED_NORMAL_SHA256: '2020477e39ca52e51a215021e74c094125dc7045f8873b4124cbb8a16151d3fe'
+  DERIVED_SHINY_SHA256: '89b05f243485660e6c90e26899f8cf4e0e6dbdf407c9c5efe4269d05e2973fd7'
+  BLOCKBENCH_VERSION: '5.1.6'
+  BLOCKBENCH_SHA256: 'c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e'
+
+jobs:
+  blockbench-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install review dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+      - name: Extract exact official Hitmonlee source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .bb/official .bb/renders .bb/output
+          curl -fsSL -A 'Ouros-Hitmonlee-Cobra-v6-review' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .bb/version.json
+          python - <<'PY' > .bb/download.env
+          import json,os,shlex
+          d=json.load(open('.bb/version.json'))
+          p=next(f for f in d['files'] if f.get('primary'))
+          assert d['id']==os.environ['COBBLEMON_VERSION_ID'] and d['version_number']==os.environ['COBBLEMON_VERSION']
+          assert os.environ['MINECRAFT_VERSION'] in d['game_versions'] and 'fabric' in d['loaders']
+          assert p['hashes']['sha512']==os.environ['COBBLEMON_JAR_SHA512']
+          print('PROJECT_ID='+shlex.quote(d['project_id']))
+          print('JAR_URL='+shlex.quote(p['url']))
+          PY
+          source .bb/download.env
+          curl -fsSL -A 'Ouros-Hitmonlee-Cobra-v6-review' "https://api.modrinth.com/v2/project/${PROJECT_ID}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D" -o .bb/compatible.json
+          python - <<'PY'
+          import json,os
+          stable=[v for v in json.load(open('.bb/compatible.json')) if v.get('version_type')=='release']
+          latest=max(stable,key=lambda v:v['date_published'])
+          assert latest['id']==os.environ['COBBLEMON_VERSION_ID'],(latest['id'],latest['version_number'])
+          PY
+          curl -fsSL "$JAR_URL" -o .bb/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" .bb/cobblemon.jar | sha256sum -c -
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" .bb/cobblemon.jar | sha512sum -c -
+          python - <<'PY'
+          import hashlib,os,zipfile
+          from pathlib import Path
+          entries=[
+            ('assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/hitmonlee.geo.json','hitmonlee.geo.json','OFFICIAL_MODEL_SHA256'),
+            ('assets/cobblemon/bedrock/pokemon/animations/0106_hitmonlee/hitmonlee.animation.json','hitmonlee.animation.json','OFFICIAL_ANIMATION_SHA256'),
+            ('assets/cobblemon/textures/pokemon/0106_hitmonlee/hitmonlee.png','hitmonlee.png','OFFICIAL_NORMAL_SHA256'),
+            ('assets/cobblemon/textures/pokemon/0106_hitmonlee/hitmonlee_shiny.png','hitmonlee_shiny.png','OFFICIAL_SHINY_SHA256')]
+          with zipfile.ZipFile('.bb/cobblemon.jar') as z:
+            for member,target,key in entries:
+              payload=z.read(member)
+              assert hashlib.sha256(payload).hexdigest()==os.environ[key],member
+              Path('.bb/official',target).write_bytes(payload)
+          PY
+      - name: Verify exact production v6 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.geo.json'
+          normal='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.png'
+          shiny='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee_shiny.png'
+          printf '%s  %s\n' "$DERIVED_MODEL_SHA256" "$model" | sha256sum -c -
+          printf '%s  %s\n' "$DERIVED_NORMAL_SHA256" "$normal" | sha256sum -c -
+          printf '%s  %s\n' "$DERIVED_SHINY_SHA256" "$shiny" | sha256sum -c -
+          python tools/cobblemon-model-review/validate_original_model.py --official .bb/official/hitmonlee.geo.json --candidate "$model"
+          python - <<'PY'
+          import json
+          from PIL import Image
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.geo.json'
+          bones=json.load(open(model))['minecraft:geometry'][0]['bones']
+          assert len(bones)==43
+          assert bones[30]['name']=='ouros_champion_headband'
+          assert sum(len(b.get('cubes',[])) for b in bones[30:])==62
+          for source,target in [('.bb/official/hitmonlee.png','fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.png'),('.bb/official/hitmonlee_shiny.png','fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee_shiny.png')]:
+            a=Image.open(source).convert('RGBA'); d=Image.open(target).convert('RGBA')
+            changed=[(x,y) for y in range(64) for x in range(64) if a.getpixel((x,y))!=d.getpixel((x,y))]
+            assert changed==[(x,63) for x in range(9)],changed
+          PY
+      - name: Download pinned Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" -o .bb/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" .bb/blockbench.AppImage | sha256sum -c -
+          chmod +x .bb/blockbench.AppImage
+          (cd .bb && ./blockbench.AppImage --appimage-extract >/dev/null)
+      - name: Render matched-camera official and v6 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          official="$PWD/.bb/official/hitmonlee.geo.json"
+          model="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.geo.json"
+          normal="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.png"
+          shiny="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee_shiny.png"
+          animation="$PWD/.bb/official/hitmonlee.animation.json"
+          camera="$PWD/.bb/official-camera.json"
+          kill_bb(){ pkill -9 -f '/squashfs-root/blockbench' 2>/dev/null || true; pkill -9 -f '/squashfs-root/AppRun' 2>/dev/null || true; sleep 2; }
+          capture(){
+            model_path="$1"; texture="$2"; clip="$3"; frame="$4"; out="$5"; port="$6"; camera_in="$7"; camera_out="$8"; expected="$9"
+            kill_bb
+            profile="$PWD/.bb/profile-$port"; log="$PWD/.bb/blockbench-$port.log"
+            rm -rf "$profile" "$out"; mkdir -p "$profile" "$out"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.bb/squashfs-root" "$PWD/.bb/squashfs-root/AppRun" --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --user-data-dir="$profile" --remote-debugging-port="$port" "$model_path" >"$log" 2>&1 & runner=$!
+            for i in $(seq 1 90); do curl -fsS "http://127.0.0.1:$port/json/version" >/dev/null 2>&1 && break; kill -0 "$runner" 2>/dev/null || { cat "$log"; return 1; }; sleep 1; done
+            sleep 4
+            args=(--endpoint "http://127.0.0.1:$port" --texture "$texture" --animation "$animation" --animation-name "$clip" --animation-time "$frame" --gameplay-resolution 160 --output-dir "$out")
+            [ -n "$camera_in" ] && args+=(--camera-profile-in "$camera_in")
+            [ -n "$camera_out" ] && args+=(--camera-profile-out "$camera_out")
+            node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}"
+            python - "$out/blockbench-metadata.json" "$expected" <<'PY'
+          import json,sys
+          m=json.load(open(sys.argv[1])); expected=int(sys.argv[2])
+          assert m['modelInfo']['boneCount']==expected,(m['modelInfo']['projectName'],m['modelInfo']['boneCount'],expected)
+          PY
+            kill "$runner" 2>/dev/null || true; wait "$runner" 2>/dev/null || true; kill_bb
+          }
+          capture "$official" "$PWD/.bb/official/hitmonlee.png" animation.hitmonlee.ground_idle 0.35 "$PWD/.bb/renders/official" 9941 '' "$camera" 30
+          capture "$model" "$normal" animation.hitmonlee.ground_idle 0.35 "$PWD/.bb/renders/hero" 9942 "$camera" '' 43
+          capture "$model" "$normal" animation.hitmonlee.battle_idle 0.35 "$PWD/.bb/renders/battle" 9943 "$camera" '' 43
+          capture "$model" "$normal" animation.hitmonlee.ground_walk 0.25 "$PWD/.bb/renders/walk" 9944 "$camera" '' 43
+          capture "$model" "$shiny" animation.hitmonlee.ground_idle 0.35 "$PWD/.bb/renders/shiny" 9945 "$camera" '' 43
+      - name: Package real Blockbench evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,shutil
+          from pathlib import Path
+          out=Path('.bb/output')
+          files={
+            'official_reference_three_quarter.png':'.bb/renders/official/three_quarter.png',
+            'hero_three_quarter.png':'.bb/renders/hero/three_quarter.png',
+            'battle_ready_three_quarter.png':'.bb/renders/battle/three_quarter.png',
+            'walking_three_quarter.png':'.bb/renders/walk/three_quarter.png',
+            'hero_front.png':'.bb/renders/hero/front.png',
+            'hero_left.png':'.bb/renders/hero/left.png',
+            'hero_right.png':'.bb/renders/hero/right.png',
+            'hero_back.png':'.bb/renders/hero/back.png',
+            'official_reference_gameplay_160.png':'.bb/renders/official/three_quarter_gameplay_160.png',
+            'hero_gameplay_160.png':'.bb/renders/hero/three_quarter_gameplay_160.png',
+            'battle_ready_gameplay_160.png':'.bb/renders/battle/three_quarter_gameplay_160.png',
+            'walking_gameplay_160.png':'.bb/renders/walk/three_quarter_gameplay_160.png',
+            'shiny_three_quarter.png':'.bb/renders/shiny/three_quarter.png'}
+          hashes={}
+          for name,source in files.items():
+            p=Path(source); assert p.is_file(),p; shutil.copy2(p,out/name); hashes[name]=hashlib.sha256((out/name).read_bytes()).hexdigest()
+          report={'viewer':'Blockbench','viewerVersion':'5.1.6','pokemon':'Hitmonlee','concept':'Cobra Dojo Champion v6','officialBones':30,'productionBones':43,'cosmeticBones':13,'cosmeticCubes':62,'modelSha256':'527faf52729e12bbd026e016d5829e1cffd8cf4dce443dbe029876a21e2266e5','animations':{'hero':'animation.hitmonlee.ground_idle@0.35','battle':'animation.hitmonlee.battle_idle@0.35','walk':'animation.hitmonlee.ground_walk@0.25'},'matchedCamera':True,'gameplayResolution':160,'pngSha256':hashes,'artisticAcceptance':'PENDING_HUMAN_VISUAL_REVIEW','presentationOnly':True}
+          (out/'review.json').write_text(json.dumps(report,indent=2)+'\n')
+          shutil.copy2('.bb/official-camera.json',out/'official-camera.json')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hitmonlee-cobra-dojo-v6-blockbench-review
+          path: .bb/output
+          if-no-files-found: error
+          retention-days: 14
