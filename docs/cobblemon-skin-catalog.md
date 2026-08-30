@@ -82,7 +82,7 @@ Previous labels such as `EPIC ACCEPTED` are historical only and do not override 
 | Pokemon | Concept | Technical baseline | Current art status | Next action |
 | --- | --- | --- | --- | --- |
 | Pikachu | Storm Courier | exact 90-bone male/female source + 8 macro cosmetic groups | FULL TRANSFORMATION ACCEPTED | Merged in PR #309; use as engineering/art-process reference, not as a design template |
-| Lucario | Aura Sentinel | exact 87-bone source + 8 macro cosmetic groups / 95 total | ART ACCEPTED; FINAL PR GATES PENDING | Finish issue #311 PR gates and merge only if all final checks stay green |
+| Lucario | Aura Sentinel | exact 87-bone source + 8 macro cosmetic groups / 95 total | FULL TRANSFORMATION ACCEPTED | Merge PR #313 only after the final documentation-only human head remains green; then move to the next re-audit |
 | Gengar | Rift Warden | 86-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess connected masses and full-body visual integration |
 | Mimikyu | Eclipse Herald | 56-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess costume coverage and material hierarchy |
 | Charizard | Solar Legion | 138-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess large connected armor forms and body palette integration |
@@ -111,7 +111,7 @@ Detailed source and acceptance notes remain in `docs/cobblemon-skins/0025_pikach
 
 ## 0448 Lucario — Aura Sentinel
 
-Aura Sentinel v2 is the second re-audit under the new standard and the first slice after Storm Courier.
+Aura Sentinel v2 is the second accepted implementation under the full-transformation standard and the first re-audit completed after Storm Courier.
 
 Pinned official source:
 
@@ -124,13 +124,17 @@ Pinned official source:
 - original bones: 87
 - derived bones: 95
 - cosmetic groups: 8
-- refined cosmetic cubes: 87
+- accepted cosmetic cubes: 87
 
-The old accessory-only pass is superseded. V2 uses full derived normal/shiny textures plus an integrated open-face aura helm/visor, broad mantle/breastplate, dorsal shrine/halo frame, split waistcoat, armguards and relic fin. The normal derived texture SHA-256 is `1cbb1ca7fe260d01a4e0ca7a2f0a28ea424475f856267caf19d0b4276ed19752`; shiny is `7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725`.
+The old accessory-only pass is superseded. An unreviewed 99-cube intermediate candidate was also explicitly rejected as canonical and removed from the final workflow. Production was regenerated deterministically to the human-reviewed 87-cube pass, and both generation and review now fail if that exact candidate contract drifts.
 
-Real Blockbench 5.1.6 matched-camera review passed on refined review run `33285682959`. The 160 px gameplay sample still reads as an aura knight rather than ordinary Lucario with small accessories. `ground_idle` and `battle_idle` were used from the official animation file. Walking is not fabricated because official Lucario locomotion is procedural rather than a dedicated Bedrock walking clip.
+V2 uses full derived normal/shiny textures plus an integrated open-face aura helm/visor, broad mantle/breastplate, dorsal shrine/halo frame, split waistcoat, armguards and relic fin. Normal derived texture SHA-256 is `1cbb1ca7fe260d01a4e0ca7a2f0a28ea424475f856267caf19d0b4276ed19752`; shiny is `7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725`.
 
-Art is accepted. Final PR-level Playable Test Build, Integration Core CI and applicable source/model checks are still required before the catalog can mark this slice `FULL TRANSFORMATION ACCEPTED`.
+The final PR-level real Blockbench 5.1.6 matched-camera review passed on human head `cd759c80ae502648079d0ed06594b8809293d8d6`, run `33286136164`. Artifact `9724492898` has digest `sha256:3bebb334fac699f09c51e0e990bb2be56351cb8af05d71f6e39f380764701353`. The PR-generated PNGs were opened and inspected after the canonical 87-cube assets were restored. The 160 px gameplay sample still reads as an aura knight rather than ordinary Lucario with small accessories.
+
+The final reviewed asset head also passed Cobblemon Official Model Review run `33286136163`, Playable Test Build run `33286136181`, and Integration Core CI run `33286136176`. `ground_idle` and `battle_idle` come from the official Lucario animation file. Walking is intentionally not fabricated because official Lucario locomotion is procedural rather than a dedicated Bedrock walking clip.
+
+Current artistic/technical status: `FULL TRANSFORMATION ACCEPTED`. PR #313 may merge only if the final documentation-only human head retains green repository checks without modifying the reviewed production assets.
 
 Detailed notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
 
