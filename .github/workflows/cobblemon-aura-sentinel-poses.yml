@@ -16,5 +16,5 @@ jobs:
       - name: Point reviewers to Aura Sentinel v2 evidence
         run: |
           echo 'Aura Sentinel v1 accessory-first evidence is retired under the full-transformation art standard.'
-          echo 'Use .github/workflows/cobblemon-aura-sentinel-v2-review.yml.'
-          echo 'The v2 gate validates the exact official Lucario source, full-surface normal/shiny textures, matched-camera Blockbench hero/battle/four-view evidence, and 160px gameplay readability.'
+          echo 'Use .github/workflows/cobblemon-aura-sentinel-v2-refined-review.yml.'
+          echo 'The refined v2 gate validates the exact official Lucario source, full-surface normal/shiny textures, matched-camera Blockbench hero/battle/four-view evidence, and 160px gameplay readability.'
