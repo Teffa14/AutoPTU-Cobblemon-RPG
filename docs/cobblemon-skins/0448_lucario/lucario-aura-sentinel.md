@@ -24,17 +24,17 @@ Poser `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`.
 Resolver `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`.
 Model license `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`.
 
-The mandatory dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` is REFERENCE READY with Ruins Style Lucario, Space Style Lucario and Covert Style Lucario, all COMPLETE same-species custom-geometry inspections and all STUDY_ONLY. The V19 materializer ran `validate_species_reference_dossier.py` successfully before generating production bytes.
+The mandatory dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with Ruins Style Lucario, Space Style Lucario and Covert Style Lucario, all COMPLETE same-species custom-geometry inspections and all STUDY_ONLY. The V20 materializer ran `validate_species_reference_dossier.py` successfully before generating production bytes.
 
-## Current V19 production
+## Current V20 production
 
-Builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v19.py`.
+Builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v20.py`.
 
-V18 cleared the unchanged matched-camera technical floors but direct Blockbench QA still showed visible gold shoulder facets, a rear mass that read as a dark rectangular plate, and a gameplay-scale first read of Lucario plus equipment. V19 removes that macro-form rather than inflating cube count or lowering thresholds.
+V19 passed official source validation, all 87-bone preservation checks, attachment and exact builder reproduction, but its exact-head Blockbench review failed the unchanged visual floor at pixelDifferenceRatio `0.0614` against minimum `0.0800`. Direct contact-sheet inspection agreed: the dark wrap remained mostly inside Lucario's official silhouette and the rear still compressed into blocky shoulder masses.
 
-V19 concentrates the authored silhouette into a deeper dark camera-near shoulder wrap that overlaps a progressively narrower back/side envelope and terminates in unequal lower folds. The shoulder root changes depth as well as angle; the rear composition is laterally offset rather than centered; the biological tail and legs retain deliberate negative space. Gold is reduced to a small oblique hip clasp and overlay accents instead of forming the silhouette.
+V20 removes both scattered vambraces. Its dominant system is one camera-near half-cloak: four deeply overlapping dark volumes change width, depth and compound rotation as they taper from shoulder to flank. A narrow two-piece dorsal handoff turns the same material around the torso without creating a centered rear plate. Two unequal lower folds preserve negative space around the official tail and legs, with gold restricted to a compact hip clasp and overlay accents.
 
-Materialized model SHA-256 `01df7882e7bc75d049337f005b275ba59e03edbec1d864df7f81b93af83bdc60`. It contains the exact ordered 87 official bones plus 8 `ouros_*` cosmetic bones, 95 total, with 17 cosmetic cubes.
+Materialized model SHA-256 `79b6fd167c950129067046fd55998133fdabdb5c6093f6846d325a59c31db639`. It contains the exact ordered 87 official bones plus 6 `ouros_*` cosmetic bones, 93 total, with 15 cosmetic cubes.
 
 ## Texture/runtime
 
@@ -46,4 +46,4 @@ No male/female geometry split exists on this official resolver path. Mega Lucari
 
 Blockbench 5.1.6, AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`, matched camera. Hero uses `animation.lucario.ground_idle`; battle uses `animation.lucario.battle_idle`, both at t=0.35. No dedicated walking PNG is fabricated because this official path uses procedural locomotion.
 
-Technical floors remain unchanged at pixel difference 0.08 and silhouette delta 0.04. This human documentation bind follows deterministic materialization and exists so the exact-head professional Blockbench review executes against the V19 production bytes above. Owner approval remains absent.
+Technical floors remain unchanged at pixel difference 0.08 and silhouette delta 0.04. This human documentation bind follows deterministic V20 materialization and exists so the exact-head professional Blockbench review executes against the production bytes above. Owner approval remains absent.
