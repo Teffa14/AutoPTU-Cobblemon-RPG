@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Hard pre-model gate for same-species custom-geometry skin research.
+"""Validate same-species custom-geometry skin research dossiers.
 
-Production geometry must not be generated until at least three distinct external
-CUSTOM GEOMETRY SKINS of the exact same base species have been inspected from
-actual model + texture files and documented with provenance, license/reuse
-status and concrete lessons.
+Strict mode is the hard pre-model gate: production geometry must not be generated
+until at least three distinct external CUSTOM GEOMETRY SKINS of the exact same
+base species have been inspected from actual MODEL + TEXTURE files.
 
-Canonical forms (Mega/Gmax/regional/etc.), shiny/recolor-only variants and plain
-canonical remodels do not count.
+`--allow-blocked` is research-only. It validates dossier/candidate structure while
+allowing fewer than three complete references. It never opens production.
 """
 
 from __future__ import annotations
@@ -22,6 +21,9 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 VALID_REUSE_MODES = {"STUDY_ONLY", "LICENSED_DERIVATIVE_DONOR"}
 REQUIRED_REFERENCE_CLASS = "CUSTOM_GEOMETRY_SKIN"
 REQUIRED_CANONICAL_RELATION = "NON_CANONICAL_CUSTOM_SKIN"
+REQUIRED_CANDIDATE_CLASS = "CUSTOM_GEOMETRY_SKIN_CANDIDATE"
+REQUIRED_CANDIDATE_RELATION = "NON_CANONICAL_CUSTOM_SKIN"
+VALID_PROOF_STATUS = {"PROVEN", "UNPROVEN", "PROVEN_BY_PROJECT_DESCRIPTION", "PROVEN_BY_3D_MODEL_DESCRIPTION"}
 
 
 def require_text(obj: dict, key: str, where: str) -> str:
@@ -65,11 +67,86 @@ def validate_asset_files(ref: dict, where: str) -> list[dict]:
     return normalized
 
 
+def validate_candidates(data: dict, species: str, used_ids: set[str]) -> int:
+    candidates = data.get("candidateReferences", [])
+    if candidates is None:
+        return 0
+    if not isinstance(candidates, list):
+        raise SystemExit("dossier.candidateReferences must be a list when present")
+
+    count = 0
+    for index, candidate in enumerate(candidates):
+        where = f"candidateReferences[{index}]"
+        if not isinstance(candidate, dict):
+            raise SystemExit(f"{where} must be an object")
+
+        candidate_id = require_text(candidate, "candidateId", where)
+        if candidate_id in used_ids:
+            raise SystemExit(f"duplicate counted/candidate id: {candidate_id}")
+        used_ids.add(candidate_id)
+
+        candidate_species = require_text(candidate, "species", where).lower()
+        if candidate_species != species:
+            raise SystemExit(
+                f"{where}.species={candidate_species!r} does not match dossier species={species!r}"
+            )
+
+        if require_text(candidate, "candidateClass", where) != REQUIRED_CANDIDATE_CLASS:
+            raise SystemExit(f"{where}.candidateClass must be {REQUIRED_CANDIDATE_CLASS}")
+        if require_text(candidate, "canonicalRelationCandidate", where) != REQUIRED_CANDIDATE_RELATION:
+            raise SystemExit(f"{where}.canonicalRelationCandidate must be {REQUIRED_CANDIDATE_RELATION}")
+
+        require_text(candidate, "project", where)
+        require_url(candidate, "sourceUrl", where)
+        require_text(candidate, "sourceVersion", where)
+        require_text(candidate, "implementationName", where)
+        require_text(candidate, "whyNotCounted", where)
+        require_text(candidate, "sourceFileAccessStatus", where)
+        require_text(candidate, "licenseStatus", where)
+
+        geometry_status = require_text(candidate, "geometryMateriallyChangedStatus", where)
+        identity_status = require_text(candidate, "customVisualIdentityStatus", where)
+        if geometry_status not in VALID_PROOF_STATUS:
+            raise SystemExit(f"{where}.geometryMateriallyChangedStatus has unsupported value {geometry_status!r}")
+        if identity_status not in VALID_PROOF_STATUS:
+            raise SystemExit(f"{where}.customVisualIdentityStatus has unsupported value {identity_status!r}")
+
+        status = require_text(candidate, "assetInspectionStatus", where)
+        if status != "PENDING":
+            raise SystemExit(
+                f"{where}.assetInspectionStatus must be PENDING; COMPLETE candidates belong in references[]"
+            )
+
+        files = candidate.get("assetFilesInspected", [])
+        if not isinstance(files, list):
+            raise SystemExit(f"{where}.assetFilesInspected must be a list")
+
+        evidence = candidate.get("discoveryEvidence")
+        if not isinstance(evidence, list) or not evidence or not all(
+            isinstance(item, str) and item.strip() for item in evidence
+        ):
+            raise SystemExit(f"{where}.discoveryEvidence must be a non-empty list")
+
+        reuse_mode = require_text(candidate, "reuseMode", where)
+        if reuse_mode != "STUDY_ONLY":
+            raise SystemExit(
+                f"{where}.reuseMode must remain STUDY_ONLY while assetInspectionStatus is PENDING"
+            )
+
+        count += 1
+    return count
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("dossier", type=Path)
     parser.add_argument("--expected-species")
     parser.add_argument("--minimum", type=int, default=3)
+    parser.add_argument(
+        "--allow-blocked",
+        action="store_true",
+        help="Validate research/candidate structure without opening the production gate.",
+    )
     args = parser.parse_args()
 
     if args.minimum < 3:
@@ -77,7 +154,10 @@ def main() -> None:
     if not args.dossier.is_file():
         raise SystemExit(f"missing dossier: {args.dossier}")
 
-    data = json.loads(args.dossier.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(args.dossier.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid dossier JSON: {exc}") from exc
     if not isinstance(data, dict):
         raise SystemExit("dossier root must be an object")
 
@@ -95,12 +175,9 @@ def main() -> None:
     if not isinstance(dex, int) or dex <= 0:
         raise SystemExit("dossier.nationalDex must be a positive integer")
 
-    references = data.get("references")
-    if not isinstance(references, list) or len(references) < args.minimum:
-        raise SystemExit(
-            f"REFERENCE BLOCKED: need at least {args.minimum} eligible external custom-geometry skins; "
-            f"found {0 if not isinstance(references, list) else len(references)} candidates"
-        )
+    references = data.get("references", [])
+    if not isinstance(references, list):
+        raise SystemExit("dossier.references must be a list")
 
     ids: set[str] = set()
     fingerprints: set[str] = set()
@@ -194,8 +271,25 @@ def main() -> None:
 
         complete += 1
 
+    candidate_count = validate_candidates(data, species, ids)
+
     if complete < args.minimum:
-        raise SystemExit(f"REFERENCE BLOCKED: only {complete} eligible complete custom skins")
+        if not args.allow_blocked:
+            raise SystemExit(
+                f"REFERENCE BLOCKED: need at least {args.minimum} eligible COMPLETE external custom-geometry skins; "
+                f"found {complete}; staged candidates={candidate_count}"
+            )
+        report = {
+            "status": "REFERENCE_BLOCKED",
+            "species": species,
+            "nationalDex": dex,
+            "completeEligibleCustomSkinCount": complete,
+            "stagedCandidateCount": candidate_count,
+            "productionModelingGate": "BLOCKED",
+            "artApproval": "NOT_EVALUATED",
+        }
+        print(json.dumps(report, indent=2))
+        return
 
     if len(projects) < 2:
         raise SystemExit(
@@ -207,6 +301,7 @@ def main() -> None:
         "species": species,
         "nationalDex": dex,
         "completeEligibleCustomSkinCount": complete,
+        "stagedCandidateCount": candidate_count,
         "distinctProjectCount": len(projects),
         "licensedDerivativeDonorCount": donor_count,
         "productionModelingGate": "OPEN",
