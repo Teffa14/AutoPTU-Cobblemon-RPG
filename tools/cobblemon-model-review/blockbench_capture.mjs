@@ -26,12 +26,26 @@ const animationName = optionalArg('--animation-name');
 const animationTime = Number(optionalArg('--animation-time', '0'));
 const animationPath = animationArg ? path.resolve(animationArg) : null;
 const animationContent = animationPath ? fs.readFileSync(animationPath, 'utf8') : null;
+const cameraProfileInArg = optionalArg('--camera-profile-in');
+const cameraProfileOutArg = optionalArg('--camera-profile-out');
+const cameraProfileInPath = cameraProfileInArg ? path.resolve(cameraProfileInArg) : null;
+const cameraProfileOutPath = cameraProfileOutArg ? path.resolve(cameraProfileOutArg) : null;
+const cameraProfile = cameraProfileInPath
+  ? JSON.parse(fs.readFileSync(cameraProfileInPath, 'utf8'))
+  : null;
+const gameplayResolution = Number(optionalArg('--gameplay-resolution', '160'));
 
 if ((animationPath && !animationName) || (!animationPath && animationName)) {
   throw new Error('--animation and --animation-name must be provided together');
 }
 if (!Number.isFinite(animationTime) || animationTime < 0) {
   throw new Error(`Invalid --animation-time ${animationTime}`);
+}
+if (!Number.isInteger(gameplayResolution) || gameplayResolution < 128 || gameplayResolution > 192) {
+  throw new Error(`--gameplay-resolution must be an integer from 128 through 192, got ${gameplayResolution}`);
+}
+if (cameraProfile && cameraProfile.viewer !== 'Blockbench') {
+  throw new Error('camera profile must originate from Blockbench capture metadata');
 }
 
 fs.mkdirSync(outputDir, { recursive: true });
@@ -170,7 +184,8 @@ const views = {
 
 const renderMetadata = {};
 for (const [name, view] of Object.entries(views)) {
-  const result = await page.evaluate(async ({ name, view }) => {
+  const fixedCamera = cameraProfile?.views?.[name] ?? null;
+  const result = await page.evaluate(async ({ name, view, fixedCamera, gameplayResolution }) => {
     if (typeof Animator !== 'undefined' && Animator.open && Animation?.selected) {
       Animator.preview();
     }
@@ -194,7 +209,7 @@ for (const [name, view] of Object.entries(views)) {
     const margin = 1.22;
     const targetResolution = 1024;
     const orthoWorldSpanAtZoomOne = targetResolution / 40;
-    const zoom = Math.min(
+    const autoZoom = Math.min(
       orthoWorldSpanAtZoomOne / Math.max(horizontalSpan * margin, 0.001),
       orthoWorldSpanAtZoomOne / Math.max(verticalSpan * margin, 0.001),
     );
@@ -206,61 +221,103 @@ for (const [name, view] of Object.entries(views)) {
       projection: 'orthographic',
       position: view.position,
       target: [0, 0, 0],
-      zoom,
+      zoom: fixedCamera?.zoom ?? autoZoom,
     };
     if (view.locked) preset.locked_angle = view.locked;
     preview.loadAnglePreset(preset);
 
-    const cameraOffset = preview.camera.position.clone().sub(preview.controls.target);
-    preview.controls.target.copy(center);
-    preview.camera.position.copy(center.clone().add(cameraOffset));
-    preview.camOrtho.zoom = zoom;
+    if (fixedCamera) {
+      if (!Array.isArray(fixedCamera.target) || fixedCamera.target.length !== 3) {
+        throw new Error(`camera profile ${name} is missing target`);
+      }
+      if (!Array.isArray(fixedCamera.cameraPosition) || fixedCamera.cameraPosition.length !== 3) {
+        throw new Error(`camera profile ${name} is missing cameraPosition`);
+      }
+      preview.controls.target.fromArray(fixedCamera.target);
+      preview.camera.position.fromArray(fixedCamera.cameraPosition);
+      preview.camOrtho.zoom = fixedCamera.zoom;
+    } else {
+      const cameraOffset = preview.camera.position.clone().sub(preview.controls.target);
+      preview.controls.target.copy(center);
+      preview.camera.position.copy(center.clone().add(cameraOffset));
+      preview.camOrtho.zoom = autoZoom;
+    }
+
     preview.camOrtho.updateProjectionMatrix();
     preview.controls.update();
     preview.render();
 
-    const dataUrl = await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Blockbench screenshot timed out')), 15000);
-      Screencam.advancedScreenshot(preview, {
-        angle_preset: 'view',
-        resolution: [targetResolution, targetResolution],
-        anti_aliasing: 'off',
-        show_gizmos: false,
-        shading: true,
-      }, data => {
-        clearTimeout(timeout);
-        resolve(data);
+    async function screenshot(resolution) {
+      return await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Blockbench screenshot timed out')), 15000);
+        Screencam.advancedScreenshot(preview, {
+          angle_preset: 'view',
+          resolution: [resolution, resolution],
+          anti_aliasing: 'off',
+          show_gizmos: false,
+          shading: true,
+        }, data => {
+          clearTimeout(timeout);
+          resolve(data);
+        });
       });
-    });
+    }
+
+    const dataUrl = await screenshot(targetResolution);
+    const gameplayDataUrl = await screenshot(gameplayResolution);
 
     return {
       dataUrl,
+      gameplayDataUrl,
       bounds: {
         min: bounds.min.toArray(),
         max: bounds.max.toArray(),
         center: center.toArray(),
         size: size.toArray(),
       },
-      zoom,
+      zoom: preview.camOrtho.zoom,
+      target: preview.controls.target.toArray(),
+      cameraPosition: preview.camera.position.toArray(),
+      cameraSource: fixedCamera ? 'official-reference-profile' : 'auto-fit-source',
     };
-  }, { name, view });
+  }, { name, view, fixedCamera, gameplayResolution });
 
   if (!String(result.dataUrl).startsWith('data:image/png;base64,')) {
     throw new Error(`Blockbench returned invalid PNG data for ${name}`);
   }
+  if (!String(result.gameplayDataUrl).startsWith('data:image/png;base64,')) {
+    throw new Error(`Blockbench returned invalid gameplay PNG data for ${name}`);
+  }
+
   const png = Buffer.from(result.dataUrl.slice(result.dataUrl.indexOf(',') + 1), 'base64');
+  const gameplayPng = Buffer.from(
+    result.gameplayDataUrl.slice(result.gameplayDataUrl.indexOf(',') + 1),
+    'base64',
+  );
   if (png.length < 1024) throw new Error(`Blockbench ${name} screenshot is unexpectedly small`);
+  if (gameplayPng.length < 256) throw new Error(`Blockbench ${name} gameplay screenshot is unexpectedly small`);
+
   fs.writeFileSync(path.join(outputDir, `${name}.png`), png);
+  fs.writeFileSync(path.join(outputDir, `${name}_gameplay_${gameplayResolution}.png`), gameplayPng);
   renderMetadata[name] = {
     bounds: result.bounds,
     zoom: result.zoom,
+    target: result.target,
+    cameraPosition: result.cameraPosition,
+    cameraSource: result.cameraSource,
     bytes: png.length,
+    gameplayResolution,
+    gameplayBytes: gameplayPng.length,
   };
 }
 
 const metadata = {
   viewer: 'Blockbench',
   sourceOfTransforms: modelInfo.appliedAnimation ? 'Blockbench Bedrock animation codec' : 'Blockbench model bind pose',
+  cameraContract: cameraProfile
+    ? 'matched to official reference camera profile'
+    : 'source camera profile generated from this capture',
+  gameplayResolution,
   modelInfo,
   views: renderMetadata,
 };
@@ -269,6 +326,23 @@ fs.writeFileSync(
   `${JSON.stringify(metadata, null, 2)}\n`,
   'utf8',
 );
+
+if (cameraProfileOutPath) {
+  fs.mkdirSync(path.dirname(cameraProfileOutPath), { recursive: true });
+  fs.writeFileSync(
+    cameraProfileOutPath,
+    `${JSON.stringify({
+      viewer: 'Blockbench',
+      source: 'official-reference',
+      views: Object.fromEntries(Object.entries(renderMetadata).map(([name, value]) => [name, {
+        zoom: value.zoom,
+        target: value.target,
+        cameraPosition: value.cameraPosition,
+      }])),
+    }, null, 2)}\n`,
+    'utf8',
+  );
+}
 
 console.log(JSON.stringify(metadata, null, 2));
 await browser.close();
