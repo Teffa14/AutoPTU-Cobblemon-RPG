@@ -5,6 +5,8 @@ on:
     paths:
       - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/**'
       - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
       - 'src/main/resources/data/autoptu/cobblemon/skins/**'
       - 'docs/cobblemon-skins/**'
       - 'docs/cobblemon-skin-reference-dossiers/**'
