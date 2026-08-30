@@ -4,7 +4,7 @@
   "nationalDex": 448,
   "concept": "Aura Sentinel — Resonance Ronin",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
-  "artStatus": "OWNER REVIEW REQUIRED",
+  "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
     "required": true,
     "approved": false,
@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "435634f45b86b6f601cc05898a093b8f0512341dc693c70d80c32e811e779877",
+    "modelSha256": "8b7c555d34492067587cd17c2921fdc7ef772111a9b99f8a1f32b63bed9b67d4",
     "productionBoneCount": 97,
     "cosmeticBoneCount": 10,
-    "cosmeticCubeCount": 58,
+    "cosmeticCubeCount": 56,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v4.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v5.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v4.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v5.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Asymmetric left shoulder wrap flowing into a diagonal chest sash",
-      "Connected shoulder-to-hip resonance mantle with progressive taper",
-      "Four separated battle-coat tails carrying the diagonal rhythm into the lower body"
+      "Continuous asymmetric crescent mantle from left shoulder through rear torso to left hip",
+      "Open four-plane cuirass preserving the biological chest spike as deliberate negative space",
+      "Three descending battle-coat panels extending the mantle rhythm into the lower silhouette"
     ],
-    "macroFormPlan": "V4 removes the broad rectangular shoulder, chest-frame and skirt reads. A stepped left shoulder wrap feeds a diagonal chest sash; the open cuirass arcs around the biological chest spike; the attached mantle continues toward the hip; four narrow overlapping coat tails leave negative space; tapered three-piece greaves preserve the biological leg silhouette.",
+    "macroFormPlan": "V5 preserves V4's clean open anatomy but restores authored presence through one connected crescent mantle. Three overlapping shoulder shells taper into three rear shells that descend toward the left hip, while a front diagonal fold ties that mass into a simplified four-plane cuirass. Three broad coat panels continue the same descending rhythm below the waist.",
     "paintPlan": "Eight verified free accessory texels provide a high-contrast material hierarchy of midnight cloth, indigo, blue steel, silver, antique gold, aura cyan, amethyst and ivory; biological pixels remain byte-identical to official Lucario.",
-    "gameplayReadGoal": "At 160 px the eye should follow one diagonal from left shoulder through torso and mantle into the split lower silhouette. Large rectangles must no longer dominate the front or rear read.",
+    "gameplayReadGoal": "At 160 px the silhouette must retain one unmistakable left-heavy crescent from shoulder to hip plus a descending three-panel coat rhythm, without reverting to cage hardware, repeated straight bars or oversized rectangular armor.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
