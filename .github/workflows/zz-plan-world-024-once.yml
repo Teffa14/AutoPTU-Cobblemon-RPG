@@ -1,0 +1,44 @@
+name: WORLD-024 Plan Bookkeeping Once
+
+on:
+  push:
+    branches:
+      - rpg/plan-world-024-live
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/plan-world-024-live
+          fetch-depth: 0
+      - name: Patch canonical plan exactly
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = p.read_text()
+          old_world = '| WORLD-024 | TODO | Persistent world-event objects. |'
+          new_world = '| WORLD-024 | LIVE/PARTIAL | Persistent world-event objects — PR #368 / merge `5d1910dfe25458da26fadfb2230e2b4ac5a5f165`; authenticated Trainers can activate an already-registered Ouros shrine through physical right-click or `/autoptu interact`, persisting world-scoped DORMANT -> ACTIVATED state exactly once through atomic revisioned storage. No PTU reward, progression, outcome or client truth is inferred; additional authored world-event object types remain follow-up work. |'
+          old_domain = '| LIVE/PARTIAL | Discovery/world-event flags — PR #366 / merge `aa90ceaf9f2b1129eb1e493ddb51d7e3caf276f5` adds durable owner-scoped authored-location discovery with revisioned atomic persistence. Persistent world-event object/flag mutation remains TODO under WORLD-024. |'
+          new_domain = '| LIVE/PARTIAL | Discovery/world-event flags — PR #366 / merge `aa90ceaf9f2b1129eb1e493ddb51d7e3caf276f5` adds durable owner-scoped authored-location discovery. PR #368 / merge `5d1910dfe25458da26fadfb2230e2b4ac5a5f165` adds atomic revisioned world-scoped authored-object event activation for the Ouros shrine. Additional event object types and richer story flags remain follow-up work. |'
+          if text.count(old_world) != 1:
+              raise SystemExit('WORLD-024 source row mismatch')
+          if text.count(old_domain) != 1:
+              raise SystemExit('persistence source row mismatch')
+          text = text.replace(old_world, new_world).replace(old_domain, new_domain)
+          p.write_text(text)
+          PY
+      - name: Commit plan-only change
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git diff --cached --check
+          git commit -m 'Plan: record WORLD-024 world event persistence live'
+          git push origin HEAD:rpg/plan-world-024-live
