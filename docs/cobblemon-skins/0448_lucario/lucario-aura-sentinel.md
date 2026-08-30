@@ -4,7 +4,7 @@ Status: OWNER REVIEW REQUIRED
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-This is the current active Lucario skin candidate. Historical Aura Sentinel cowl/shrine-frame passes are rejected and do not define this design. This candidate is a new deterministic build from the immutable official Lucario bone prefix plus newly authored Ouros geometry.
+This is the current active Lucario skin candidate. Historical Aura Sentinel cowl/shrine-frame passes are rejected and do not define this design. The first Resonance Ronin Blockbench pass was also not accepted as final because its left dorsal signature read as a cluster of separate blocks. The current V2 candidate replaces that cluster with one continuous tapered pennant while preserving the rest of the new whole-body design.
 
 ## Authority boundary
 
@@ -29,37 +29,37 @@ Presentation only. Cobblemon supplies model, texture, animation, poser, resolver
 
 The strict same-species reference dossier is `docs/cobblemon-skin-reference-dossiers/0448_lucario.json`. It is `REFERENCE READY` after full model/texture inspection of three eligible Lucario custom skins across two external Cobblemon-pack projects. Their geometry, textures, palettes and distinctive costume identities are study-only; this candidate copies none of them.
 
-## New visual direction
+## Current visual direction
 
 Resonance Ronin replaces the rejected shrine-sentinel language with a mobile ceremonial combat silhouette. The design is intentionally diagonal and wrapped rather than rectangular.
 
 The three dominant reads are:
 
 1. an asymmetric resonance shawl that wraps both shoulders into the torso;
-2. one sweeping dorsal resonance banner that rises diagonally from the left back instead of forming a portal, cage or backpack frame;
+2. one continuous tapered dorsal resonance pennant that rises from the left scapula instead of forming a portal, cage, detached cluster or backpack frame;
 3. a split battle coat that carries the transformation through the hips and legs.
 
 A low open circlet, tapered cuirass, forearm vambraces, shin greaves and a partial tail guard support those macro systems. The face, muzzle, eyes, ears, aura sensors, chest spike, hands, feet and biological tail remain identifiable and are not replaced.
 
 ## Geometry contract
 
-Builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin.py`.
+Current builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v2.py`.
 
-The builder deliberately discards every historical `ouros_*` bone before authoring the new candidate. It preserves only the immutable first 87 official Lucario bones, JSON-equivalent and in official order.
+The deterministic V2 builder rebuilds the complete new candidate, then replaces only the authored `ouros_resonance_banner` V1 group with the continuous pennant. Both builders deliberately discard every historical Aura Sentinel `ouros_*` bone before authoring the new candidate. They preserve only the immutable first 87 official Lucario bones, JSON-equivalent and in official order.
 
 Current generated asset:
 
 - production bones: 97
 - cosmetic bones: 10
-- cosmetic cubes: 72
-- model SHA-256 `9631f8c763aea2df061e2798690d34485f43ef64495d9dd128902ff956afaa5a`
+- cosmetic cubes: 73
+- model SHA-256 `cecdba527c0e21ef97fdfdb1d34e75ec6cd87bc13e4abc2ff07cfd11fc837696`
 
 Cosmetic groups:
 
 - `ouros_resonance_circlet`
 - `ouros_resonance_shawl`
 - `ouros_resonance_cuirass`
-- `ouros_resonance_banner`
+- `ouros_resonance_banner` — current continuous tapered pennant
 - `ouros_resonance_coat`
 - `ouros_resonance_left_vambrace`
 - `ouros_resonance_right_vambrace`
@@ -67,7 +67,7 @@ Cosmetic groups:
 - `ouros_resonance_right_greave`
 - `ouros_resonance_tail_guard`
 
-Every group is parented into an official animated Lucario bone. The professional gate must still prove exact original-bone equality and the strict bind-pose attachment limits (`anchorGap=1.5`, `pieceGap=1.0`) against the downloaded official JAR.
+Every group is parented into an official animated Lucario bone. The professional gate must prove exact original-bone equality and the strict bind-pose attachment limits (`anchorGap=1.5`, `pieceGap=1.0`) against the downloaded official JAR.
 
 ## Texture and material contract
 
@@ -109,7 +109,7 @@ Required evidence includes:
 
 Official animation states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at 0.35. Walking is not fabricated because Lucario locomotion is procedural rather than a dedicated Lucario Bedrock walking clip.
 
-Green CI is only the technical floor. The PNG artifact must be opened and inspected. The candidate remains `OWNER REVIEW REQUIRED` and not sale-eligible until the repository owner explicitly approves the exact reviewed head and evidence fingerprint.
+Green CI is only the technical floor. The current V2 PNG artifact must be opened and inspected again. The candidate remains `OWNER REVIEW REQUIRED` and not sale-eligible until the repository owner explicitly approves the exact reviewed head and evidence fingerprint.
 
 ## Production files
 
