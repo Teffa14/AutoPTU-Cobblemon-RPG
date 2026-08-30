@@ -6,50 +6,71 @@
     {
       "referenceId": "pack-a-testmon-one",
       "species": "testmon",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
       "project": "Synthetic Pack A",
       "sourceUrl": "https://example.com/pack-a/one",
       "sourceVersion": "1.0",
-      "implementationName": "Synthetic Testmon One",
+      "implementationName": "Synthetic Testmon Armored Courier",
       "assetInspectionStatus": "COMPLETE",
-      "assetFilesInspected": [{"path": "models/testmon_one.geo.json", "kind": "MODEL", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}],
+      "assetFilesInspected": [
+        {"path": "models/testmon_one.geo.json", "kind": "MODEL", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
+        {"path": "textures/testmon_one.png", "kind": "TEXTURE", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+      ],
       "licenseStatus": "SYNTHETIC_TEST_ONLY",
       "license": {"name": "Synthetic", "sourceUrl": "https://example.com/license-a", "allowsDerivatives": false, "allowsRedistribution": false},
       "reuseMode": "STUDY_ONLY",
       "requiredAttribution": "none",
       "techniqueLessons": ["contour wrapping", "layer overlap", "gameplay-scale hierarchy"],
-      "distinctiveElementsNotToCopy": ["synthetic identity"]
+      "distinctiveElementsNotToCopy": ["synthetic costume identity"]
     },
     {
       "referenceId": "pack-b-testmon-two",
       "species": "testmon",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
       "project": "Synthetic Pack B",
       "sourceUrl": "https://example.com/pack-b/two",
       "sourceVersion": "2.0",
-      "implementationName": "Synthetic Testmon Two",
+      "implementationName": "Synthetic Testmon Shrine Skin",
       "assetInspectionStatus": "COMPLETE",
-      "assetFilesInspected": [{"path": "textures/testmon_two.png", "kind": "TEXTURE", "sha256": "2222222222222222222222222222222222222222222222222222222222222222"}],
+      "assetFilesInspected": [
+        {"path": "models/testmon_two.geo.json", "kind": "MODEL", "sha256": "2222222222222222222222222222222222222222222222222222222222222222"},
+        {"path": "textures/testmon_two.png", "kind": "TEXTURE", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}
+      ],
       "licenseStatus": "SYNTHETIC_TEST_ONLY",
       "license": {"name": "Synthetic", "sourceUrl": "https://example.com/license-b", "allowsDerivatives": false, "allowsRedistribution": false},
       "reuseMode": "STUDY_ONLY",
       "requiredAttribution": "none",
       "techniqueLessons": ["painted occlusion", "edge accents", "material value separation"],
-      "distinctiveElementsNotToCopy": ["synthetic identity"]
+      "distinctiveElementsNotToCopy": ["synthetic shrine identity"]
     },
     {
       "referenceId": "pack-b-testmon-three",
       "species": "testmon",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
       "project": "Synthetic Pack B",
       "sourceUrl": "https://example.com/pack-b/three",
       "sourceVersion": "2.1",
-      "implementationName": "Synthetic Testmon Three",
+      "implementationName": "Synthetic Testmon Warden Skin",
       "assetInspectionStatus": "COMPLETE",
-      "assetFilesInspected": [{"path": "models/testmon_three.geo.json", "kind": "MODEL", "sha256": "3333333333333333333333333333333333333333333333333333333333333333"}],
+      "assetFilesInspected": [
+        {"path": "models/testmon_three.geo.json", "kind": "MODEL", "sha256": "3333333333333333333333333333333333333333333333333333333333333333"},
+        {"path": "textures/testmon_three.png", "kind": "TEXTURE", "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+      ],
       "licenseStatus": "SYNTHETIC_TEST_ONLY",
       "license": {"name": "Synthetic", "sourceUrl": "https://example.com/license-b", "allowsDerivatives": false, "allowsRedistribution": false},
       "reuseMode": "STUDY_ONLY",
       "requiredAttribution": "none",
       "techniqueLessons": ["asymmetric massing", "negative space", "animation-safe attachment"],
-      "distinctiveElementsNotToCopy": ["synthetic identity"]
+      "distinctiveElementsNotToCopy": ["synthetic warden identity"]
     }
   ]
 }
