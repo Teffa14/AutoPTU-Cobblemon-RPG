@@ -7,16 +7,21 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FabricBattleChoiceRuntimeTest {
     private final UUID playerUuid = UUID.fromString("72ec2817-454a-45b8-a57d-9b814434ef38");
+    private final UUID spectatorUuid = UUID.fromString("1e84117e-c4f8-48b5-a134-718352d54f88");
 
     @AfterEach
     void cleanup() {
         FabricBattleChoiceRuntime.unbind(playerUuid);
+        FabricBattleChoiceRuntime.unbind(spectatorUuid);
+        FabricBattleChoiceRuntime.stopSpectating(playerUuid);
+        FabricBattleChoiceRuntime.stopSpectating(spectatorUuid);
     }
 
     @Test
@@ -48,6 +53,7 @@ class FabricBattleChoiceRuntimeTest {
         assertFalse(status.bound());
         assertNull(status.actorId());
         assertNull(status.authoritativeLegalChoiceCount());
+        assertNull(FabricBattleChoiceRuntime.spectateId(playerUuid));
     }
 
     @Test
@@ -59,5 +65,56 @@ class FabricBattleChoiceRuntimeTest {
         assertTrue(status.bound());
         assertEquals("player-mon-1", status.actorId());
         assertNull(status.authoritativeLegalChoiceCount());
+        assertNotNull(FabricBattleChoiceRuntime.spectateId(playerUuid));
+    }
+
+    @Test
+    void spectatorCanAttachOnlyThroughServerGeneratedOpaqueId() {
+        FabricBattleChoiceRuntime.bind(playerUuid, "reservation-17", "player-mon-1");
+        String battleId = FabricBattleChoiceRuntime.spectateId(playerUuid);
+
+        assertTrue(FabricBattleChoiceRuntime.beginSpectating(spectatorUuid, battleId));
+        FabricBattleChoiceRuntime.BattleStatusView status = FabricBattleChoiceRuntime.spectatorStatus(spectatorUuid);
+
+        assertTrue(status.bound());
+        assertEquals("player-mon-1", status.actorId());
+        assertNull(status.authoritativeLegalChoiceCount());
+        assertFalse(FabricBattleChoiceRuntime.hasBinding(spectatorUuid));
+    }
+
+    @Test
+    void spectatorRequestFailsClosedForUnknownId() {
+        assertFalse(FabricBattleChoiceRuntime.beginSpectating(spectatorUuid, UUID.randomUUID().toString()));
+        assertFalse(FabricBattleChoiceRuntime.spectatorStatus(spectatorUuid).bound());
+    }
+
+    @Test
+    void participantCannotBecomeSpectatorAndGainAmbiguousScope() {
+        FabricBattleChoiceRuntime.bind(playerUuid, "reservation-17", "player-mon-1");
+        String battleId = FabricBattleChoiceRuntime.spectateId(playerUuid);
+
+        assertFalse(FabricBattleChoiceRuntime.beginSpectating(playerUuid, battleId));
+        assertFalse(FabricBattleChoiceRuntime.spectatorStatus(playerUuid).bound());
+    }
+
+    @Test
+    void unbindingLastParticipantInvalidatesSpectatorProjection() {
+        FabricBattleChoiceRuntime.bind(playerUuid, "reservation-17", "player-mon-1");
+        String battleId = FabricBattleChoiceRuntime.spectateId(playerUuid);
+        assertTrue(FabricBattleChoiceRuntime.beginSpectating(spectatorUuid, battleId));
+
+        FabricBattleChoiceRuntime.unbind(playerUuid);
+
+        assertFalse(FabricBattleChoiceRuntime.spectatorStatus(spectatorUuid).bound());
+    }
+
+    @Test
+    void rebindingSameAuthoritativeScopeKeepsSpectateIdStable() {
+        FabricBattleChoiceRuntime.bind(playerUuid, "reservation-17", "player-mon-1");
+        String first = FabricBattleChoiceRuntime.spectateId(playerUuid);
+
+        FabricBattleChoiceRuntime.bind(playerUuid, " reservation-17 ", " player-mon-1 ");
+
+        assertEquals(first, FabricBattleChoiceRuntime.spectateId(playerUuid));
     }
 }
