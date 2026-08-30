@@ -20,6 +20,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricCraftingAssessmentRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingCommandRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingWorkstationRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingWorkstationRuntimeSmoke;
+import io.autoptu.cobblemon.fabric.rpg.FabricEncounterStatusRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricFastTravelRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricFastTravelRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricFieldCampRuntime;
@@ -96,6 +97,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricFirstJoinOnboardingRuntime.register();
         PlayableBattleTestRuntime.register();
         FabricBattleChoiceRuntime.register();
+        FabricEncounterStatusRuntime.register();
         FabricPartyHealingRuntime.register();
         FabricRestRuntime.register();
         FabricHealingStationRuntime.register();
