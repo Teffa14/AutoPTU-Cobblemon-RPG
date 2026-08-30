@@ -94,12 +94,11 @@ def relic_fin() -> dict:
     bone = refined.relic_fin()
     c = base.cube
     # The relic fin must be a wearable extension of the rear-left mantle, not
-    # a halo/banner hovering near it. The inner saddle deliberately reaches
-    # into the torso/mantle envelope; the outer root then grows from that mass.
+    # a halo/banner hovering near it. The inner saddle reaches into the
+    # torso/mantle envelope and the outer root grows directly from that mass.
     bone["cubes"].extend([
         c([-6.20, 27.40, 1.40], [3.60, 3.50, 2.60], "void"),
         c([-10.10, 26.40, 2.70], [5.25, 5.15, 1.75], "void", pivot=[-7.48, 28.98, 3.58], rotation=[0, 0, -10]),
-        c([-9.45, 27.10, 4.18], [3.95, 3.70, 0.34], "gold", pivot=[-7.48, 28.95, 4.35], rotation=[0, 0, -10]),
     ])
     return bone
 
