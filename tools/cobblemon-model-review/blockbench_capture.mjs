@@ -263,8 +263,23 @@ for (const [name, view] of Object.entries(views)) {
       });
     }
 
+    const reviewZoom = preview.camOrtho.zoom;
     const dataUrl = await screenshot(targetResolution);
+
+    // advancedScreenshot changes the render-target dimensions but does not compensate
+    // the orthographic camera. Scale the Blockbench camera zoom by the resolution ratio
+    // so the 160px evidence preserves the exact same world framing instead of cropping.
+    const gameplayZoom = reviewZoom * (gameplayResolution / targetResolution);
+    preview.camOrtho.zoom = gameplayZoom;
+    preview.camOrtho.updateProjectionMatrix();
+    preview.controls.update();
+    preview.render();
     const gameplayDataUrl = await screenshot(gameplayResolution);
+
+    preview.camOrtho.zoom = reviewZoom;
+    preview.camOrtho.updateProjectionMatrix();
+    preview.controls.update();
+    preview.render();
 
     return {
       dataUrl,
@@ -275,7 +290,8 @@ for (const [name, view] of Object.entries(views)) {
         center: center.toArray(),
         size: size.toArray(),
       },
-      zoom: preview.camOrtho.zoom,
+      zoom: reviewZoom,
+      gameplayZoom,
       target: preview.controls.target.toArray(),
       cameraPosition: preview.camera.position.toArray(),
       cameraSource: fixedCamera ? 'official-reference-profile' : 'auto-fit-source',
@@ -302,6 +318,7 @@ for (const [name, view] of Object.entries(views)) {
   renderMetadata[name] = {
     bounds: result.bounds,
     zoom: result.zoom,
+    gameplayZoom: result.gameplayZoom,
     target: result.target,
     cameraPosition: result.cameraPosition,
     cameraSource: result.cameraSource,
@@ -318,6 +335,7 @@ const metadata = {
     ? 'matched to official reference camera profile'
     : 'source camera profile generated from this capture',
   gameplayResolution,
+  gameplayCaptureContract: 'same Blockbench orthographic world framing scaled to target screenshot resolution',
   modelInfo,
   views: renderMetadata,
 };
