@@ -1,10 +1,10 @@
 # 0448 Lucario — Aura Sentinel: Resonance Ronin
 
-Status: OWNER REVIEW REQUIRED
+Status: ARTISTIC FAIL
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-This is the current active Lucario skin candidate. Historical Aura Sentinel cowl/shrine-frame passes are rejected and do not define this design. The first Resonance Ronin Blockbench pass was also not accepted as final because its left dorsal signature read as a cluster of separate blocks. The current V2 candidate replaces that cluster with one continuous tapered pennant while preserving the rest of the new whole-body design.
+Lucario remains the active one-model artistic slice. Historical Aura Sentinel cowl/shrine-frame passes and Resonance Ronin V1–V4 are superseded or rejected. V5 is a material rework from the exact official Cobblemon Lucario baseline, but it is not artistically approved and must not be merged as accepted art unless the owner explicitly approves the exact current Blockbench evidence set.
 
 ## Authority boundary
 
@@ -27,65 +27,61 @@ Presentation only. Cobblemon supplies model, texture, animation, poser, resolver
 - official shiny texture SHA-256 `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
 - model license SHA-256 `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`
 
-The strict same-species reference dossier is `docs/cobblemon-skin-reference-dossiers/0448_lucario.json`. It is `REFERENCE READY` after full model/texture inspection of three eligible Lucario custom skins across two external Cobblemon-pack projects. Their geometry, textures, palettes and distinctive costume identities are study-only; this candidate copies none of them.
+The mandatory same-species dossier is `docs/cobblemon-skin-reference-dossiers/0448_lucario.json`. It remains `REFERENCE READY` with three complete eligible custom-geometry Lucario references across two external Cobblemon-pack projects. All three are `STUDY_ONLY` for this workflow; no external geometry, UV, texture, palette, markings or distinctive costume identity are reused.
 
-## Current visual direction
+## V5 visual direction
 
-Resonance Ronin replaces the rejected shrine-sentinel language with a mobile ceremonial combat silhouette. The design is intentionally diagonal and wrapped rather than rectangular.
+V4 became too quiet after removing the earlier scaffold and box-armor reads. V5 keeps the cleaner open anatomy but restores authored presence with a single connected left-heavy crescent system.
 
-The three dominant reads are:
+The dominant reads are:
 
-1. an asymmetric resonance shawl that wraps both shoulders into the torso;
-2. one continuous tapered dorsal resonance pennant that rises from the left scapula instead of forming a portal, cage, detached cluster or backpack frame;
-3. a split battle coat that carries the transformation through the hips and legs.
+1. a continuous asymmetric mantle that starts at the left shoulder, overlaps through the rear torso and descends toward the left hip;
+2. an open four-plane cuirass that deliberately preserves the biological chest spike and center chest as negative space;
+3. three broad descending battle-coat panels that continue the same diagonal rhythm into the lower silhouette.
 
-A low open circlet, tapered cuirass, forearm vambraces, shin greaves and a partial tail guard support those macro systems. The face, muzzle, eyes, ears, aura sensors, chest spike, hands, feet and biological tail remain identifiable and are not replaced.
+The design avoids a vertical banner, shrine frame, portal silhouette and repeated straight hardware. The face, muzzle, eyes, ears, aura sensors, chest spike, hands, feet and biological tail remain identifiable and unchanged underneath.
 
 ## Geometry contract
 
-Current builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v2.py`.
+Current builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v5.py`.
 
-The deterministic V2 builder rebuilds the complete new candidate, then replaces only the authored `ouros_resonance_banner` V1 group with the continuous pennant. Both builders deliberately discard every historical Aura Sentinel `ouros_*` bone before authoring the new candidate. They preserve only the immutable first 87 official Lucario bones, JSON-equivalent and in official order.
+The deterministic V5 builder first reconstructs the accepted technical V4 baseline from the exact immutable 87-bone official prefix, then replaces only five Ouros cosmetic groups. No official bone is changed, reordered or remapped.
 
 Current generated asset:
 
 - production bones: 97
+- original official bones: 87
 - cosmetic bones: 10
-- cosmetic cubes: 73
-- model SHA-256 `cecdba527c0e21ef97fdfdb1d34e75ec6cd87bc13e4abc2ff07cfd11fc837696`
+- cosmetic cubes: 56
+- model SHA-256 `8b7c555d34492067587cd17c2921fdc7ef772111a9b99f8a1f32b63bed9b67d4`
 
-Cosmetic groups:
+V5 materially rewrites:
 
-- `ouros_resonance_circlet`
-- `ouros_resonance_shawl`
-- `ouros_resonance_cuirass`
-- `ouros_resonance_banner` — current continuous tapered pennant
-- `ouros_resonance_coat`
-- `ouros_resonance_left_vambrace`
-- `ouros_resonance_right_vambrace`
-- `ouros_resonance_left_greave`
-- `ouros_resonance_right_greave`
-- `ouros_resonance_tail_guard`
+- `ouros_resonance_shawl` — continuous shoulder/rear/hip crescent mantle
+- `ouros_resonance_cuirass` — simplified open four-plane chest framing
+- `ouros_resonance_coat` — three broad descending panels with center air
+- `ouros_resonance_left_greave` — reduced two-piece tapered shin treatment
+- `ouros_resonance_right_greave` — reduced two-piece tapered shin treatment
 
-Every group is parented into an official animated Lucario bone. The professional gate must prove exact original-bone equality and the strict bind-pose attachment limits (`anchorGap=1.5`, `pieceGap=1.0`) against the downloaded official JAR.
+Other existing Ouros groups remain subordinate support pieces. Every cosmetic group stays parented into the official animated Lucario hierarchy. The professional gate must continue proving original-bone JSON equality plus strict bind-pose attachment limits (`anchorGap=1.5`, `pieceGap=1.0`).
 
 ## Texture and material contract
 
-Biological body repainting is forbidden.
+V5 does not repaint biological Lucario texels.
 
 - normal body: byte-identical to official, SHA-256 `98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a`
 - shiny body: byte-identical to official, SHA-256 `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`
-- `bodyTexelRework: NONE`
+- body derivation: `OFFICIAL_IDENTICAL`
 - accessory overlay: `ouros_aura_sentinel_accessories.png`
 - overlay SHA-256 `322520d35d4919c57e52268b2409cab2ed02529b71b67515128500a282b3dd1e`
 - overlay size: 128×64
 - authored palette reservation: x=80..87, y=63 only
 
-The equipment palette separates midnight cloth, indigo, blue steel, silver, antique gold, aura cyan, amethyst and ivory. The overlay is transparent outside the reserved accessory texels. Original biological UVs remain unchanged.
+The overlay supplies midnight cloth, indigo, blue steel, silver, antique gold, aura cyan, amethyst and ivory for the cosmetic surfaces. Original biological UVs remain unchanged.
 
 ## Runtime routing and variants
 
-The production resolver keeps the official `cobblemon:lucario` poser and the existing `ouros_aura_sentinel` aspect for compatibility. Normal and shiny route to the same new geometry and accessory overlay while using their exact corresponding official body textures.
+The production resolver keeps the official `cobblemon:lucario` poser and the existing `ouros_aura_sentinel` presentation aspect. Normal and shiny use the same V5 cosmetic geometry and overlay over their exact corresponding official body textures.
 
 Cobblemon 1.7.3 exposes one standard Lucario geometry on this resolver path. There is no male/female model split to duplicate. Mega Lucario is outside this cosmetic slice.
 
@@ -95,21 +91,13 @@ Resolver SHA-256: `6a8e2d47ea0fab34cb6bf5955609049f1cc3b8d744ad6c8155333a36eb7be
 
 Manifest: `docs/cobblemon-skin-review-manifests/0448_lucario.json`.
 
-The exact PR head must reproduce production bytes, download and hash the current official Cobblemon JAR, validate official anatomy and attachment, and render the candidate in Blockbench 5.1.6 with the same camera used for the official reference.
+The exact human PR head must reproduce the committed V5 production bytes, download and hash the current official Cobblemon JAR, prove original anatomy and attachment, and render the candidate in pinned Blockbench 5.1.6 with the matched official camera.
 
-Required evidence includes:
+Required evidence includes `official_reference_three_quarter.png`, `hero_three_quarter.png`, `battle_ready_three_quarter.png`, structural front/back/side views, `hero_gameplay_160.png` and `contact_sheet.png`.
 
-- `official_reference_three_quarter.png`
-- `hero_three_quarter.png`
-- `battle_ready_three_quarter.png`
-- `hero_front.png`
-- `hero_back.png`
-- `hero_gameplay_160.png`
-- `contact_sheet.png`
+Official states used by the professional review are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at 0.35. A dedicated walking PNG is not fabricated because this Lucario path uses procedural locomotion rather than a dedicated Lucario Bedrock walking clip.
 
-Official animation states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at 0.35. Walking is not fabricated because Lucario locomotion is procedural rather than a dedicated Lucario Bedrock walking clip.
-
-Green CI is only the technical floor. The current V2 PNG artifact must be opened and inspected again. The candidate remains `OWNER REVIEW REQUIRED` and not sale-eligible until the repository owner explicitly approves the exact reviewed head and evidence fingerprint.
+Green CI is technical evidence only. V5 remains `ARTISTIC FAIL` until its exact current Blockbench PNGs are opened and pass internal visual QA. Even if internal QA later passes, the maximum state before owner approval is `OWNER REVIEW REQUIRED`.
 
 ## Production files
 
