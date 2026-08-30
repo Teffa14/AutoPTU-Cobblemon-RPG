@@ -1,0 +1,192 @@
+{
+  "format": "ouros.cobblemon-species-reference-dossier.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "researchDate": "2026-08-30",
+  "status": "REFERENCE GATE READY FOR CI VERIFICATION",
+  "references": [
+    {
+      "referenceId": "lucario-overhaul-captain",
+      "species": "lucario",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
+      "project": "Lucario Overhaul",
+      "sourceUrl": "https://modrinth.com/datapack/lucario-overhaul/version/ZakKcKn2",
+      "sourceVersion": "1.2 / ZakKcKn2",
+      "implementationName": "Captain Lucario",
+      "assetInspectionStatus": "COMPLETE",
+      "assetFilesInspected": [
+        {
+          "path": "assets/cobblemon/bedrock/models/lucariocaptain/lucariocaptain.geo.json",
+          "kind": "MODEL",
+          "sha256": "b852c5304ca0d531a6b1cca3f8ce12d835e426133e2ed7e039219e6d14fa8c4d"
+        },
+        {
+          "path": "assets/cobblemon/textures/pokemon/lucariocaptain/lucariocaptain.png",
+          "kind": "TEXTURE",
+          "sha256": "cb60e90e73aec26ef350296b302826b917b5e25ac1bdc6ef5bf7b27feae8fc07"
+        },
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/animations/0448_lucariocaptain/lucariocaptain.animation.json",
+          "kind": "ANIMATION",
+          "sha256": "9c0585ad107d8b9b4f62cd706e2b9c4a57370d3212a274f9b326663971d29fbc"
+        },
+        {
+          "path": "assets/cobblemon/bedrock/posers/lucariocaptain.json",
+          "kind": "POSER",
+          "sha256": "6cca9858cc024e5a4604ac557a51842ad97e276d2ba318573d477feca2135933"
+        }
+      ],
+      "licenseStatus": "EXPLICIT_MODRINTH_MIT",
+      "license": {
+        "name": "MIT",
+        "sourceUrl": "https://modrinth.com/datapack/lucario-overhaul",
+        "allowsDerivatives": true,
+        "allowsRedistribution": true
+      },
+      "reuseMode": "LICENSED_DERIVATIVE_DONOR",
+      "requiredAttribution": "Preserve the Lucario Overhaul MIT notice and credit JoeSeff if donor material is ever actually used; this dossier pass copies no donor bytes into Ouros production.",
+      "techniqueLessons": [
+        "Silhouette expansion is concentrated vertically and at role-defining costume zones: the audited Captain model grows from the pack base model's 49.3-block vertical span to 56.9 while keeping lateral span stable, showing that a signature role piece can dominate without building a rectangular cage around the whole body.",
+        "The model spends added geometry selectively: 103 bones and 139 cubes versus the pack base Lucario's 87 bones and 103 cubes, with 20 rotated cubes. The useful lesson is to reserve extra density for authored costume systems and transitions rather than distribute equal-sized plates everywhere.",
+        "The 128x128 production texture uses 57 visible RGB values over a full 25-255 value range. The transferable technique is material/value separation with enough tonal range for costume hierarchy instead of flat equipment swatches.",
+        "Dedicated animation and poser assets show that costume-heavy variants can be authored as a motion-aware package instead of treating geometry as a bind-pose-only sculpture."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The exact Captain outfit silhouette, hat/headwear, uniform motifs, palette placement, proprietary geometry, UV layout and any recognizable costume detailing from Lucario Overhaul."
+      ],
+      "auditPackage": {
+        "filename": "Lucario_Overhaul_v1.2.zip",
+        "sha256": "00252b222d3f1aee73b45ccab1e9519266288b3d51d6f5507401f0d2a0fd3b10"
+      }
+    },
+    {
+      "referenceId": "styles-upon-styles-lifeguard-lucario",
+      "species": "lucario",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
+      "project": "Styles Upon Styles - Cobblemon Costume Pack",
+      "sourceUrl": "https://modrinth.com/datapack/styles-upon-styles/version/1.5",
+      "sourceVersion": "1.5 / GmEDUt5z",
+      "implementationName": "Lifeguard Lucario",
+      "assetInspectionStatus": "COMPLETE",
+      "assetFilesInspected": [
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario_lifeguard.geo.json",
+          "kind": "MODEL",
+          "sha256": "84221fc649012b0d0ee6e70f645a404c9ff4af11bbac77599922ae1ee01ca099"
+        },
+        {
+          "path": "assets/cobblemon/textures/pokemon/0448_lucario/lucario_lifeguard.png",
+          "kind": "TEXTURE",
+          "sha256": "57e5034c89af0815afcf752fe9f5daaaa24b69be94b2a56ed8b2bd442be54e1a"
+        },
+        {
+          "path": "assets/cobblemon/textures/pokemon/0448_lucario/lucario_lifeguard_alpha.png",
+          "kind": "TEXTURE_OVERLAY",
+          "sha256": "880cbc442517c9091519959bd9e8d318909838335d7be3e2e92eb3b611a0453e"
+        },
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/1_lucario_lifeguard.json",
+          "kind": "RESOLVER",
+          "sha256": "33ee21ade3527f1485ca6cf928970ddea8d9aabfff19159a3693863e4c6f96ce"
+        }
+      ],
+      "licenseStatus": "CC_BY_NC_SA_4_0_PROJECT_LICENSE",
+      "license": {
+        "name": "CC-BY-NC-SA-4.0",
+        "sourceUrl": "https://modrinth.com/datapack/styles-upon-styles",
+        "allowsDerivatives": true,
+        "allowsRedistribution": true
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "Study-only in Ouros because NC/SA compatibility with final distribution has not been approved; no geometry, texture, palette or motif is copied.",
+      "techniqueLessons": [
+        "The Lifeguard model uses 114 bones, 101 cubes and 18 rotated cubes, showing that strong costume identity can come from articulated grouping and plane orientation rather than simply maximizing primitive count.",
+        "Its 46.0-block lateral span and asymmetric max-X extension demonstrate deliberate one-sided silhouette distribution. The transferable lesson is to use role-specific asymmetry and negative space instead of mirrored shoulder hardware.",
+        "The main 128x128 texture and a separate sparse alpha texture demonstrate material layering as an independent presentation surface. Ouros can use the generic lesson of separating secondary visual treatment from the biological texture where its own runtime contract permits it.",
+        "The costume is selected by a dedicated resolver aspect, reinforcing that presentation variants should have explicit resolver routing instead of implicit model mutation."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The exact lifeguard costume, rescue equipment, outfit silhouette, color blocking, markings, Muddiemodels-authored geometry, UV arrangement and any recognizable Styles Upon Styles design language."
+      ],
+      "auditPackage": {
+        "filename": "StylesUponStyles.v.1.5.zip",
+        "sha256": "6bb9124fd2be0d48c3158716887be8da48cec6434fdf3a758e8bdd93e40b2a3d"
+      }
+    },
+    {
+      "referenceId": "failskins-guts-lucario",
+      "species": "lucario",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
+      "project": "Cobblemon FailSkins",
+      "sourceUrl": "https://modrinth.com/datapack/cobblemon-failskins/version/c9J7iOYZ",
+      "sourceVersion": "4.21 / c9J7iOYZ",
+      "implementationName": "Berserk / Guts Lucario",
+      "assetInspectionStatus": "COMPLETE",
+      "assetFilesInspected": [
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/guts_lucario.geo.json",
+          "kind": "MODEL",
+          "sha256": "7e5392a650019134889bf0f344a24b34e0170bf7b0c70e8a2338fdcdfa00481b"
+        },
+        {
+          "path": "assets/cobblemon/textures/pokemon/0448_lucario/guts_lucario.png",
+          "kind": "TEXTURE",
+          "sha256": "77956e3332dfd59fdb1e2e2d39a7c4c71b2ee488fb958b5ce1d19aabd8f1ea36"
+        },
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/animations/0448_lucario/guts_lucario.animation.json",
+          "kind": "ANIMATION",
+          "sha256": "2b70b6eba4b48ad447d7fd22a2521db8fbc668be7ef9fd6ddec2748b9f998192"
+        },
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/posers/guts_lucario.json",
+          "kind": "POSER",
+          "sha256": "df84eb93fa4c706ce11f1d3c815087de946abe9efcb38a26ab92787514680e30"
+        },
+        {
+          "path": "assets/cobblemon/bedrock/pokemon/resolvers/0_guts_lucario.json",
+          "kind": "RESOLVER",
+          "sha256": "fefde78c23e710653815bcb98bba8c8eb9d7f5bddc79a14dd5c1da2eb51366ba"
+        }
+      ],
+      "licenseStatus": "CUSTOM_LICENSE_UNCLEAR_FOR_OUROS_REUSE",
+      "license": {
+        "name": "CC BY NC NIB 1.0 as labeled by Modrinth",
+        "sourceUrl": "https://modrinth.com/datapack/cobblemon-failskins",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "No reuse authorized by this dossier. Study generic technique only until the custom license grant is independently verified as compatible.",
+      "techniqueLessons": [
+        "The audited base-species Guts model has 164 cubes with 83 rotated cubes, a 0.5061 rotated-cube ratio. The useful generic lesson is that aggressive contour changes can be built from many oriented planes/forms rather than orthogonal slabs.",
+        "Its depth span reaches 77.7 blocks, far beyond ordinary Lucario proportions, demonstrating how one signature prop/system can carry the silhouette. Ouros should translate that principle into an original aura-sentinel signature mass rather than surrounding Lucario with evenly distributed hardware.",
+        "The 200x200 texture has 223 visible RGB values and a broad value range, indicating substantially richer material and painted breakup than the flat accessory swatches used by rejected Aura Sentinel passes.",
+        "Dedicated battle/idle animation, poser and resolver files show that large attached systems need their own motion-aware presentation validation; attachment should be judged through animated states, not only parent-chain correctness."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The Guts/Berserk identity, sword, costume silhouette, manga-derived motifs, exact proportions, palette, markings, model geometry, texture artwork and animation expression."
+      ],
+      "auditPackage": {
+        "filename": "Failskins4.21 for Cobblemon 1.7.zip",
+        "sha256": "ee5dd844e4bdac5972e153f2cf7a31b2737b8f5efc907f42e918e11287bba8c6"
+      }
+    }
+  ],
+  "candidateReferences": [],
+  "productionModelingGate": "OPEN_ONLY_AFTER_STRICT_VALIDATOR_AND_PACKAGE_HASH_CROSSCHECK_PASS",
+  "notes": [
+    "All three counted references are non-canonical custom Lucario skins with materially changed geometry and distinct visual identities.",
+    "Mega Lucario assets present in source packs were not counted. Shiny variants were not counted as independent references. Base accuracy remodels were not counted.",
+    "No third-party asset bytes are committed into Ouros production by this dossier."
+  ]
+}
