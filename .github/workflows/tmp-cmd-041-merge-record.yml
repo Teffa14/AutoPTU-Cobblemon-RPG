@@ -1,0 +1,37 @@
+name: Temporary CMD-041 merge record
+
+on:
+  push:
+    branches:
+      - docs/cmd-041-merge-record
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/cmd-041-merge-record
+          fetch-depth: 0
+      - name: Record shipped merge and remove temporary workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old = '| CMD-041 | LIVE | `/autoptu care status` — PR #335; authenticated server-side projection of persisted canonical party HP, statuses, injuries and revisions. Recovery eligibility/effects remain outside Minecraft until an authoritative PTU recovery contract exists. |'
+          new = '| CMD-041 | LIVE | `/autoptu care status` — PR #335 / merge `60fef69343c24b3bdf1fd011f5a2e22f8f72d37c`; authenticated server-side projection of persisted canonical party HP, statuses, injuries and revisions. Recovery eligibility/effects remain outside Minecraft until an authoritative PTU recovery contract exists. |'
+          if text.count(old) != 1:
+              raise SystemExit('expected CMD-041 shipped line exactly once')
+          path.write_text(text.replace(old, new))
+          PY
+          rm .github/workflows/tmp-cmd-041-merge-record.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/tmp-cmd-041-merge-record.yml
+          git commit -m 'Plan: record CMD-041 merge'
+          git push origin HEAD:docs/cmd-041-merge-record
