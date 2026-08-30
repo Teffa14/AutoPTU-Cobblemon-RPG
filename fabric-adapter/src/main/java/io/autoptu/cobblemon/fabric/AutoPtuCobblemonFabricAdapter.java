@@ -55,6 +55,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricShopCounterRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricShopRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterCatalogueRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricStarterSelectionRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricTargetedInteractionCommandRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricTrainerPtuActionRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricTrainerSummaryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricTravelCommandRuntime;
@@ -86,6 +87,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricRpgProtectionRuntime.register();
         FabricRpgProtectionRuntimeSmoke.registerIfEnabled();
         FabricCanonicalWorldInteractionRuntime.register();
+        FabricTargetedInteractionCommandRuntime.register();
         FabricFastTravelRuntime.register();
         FabricFastTravelRuntimeSmoke.registerIfEnabled();
         FabricTravelCommandRuntime.register();
