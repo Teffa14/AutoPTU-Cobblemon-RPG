@@ -1,0 +1,55 @@
+{
+  "format": "ouros.cobblemon-species-reference-dossier.v1",
+  "species": "testmon",
+  "nationalDex": 9999,
+  "references": [
+    {
+      "referenceId": "pack-a-testmon-one",
+      "species": "testmon",
+      "project": "Synthetic Pack A",
+      "sourceUrl": "https://example.com/pack-a/one",
+      "sourceVersion": "1.0",
+      "implementationName": "Synthetic Testmon One",
+      "assetInspectionStatus": "COMPLETE",
+      "assetFilesInspected": [{"path": "models/testmon_one.geo.json", "kind": "MODEL", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}],
+      "licenseStatus": "SYNTHETIC_TEST_ONLY",
+      "license": {"name": "Synthetic", "sourceUrl": "https://example.com/license-a", "allowsDerivatives": false, "allowsRedistribution": false},
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none",
+      "techniqueLessons": ["contour wrapping", "layer overlap", "gameplay-scale hierarchy"],
+      "distinctiveElementsNotToCopy": ["synthetic identity"]
+    },
+    {
+      "referenceId": "pack-b-testmon-two",
+      "species": "testmon",
+      "project": "Synthetic Pack B",
+      "sourceUrl": "https://example.com/pack-b/two",
+      "sourceVersion": "2.0",
+      "implementationName": "Synthetic Testmon Two",
+      "assetInspectionStatus": "COMPLETE",
+      "assetFilesInspected": [{"path": "textures/testmon_two.png", "kind": "TEXTURE", "sha256": "2222222222222222222222222222222222222222222222222222222222222222"}],
+      "licenseStatus": "SYNTHETIC_TEST_ONLY",
+      "license": {"name": "Synthetic", "sourceUrl": "https://example.com/license-b", "allowsDerivatives": false, "allowsRedistribution": false},
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none",
+      "techniqueLessons": ["painted occlusion", "edge accents", "material value separation"],
+      "distinctiveElementsNotToCopy": ["synthetic identity"]
+    },
+    {
+      "referenceId": "pack-b-testmon-three",
+      "species": "testmon",
+      "project": "Synthetic Pack B",
+      "sourceUrl": "https://example.com/pack-b/three",
+      "sourceVersion": "2.1",
+      "implementationName": "Synthetic Testmon Three",
+      "assetInspectionStatus": "COMPLETE",
+      "assetFilesInspected": [{"path": "models/testmon_three.geo.json", "kind": "MODEL", "sha256": "3333333333333333333333333333333333333333333333333333333333333333"}],
+      "licenseStatus": "SYNTHETIC_TEST_ONLY",
+      "license": {"name": "Synthetic", "sourceUrl": "https://example.com/license-b", "allowsDerivatives": false, "allowsRedistribution": false},
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none",
+      "techniqueLessons": ["asymmetric massing", "negative space", "animation-safe attachment"],
+      "distinctiveElementsNotToCopy": ["synthetic identity"]
+    }
+  ]
+}
