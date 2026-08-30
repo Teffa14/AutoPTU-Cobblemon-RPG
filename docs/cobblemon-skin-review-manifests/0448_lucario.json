@@ -53,9 +53,9 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "1077c60422f885182c855cc07fea37f34424cf177f73ced054e40bed872d48e1",
-    "productionBoneCount": 97,
-    "cosmeticBoneCount": 10,
+    "modelSha256": "4310658ec07f8328f55dd20321a240299b81cf41f8d57875ca6c7b32802b7e03",
+    "productionBoneCount": 96,
+    "cosmeticBoneCount": 9,
     "cosmeticCubeCount": 20,
     "attachmentGate": {
       "anchorGap": 1.5,
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Open cowl and high collar preserving Lucario's face, ears, aura sensors and chest spike",
-      "Single left-shoulder-to-back mantle flow built from three deeply overlapping compound-rotated facets with changing proportions and taper",
-      "Compact asymmetric hip landing with one long fold and explicit negative space around the biological tail"
+      "Open cowl/high collar preserving face, ears, aura sensors and chest spike",
+      "Camera-near right-shoulder shell flowing into deeply overlapping flank facets with changing direction and width",
+      "Single long lower fold plus short counter-fold leaving negative space around tail and legs"
     ],
-    "macroFormPlan": "V16 deletes V14c's five-panel mantle plus V15c's shoulder and hip ribbon add-ons. One compact official-shoulder contact feeds three differently proportioned, deeply overlapping facets that turn diagonally across the back and taper into one hip fold. The silhouette is earned through one continuous directional mass and negative space, not repeated bars, broad slabs, cages or extra cube count.",
+    "macroFormPlan": "V16b responds directly to V16 exact-head Blockbench evidence. The rear-centered mantle that disappeared behind the body is removed. The dominant cloth system is rooted to the official camera-near right shoulder and wraps down the near flank using two large overlapping facets, one narrow edge facet and two unequal lower folds. Greaves are removed to reduce scattered gear. No visual threshold is relaxed.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the first read should be Lucario crossed by one coherent asymmetric shoulder-back-hip mantle gesture. The outer contour must remain visible from matched 3/4 while the face, chest spike, hands, feet and biological tail stay unmistakable. Rear view must read as a tapered diagonal cloth mass rather than a stack of rectangular panels.",
+    "gameplayReadGoal": "At 160 px the first read should gain one unmistakable asymmetric near-side mantle contour from shoulder to below the waist, with the biological head, chest spike, hands, feet and tail still obvious. The 3/4 view must show the signature form directly rather than relying on a rear-only silhouette.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V15c exact-head evidence remained ARTISTIC FAIL and also missed the unchanged silhouette floor at 0.0294 versus 0.0400. Code inspection showed the deeper cause: V15c inherited V14c's five-panel rear mantle and only replaced exterior ribbons. V16 removes that inherited architecture entirely while retaining the same technical floors and owner-only approval contract."
+    "iterationNote": "V16 exact-head review on b5d5b982652cbfc4b5037873b6a384f5347af130 failed silhouetteDeltaRatio=0.0265 against the unchanged 0.0400 floor. Direct PNG inspection also showed the back system reading as dark plates and nearly disappearing in hero 3/4. V16b changes placement and composition rather than increasing cube count or lowering thresholds."
   },
   "variantCoverage": {
     "audited": true,
