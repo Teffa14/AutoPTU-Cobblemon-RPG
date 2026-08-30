@@ -87,13 +87,13 @@
       "species": "lucario",
       "nationalDex": 448,
       "concept": "Aura Sentinel",
-      "lifecycle": "REFERENCE_READY",
-      "artStatus": "USER REJECTED — REWORK REQUIRED",
+      "lifecycle": "PROFESSIONAL_CANDIDATE",
+      "artStatus": "ARTISTIC FAIL",
       "saleEligible": false,
-      "manifest": null,
+      "manifest": "docs/cobblemon-skin-review-manifests/0448_lucario.json",
       "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0448_lucario.json",
       "documentation": "docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md",
-      "blocker": "Active one-model slice. The reference gate is complete; production remains locked until a new deterministic builder and professional manifest replace the rejected historical workflow."
+      "blocker": "Professional candidate generated from the exact current official baseline. Technical and Blockbench review required; owner has not approved the current art."
     },
     {
       "slug": "0658_greninja",
