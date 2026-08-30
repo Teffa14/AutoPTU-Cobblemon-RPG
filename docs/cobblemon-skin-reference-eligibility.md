@@ -20,6 +20,31 @@ To count, every reference must satisfy all of these conditions:
 
 A reference may be a custom non-canonical form implemented by a community pack **only if it functions visually as a skin and materially changes geometry**. The fact that a pack calls something a `form` is not sufficient by itself.
 
+## Candidate staging is not reference completion
+
+Internet research will often find a promising costume before its source files can be inspected. Keep those discoveries under a dossier's `candidateReferences` array. **Only `references` entries are counted by the hard gate.**
+
+A candidate can record a public project page, changelog, server skin listing or interactive 3D viewer, but it stays uncounted until the actual MODEL and TEXTURE files are lawfully accessible, inspected and SHA-256 hashed.
+
+An interactive 3D viewer is useful discovery evidence because it can prove that an authored 3D presentation exists. It is still **not** `assetInspectionStatus: COMPLETE` when the underlying model and texture files cannot be obtained for direct inspection. Triangle/vertex counts, screenshots, thumbnails and viewer metadata do not substitute for the source model and texture.
+
+Recommended candidate fields:
+
+- `candidateId`
+- `species`
+- `candidateClass: CUSTOM_GEOMETRY_SKIN_CANDIDATE`
+- `canonicalRelationCandidate: NON_CANONICAL_CUSTOM_SKIN`
+- `implementationName`
+- `project`, `sourceUrl`, `sourceVersion`
+- `discoveryEvidence`
+- `geometryMateriallyChangedStatus: PROVEN | UNPROVEN`
+- `customVisualIdentityStatus: PROVEN | UNPROVEN`
+- `assetInspectionStatus: PENDING`
+- `whyNotCounted`
+- preliminary license/provenance notes
+
+When real MODEL + TEXTURE inspection proves eligibility, move the candidate into `references` and replace discovery-only statements with exact file paths, hashes and concrete lessons.
+
 ## What never counts
 
 The following may be useful for other research, but they do **not** satisfy the three-skin gate:
