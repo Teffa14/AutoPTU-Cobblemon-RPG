@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "1730a3de6d63e9e138efbf0c10922befccbf9aa0ac3f0ed2f8c6e66015f1c3c4",
-    "productionBoneCount": 96,
-    "cosmeticBoneCount": 9,
-    "cosmeticCubeCount": 19,
+    "modelSha256": "4c29cc95551070d9bb136f439beb5af307ebb0bff0f06d3d757022a1739008af",
+    "productionBoneCount": 98,
+    "cosmeticBoneCount": 11,
+    "cosmeticCubeCount": 23,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Layered shoulder-to-hip mantle arc built from seven narrow overlapping contact/drape forms rather than one broad pauldron",
-      "Unequal split tails with a wide V-shaped rear negative-space opening around Lucario's biological tail and hips",
-      "Open four-facet cowl plus segmented diagonal chest ribbon preserving eyes, muzzle, chest spike and lower torso"
+      "Layered shoulder-to-hip mantle arc built from narrow overlapping contact/drape forms rather than one broad pauldron",
+      "High asymmetrical collar petals that visually hand off the open cowl into the shoulder arc without enclosing Lucario's face",
+      "Compact hip knot feeding unequal split tails with broad negative space around the biological tail"
     ],
-    "macroFormPlan": "V14 is a direct response to exact V13 Blockbench evidence. The giant rectangular shoulder read is removed. A compact two-piece shoulder root feeds five progressively turning mantle folds that curve around scapula, back and hip; two unequal tails continue the arc without forming a skirt. No production threshold is relaxed.",
+    "macroFormPlan": "V14b keeps V14's five-fold diagonal mantle arc and adds two small contact systems at its endpoints: neck-rooted collar petals and a torso-rooted hip knot. The purpose is continuity, not size. The prior 0.0771 pixel-difference result is addressed without changing the 0.0800 floor or reintroducing slabs, skirts, cages or lower-front plates.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the silhouette should read as a deliberate asymmetric mantle arc sweeping around Lucario rather than a shoulder slab, armor box, panel ladder or shorts. The head and biological torso remain clear focal anchors.",
+    "gameplayReadGoal": "At 160 px the first read should be one continuous asymmetric ceremonial mantle path from head/neck through shoulder and back into a resolved hip/tail termination. Lucario's chest spike, muzzle, legs and biological tail remain readable focal anatomy.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "Direct V13 Blockbench QA on exact head 654e21637138aa57b7fe2811cc9866a59d02eb90 remained ARTISTIC FAIL: hero/battle exposed one oversized rectangular shoulder mass and rear paneling. V14 replaces that mass with narrower overlapping arc sections. Owner approval remains absent."
+    "iterationNote": "Exact V14 Blockbench review on head ced321f8f6476b293e3713073121e6db64f8ccba reproduced correctly but failed the unchanged technical visual floor at pixelDifferenceRatio=0.0771 < 0.0800. V14b adds only neck and hip continuity forms; no threshold is relaxed and owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
