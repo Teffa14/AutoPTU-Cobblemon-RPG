@@ -1,0 +1,64 @@
+# Cobblemon same-species reference eligibility
+
+This document is the authoritative eligibility contract for the mandatory three-reference gate. It corrects the earlier broad wording `skin/model`.
+
+## What counts
+
+A counted reference must be an external **custom skin/costume/themed variant of the exact same base species** whose authored visual identity materially changes the model geometry. It must be something a player would recognize as a different skin of that Pokemon, not merely a canonical form or recolor.
+
+To count, every reference must satisfy all of these conditions:
+
+- `referenceClass: CUSTOM_GEOMETRY_SKIN`;
+- `canonicalRelation: NON_CANONICAL_CUSTOM_SKIN`;
+- exact same base species as the Ouros target;
+- materially different custom geometry, not only texture changes;
+- a custom visual identity such as costume, armor, role, culture, themed equipment, non-canonical transformation or similarly authored skin treatment;
+- actual model file inspection (`.geo.json`, `.bbmodel` or equivalent) and actual production texture inspection;
+- `assetInspectionStatus: COMPLETE` only after those real files are inspected and hashed;
+- at least three concrete geometry/texture/animation lessons;
+- license/reuse mode documented separately from artistic usefulness.
+
+A reference may be a custom non-canonical form implemented by a community pack **only if it functions visually as a skin and materially changes geometry**. The fact that a pack calls something a `form` is not sufficient by itself.
+
+## What never counts
+
+The following may be useful for other research, but they do **not** satisfy the three-skin gate:
+
+- shiny or alternate shiny textures;
+- texture-only recolors, palette swaps or marking swaps;
+- official/canonical Mega Evolution;
+- official/canonical Gigantamax/Dynamax appearance;
+- official regional forms, sex differences, seasonal forms or other canonical Pokemon forms;
+- canonical battle transformations;
+- a community remodel whose purpose is only to replace/improve the ordinary canonical base model without creating a distinct skin identity;
+- the untouched official Cobblemon model;
+- three screenshots, renders or gallery images;
+- three revisions of one skin;
+- one skin repackaged by several modpacks;
+- a model for a different species, evolution or pre-evolution.
+
+Examples: Mega Gengar is not a Gengar skin reference. A better Gengar shiny is not a Gengar skin reference. A normal-Gengar accuracy remodel is not a Gengar skin reference. A custom `Overtime Gengar` costume with its own materially different model can be a candidate if the real model and texture files are inspected.
+
+## Required dossier fields
+
+Each counted reference records:
+
+- `referenceClass: CUSTOM_GEOMETRY_SKIN`
+- `canonicalRelation: NON_CANONICAL_CUSTOM_SKIN`
+- `geometryMateriallyChanged: true`
+- `customVisualIdentity: true`
+- `implementationName`
+- `project`, `sourceUrl`, `sourceVersion`
+- `assetInspectionStatus: COMPLETE`
+- inspected MODEL and TEXTURE entries with SHA-256
+- license and `reuseMode`
+- `techniqueLessons`
+- `distinctiveElementsNotToCopy`
+
+`validate_species_reference_dossier.py` enforces these fields. If fewer than three eligible references are complete, production remains `REFERENCE BLOCKED`.
+
+## Reuse and donor rule
+
+Eligibility as a quality reference does not grant reuse rights. `ARR`, unknown, no-license or unclear custom licenses remain `STUDY_ONLY`. A counted skin may become `LICENSED_DERIVATIVE_DONOR` only when its explicit license permits both derivatives and redistribution under compatible terms.
+
+Even for a licensed donor, Ouros production must preserve the exact current official Cobblemon biological model contract required by the project. Donor assets can inform or seed cosmetic construction; they do not replace the official biological source of truth.
