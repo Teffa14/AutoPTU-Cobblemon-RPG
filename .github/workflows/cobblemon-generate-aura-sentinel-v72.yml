@@ -1,0 +1,119 @@
+name: Generate Aura Sentinel V7.2 Tapered Mantle
+
+on:
+  push:
+    branches: ['art/lucario-aura-sentinel-v7-2']
+    paths:
+      - '.github/workflows/cobblemon-generate-aura-sentinel-v72.yml'
+      - 'tools/cobblemon-model-review/build_aura_sentinel_v7_2.py'
+      - 'tools/cobblemon-model-review/audit_reference_package.py'
+      - 'docs/cobblemon-skin-reference-dossiers/0448_lucario.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  JAR_SHA256: f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3
+  JAR_SHA512: 7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e
+  MODEL_SHA256: ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9
+  NORMAL_SHA256: 98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a
+  SHINY_SHA256: b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d
+
+jobs:
+  gate-generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
+      - name: Strict same-species reference gate and package cross-check
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .audit
+          curl -fLsS --retry 4 'https://cdn.modrinth.com/data/uWyj4p7w/versions/ZakKcKn2/Lucario_Overhaul_v1.2.zip' -o .audit/a.zip
+          curl -fLsS --retry 4 'https://cdn.modrinth.com/data/LizLsGI4/versions/GmEDUt5z/StylesUponStyles.v.1.5.zip' -o .audit/b.zip
+          curl -fLsS --retry 4 'https://cdn.modrinth.com/data/GFTKLMrj/versions/c9J7iOYZ/Failskins4.21%20for%20Cobblemon%201.7.zip' -o .audit/c.zip
+          echo '00252b222d3f1aee73b45ccab1e9519266288b3d51d6f5507401f0d2a0fd3b10  .audit/a.zip' | sha256sum -c --strict
+          echo '6bb9124fd2be0d48c3158716887be8da48cec6434fdf3a758e8bdd93e40b2a3d  .audit/b.zip' | sha256sum -c --strict
+          echo 'ee5dd844e4bdac5972e153f2cf7a31b2737b8f5efc907f42e918e11287bba8c6  .audit/c.zip' | sha256sum -c --strict
+          python tools/cobblemon-model-review/audit_reference_package.py .audit/a.zip --species lucario --project 'Lucario Overhaul' --version '1.2 / ZakKcKn2' --source-url 'https://modrinth.com/datapack/lucario-overhaul/version/ZakKcKn2' --output .audit/a.json >/dev/null
+          python tools/cobblemon-model-review/audit_reference_package.py .audit/b.zip --species lucario --project 'Styles Upon Styles - Cobblemon Costume Pack' --version '1.5 / GmEDUt5z' --source-url 'https://modrinth.com/datapack/styles-upon-styles/version/1.5' --output .audit/b.json >/dev/null
+          python tools/cobblemon-model-review/audit_reference_package.py .audit/c.zip --species lucario --project 'Cobblemon FailSkins' --version '4.21 / c9J7iOYZ' --source-url 'https://modrinth.com/datapack/cobblemon-failskins/version/c9J7iOYZ' --output .audit/c.json >/dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          dossier=json.loads(Path('docs/cobblemon-skin-reference-dossiers/0448_lucario.json').read_text())
+          reports=dict(zip([r['project'] for r in dossier['references']], ['.audit/a.json','.audit/b.json','.audit/c.json']))
+          for ref in dossier['references']:
+              report=json.loads(Path(reports[ref['project']]).read_text())
+              assert report['packageSha256']==ref['auditPackage']['sha256']
+              actual={(x['path'],x['sha256']) for x in report['matchingFiles']}
+              assert all((x['path'],x['sha256']) in actual for x in ref['assetFilesInspected'])
+          PY
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py docs/cobblemon-skin-reference-dossiers/0448_lucario.json --expected-species lucario
+
+      - name: Extract exact official Lucario from current compatible JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official
+          curl -fLsS --retry 4 "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official/version.json
+          python - <<'PY' > .official/url
+          import json
+          d=json.load(open('.official/version.json')); f=next(x for x in d['files'] if x.get('primary'))
+          assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and '1.21.1' in d['game_versions'] and 'fabric' in d['loaders']
+          assert f['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print(f['url'])
+          PY
+          curl -fLsS --retry 4 "$(cat .official/url)" -o .official/cobblemon.jar
+          echo "$JAR_SHA256  .official/cobblemon.jar" | sha256sum -c --strict
+          echo "$JAR_SHA512  .official/cobblemon.jar" | sha512sum -c --strict
+          unzip -p .official/cobblemon.jar assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json > .official/lucario.geo.json
+          unzip -p .official/cobblemon.jar assets/cobblemon/textures/pokemon/0448_lucario/lucario.png > .official/lucario.png
+          unzip -p .official/cobblemon.jar assets/cobblemon/textures/pokemon/0448_lucario/lucario_shiny.png > .official/lucario_shiny.png
+          echo "$MODEL_SHA256  .official/lucario.geo.json" | sha256sum -c --strict
+          echo "$NORMAL_SHA256  .official/lucario.png" | sha256sum -c --strict
+          echo "$SHINY_SHA256  .official/lucario_shiny.png" | sha256sum -c --strict
+
+      - name: Generate and validate V7.2 production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+          normal='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png'
+          shiny='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png'
+          overlay='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png'
+          python tools/cobblemon-model-review/build_aura_sentinel_v7_2.py --official .official/lucario.geo.json --official-normal .official/lucario.png --official-shiny .official/lucario_shiny.png --model-out "$model" --normal-out "$normal" --shiny-out "$shiny" --overlay-out "$overlay" --normal-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json --shiny-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json --build-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-build-metadata.json
+          python tools/cobblemon-model-review/validate_original_model.py --official .official/lucario.geo.json --candidate "$model"
+          python tools/cobblemon-model-review/validate_preserved_texture.py --official .official/lucario.png --candidate "$normal" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json --expected-official-sha256 "$NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_preserved_texture.py --official .official/lucario_shiny.png --candidate "$shiny" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json --expected-official-sha256 "$SHINY_SHA256"
+          python tools/cobblemon-model-review/validate_accessory_overlay.py --official .official/lucario.png --overlay "$overlay" --expected-official-sha256 "$NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_cosmetic_attachment.py --official .official/lucario.geo.json --candidate "$model" --anchor-gap 1.50 --piece-gap 1.00
+          python - <<'PY'
+          import json
+          p='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+          g=json.load(open(p))['minecraft:geometry'][0]; extra=g['bones'][87:]
+          cubes=sum(len(b.get('cubes',[])) for b in extra)
+          rotated=sum(any(abs(float(x))>1e-6 for x in c.get('rotation',[0,0,0])) for b in extra for c in b.get('cubes',[]))
+          print(f'V7.2 original=87 total={len(g["bones"])} cosmeticBones={len(extra)} cosmeticCubes={cubes} rotatedCosmeticCubes={rotated}')
+          assert len(g['bones'])==97 and len(extra)==10 and cubes==37 and rotated>=30
+          PY
+
+      - name: Commit generated V7.2 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel*.png docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-*.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'art: generate Aura Sentinel V7.2 tapered-mantle assets'
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
