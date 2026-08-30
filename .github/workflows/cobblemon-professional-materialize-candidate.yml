@@ -5,7 +5,7 @@ on:
     branches:
       - 'art/**'
     paths:
-      - 'tools/cobblemon-model-review/build_*_professional.py'
+      - 'tools/cobblemon-model-review/*_professional*.py'
       - '.github/workflows/cobblemon-professional-materialize-candidate.yml'
   workflow_dispatch:
 
@@ -50,8 +50,6 @@ jobs:
           python tools/cobblemon-model-review/validate_professional_skin_manifest.py \
             docs/cobblemon-skin-review-manifests/0448_lucario.json
           python tools/cobblemon-model-review/validate_skin_registry.py
-          python tools/cobblemon-model-review/run_manifest_builder.py \
-            docs/cobblemon-skin-review-manifests/0448_lucario.json
       - name: Commit exact generated candidate
         shell: bash
         run: |
