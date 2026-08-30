@@ -17,6 +17,7 @@ public final class FabricRpgContent {
     public static final Identifier ITEM_STORAGE_TERMINAL_ID = Identifier.of(MOD_ID, "item_storage_terminal");
     public static final Identifier CRAFTING_WORKSTATION_ID = Identifier.of(MOD_ID, "crafting_workstation");
     public static final Identifier FIELD_CAMP_ID = Identifier.of(MOD_ID, "field_camp");
+    public static final Identifier GYM_LEAGUE_REGISTRATION_DESK_ID = Identifier.of(MOD_ID, "gym_league_registration_desk");
 
     /**
      * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
@@ -66,6 +67,13 @@ public final class FabricRpgContent {
     );
     public static final Item FIELD_CAMP_ITEM = new BlockItem(FIELD_CAMP, new Item.Settings());
 
+    /** Physical Gym/League registration surface. Challenge and battle authority remain server-side. */
+    public static final Block GYM_LEAGUE_REGISTRATION_DESK = new Block(
+            AbstractBlock.Settings.copy(Blocks.CARTOGRAPHY_TABLE)
+                    .strength(2.5F)
+    );
+    public static final Item GYM_LEAGUE_REGISTRATION_DESK_ITEM = new BlockItem(GYM_LEAGUE_REGISTRATION_DESK, new Item.Settings());
+
     private static boolean registered;
 
     private FabricRpgContent() {}
@@ -82,6 +90,8 @@ public final class FabricRpgContent {
         Registry.register(Registries.ITEM, CRAFTING_WORKSTATION_ID, CRAFTING_WORKSTATION_ITEM);
         Registry.register(Registries.BLOCK, FIELD_CAMP_ID, FIELD_CAMP);
         Registry.register(Registries.ITEM, FIELD_CAMP_ID, FIELD_CAMP_ITEM);
+        Registry.register(Registries.BLOCK, GYM_LEAGUE_REGISTRATION_DESK_ID, GYM_LEAGUE_REGISTRATION_DESK);
+        Registry.register(Registries.ITEM, GYM_LEAGUE_REGISTRATION_DESK_ID, GYM_LEAGUE_REGISTRATION_DESK_ITEM);
         registered = true;
     }
 }
