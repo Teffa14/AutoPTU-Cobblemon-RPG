@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "8b7c555d34492067587cd17c2921fdc7ef772111a9b99f8a1f32b63bed9b67d4",
+    "modelSha256": "e129caedac65afde398f65da55a55c3674e5891f602e1816d0bcbf768e4cbbb8",
     "productionBoneCount": 97,
     "cosmeticBoneCount": 10,
-    "cosmeticCubeCount": 56,
+    "cosmeticCubeCount": 30,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -71,7 +71,7 @@
       {
         "role": "OVERLAY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png",
-        "sha256": "322520d35d4919c57e52268b2409cab2ed02529b71b67515128500a282b3dd1e",
+        "sha256": "9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee",
         "derivation": "ACCESSORY_OVERLAY"
       }
     ],
@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v5.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v6.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v5.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v6.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Continuous asymmetric crescent mantle from left shoulder through rear torso to left hip",
-      "Open four-plane cuirass preserving the biological chest spike as deliberate negative space",
-      "Three descending battle-coat panels extending the mantle rhythm into the lower silhouette"
+      "Scalloped left shoulder veil formed by progressively rotated overlapping shells",
+      "Thin resonance veil descending from left scapula to hip as the dominant rear contour",
+      "Three rear-biased long coat tails that preserve the front leg silhouette"
     ],
-    "macroFormPlan": "V5 preserves V4's clean open anatomy but restores authored presence through one connected crescent mantle. Three overlapping shoulder shells taper into three rear shells that descend toward the left hip, while a front diagonal fold ties that mass into a simplified four-plane cuirass. Three broad coat panels continue the same descending rhythm below the waist.",
-    "paintPlan": "Eight verified free accessory texels provide a high-contrast material hierarchy of midnight cloth, indigo, blue steel, silver, antique gold, aura cyan, amethyst and ivory; biological pixels remain byte-identical to official Lucario.",
-    "gameplayReadGoal": "At 160 px the silhouette must retain one unmistakable left-heavy crescent from shoulder to hip plus a descending three-panel coat rhythm, without reverting to cage hardware, repeated straight bars or oversized rectangular armor.",
+    "macroFormPlan": "V6 removes the V5 backpack and oversized front-short reads. Thin overlapping shoulder shells feed a rear resonance veil, while the chest uses one diagonal sash and minimal lower braces. Three long rear-biased tails carry the silhouette downward without covering the thighs.",
+    "paintPlan": "Accessory overlay expands to twelve verified reserved texels with separate shadow, mid and facing values for indigo cloth, lacquer, metal, gold and aura. Each cosmetic cube assigns darker occluded faces and lighter facing/top planes; biological body pixels remain exact official bytes.",
+    "gameplayReadGoal": "At 160 px the left shoulder-to-hip veil and three long rear tails must remain legible while the face, chest spike, thighs and biological tail stay unobstructed.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
