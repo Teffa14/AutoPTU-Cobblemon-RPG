@@ -1,4 +1,4 @@
-name: Discover Public Gengar CC0 Reference Assets
+name: Inspect Public Gengar CC0 Reference Assets
 
 on:
   push:
@@ -6,29 +6,37 @@ on:
       - 'art/gengar-overtime-reference-inspection'
     paths:
       - '.github/workflows/cobblemon-gengar-meshy-reference-discovery.yml'
+      - 'tools/cobblemon-model-review/inspect_external_glb_reference.py'
   pull_request:
     paths:
       - '.github/workflows/cobblemon-gengar-meshy-reference-discovery.yml'
+      - 'tools/cobblemon-model-review/inspect_external_glb_reference.py'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  discover:
+  inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
         include:
           - slug: mars-attack
             id: 019d9f8c-4884-7c4b-97d9-e42baa48df79
+            title: Gengar Mars Attack
           - slug: gumball-machine
             id: 0199e7ee-f19d-7a8e-83c7-5b32f8b24b92
+            title: Gengar Gumball Machine
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch public Meshy community page
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch exact public community page
         shell: bash
         run: |
           set -euo pipefail
@@ -39,41 +47,131 @@ jobs:
             -o .external/${{ matrix.slug }}/page.html
           wc -c .external/${{ matrix.slug }}/page.html
 
-      - name: Extract public asset and API candidates from page source
+      - name: Prove page identity and explicit CC0 marker
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import html,json,re,urllib.parse
+          import html,json,re
           from pathlib import Path
           slug='${{ matrix.slug }}'
           model_id='${{ matrix.id }}'
-          text=Path(f'.external/{slug}/page.html').read_text(encoding='utf-8',errors='replace')
-          decoded=html.unescape(text).replace('\\u0026','&').replace('\\/','/')
-          patterns=[
-            r'https?://[^"\'<>\\ ]+',
-            r'/(?:api|trpc|graphql)/[^"\'<>\\ ]+',
-          ]
-          values=set()
-          for pattern in patterns:
-            for value in re.findall(pattern,decoded):
-              value=urllib.parse.unquote(value).rstrip('),;]')
-              low=value.lower()
-              if any(token in low for token in ('meshy','assets.','model','glb','fbx','obj','download','api','task')):
-                values.add(value)
-          selected=sorted(values)
-          Path(f'.external/{slug}/url-candidates.json').write_text(json.dumps(selected,indent=2)+'\n')
-          print('model id',model_id,'candidate count',len(selected))
-          for value in selected[:200]: print(value)
-          for token in ('model_urls','model_url','download','assets.meshy.ai','.glb','.obj','.fbx',model_id):
-            print('TOKEN',token,'COUNT',decoded.lower().count(token.lower()))
+          expected_title='${{ matrix.title }}'
+          raw=Path(f'.external/{slug}/page.html').read_text(encoding='utf-8',errors='replace')
+          text=html.unescape(raw).replace('\\u0026','&').replace('\\/','/')
+          compact=re.sub(r'\\+"','"',text)
+          title_present=expected_title.casefold() in compact.casefold()
+          id_present=model_id in compact
+          explicit_cc0=bool(re.search(r'(?i)(?:"license"|license)\s*[:=]\s*["\']?CC0\b',compact))
+          cc0_count=len(re.findall(r'(?i)\bCC0\b',compact))
+          evidence={
+            'modelId':model_id,
+            'expectedTitle':expected_title,
+            'titlePresent':title_present,
+            'modelIdPresent':id_present,
+            'explicitLicenseFieldCC0':explicit_cc0,
+            'cc0TokenCount':cc0_count,
+            'sourceUrl':f'https://www.meshy.ai/3d-models/{model_id}'
+          }
+          Path(f'.external/{slug}/page-evidence.json').write_text(json.dumps(evidence,indent=2)+'\n')
+          print(json.dumps(evidence,indent=2))
+          assert title_present and id_present, 'public page identity could not be proven'
+          assert explicit_cc0, 'exact public page did not expose an explicit CC0 license field'
           PY
 
-      - name: Upload discovery evidence
+      - name: Extract exact signed MODEL and TEXTURE URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import html,json,re
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          slug='${{ matrix.slug }}'
+          model_id='${{ matrix.id }}'
+          raw=Path(f'.external/{slug}/page.html').read_text(encoding='utf-8',errors='replace')
+          text=html.unescape(raw).replace('\\u0026','&').replace('\\/','/')
+          urls=[]
+          for match in re.findall(r'https?://[^"\'<>\\\s]+',text):
+            url=match.rstrip('),;]}')
+            if model_id not in url:
+              continue
+            if url not in urls:
+              urls.append(url)
+          def path_lower(url):
+            return urlsplit(url).path.lower()
+          models=[u for u in urls if path_lower(u).endswith(('.glb','.obj','.fbx','.stl','.usdz','.meshy')) or path_lower(u).endswith('/model.json')]
+          glbs=[u for u in models if path_lower(u).endswith('.glb')]
+          base_textures=[u for u in urls if path_lower(u).endswith('/texture_0.png')]
+          previews=[u for u in urls if path_lower(u).endswith('/preview.png')]
+          report={'allTaskUrls':urls,'modelUrls':models,'glbUrls':glbs,'baseColorTextureUrls':base_textures,'previewUrls':previews}
+          Path(f'.external/{slug}/asset-urls.json').write_text(json.dumps(report,indent=2)+'\n')
+          print('all task URLs',len(urls))
+          print('model URLs',len(models))
+          for value in models: print('MODEL_URL',value)
+          for value in base_textures: print('TEXTURE_URL',value)
+          assert glbs, 'no actual public GLB URL exposed by the exact model page'
+          assert base_textures, 'no actual public base-color texture PNG exposed by the exact model page'
+          Path(f'.external/{slug}/model.url').write_text(glbs[0])
+          Path(f'.external/{slug}/texture.url').write_text(base_textures[0])
+          if previews:
+            Path(f'.external/{slug}/preview.url').write_text(previews[0])
+          PY
+
+      - name: Download actual public MODEL and TEXTURE bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir='.external/${{ matrix.slug }}'
+          model_url="$(cat "$dir/model.url")"
+          texture_url="$(cat "$dir/texture.url")"
+          curl --fail --silent --show-error --location --retry 3 \
+            -A 'Mozilla/5.0 Ouros-Reference-Research' "$model_url" -o "$dir/model.glb"
+          curl --fail --silent --show-error --location --retry 3 \
+            -A 'Mozilla/5.0 Ouros-Reference-Research' "$texture_url" -o "$dir/texture_0.png"
+          if test -f "$dir/preview.url"; then
+            curl --fail --silent --show-error --location --retry 3 \
+              -A 'Mozilla/5.0 Ouros-Reference-Research' "$(cat "$dir/preview.url")" -o "$dir/preview.png"
+          fi
+          test "$(stat -c '%s' "$dir/model.glb")" -gt 1000
+          test "$(stat -c '%s' "$dir/texture_0.png")" -gt 100
+          sha256sum "$dir/model.glb" "$dir/texture_0.png" | tee "$dir/source-hashes.txt"
+
+      - name: Inspect actual GLB and PNG without redistributing bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir='.external/${{ matrix.slug }}'
+          python tools/cobblemon-model-review/inspect_external_glb_reference.py \
+            "$dir/model.glb" \
+            --texture "$dir/texture_0.png" \
+            --output "$dir/inspection.json" \
+            | tee "$dir/inspection.log"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          slug='${{ matrix.slug }}'
+          p=Path(f'.external/{slug}/inspection.json')
+          data=json.loads(p.read_text())
+          s=data['structure']
+          assert s['meshCount'] >= 1
+          assert s['primitiveCount'] >= 1
+          assert s['positionVertexCount'] >= 100
+          assert s['triangleCountEstimate'] >= 50
+          assert data['texture']['dimensions']
+          print('verified mesh summary',json.dumps(s,indent=2))
+          PY
+
+      - name: Upload metadata-only inspection evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gengar-${{ matrix.slug }}-public-asset-discovery
+          name: gengar-${{ matrix.slug }}-reference-inspection
           path: |
-            .external/${{ matrix.slug }}/url-candidates.json
-          if-no-files-found: error
-          retention-days: 14
+            .external/${{ matrix.slug }}/page-evidence.json
+            .external/${{ matrix.slug }}/asset-urls.json
+            .external/${{ matrix.slug }}/source-hashes.txt
+            .external/${{ matrix.slug }}/inspection.json
+            .external/${{ matrix.slug }}/inspection.log
+          if-no-files-found: warn
+          retention-days: 30
