@@ -58,12 +58,33 @@ jobs:
           print('production reference-gate path coverage PASS')
           PY
 
-      - name: Exercise strict custom-geometry skin dossier validator
+      - name: Exercise strict Cobblemon-pack custom-geometry skin dossier validator
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json \
             --expected-species testmon
+
+      - name: Prove standalone 3D models cannot satisfy mandatory references
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source=Path('tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json')
+          data=json.loads(source.read_text(encoding='utf-8'))
+          data['references'][0]['sourceEcosystem']='STANDALONE_3D_MODEL'
+          Path('/tmp/non-cobblemon-reference.json').write_text(json.dumps(data),encoding='utf-8')
+          PY
+          set +e
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py \
+            /tmp/non-cobblemon-reference.json \
+            --expected-species testmon > /tmp/non-cobblemon-reference.log 2>&1
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          grep -q 'must be assets from a real Cobblemon customization pack' /tmp/non-cobblemon-reference.log
+          cat /tmp/non-cobblemon-reference.log
 
       - name: Exercise research-only blocked candidate staging
         run: |
