@@ -1,0 +1,5 @@
+Resonance Ronin V17 human review trigger.
+
+Production bytes were deterministically materialized by the candidate materializer before this commit. This human-authored head intentionally changes no production asset. It exists so normal pull-request checks review the committed V17 bytes rather than a bot-authored materialization head.
+
+Art state remains ARTISTIC FAIL until the exact-head Blockbench PNG set is generated and directly inspected. Owner approval remains required for any later OWNER REVIEW REQUIRED candidate.
