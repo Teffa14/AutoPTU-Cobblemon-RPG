@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalFastTravelCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalFastTravelService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -22,8 +23,8 @@ import net.minecraft.world.World;
  * AutoPTU layer only validates canonical Trainer/source/destination authority.
  */
 public final class FabricFastTravelRuntime {
-    static final String OVERWORLD_SPAWN_DESTINATION = "overworld_spawn";
-    private static final double MAX_DISTANCE_SQUARED = 25.0D;
+    static final String OVERWORLD_SPAWN_DESTINATION = CanonicalFastTravelCatalogue.OVERWORLD_SPAWN_ID;
+    static final double MAX_DISTANCE_SQUARED = 25.0D;
     private static final CanonicalFastTravelService SERVICE = new CanonicalFastTravelService(MAX_DISTANCE_SQUARED);
 
     private FabricFastTravelRuntime() {}
@@ -55,7 +56,7 @@ public final class FabricFastTravelRuntime {
                             isFastTravelPoint(world, source),
                             serverPlayer.squaredDistanceTo(source.getX() + 0.5D, source.getY() + 0.5D, source.getZ() + 0.5D),
                             OVERWORLD_SPAWN_DESTINATION,
-                            true,
+                            CanonicalFastTravelCatalogue.find(OVERWORLD_SPAWN_DESTINATION).isPresent(),
                             true
                     )
             );
