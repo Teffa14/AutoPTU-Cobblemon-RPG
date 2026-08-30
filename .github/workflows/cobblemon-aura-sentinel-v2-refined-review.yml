@@ -1,0 +1,209 @@
+name: Aura Sentinel V2 Refined Full Transformation Review
+
+on:
+  push:
+    branches:
+      - 'art/aura-sentinel-v2-full-transformation'
+    paths:
+      - '.github/workflows/cobblemon-aura-sentinel-v2-refined-review.yml'
+      - 'tools/cobblemon-model-review/blockbench_capture.mjs'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'tools/cobblemon-model-review/validate_derived_texture.py'
+      - 'tools/cobblemon-model-review/build_aura_sentinel_v2_refined.py'
+      - 'docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-*.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel*.png'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-aura-sentinel-v2-refined-review.yml'
+      - 'tools/cobblemon-model-review/blockbench_capture.mjs'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'tools/cobblemon-model-review/validate_derived_texture.py'
+      - 'tools/cobblemon-model-review/build_aura_sentinel_v2_refined.py'
+      - 'docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-*.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel*.png'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aura-sentinel-v2-refined-review-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+  COBBLEMON_JAR_SHA512: '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+  OFFICIAL_MODEL_SHA256: 'ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9'
+  OFFICIAL_ANIMATION_SHA256: 'ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563'
+  OFFICIAL_POSER_SHA256: '7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d'
+  OFFICIAL_RESOLVER_SHA256: 'a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81'
+  OFFICIAL_NORMAL_SHA256: '98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a'
+  OFFICIAL_SHINY_SHA256: 'b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d'
+  DERIVED_NORMAL_SHA256: '1cbb1ca7fe260d01a4e0ca7a2f0a28ea424475f856267caf19d0b4276ed19752'
+  DERIVED_SHINY_SHA256: '7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725'
+  BLOCKBENCH_VERSION: '5.1.6'
+  BLOCKBENCH_SHA256: 'c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e'
+  GAMEPLAY_RESOLUTION: '160'
+
+jobs:
+  blockbench-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install review dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+      - name: Download exact official Cobblemon JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .review/official .review/renders .review/output
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros/aura-v2-refined-review' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .review/version.json
+          python - <<'PY' > .review/download.env
+          import json,shlex
+          data=json.load(open('.review/version.json'))
+          assert data['id']=='kF7CvxTo' and data['version_number']=='1.7.3' and '1.21.1' in data['game_versions'] and 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          assert primary['hashes']['sha512']=='7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+          print('URL='+shlex.quote(primary['url']))
+          PY
+          source .review/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .review/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" .review/cobblemon.jar | sha512sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" .review/cobblemon.jar | sha256sum --check --strict
+      - name: Extract and verify official Lucario contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json' > .review/official/lucario.geo.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0448_lucario/lucario.animation.json' > .review/official/lucario.animation.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/posers/0448_lucario/lucario.json' > .review/official/lucario.poser.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/0_lucario_base.json' > .review/official/lucario.resolver.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/textures/pokemon/0448_lucario/lucario.png' > .review/official/lucario.png
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/textures/pokemon/0448_lucario/lucario_shiny.png' > .review/official/lucario_shiny.png
+          printf '%s  %s\n' "$OFFICIAL_MODEL_SHA256" .review/official/lucario.geo.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_ANIMATION_SHA256" .review/official/lucario.animation.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_POSER_SHA256" .review/official/lucario.poser.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_RESOLVER_SHA256" .review/official/lucario.resolver.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_NORMAL_SHA256" .review/official/lucario.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_SHINY_SHA256" .review/official/lucario_shiny.png | sha256sum --check --strict
+          python - <<'PY'
+          import json
+          a=json.load(open('.review/official/lucario.animation.json'))['animations']
+          assert 'animation.lucario.ground_idle' in a and 'animation.lucario.battle_idle' in a
+          p=json.load(open('.review/official/lucario.poser.json'))
+          assert 'q.biped_walk' in p['poses']['walking']['animations'][1]
+          PY
+      - name: Validate refined production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'
+          normal='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png'
+          shiny='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png'
+          python tools/cobblemon-model-review/validate_original_model.py --official .review/official/lucario.geo.json --candidate "$model"
+          printf '%s  %s\n' "$DERIVED_NORMAL_SHA256" "$normal" | sha256sum --check --strict
+          printf '%s  %s\n' "$DERIVED_SHINY_SHA256" "$shiny" | sha256sum --check --strict
+          python tools/cobblemon-model-review/validate_derived_texture.py --official .review/official/lucario.png --derived "$normal" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json --expected-official-sha256 "$OFFICIAL_NORMAL_SHA256" --expected-derived-sha256 "$DERIVED_NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_derived_texture.py --official .review/official/lucario_shiny.png --derived "$shiny" --metadata docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json --expected-official-sha256 "$OFFICIAL_SHINY_SHA256" --expected-derived-sha256 "$DERIVED_SHINY_SHA256"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          model=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json').read_text())['minecraft:geometry'][0]
+          assert len(model['bones'])==95
+          assert sum(len(b.get('cubes',[])) for b in model['bones'][87:])==87
+          expected=['ouros_aura_helm_system','ouros_aura_mantle_shell','ouros_aura_breastplate','ouros_aura_shrine_frame','ouros_aura_left_armguard','ouros_aura_right_armguard','ouros_aura_waistcoat','ouros_aura_relic_fin']
+          assert [b['name'] for b in model['bones'][87:]]==expected
+          PY
+      - name: Build exact Blockbench preview textures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          root=Path('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario')
+          overlay=Image.open(root/'ouros_aura_sentinel_accessories.png').convert('RGBA'); assert overlay.size==(128,64)
+          for source,target in (('ouros_aura_sentinel.png','.review/aura-normal.png'),('ouros_aura_sentinel_shiny.png','.review/aura-shiny.png')):
+            base=Image.open(root/source).convert('RGBA'); assert base.size==(128,64)
+            Image.alpha_composite(base,overlay).save(target,optimize=True)
+          PY
+      - name: Download pinned Blockbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" -o .review/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" .review/blockbench.AppImage | sha256sum --check --strict
+          chmod +x .review/blockbench.AppImage
+          (cd .review && ./blockbench.AppImage --appimage-extract >/dev/null)
+      - name: Render official and refined matched-camera evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup() { pid="${1:-}"; if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi; pkill -f "$PWD/.review/squashfs-root/blockbench" 2>/dev/null || true; pkill -f "$PWD/.review/squashfs-root/AppRun" 2>/dev/null || true; sleep 2; }
+          once() {
+            model="$1"; texture="$2"; anim="$3"; time="$4"; out="$5"; port="$6"; tag="$7"; profile_in="$8"; profile_out="$9"; attempt="${10}"
+            userdata="$PWD/.review/user-${tag}-${attempt}"; log="$PWD/.review/${tag}-${attempt}.log"; rm -rf "$userdata" "$out"; mkdir -p "$userdata" "$out"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.review/squashfs-root" .review/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$userdata" "$model" >"$log" 2>&1 &
+            pid=$!; ready=0
+            for _ in $(seq 1 90); do if curl --fail --silent "http://127.0.0.1:${port}/json/version" >/dev/null 2>&1; then ready=1; break; fi; if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; cleanup "$pid"; return 1; fi; sleep 1; done
+            if [ "$ready" -ne 1 ]; then cat "$log"; cleanup "$pid"; return 1; fi
+            args=(--endpoint "http://127.0.0.1:${port}" --texture "$texture" --animation "$PWD/.review/official/lucario.animation.json" --animation-name "$anim" --animation-time "$time" --gameplay-resolution "$GAMEPLAY_RESOLUTION" --output-dir "$out")
+            if [ -n "$profile_in" ]; then args+=(--camera-profile-in "$profile_in"); fi; if [ -n "$profile_out" ]; then args+=(--camera-profile-out "$profile_out"); fi
+            if ! node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}"; then cat "$log"; cleanup "$pid"; return 1; fi; cleanup "$pid"
+          }
+          render() { for attempt in 1 2 3; do if once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$attempt"; then return 0; fi; done; return 1; }
+          official="$PWD/.review/official/lucario.geo.json"; aura="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json"; camera="$PWD/.review/official-camera.json"
+          render "$official" "$PWD/.review/official/lucario.png" 'animation.lucario.ground_idle' 0.35 "$PWD/.review/renders/official" 9521 official '' "$camera"
+          render "$aura" "$PWD/.review/aura-normal.png" 'animation.lucario.ground_idle' 0.35 "$PWD/.review/renders/hero" 9522 hero "$camera" ''
+          render "$aura" "$PWD/.review/aura-normal.png" 'animation.lucario.battle_idle' 0.35 "$PWD/.review/renders/battle" 9523 battle "$camera" ''
+          render "$aura" "$PWD/.review/aura-shiny.png" 'animation.lucario.ground_idle' 0.35 "$PWD/.review/renders/shiny" 9524 shiny "$camera" ''
+      - name: Assemble evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,shutil
+          from pathlib import Path
+          from PIL import Image
+          out=Path('.review/output')
+          mapping={
+            'official_reference_three_quarter.png':Path('.review/renders/official/three_quarter.png'),
+            'hero_three_quarter.png':Path('.review/renders/hero/three_quarter.png'),
+            'battle_ready_three_quarter.png':Path('.review/renders/battle/three_quarter.png'),
+            'hero_front.png':Path('.review/renders/hero/front.png'),'hero_left.png':Path('.review/renders/hero/left.png'),'hero_right.png':Path('.review/renders/hero/right.png'),'hero_back.png':Path('.review/renders/hero/back.png'),
+            'official_reference_gameplay_160.png':Path('.review/renders/official/three_quarter_gameplay_160.png'),'hero_gameplay_160.png':Path('.review/renders/hero/three_quarter_gameplay_160.png'),'battle_ready_gameplay_160.png':Path('.review/renders/battle/three_quarter_gameplay_160.png'),
+            'shiny_three_quarter.png':Path('.review/renders/shiny/three_quarter.png'),'shiny_gameplay_160.png':Path('.review/renders/shiny/three_quarter_gameplay_160.png')}
+          hashes={}
+          for name,src in mapping.items():
+            assert src.is_file(),src; shutil.copy2(src,out/name); im=Image.open(out/name).convert('RGBA'); assert im.size==((160,160) if 'gameplay_160' in name else (1024,1024)); hashes[name]=hashlib.sha256((out/name).read_bytes()).hexdigest()
+          metas={tag:json.loads(Path(f'.review/renders/{tag}/blockbench-metadata.json').read_text()) for tag in ('official','hero','battle','shiny')}
+          assert metas['official']['modelInfo']['boneCount']==87
+          for tag in ('hero','battle','shiny'): assert metas[tag]['modelInfo']['boneCount']==95 and metas[tag]['cameraContract']=='matched to official reference camera profile'
+          report={'format':'ouros.cobblemon-full-transformation-review.v1','viewer':'Blockbench 5.1.6','cobblemonVersion':'1.7.3','minecraftTarget':'1.21.1','officialModelSha256':'ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9','officialAnimationSha256':'ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563','derivedNormalSha256':'1cbb1ca7fe260d01a4e0ca7a2f0a28ea424475f856267caf19d0b4276ed19752','derivedShinySha256':'7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725','originalBones':87,'derivedBones':95,'cosmeticBones':8,'cosmeticCubes':87,'gameplayResolution':160,'animations':{'hero':{'name':'animation.lucario.ground_idle','time':0.35},'battleReady':{'name':'animation.lucario.battle_idle','time':0.35}},'walkingEvidence':'OMITTED: official walking is procedural q.biped_walk + q.bimanual_swing, not a dedicated Bedrock clip','pngSha256':hashes,'artisticAcceptance':'PENDING_HUMAN_VISUAL_REVIEW'}
+          (out/'blockbench-review-metadata.json').write_text(json.dumps(report,indent=2)+'\n'); shutil.copy2('.review/official-camera.json',out/'official-camera.json'); print(json.dumps(report,indent=2))
+          PY
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-sentinel-v2-refined-blockbench-review
+          path: .review/output
+          if-no-files-found: error
+          retention-days: 14
