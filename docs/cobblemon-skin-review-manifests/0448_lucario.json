@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "d0c41694d9a759b02771a5df7ce9eaf44b6dd300c088197dcc329dddd1729b7f",
-    "productionBoneCount": 97,
-    "cosmeticBoneCount": 10,
-    "cosmeticCubeCount": 24,
+    "modelSha256": "7e680f52e57c277991d35139d093fb7ef6af0b4b10f4b244168f383490437a30",
+    "productionBoneCount": 96,
+    "cosmeticBoneCount": 9,
+    "cosmeticCubeCount": 21,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v17.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v18.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v17.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v18.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Three-stage camera-near shoulder crescent descending into the torso rather than projecting as a slab",
-      "Continuous diagonal front/back mantle wrap that leaves the chest spike and biological center open",
-      "Asymmetric tapered hip petals completing the silhouette while preserving negative space around tail and legs"
+      "Broad-to-narrow four-facet shoulder crescent forming one sloped camera-near contour",
+      "Connected diagonal front/back mantle envelope that frames rather than covers the chest spike",
+      "One long tapered near-side coat tail plus short counter-tail preserving negative space around biological tail and legs"
     ],
-    "macroFormPlan": "V17 replaces V16b's arm/flank-dominant hanging equipment read with one connected shoulder-torso-back-hip envelope. Rotated overlapping facets change width and direction as they descend, while the front stays open around Lucario's chest spike. The lower silhouette uses three unequal hip petals rather than shorts, greaves, banners or repeated bars.",
+    "macroFormPlan": "V18 responds to V17's exact-head Blockbench and 0.0759 pixel-difference failure by removing the legacy chest ribbon and concentrating the transformation into one shoulder-rooted mantle envelope. The near-side crescent broadens at the shoulder, narrows through the ribcage, overlaps a diagonal back shell and terminates in an unequal long coat tail. There are no greaves, banners, portal frames, repeated bars or detached equipment islands.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the first read should be one asymmetric ronin mantle wrapping Lucario's upper body and breaking into a tapered hip silhouette, with the face, ears, aura sensors, chest spike, hands, feet and tail unmistakable.",
+    "gameplayReadGoal": "At 160 px the first read should be an unmistakable asymmetric ronin mantle with a sloped shoulder silhouette and long diagonal coat tail, while Lucario's face, ears, aura sensors, chest spike, hands, feet and biological tail remain immediately readable.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V16b exact-head Blockbench review on 65b0eacf40791a03208f5cb84174ffd78329bbdd passed technical floors (pixelDifferenceRatio=0.118063, silhouetteDeltaRatio=0.066621) but failed internal art QA: the silhouette change was concentrated on one arm/flank and still read as Lucario plus hanging equipment. V17 changes macroform architecture without relaxing thresholds or modifying official biology."
+    "iterationNote": "V17 exact-head review on 65fb0ebbec05ac11eee085422fc87b76feea360d reproduced the exact 87 official bones plus 10 cosmetics and passed attachment, but failed the unchanged Blockbench pixel-difference floor at 0.0759 vs 0.0800. Direct contact-sheet review also remained too close to base Lucario. V18 changes silhouette architecture rather than lowering thresholds."
   },
   "variantCoverage": {
     "audited": true,
