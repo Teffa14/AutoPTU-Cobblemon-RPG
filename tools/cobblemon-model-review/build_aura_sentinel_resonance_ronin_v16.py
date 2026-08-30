@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Resonance Ronin V16: replace the legacy panel/ribbon stack with one mantle flow.
+"""Resonance Ronin V16b: one camera-visible asymmetric mantle envelope.
 
-V15c remained ARTISTIC FAIL because it retained V14c's five-panel rear mantle and
-only changed the exterior ribbons. V16 removes that inherited architecture. It
-keeps the useful face/neck/extremity accents, then authors three overlapping,
-compound-rotated mantle facets that travel continuously from a real shoulder
-contact across the back into one asymmetric hip fold. The system deliberately
-uses fewer, differently proportioned surfaces with stronger overlap and taper.
+Exact-head Blockbench evidence for V16 reached only 0.0265 silhouette delta and
+showed the rear mantle hidden behind Lucario in the matched 3/4 camera. V16b moves
+the signature system to the camera-near official right shoulder and wraps it down
+the near flank. It removes the scattered greaves and uses a small number of long,
+overlapping, compound-rotated cloth facets with changing width and direction.
 
-This builder is presentation-only. AutoPTU/Ouros remains authoritative for
-combatants, legality, HP/status, positions, RNG, damage and tactical outcomes.
+Presentation only. AutoPTU/Ouros remains authoritative for combatants, legality,
+HP/status, positions, RNG, damage and tactical outcomes.
 """
 from __future__ import annotations
 
@@ -35,8 +34,6 @@ RETAINED = {
     "ouros_resonance_chest_ribbon",
     "ouros_resonance_left_vambrace",
     "ouros_resonance_right_vambrace",
-    "ouros_resonance_left_greave",
-    "ouros_resonance_right_greave",
 }
 
 
@@ -45,29 +42,44 @@ def v16_bones() -> list[dict]:
     if {b["name"] for b in retained} != RETAINED:
         raise SystemExit("V14c retained-bone contract drifted")
 
-    mantle_root = v1.bone("ouros_resonance_mantle_root", "shoulder_left", [4.9, 30.2, 0.5], [
-        mcube((3.15, 28.45, 0.25), (3.25, 3.05, 1.25), 81, light=83, dark=80,
-              pivot=(4.55, 30.0, .82), rotation=(-12, -18, -24)),
-        mcube((4.85, 27.25, 1.0), (3.15, 3.75, .62), 82, light=85, dark=81,
-              pivot=(5.65, 29.25, 1.3), rotation=(-19, -25, -31)),
+    # Matched 3/4 camera sits at negative X / negative Z. Root the dominant
+    # system on the official right shoulder (negative X), where it can actually
+    # change first-read silhouette instead of disappearing behind the torso.
+    shoulder_shell = v1.bone("ouros_resonance_shoulder_shell", "shoulder_right", [-7.2, 30.3, -1.0], [
+        mcube((-9.0, 28.45, -3.00), (4.35, 3.20, 1.25), 81, light=83, dark=80,
+              pivot=(-7.15, 30.0, -2.35), rotation=(-8, 16, 27)),
+        mcube((-10.15, 25.35, -2.72), (3.55, 5.05, .48), 82, light=85, dark=81,
+              pivot=(-8.25, 29.05, -2.48), rotation=(-11, 18, 22)),
+        mcube((-8.25, 30.10, -3.10), (2.15, 3.05, .34), 84, light=85, dark=80,
+              pivot=(-7.10, 31.55, -2.93), rotation=(-3, 8, 43)),
     ])
 
-    mantle_spine = v1.bone("ouros_resonance_mantle_spine", "torso3", [0, 25.4, 2.25], [
-        mcube((2.45, 24.15, 1.55), (5.35, 6.35, .72), 82, light=83, dark=81,
-              pivot=(4.8, 27.45, 1.9), rotation=(-23, -18, -28)),
-        mcube((-1.05, 18.75, 2.0), (6.45, 8.15, .66), 81, light=83, dark=80,
-              pivot=(2.15, 23.0, 2.35), rotation=(-28, 7, -13)),
-        mcube((-4.45, 13.35, 1.72), (5.25, 7.15, .48), 86, light=85, dark=81,
-              pivot=(-1.35, 17.6, 1.96), rotation=(-22, 19, 11)),
+    # Two main facets overlap into one near-side S curve. They deliberately
+    # change direction and width rather than forming parallel rectangular steps.
+    flank_mantle = v1.bone("ouros_resonance_flank_mantle", "torso3", [-4.0, 24.5, -2.65], [
+        mcube((-9.10, 20.20, -3.12), (4.65, 8.35, .48), 82, light=83, dark=81,
+              pivot=(-6.90, 26.55, -2.88), rotation=(-5, 10, 18)),
+        mcube((-7.05, 14.15, -2.92), (4.15, 8.05, .42), 81, light=85, dark=80,
+              pivot=(-5.25, 20.65, -2.70), rotation=(1, -5, -9)),
+        mcube((-10.25, 18.25, -2.72), (2.05, 5.85, .30), 86, light=85, dark=81,
+              pivot=(-8.95, 22.35, -2.57), rotation=(-4, 13, 33)),
     ])
 
-    hip_fold = v1.bone("ouros_resonance_hip_fold", "torso", [0, 15.1, 1.35], [
-        mcube((-5.15, 13.25, .15), (3.45, 1.55, 1.65), 84, light=85, dark=80,
-              pivot=(-3.35, 14.15, .95), rotation=(8, 16, 19)),
-        mcube((-5.35, 6.65, 1.35), (2.55, 7.45, .38), 82, light=85, dark=81,
-              pivot=(-3.95, 12.25, 1.55), rotation=(-31, 16, 23)),
+    # One long lower fold and a shorter counter-fold keep negative space around
+    # the biological tail and legs. They terminate the same directional gesture
+    # instead of becoming a symmetric skirt.
+    lower_fold = v1.bone("ouros_resonance_lower_fold", "torso", [-3.8, 14.2, -2.15], [
+        mcube((-6.75, 6.35, -2.62), (3.20, 8.65, .38), 82, light=85, dark=81,
+              pivot=(-5.05, 13.05, -2.43), rotation=(-7, -4, -13)),
+        mcube((-9.15, 9.15, -2.30), (2.05, 5.85, .32), 84, light=85, dark=80,
+              pivot=(-7.90, 13.75, -2.14), rotation=(-8, 10, 25)),
     ])
-    return retained + [mantle_root, mantle_spine, hip_fold]
+
+    waist_clasp = v1.bone("ouros_resonance_waist_clasp", "torso", [-4.0, 15.0, -2.2], [
+        mcube((-6.55, 13.65, -3.02), (2.55, 1.35, .85), 84, light=85, dark=80,
+              pivot=(-5.20, 14.35, -2.60), rotation=(3, 8, 17)),
+    ])
+    return retained + [shoulder_shell, flank_mantle, lower_fold, waist_clasp]
 
 
 def build_model() -> int:
@@ -79,7 +91,7 @@ def build_model() -> int:
         raise SystemExit("official Lucario bone prefix missing")
     extras = v16_bones()
     geo["bones"] = official + extras
-    v1.MODEL.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    v1.MODEL.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ",")) + "\n", encoding="utf-8")
     return sum(len(b.get("cubes", [])) for b in extras)
 
 
@@ -94,8 +106,8 @@ def patch_manifest(cubes: int) -> None:
         "approvalRecord": None,
     }
     data["production"]["modelSha256"] = v1.sha256(v1.MODEL)
-    data["production"]["productionBoneCount"] = v1.OFFICIAL_BONES + 10
-    data["production"]["cosmeticBoneCount"] = 10
+    data["production"]["productionBoneCount"] = v1.OFFICIAL_BONES + 9
+    data["production"]["cosmeticBoneCount"] = 9
     data["production"]["cosmeticCubeCount"] = cubes
     next(t for t in data["production"]["textures"] if t["role"] == "OVERLAY")["sha256"] = v1.sha256(v1.OVERLAY)
     for asset in data["production"].get("runtimeAssets", []):
@@ -104,18 +116,18 @@ def patch_manifest(cubes: int) -> None:
     data["builder"]["scriptPath"] = "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v16.py"
     data["builder"]["command"] = ["python", "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v16.py"]
     data["qualityIntent"]["signaturePieces"] = [
-        "Open cowl and high collar preserving Lucario's face, ears, aura sensors and chest spike",
-        "Single left-shoulder-to-back mantle flow built from three deeply overlapping compound-rotated facets with changing proportions and taper",
-        "Compact asymmetric hip landing with one long fold and explicit negative space around the biological tail",
+        "Open cowl/high collar preserving face, ears, aura sensors and chest spike",
+        "Camera-near right-shoulder shell flowing into two deeply overlapping flank facets with changing direction and width",
+        "Single long lower fold plus short counter-fold, leaving negative space around Lucario's tail and legs",
     ]
     data["qualityIntent"]["macroFormPlan"] = (
-        "V16 deletes V14c's five-panel mantle plus V15c's shoulder and hip ribbon add-ons. One compact official-shoulder contact feeds three differently proportioned, deeply overlapping facets that turn diagonally across the back and taper into one hip fold. The silhouette is earned through one continuous directional mass and negative space, not repeated bars, broad slabs, cages or extra cube count."
+        "V16b responds directly to V16 exact-head Blockbench evidence. The rear-centered mantle that disappeared behind the body is removed. The dominant cloth system is rooted to the official camera-near right shoulder and wraps down the near flank using two large overlapping facets, one narrow edge facet, and two unequal lower folds. Greaves are removed to reduce scattered gear. No visual threshold is relaxed."
     )
     data["qualityIntent"]["gameplayReadGoal"] = (
-        "At 160 px the first read should be Lucario crossed by one coherent asymmetric shoulder-back-hip mantle gesture. The outer contour must remain visible from matched 3/4 while the face, chest spike, hands, feet and biological tail stay unmistakable. Rear view must read as a tapered diagonal cloth mass rather than a stack of rectangular panels."
+        "At 160 px the first read should gain one unmistakable asymmetric near-side mantle contour from shoulder to below the waist, with the biological head, chest spike, hands, feet and tail still obvious. The 3/4 view must show the signature form directly rather than relying on a rear-only silhouette."
     )
     data["qualityIntent"]["iterationNote"] = (
-        "V15c exact-head evidence remained ARTISTIC FAIL and also missed the unchanged silhouette floor at 0.0294 versus 0.0400. Code inspection showed the deeper cause: V15c inherited V14c's five-panel rear mantle and only replaced exterior ribbons. V16 removes that inherited architecture entirely while retaining the same technical floors and owner-only approval contract."
+        "V16 exact-head review on b5d5b982652cbfc4b5037873b6a384f5347af130 failed silhouetteDeltaRatio=0.0265 against the unchanged 0.0400 floor. Direct PNG inspection also showed the back system reading as dark plates and nearly disappearing in hero 3/4. V16b changes placement and composition rather than increasing cube count or lowering thresholds."
     )
     v1.MANIFEST.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -135,14 +147,14 @@ def main() -> None:
         patch_manifest(cubes)
     print(json.dumps({
         "status": "BUILT",
-        "concept": "Aura Sentinel — Resonance Ronin V16",
+        "concept": "Aura Sentinel — Resonance Ronin V16b",
         "officialBones": v1.OFFICIAL_BONES,
-        "cosmeticBones": 10,
+        "cosmeticBones": 9,
         "cosmeticCubes": cubes,
         "modelSha256": v1.sha256(v1.MODEL),
         "overlaySha256": v1.sha256(v1.OVERLAY),
         "bodyTexelRework": "NONE",
-        "visualChange": "replace inherited rear panel stack with one continuous shoulder-back-hip mantle flow",
+        "visualChange": "camera-near asymmetric shoulder-to-flank mantle; no greaves; unchanged floors",
     }, indent=2))
 
 
