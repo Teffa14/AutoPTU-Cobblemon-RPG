@@ -23,7 +23,7 @@ env:
   OFFICIAL_ANIMATION_SHA256: 'd9f2b9e3c01ace9773368584fd034b015276a085d6ccb8d5624967bb7d9e8b7c'
   OFFICIAL_NORMAL_SHA256: 'cbf05271a594e788e7173fd3e34ee32b35488781dd97b7e100455fe57d919574'
   OFFICIAL_SHINY_SHA256: 'a677824d9be92b46ff6359ce58118e67fce1078632908cfc0ac80816e7c1c065'
-  DERIVED_MODEL_SHA256: '717c45f59e6648aaf8a9e7fc5c2880be081f93a1676a4477c88c35d2ec3d52d8'
+  DERIVED_MODEL_SHA256: 'e139adcee78a57aa9cd2dfbd229c3cf91190cfb6eb53a7c0cb3754872672134d'
   DERIVED_NORMAL_SHA256: '2020477e39ca52e51a215021e74c094125dc7045f8873b4124cbb8a16151d3fe'
   DERIVED_SHINY_SHA256: '89b05f243485660e6c90e26899f8cf4e0e6dbdf407c9c5efe4269d05e2973fd7'
   BLOCKBENCH_VERSION: '5.1.6'
@@ -103,7 +103,7 @@ jobs:
           bones=json.load(open(model))['minecraft:geometry'][0]['bones']
           assert len(bones)==45
           assert bones[30]['name']=='ouros_champion_headband'
-          assert sum(len(b.get('cubes',[])) for b in bones[30:])==94
+          assert sum(len(b.get('cubes',[])) for b in bones[30:])==110
           assert {'ouros_champion_left_shoulder','ouros_champion_right_shoulder'} <= {b['name'] for b in bones}
           for source,target in [('.bb/official/hitmonlee.png','fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.png'),('.bb/official/hitmonlee_shiny.png','fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee_shiny.png')]:
             a=Image.open(source).convert('RGBA'); d=Image.open(target).convert('RGBA')
@@ -178,7 +178,7 @@ jobs:
           hashes={}
           for name,source in files.items():
             p=Path(source); assert p.is_file(),p; shutil.copy2(p,out/name); hashes[name]=hashlib.sha256((out/name).read_bytes()).hexdigest()
-          report={'viewer':'Blockbench','viewerVersion':'5.1.6','pokemon':'Hitmonlee','concept':'Cobra Dojo Champion v7','officialBones':30,'productionBones':45,'cosmeticBones':15,'cosmeticCubes':94,'modelSha256':'717c45f59e6648aaf8a9e7fc5c2880be081f93a1676a4477c88c35d2ec3d52d8','animations':{'hero':'animation.hitmonlee.ground_idle@0.35','battle':'animation.hitmonlee.battle_idle@0.35','walk':'animation.hitmonlee.ground_walk@0.25'},'matchedCamera':True,'gameplayResolution':160,'pngSha256':hashes,'artisticAcceptance':'PENDING_HUMAN_VISUAL_REVIEW','presentationOnly':True}
+          report={'viewer':'Blockbench','viewerVersion':'5.1.6','pokemon':'Hitmonlee','concept':'Cobra Dojo Champion v7 refined','officialBones':30,'productionBones':45,'cosmeticBones':15,'cosmeticCubes':110,'modelSha256':'e139adcee78a57aa9cd2dfbd229c3cf91190cfb6eb53a7c0cb3754872672134d','animations':{'hero':'animation.hitmonlee.ground_idle@0.35','battle':'animation.hitmonlee.battle_idle@0.35','walk':'animation.hitmonlee.ground_walk@0.25'},'matchedCamera':True,'gameplayResolution':160,'pngSha256':hashes,'artisticAcceptance':'PENDING_HUMAN_VISUAL_REVIEW','presentationOnly':True}
           (out/'review.json').write_text(json.dumps(report,indent=2)+'\n')
           shutil.copy2('.bb/official-camera.json',out/'official-camera.json')
           PY
