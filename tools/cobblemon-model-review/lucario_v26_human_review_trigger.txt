@@ -1,0 +1,4 @@
+Lucario Resonance Ronin V26 exact-head human review trigger.
+Production bytes are deterministic and already materialized by CI.
+This file changes no production asset; it exists to force CI/Blockbench onto a human-authored exact head after the materializer bot push.
+Owner approval remains mandatory and art status remains ARTISTIC FAIL unless direct PNG QA justifies OWNER REVIEW REQUIRED.
