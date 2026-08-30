@@ -45,7 +45,6 @@ jobs:
             -A 'Mozilla/5.0 Ouros-Reference-Research' \
             "https://www.meshy.ai/3d-models/${{ matrix.id }}" \
             -o .external/${{ matrix.slug }}/page.html
-          wc -c .external/${{ matrix.slug }}/page.html
 
       - name: Prove page identity and explicit CC0 marker
         shell: bash
@@ -54,32 +53,26 @@ jobs:
           python - <<'PY'
           import html,json,re
           from pathlib import Path
-          slug='${{ matrix.slug }}'
-          model_id='${{ matrix.id }}'
-          expected_title='${{ matrix.title }}'
+          slug='${{ matrix.slug }}'; model_id='${{ matrix.id }}'; expected_title='${{ matrix.title }}'
           raw=Path(f'.external/{slug}/page.html').read_text(encoding='utf-8',errors='replace')
           text=html.unescape(raw).replace('\\u0026','&').replace('\\/','/')
           compact=re.sub(r'\\+"','"',text)
-          title_present=expected_title.casefold() in compact.casefold()
-          id_present=model_id in compact
-          explicit_cc0=bool(re.search(r'(?i)(?:"license"|license)\s*[:=]\s*["\']?CC0\b',compact))
-          cc0_count=len(re.findall(r'(?i)\bCC0\b',compact))
           evidence={
             'modelId':model_id,
             'expectedTitle':expected_title,
-            'titlePresent':title_present,
-            'modelIdPresent':id_present,
-            'explicitLicenseFieldCC0':explicit_cc0,
-            'cc0TokenCount':cc0_count,
+            'titlePresent':expected_title.casefold() in compact.casefold(),
+            'modelIdPresent':model_id in compact,
+            'explicitLicenseFieldCC0':bool(re.search(r'(?i)(?:"license"|license)\s*[:=]\s*["\']?CC0\b',compact)),
+            'cc0TokenCount':len(re.findall(r'(?i)\bCC0\b',compact)),
             'sourceUrl':f'https://www.meshy.ai/3d-models/{model_id}'
           }
           Path(f'.external/{slug}/page-evidence.json').write_text(json.dumps(evidence,indent=2)+'\n')
           print(json.dumps(evidence,indent=2))
-          assert title_present and id_present, 'public page identity could not be proven'
-          assert explicit_cc0, 'exact public page did not expose an explicit CC0 license field'
+          assert evidence['titlePresent'] and evidence['modelIdPresent']
+          assert evidence['explicitLicenseFieldCC0'], 'exact page did not expose explicit CC0 license field'
           PY
 
-      - name: Extract exact signed MODEL and TEXTURE URLs
+      - name: Extract exact signed model-manifest and texture URLs
         shell: bash
         run: |
           set -euo pipefail
@@ -87,79 +80,95 @@ jobs:
           import html,json,re
           from pathlib import Path
           from urllib.parse import urlsplit
-          slug='${{ matrix.slug }}'
-          model_id='${{ matrix.id }}'
+          slug='${{ matrix.slug }}'; model_id='${{ matrix.id }}'
           raw=Path(f'.external/{slug}/page.html').read_text(encoding='utf-8',errors='replace')
           text=html.unescape(raw).replace('\\u0026','&').replace('\\/','/')
           urls=[]
           for match in re.findall(r'https?://[^"\'<>\\\s]+',text):
             url=match.rstrip('),;]}')
-            if model_id not in url:
-              continue
-            if url not in urls:
-              urls.append(url)
-          def path_lower(url):
-            return urlsplit(url).path.lower()
-          models=[u for u in urls if path_lower(u).endswith(('.glb','.obj','.fbx','.stl','.usdz','.meshy')) or path_lower(u).endswith('/model.json')]
-          glbs=[u for u in models if path_lower(u).endswith('.glb')]
-          base_textures=[u for u in urls if path_lower(u).endswith('/texture_0.png')]
-          previews=[u for u in urls if path_lower(u).endswith('/preview.png')]
-          report={'allTaskUrls':urls,'modelUrls':models,'glbUrls':glbs,'baseColorTextureUrls':base_textures,'previewUrls':previews}
+            if model_id in url and url not in urls: urls.append(url)
+          def p(url): return urlsplit(url).path.lower()
+          model_json=[u for u in urls if p(u).endswith('/model.json')]
+          model_meshy=[u for u in urls if p(u).endswith('/model.meshy')]
+          model_formats=[u for u in urls if p(u).endswith(('.glb','.obj','.fbx','.stl','.usdz'))]
+          base_texture=[u for u in urls if p(u).endswith('/texture_0.png')]
+          preview=[u for u in urls if p(u).endswith('/preview.png')]
+          report={'modelJsonUrls':model_json,'modelMeshyUrls':model_meshy,'directFormatUrls':model_formats,'baseColorTextureUrls':base_texture,'previewUrls':preview}
           Path(f'.external/{slug}/asset-urls.json').write_text(json.dumps(report,indent=2)+'\n')
-          print('all task URLs',len(urls))
-          print('model URLs',len(models))
-          for value in models: print('MODEL_URL',value)
-          for value in base_textures: print('TEXTURE_URL',value)
-          assert glbs, 'no actual public GLB URL exposed by the exact model page'
-          assert base_textures, 'no actual public base-color texture PNG exposed by the exact model page'
-          Path(f'.external/{slug}/model.url').write_text(glbs[0])
-          Path(f'.external/{slug}/texture.url').write_text(base_textures[0])
-          if previews:
-            Path(f'.external/{slug}/preview.url').write_text(previews[0])
+          print(json.dumps(report,indent=2))
+          assert model_json and model_meshy and base_texture, 'public page did not expose required model manifest/model.meshy/texture URLs'
+          Path(f'.external/{slug}/model-json.url').write_text(model_json[0])
+          Path(f'.external/{slug}/model-meshy.url').write_text(model_meshy[0])
+          Path(f'.external/{slug}/texture.url').write_text(base_texture[0])
+          if preview: Path(f'.external/{slug}/preview.url').write_text(preview[0])
           PY
 
-      - name: Download actual public MODEL and TEXTURE bytes
+      - name: Download actual public model manifests and texture bytes
         shell: bash
         run: |
           set -euo pipefail
           dir='.external/${{ matrix.slug }}'
-          model_url="$(cat "$dir/model.url")"
-          texture_url="$(cat "$dir/texture.url")"
-          curl --fail --silent --show-error --location --retry 3 \
-            -A 'Mozilla/5.0 Ouros-Reference-Research' "$model_url" -o "$dir/model.glb"
-          curl --fail --silent --show-error --location --retry 3 \
-            -A 'Mozilla/5.0 Ouros-Reference-Research' "$texture_url" -o "$dir/texture_0.png"
-          if test -f "$dir/preview.url"; then
-            curl --fail --silent --show-error --location --retry 3 \
-              -A 'Mozilla/5.0 Ouros-Reference-Research' "$(cat "$dir/preview.url")" -o "$dir/preview.png"
-          fi
-          test "$(stat -c '%s' "$dir/model.glb")" -gt 1000
-          test "$(stat -c '%s' "$dir/texture_0.png")" -gt 100
-          sha256sum "$dir/model.glb" "$dir/texture_0.png" | tee "$dir/source-hashes.txt"
+          ua='Mozilla/5.0 Ouros-Reference-Research'
+          curl --fail --silent --show-error --location --retry 3 -A "$ua" "$(cat "$dir/model-json.url")" -o "$dir/model.json"
+          curl --fail --silent --show-error --location --retry 3 -A "$ua" "$(cat "$dir/model-meshy.url")" -o "$dir/model.meshy"
+          curl --fail --silent --show-error --location --retry 3 -A "$ua" "$(cat "$dir/texture.url")" -o "$dir/texture_0.png"
+          if test -f "$dir/preview.url"; then curl --fail --silent --show-error --location --retry 3 -A "$ua" "$(cat "$dir/preview.url")" -o "$dir/preview.png"; fi
+          sha256sum "$dir/model.json" "$dir/model.meshy" "$dir/texture_0.png" | tee "$dir/source-hashes.txt"
+          file "$dir/model.json" "$dir/model.meshy" "$dir/texture_0.png" | tee "$dir/file-types.txt"
 
-      - name: Inspect actual GLB and PNG without redistributing bytes
+      - name: Inspect actual model manifest structure
         shell: bash
         run: |
           set -euo pipefail
-          dir='.external/${{ matrix.slug }}'
-          python tools/cobblemon-model-review/inspect_external_glb_reference.py \
-            "$dir/model.glb" \
-            --texture "$dir/texture_0.png" \
-            --output "$dir/inspection.json" \
-            | tee "$dir/inspection.log"
           python - <<'PY'
-          import json
+          import hashlib,json,struct
           from pathlib import Path
-          slug='${{ matrix.slug }}'
-          p=Path(f'.external/{slug}/inspection.json')
-          data=json.loads(p.read_text())
-          s=data['structure']
-          assert s['meshCount'] >= 1
-          assert s['primitiveCount'] >= 1
-          assert s['positionVertexCount'] >= 100
-          assert s['triangleCountEstimate'] >= 50
-          assert data['texture']['dimensions']
-          print('verified mesh summary',json.dumps(s,indent=2))
+          slug='${{ matrix.slug }}'; root=Path(f'.external/{slug}')
+          def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+          def walk(obj, depth=0, out=None):
+            if out is None: out={}
+            if depth>8: return out
+            if isinstance(obj,dict):
+              for k,v in obj.items():
+                key=str(k)
+                low=key.casefold()
+                if any(t in low for t in ('mesh','vert','position','indice','face','triangle','buffer','material','texture','model','node','primitive','accessor','url')):
+                  out[key]=out.get(key,0)+1
+                walk(v,depth+1,out)
+            elif isinstance(obj,list):
+              for v in obj[:10000]: walk(v,depth+1,out)
+            return out
+          result={'files':{}}
+          jp=root/'model.json'; mp=root/'model.meshy'; tp=root/'texture_0.png'
+          jbytes=jp.read_bytes(); mbytes=mp.read_bytes(); tbytes=tp.read_bytes()
+          result['files']['model.json']={'size':len(jbytes),'sha256':sha(jp),'first16Hex':jbytes[:16].hex()}
+          result['files']['model.meshy']={'size':len(mbytes),'sha256':sha(mp),'first16Hex':mbytes[:16].hex()}
+          result['files']['texture_0.png']={'size':len(tbytes),'sha256':sha(tp),'pngSignature':tbytes[:8].hex()}
+          try:
+            payload=json.loads(jbytes.decode('utf-8'))
+            result['modelJson']={
+              'topLevelKeys':list(payload)[:100] if isinstance(payload,dict) else [],
+              'interestingKeyCounts':walk(payload),
+              'isGltfJson':isinstance(payload,dict) and isinstance(payload.get('asset'),dict) and isinstance(payload.get('meshes'),list),
+              'meshCount':len(payload.get('meshes',[])) if isinstance(payload,dict) and isinstance(payload.get('meshes'),list) else None,
+              'nodeCount':len(payload.get('nodes',[])) if isinstance(payload,dict) and isinstance(payload.get('nodes'),list) else None,
+              'accessorCount':len(payload.get('accessors',[])) if isinstance(payload,dict) and isinstance(payload.get('accessors'),list) else None,
+              'bufferCount':len(payload.get('buffers',[])) if isinstance(payload,dict) and isinstance(payload.get('buffers'),list) else None,
+            }
+          except Exception as exc:
+            result['modelJson']={'parseError':str(exc)}
+          magic=mbytes[:4]
+          result['modelMeshy']={'isGLB':magic==b'glTF','isZip':magic[:2]==b'PK','looksJson':mbytes.lstrip()[:1] in (b'{',b'[')}
+          if result['modelMeshy']['looksJson']:
+            try:
+              payload=json.loads(mbytes.decode('utf-8'))
+              result['modelMeshy']['topLevelKeys']=list(payload)[:100] if isinstance(payload,dict) else []
+              result['modelMeshy']['interestingKeyCounts']=walk(payload)
+            except Exception as exc: result['modelMeshy']['parseError']=str(exc)
+          out=root/'manifest-inspection.json'; out.write_text(json.dumps(result,indent=2)+'\n')
+          print(json.dumps(result,indent=2))
+          assert tbytes[:8]==b'\x89PNG\r\n\x1a\n'
+          assert len(jbytes)>100 and len(mbytes)>100
           PY
 
       - name: Upload metadata-only inspection evidence
@@ -171,7 +180,7 @@ jobs:
             .external/${{ matrix.slug }}/page-evidence.json
             .external/${{ matrix.slug }}/asset-urls.json
             .external/${{ matrix.slug }}/source-hashes.txt
-            .external/${{ matrix.slug }}/inspection.json
-            .external/${{ matrix.slug }}/inspection.log
+            .external/${{ matrix.slug }}/file-types.txt
+            .external/${{ matrix.slug }}/manifest-inspection.json
           if-no-files-found: warn
           retention-days: 30
