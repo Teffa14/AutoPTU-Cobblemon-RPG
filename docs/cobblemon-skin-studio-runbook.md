@@ -64,6 +64,12 @@ A PR that changes a professional candidate automatically invokes the reusable `C
 
 Green CI means reproducible and reviewable, never beautiful or approved.
 
+### Evidence retention policy
+
+Blockbench preview PNGs, contact sheets, intermediate pose galleries, and other rendered review images are **GitHub Actions artifacts**, not source files. Do not commit generated galleries under `test-evidence/visual/cobblemon-skins/` or another species-specific preview directory. Old rejected galleries create stale visual noise, can be mistaken for current acceptance evidence, and duplicate immutable workflow artifacts.
+
+The repository keeps the durable review contract: professional manifest, production hashes, evidence-set fingerprint, provenance, and any owner-approval record. The workflow artifact keeps the exact rendered PNG set for the reviewed head. `validate_skin_registry.py` rejects reintroduced committed legacy galleries so that old rejected art cannot silently become the visible reference again.
+
 ## Stage 4 — owner-only sale release
 
 The project owner opens the exact PNG artifact and either rejects it or explicitly approves it.
