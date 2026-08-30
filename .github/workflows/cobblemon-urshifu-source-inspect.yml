@@ -43,14 +43,14 @@ jobs:
             "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
             -o .urshifu-inspect/version.json
           python - <<'PY' > .urshifu-inspect/download.env
-          import json, shlex
+          import json, os, shlex
           data=json.load(open('.urshifu-inspect/version.json', encoding='utf-8'))
           assert data['id']=='kF7CvxTo'
           assert data['version_number']=='1.7.3'
           assert '1.21.1' in data['game_versions'] and 'fabric' in data['loaders']
           primary=next(f for f in data['files'] if f.get('primary'))
           assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
-          assert primary['hashes']['sha512']==__import__('os').environ['COBBLEMON_JAR_SHA512']
+          assert primary['hashes']['sha512']==os.environ['COBBLEMON_JAR_SHA512']
           print('URL='+shlex.quote(primary['url']))
           PY
           source .urshifu-inspect/download.env
@@ -58,12 +58,12 @@ jobs:
           printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" '.urshifu-inspect/cobblemon.jar' | sha256sum --check --strict
           printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" '.urshifu-inspect/cobblemon.jar' | sha512sum --check --strict
 
-      - name: Inspect every official Urshifu presentation asset
+      - name: Exhaustively inspect official Urshifu paths and references
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib, io, json, os, zipfile
+          import hashlib, io, json, os, re, zipfile
           from pathlib import Path
           from PIL import Image
 
@@ -76,7 +76,7 @@ jobs:
               return hashlib.sha256(payload).hexdigest()
 
           report={
-              'format':'ouros.cobblemon-official-species-inspection.v1',
+              'format':'ouros.cobblemon-official-species-inspection.v2',
               'species':'cobblemon:urshifu',
               'nationalDex':892,
               'minecraftVersion':os.environ['MINECRAFT_VERSION'],
@@ -87,21 +87,51 @@ jobs:
               'jarSha512':hashlib.sha512(jar_path.read_bytes()).hexdigest(),
               'modrinthSha512':primary['hashes']['sha512'],
               'license':'MPL-2.0',
+              'pathMatchRules':['urshifu','0892','/892/','_892_','892_urshifu'],
               'entries':[],
               'models':{},
               'jsonAssets':{},
               'textures':{},
+              'contentReferences':[],
+              'presentationCandidatePaths':[],
           }
 
           with zipfile.ZipFile(jar_path) as z:
               names=z.namelist()
-              candidates=[n for n in names if 'urshifu' in n.lower()]
-              if not candidates:
-                  raise SystemExit('Official Cobblemon JAR contains no Urshifu entries')
+              def path_match(name):
+                  low=name.lower()
+                  return (
+                      'urshifu' in low or '0892' in low or '/892/' in low or
+                      '_892_' in low or '892_urshifu' in low
+                  )
+              candidates=set(n for n in names if path_match(n))
+
+              # A resolver/poser can theoretically live in a shared or numbered file whose
+              # path does not contain the species name. Scan textual JSON for explicit
+              # Urshifu references and retain those exact paths too.
+              for name in names:
+                  if not name.endswith('.json'):
+                      continue
+                  try:
+                      payload=z.read(name)
+                  except KeyError:
+                      continue
+                  low=payload.lower()
+                  if b'urshifu' in low or b'cobblemon:urshifu' in low:
+                      candidates.add(name)
+                      report['contentReferences'].append({
+                          'path':name,
+                          'sha256':sha(payload),
+                          'containsUrshifu':True,
+                      })
+
               for name in sorted(candidates):
                   payload=z.read(name)
                   item={'path':name,'sha256':sha(payload),'size':len(payload)}
                   report['entries'].append(item)
+                  low_name=name.lower()
+                  if any(token in low_name for token in ('/bedrock/','/models/','/posers/','/resolvers/','/animations/','/textures/pokemon/')):
+                      report['presentationCandidatePaths'].append(name)
                   if name.endswith('.geo.json'):
                       data=json.loads(payload)
                       geometries=data.get('minecraft:geometry',[])
@@ -143,9 +173,15 @@ jobs:
                           'alphaNonzeroPixels':sum(1 for p in image.getdata() if p[3]!=0),
                       }
 
+          report['hasOfficialPresentationModel']=bool(report['models'])
+          report['hasOfficialPokemonTexture']=any('/textures/pokemon/' in p for p in report['textures'])
+          report['hasPresentationCandidates']=bool(report['presentationCandidatePaths'])
           (root/'urshifu-source-report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
           print(json.dumps({
               'entryCount':len(report['entries']),
+              'hasOfficialPresentationModel':report['hasOfficialPresentationModel'],
+              'hasOfficialPokemonTexture':report['hasOfficialPokemonTexture'],
+              'presentationCandidatePaths':report['presentationCandidatePaths'],
               'models':{k:{'sha256':v['sha256'],'identifier':v['identifier'],'boneCount':v['boneCount']} for k,v in report['models'].items()},
               'jsonPaths':list(report['jsonAssets']),
               'textures':report['textures'],
