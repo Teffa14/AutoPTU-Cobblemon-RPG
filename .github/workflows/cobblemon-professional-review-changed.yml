@@ -28,6 +28,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
@@ -61,3 +62,4 @@ jobs:
     uses: ./.github/workflows/cobblemon-professional-blockbench-review.yml
     with:
       manifest_path: ${{ matrix.manifest }}
+      head_sha: ${{ github.event.pull_request.head.sha }}
