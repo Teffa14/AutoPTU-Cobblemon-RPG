@@ -14,6 +14,12 @@ A skin reaches an accepted artistic state only after the owner explicitly approv
 
 Do not infer approval from silence, from a previous concept, from approval of another version, or from green CI. Never self-approve a model on the owner's behalf.
 
+## One-model lock — do not skip failed quality
+
+Once a species/model becomes the active artistic slice, keep working that same model until one of two things happens: the owner explicitly approves the exact current Blockbench evidence, or the owner explicitly tells the workflow to abandon/switch the slice. A failed or rejected model must not be bypassed by starting another Pokemon simply to keep producing new variants.
+
+Technical blockers may pause a model, but they do not silently clear the active-slice lock. Record the blocker and solve the blocking tooling/source problem or wait for an explicit owner decision. Do not accumulate a queue of superficially finished but unapproved models.
+
 ## Official source or reject
 
 For a Pokemon that exists in Cobblemon, the starting point is the exact model shipped in the latest stable Cobblemon release compatible with the repository Minecraft target.
