@@ -1,0 +1,56 @@
+{
+  "format": "ouros.cobblemon-official-source-manifest.v1",
+  "pokemon": "Hitmonlee",
+  "nationalPokedexNumber": 106,
+  "concept": "Cobra Dojo Striker",
+  "minecraftVersion": "1.21.1",
+  "cobblemonVersion": "1.7.3",
+  "modrinthVersionId": "kF7CvxTo",
+  "filename": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+  "jarSha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
+  "jarSha512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+  "modelAssetLicense": "CC BY-NC 3.0 (exact license text distributed beside the official Hitmonlee model in the JAR)",
+  "latestStableCompatibleVerifiedByWorkflow": true,
+  "presentationOnly": true,
+  "files": {
+    "model": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/hitmonlee.geo.json",
+      "sha256": "f92b067c781f9210dec305860bdb09141efad5c238396ac7988c4bbbed82840d",
+      "originalBones": 30
+    },
+    "animation": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/animations/0106_hitmonlee/hitmonlee.animation.json",
+      "sha256": "d9f2b9e3c01ace9773368584fd034b015276a085d6ccb8d5624967bb7d9e8b7c",
+      "requiredClips": [
+        "animation.hitmonlee.ground_idle",
+        "animation.hitmonlee.battle_idle",
+        "animation.hitmonlee.ground_walk"
+      ]
+    },
+    "poser": {
+      "runtimeId": "cobblemon:hitmonlee",
+      "speciesSpecificJsonInJar": false,
+      "note": "The official resolver references cobblemon:hitmonlee. The exhaustive 1.7.3 JAR inspection found no species-specific poser JSON file to pin. Runtime use remains the official Cobblemon poser id."
+    },
+    "resolver": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/resolvers/0106_hitmonlee/0_hitmonlee_base.json",
+      "sha256": "67b3432a004786b43f523b367a8f20dceba7353f4949dd3472ffcb8aa9036319"
+    },
+    "normalTexture": {
+      "jarPath": "assets/cobblemon/textures/pokemon/0106_hitmonlee/hitmonlee.png",
+      "sha256": "cbf05271a594e788e7173fd3e34ee32b35488781dd97b7e100455fe57d919574"
+    },
+    "shinyTexture": {
+      "jarPath": "assets/cobblemon/textures/pokemon/0106_hitmonlee/hitmonlee_shiny.png",
+      "sha256": "a677824d9be92b46ff6359ce58118e67fce1078632908cfc0ac80816e7c1c065"
+    },
+    "modelLicense": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/license",
+      "sha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"
+    },
+    "species": {
+      "jarPath": "data/cobblemon/species/generation1/hitmonlee.json",
+      "sha256": "76786ba7cf4821155bd116490a9aa72463e65f242c1314320a967d7dc36b6cdf"
+    }
+  }
+}
