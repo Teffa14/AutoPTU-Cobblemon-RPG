@@ -4,39 +4,115 @@
   "nationalDex": 94,
   "researchDate": "2026-08-30",
   "status": "REFERENCE BLOCKED",
-  "notes": "Owner correction: the three-reference gate requires actual custom Gengar skins/costumes with materially changed geometry. Mega/Gmax/canonical forms, shiny/recolor-only variants and ordinary canonical remodels do not count. Production remains blocked until three eligible custom-geometry Gengar skins are inspected from real MODEL + TEXTURE files and hashed.",
+  "notes": "The counted references array intentionally contains only COMPLETE eligible custom-geometry skins. Discovery-only candidates are staged separately and do not open production. Mega/Gmax/canonical forms, shiny/recolor-only variants and ordinary canonical remodels do not count.",
   "eligibilityContract": "docs/cobblemon-skin-reference-eligibility.md",
-  "references": [
+  "references": [],
+  "candidateReferences": [
     {
-      "referenceId": "poke-costume-3.1.1-overtime-gengar",
+      "candidateId": "poke-costume-overtime-gengar",
       "species": "gengar",
-      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
-      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
-      "geometryMateriallyChanged": true,
-      "customVisualIdentity": true,
+      "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
+      "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
+      "implementationName": "Overtime Gengar",
       "project": "Poke Costume [Cobblemon]",
-      "sourceUrl": "https://modrinth.com/datapack/poke-costume/version/3.1.1",
-      "sourceVersion": "3.1.1",
-      "implementationName": "Overtime Gengar costume",
+      "sourceUrl": "https://modrinth.com/datapack/poke-costume/version/3.1.1.1",
+      "sourceVersion": "3.1.1.1; Overtime Gengar introduced in 3.1.1",
+      "secondarySourceUrls": [
+        "https://modrinth.com/datapack/poke-costume/version/3.1.1",
+        "https://www.curseforge.com/minecraft/data-packs/poke-costume-cobblemon/files/7050635"
+      ],
+      "discoveryEvidence": [
+        "The project describes itself as adding costumes for Cobblemon Pokemon and explicitly lists Gengar [Overtime].",
+        "The 3.1.1 changelog explicitly says ADDED Overtime Gengar; 3.1.1.1 is the resolver-fix release of the same 208.71 KiB package.",
+        "Public project metadata is sufficient to establish a real custom-costume candidate, but not to prove the model geometry or texture implementation."
+      ],
+      "geometryMateriallyChangedStatus": "UNPROVEN",
+      "customVisualIdentityStatus": "PROVEN_BY_PROJECT_DESCRIPTION",
       "assetInspectionStatus": "PENDING",
       "assetFilesInspected": [],
+      "sourceFileAccessStatus": "PUBLIC_PACKAGE_LISTED_BUT_PACKAGE_BYTES_NOT_INSPECTED_IN_THIS_RUN",
+      "whyNotCounted": "The actual Overtime Gengar MODEL and TEXTURE files have not been opened and SHA-256 hashed. Geometry change therefore remains unproven.",
       "licenseStatus": "PUBLIC_METADATA_CONFLICT_REVIEW_REQUIRED",
-      "license": {
-        "name": "Study-only until package license is verified",
-        "sourceUrl": "https://modrinth.com/datapack/poke-costume",
-        "allowsDerivatives": false,
-        "allowsRedistribution": false
-      },
-      "reuseMode": "STUDY_ONLY",
-      "requiredAttribution": "Do not reuse bytes until exact package/license provenance is verified.",
-      "techniqueLessons": [
-        "PENDING actual MODEL inspection: identify how the costume changes Gengar's base silhouette and how the added forms wrap the canonical body.",
-        "PENDING actual MODEL/animation inspection: identify parent/pivot strategy and whether the costume remains attached during Gengar motion.",
-        "PENDING actual TEXTURE inspection: identify painted depth, material separation and how the costume texture integrates with Gengar at gameplay scale."
+      "licenseEvidence": [
+        "Modrinth currently labels the project MIT.",
+        "CurseForge currently labels the project All Rights Reserved."
       ],
-      "distinctiveElementsNotToCopy": [
-        "Exact Overtime Gengar costume concept, clothing/equipment shapes, markings, palette, texture clusters and silhouette."
-      ]
+      "reuseMode": "STUDY_ONLY",
+      "reuseReason": "Do not promote to derivative donor until the exact downloaded package contains a compatible license/provenance grant and the relevant asset files are verified."
+    },
+    {
+      "candidateId": "rainova-galaxy-gengar",
+      "species": "gengar",
+      "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
+      "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
+      "implementationName": "Galaxy Gengar (Cobblemon)",
+      "project": "Rainova / rainsrenders Sketchfab",
+      "sourceUrl": "https://sketchfab.com/3d-models/galaxy-gengar-cobblemon-610ee908929b4a218f81bb9671e33778",
+      "sourceVersion": "published 2026-03-01",
+      "contextUrls": [
+        "https://parkballgang.com/wiki/economy/crates"
+      ],
+      "discoveryEvidence": [
+        "The public Sketchfab entry is explicitly titled Galaxy Gengar (Cobblemon), describes Galaxy themed Gengar and Mega Gengar, and says the original Gengar model came from Cobblemon.",
+        "The public 3D entry reports roughly 1.7k triangles and 1.1k vertices and states that it was uploaded with Blockbench.",
+        "Parkball Gang independently documents a Galaxy Gengar cosmetic Pokemon skin in its Galaxy crate, but this dossier does not assume the Sketchfab asset and server asset are byte-identical without file provenance."
+      ],
+      "geometryMateriallyChangedStatus": "UNPROVEN",
+      "customVisualIdentityStatus": "PROVEN_BY_3D_MODEL_DESCRIPTION",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "sourceFileAccessStatus": "INTERACTIVE_3D_MODEL_VISIBLE_SOURCE_FILES_NOT_PUBLICLY_EXPOSED",
+      "whyNotCounted": "An interactive 3D presentation is stronger than a screenshot but does not expose the actual MODEL + TEXTURE source files needed for direct inspection and SHA-256 hashing. Geometry change versus texture-only treatment is not yet proven from source files.",
+      "licenseStatus": "NO_EXPLICIT_DERIVATIVE_REDISTRIBUTION_GRANT_VERIFIED",
+      "reuseMode": "STUDY_ONLY",
+      "reuseReason": "Viewer inspection may guide high-level technique only. Do not copy or redistribute model/texture bytes without an explicit compatible license."
+    },
+    {
+      "candidateId": "rain-halloween-themed-gengar",
+      "species": "gengar",
+      "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
+      "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
+      "implementationName": "Halloween Themed Gengar (Cobblemon)",
+      "project": "Rain / rainsrenders Sketchfab",
+      "sourceUrl": "https://sketchfab.com/3d-models/halloween-themed-pokemon-cobblemon-be6525771dd443ee9b07114db9718a00",
+      "sourceVersion": "published 2025-09-26",
+      "discoveryEvidence": [
+        "The public 3D entry explicitly lists a Halloween themed Gengar alongside Trevenant, Cofagrigus and Noivern.",
+        "The entry states that the original models came from the Cobblemon Minecraft mod and exposes an interactive 3D presentation rather than a screenshot-only gallery.",
+        "The combined four-Pokemon presentation reports roughly 5.7k triangles and 3.8k vertices, but that aggregate count cannot prove Gengar-specific geometry changes."
+      ],
+      "geometryMateriallyChangedStatus": "UNPROVEN",
+      "customVisualIdentityStatus": "PROVEN_BY_3D_MODEL_DESCRIPTION",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "sourceFileAccessStatus": "INTERACTIVE_3D_MODEL_VISIBLE_SOURCE_FILES_NOT_PUBLICLY_EXPOSED",
+      "whyNotCounted": "The underlying Gengar MODEL and TEXTURE files are not exposed for direct inspection in the public viewer, so exact geometry delta, UV treatment and texture SHA-256 cannot be verified.",
+      "licenseStatus": "NO_EXPLICIT_DERIVATIVE_REDISTRIBUTION_GRANT_VERIFIED",
+      "reuseMode": "STUDY_ONLY",
+      "reuseReason": "Study the public presentation only; do not copy or redistribute model/texture bytes without an explicit compatible license."
+    }
+  ],
+  "discoveryLeads": [
+    {
+      "leadId": "parkballgang-summer-gengar",
+      "sourceUrl": "https://parkballgang.com/wiki/economy/crates",
+      "evidence": "Parkball Gang lists Gengar among its Summer Crate cosmetic Pokemon skins.",
+      "status": "LEAD_ONLY",
+      "blocker": "No publicly inspectable Gengar Summer MODEL + TEXTURE asset set was located in this run."
+    },
+    {
+      "leadId": "cobblemon-gg-halloween-gengar",
+      "sourceUrl": "https://github.com/Cobblemon-gg/update",
+      "evidence": "Public changelog mentions Halloween skins involving Gengar.",
+      "status": "LEAD_ONLY",
+      "blocker": "No public production model/texture source was found and the changelog also references Mega Halloween skins, so base-Gengar eligibility must not be assumed."
+    },
+    {
+      "leadId": "pokeresort-gengar-staff",
+      "sourceUrl": "https://sketchfab.com/3d-models/gengar-staff-shiny-cobblemon-080f28e0d21242fc9eb4832062c727e1",
+      "evidence": "PokeResort exposes a Blockbench-uploaded Gengar Staff Shiny 3D presentation.",
+      "status": "LEAD_ONLY",
+      "blocker": "The title includes Shiny and no non-shiny staff asset or source MODEL + TEXTURE files were verified, so it cannot be treated as an eligible custom-geometry skin yet."
     }
   ],
   "rejectedReferences": [
@@ -62,7 +138,8 @@
     }
   ],
   "minimumCompleteReferencesRequired": 3,
-  "currentEligibleCandidateCount": 1,
+  "currentPlausibleCandidateCount": 3,
   "currentCompleteEligibleReferenceCount": 0,
-  "productionModelingGate": "BLOCKED_UNTIL_THREE_CUSTOM_GEOMETRY_SKINS_PASS"
+  "productionModelingGate": "BLOCKED_UNTIL_THREE_CUSTOM_GEOMETRY_SKINS_PASS",
+  "nextAction": "Obtain and directly inspect actual MODEL + TEXTURE files for Overtime Gengar first; then either obtain source files for Galaxy/Halloween Gengar or replace them with equally strong downloadable custom-geometry Gengar skins. No Rift Warden production generation is allowed before three references move into references[] as COMPLETE."
 }
