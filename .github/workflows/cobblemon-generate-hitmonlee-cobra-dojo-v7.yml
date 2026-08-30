@@ -95,13 +95,15 @@ jobs:
           from pathlib import Path
           from PIL import Image
           r=json.loads(Path('.generate/output/build-report.json').read_text())
-          assert r['originalBones']==30 and r['derivedBones']==45 and r['cosmeticBones']==15,r
-          assert r['cosmeticCubes']>=80,r
+          assert r['originalBones']==30 and r['derivedBones']==48 and r['cosmeticBones']==18,r
+          assert r['cosmeticCubes']>=120,r
+          assert r['presentationOnly'] is True
           m=json.loads(Path('.generate/output/ouros_cobra_dojo_hitmonlee.geo.json').read_text())
           bones=m['minecraft:geometry'][0]['bones']
-          assert len(bones)==45
+          assert len(bones)==48
           assert bones[30]['name']=='ouros_champion_headband'
-          assert {b['name'] for b in bones[30:]} >= {'ouros_champion_left_shoulder','ouros_champion_right_shoulder'}
+          required={'ouros_champion_upper_gi','ouros_champion_left_shoulder','ouros_champion_right_shoulder','ouros_champion_left_knee','ouros_champion_right_knee'}
+          assert {b['name'] for b in bones[30:]} >= required
           assert all(b['name'].startswith('ouros_') for b in bones[30:])
           names={x['name'] for x in bones}
           assert all(b.get('parent') in names for b in bones[30:])
