@@ -10,6 +10,7 @@ on:
       - 'docs/cobblemon-skin-reference-dossiers/**'
       - 'tools/cobblemon-model-review/validate_species_reference_dossier.py'
       - 'tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py'
+      - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json'
       - '.github/workflows/cobblemon-skin-reference-gate.yml'
 
 permissions:
@@ -29,6 +30,13 @@ jobs:
           python -m py_compile \
             tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py
+
+      - name: Exercise reference-dossier validator
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py \
+            tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json \
+            --expected-species testmon
 
       - name: Validate reference dossiers before production skin changes
         env:
