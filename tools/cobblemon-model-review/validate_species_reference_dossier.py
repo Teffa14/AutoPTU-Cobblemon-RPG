@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Hard pre-model gate for same-species external skin/model research.
+"""Hard pre-model gate for same-species custom-geometry skin research.
 
 Production geometry must not be generated until at least three distinct external
-implementations of the same Pokemon have been inspected from actual resource
-files and documented with provenance, license/reuse status and concrete lessons.
+CUSTOM GEOMETRY SKINS of the exact same base species have been inspected from
+actual model + texture files and documented with provenance, license/reuse
+status and concrete lessons.
 
-This validator does not approve art and does not grant permission to reuse a
-third-party asset. It only proves that the mandatory research dossier is complete.
+Canonical forms (Mega/Gmax/regional/etc.), shiny/recolor-only variants and plain
+canonical remodels do not count.
 """
 
 from __future__ import annotations
@@ -19,6 +20,8 @@ from urllib.parse import urlparse
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 VALID_REUSE_MODES = {"STUDY_ONLY", "LICENSED_DERIVATIVE_DONOR"}
+REQUIRED_REFERENCE_CLASS = "CUSTOM_GEOMETRY_SKIN"
+REQUIRED_CANONICAL_RELATION = "NON_CANONICAL_CUSTOM_SKIN"
 
 
 def require_text(obj: dict, key: str, where: str) -> str:
@@ -42,6 +45,7 @@ def validate_asset_files(ref: dict, where: str) -> list[dict]:
         raise SystemExit(f"{where}.assetFilesInspected must contain actual inspected asset files")
 
     normalized: list[dict] = []
+    kinds: set[str] = set()
     for index, entry in enumerate(files):
         ewhere = f"{where}.assetFilesInspected[{index}]"
         if not isinstance(entry, dict):
@@ -50,8 +54,14 @@ def validate_asset_files(ref: dict, where: str) -> list[dict]:
         sha = require_text(entry, "sha256", ewhere).lower()
         if not SHA256_RE.fullmatch(sha):
             raise SystemExit(f"{ewhere}.sha256 must be a lowercase 64-char SHA-256")
-        kind = require_text(entry, "kind", ewhere)
+        kind = require_text(entry, "kind", ewhere).upper()
+        kinds.add(kind)
         normalized.append({"path": path, "sha256": sha, "kind": kind})
+
+    if "MODEL" not in kinds:
+        raise SystemExit(f"REFERENCE BLOCKED: {where} must include an inspected MODEL file")
+    if "TEXTURE" not in kinds:
+        raise SystemExit(f"REFERENCE BLOCKED: {where} must include an inspected TEXTURE file")
     return normalized
 
 
@@ -88,8 +98,8 @@ def main() -> None:
     references = data.get("references")
     if not isinstance(references, list) or len(references) < args.minimum:
         raise SystemExit(
-            f"REFERENCE BLOCKED: need at least {args.minimum} external same-species references; "
-            f"found {0 if not isinstance(references, list) else len(references)}"
+            f"REFERENCE BLOCKED: need at least {args.minimum} eligible external custom-geometry skins; "
+            f"found {0 if not isinstance(references, list) else len(references)} candidates"
         )
 
     ids: set[str] = set()
@@ -112,6 +122,25 @@ def main() -> None:
         if ref_species != species:
             raise SystemExit(f"{where}.species={ref_species!r} does not match dossier species={species!r}")
 
+        reference_class = require_text(ref, "referenceClass", where)
+        if reference_class != REQUIRED_REFERENCE_CLASS:
+            raise SystemExit(
+                f"REFERENCE BLOCKED: {where}.referenceClass={reference_class!r}; "
+                "only CUSTOM_GEOMETRY_SKIN counts (not shiny, Mega/Gmax/canonical form, or plain remodel)"
+            )
+
+        canonical_relation = require_text(ref, "canonicalRelation", where)
+        if canonical_relation != REQUIRED_CANONICAL_RELATION:
+            raise SystemExit(
+                f"REFERENCE BLOCKED: {where}.canonicalRelation={canonical_relation!r}; "
+                "canonical forms/transformations do not count as skins"
+            )
+
+        if ref.get("geometryMateriallyChanged") is not True:
+            raise SystemExit(f"REFERENCE BLOCKED: {where}.geometryMateriallyChanged must be true")
+        if ref.get("customVisualIdentity") is not True:
+            raise SystemExit(f"REFERENCE BLOCKED: {where}.customVisualIdentity must be true")
+
         project = require_text(ref, "project", where)
         projects.add(project.casefold())
         require_url(ref, "sourceUrl", where)
@@ -122,14 +151,14 @@ def main() -> None:
         status = require_text(ref, "assetInspectionStatus", where)
         if status != "COMPLETE":
             raise SystemExit(
-                f"REFERENCE BLOCKED: {where} assetInspectionStatus={status!r}; actual asset-file inspection is mandatory"
+                f"REFERENCE BLOCKED: {where} assetInspectionStatus={status!r}; actual model+texture inspection is mandatory"
             )
 
         files = validate_asset_files(ref, where)
         fingerprint = "|".join(sorted(f"{f['kind']}:{f['sha256']}" for f in files))
         if fingerprint in fingerprints:
             raise SystemExit(
-                f"{where} duplicates an already-counted asset fingerprint; revisions/screenshots of the same asset do not count twice"
+                f"{where} duplicates an already-counted asset fingerprint; revisions/repackages of one skin do not count twice"
             )
         fingerprints.add(fingerprint)
 
@@ -160,30 +189,24 @@ def main() -> None:
                 raise SystemExit(f"{where}: derivative donor requires license.allowsDerivatives=true")
             if license_info.get("allowsRedistribution") is not True:
                 raise SystemExit(f"{where}: derivative donor requires license.allowsRedistribution=true")
-            attribution = require_text(ref, "requiredAttribution", where)
-            if not attribution:
-                raise SystemExit(f"{where}.requiredAttribution is required for derivative donor")
+            require_text(ref, "requiredAttribution", where)
             donor_count += 1
-        else:
-            if license_info.get("allowsDerivatives") is True and license_info.get("allowsRedistribution") is True:
-                # Study-only is still allowed for permissive assets; this is informational only.
-                pass
 
         complete += 1
 
     if complete < args.minimum:
-        raise SystemExit(f"REFERENCE BLOCKED: only {complete} complete references")
+        raise SystemExit(f"REFERENCE BLOCKED: only {complete} eligible complete custom skins")
 
     if len(projects) < 2:
         raise SystemExit(
-            "REFERENCE BLOCKED: the three references must cover at least two independent external projects"
+            "REFERENCE BLOCKED: the three custom skins must cover at least two independent external projects"
         )
 
     report = {
         "status": "PASS",
         "species": species,
         "nationalDex": dex,
-        "completeReferenceCount": complete,
+        "completeEligibleCustomSkinCount": complete,
         "distinctProjectCount": len(projects),
         "licensedDerivativeDonorCount": donor_count,
         "productionModelingGate": "OPEN",
