@@ -12,7 +12,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Read exact official Hitmonlee bone names and torso2 cubes
+      - name: Read exact official Hitmonlee body geometry
         shell: bash
         run: |
           set -euo pipefail
@@ -30,7 +30,7 @@ jobs:
           with zipfile.ZipFile('.probe/cobblemon.jar') as z:
             d=json.loads(z.read('assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/hitmonlee.geo.json'))
           bones=d['minecraft:geometry'][0]['bones']
-          for i,b in enumerate(bones): print(i,b.get('name'),'parent=',b.get('parent'),'pivot=',b.get('pivot'))
-          torso2=next(b for b in bones if b.get('name')=='torso2')
-          print('TORSO2_CUBES=',json.dumps(torso2.get('cubes',[]),separators=(',',':')))
+          for name in ('body','torso','torso2','leg_left','leg_left2','leg_left3','leg_left4','foot_left'):
+            b=next(x for x in bones if x.get('name')==name)
+            print(name,'pivot=',b.get('pivot'),'cubes=',json.dumps(b.get('cubes',[]),separators=(',',':')))
           PY
