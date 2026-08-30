@@ -1,0 +1,94 @@
+{
+  "format": "ouros.cobblemon-skin-source-audit.v1",
+  "pokemon": "Urshifu",
+  "species": "cobblemon:urshifu",
+  "nationalPokedexNumber": 892,
+  "concept": "Cobra Dojo Champion",
+  "status": "BLOCKED_NO_OFFICIAL_PRESENTATION_MODEL",
+  "presentationOnly": true,
+  "authorityBoundary": "AutoPTU/Ouros remains authoritative for combatants, legality, HP/status, positions, RNG, damage and tactical results.",
+  "target": {
+    "minecraftVersion": "1.21.1",
+    "cobblemonVersion": "1.7.3",
+    "loader": "fabric",
+    "modrinthVersionId": "kF7CvxTo",
+    "filename": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+    "jarSha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
+    "jarSha512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+    "license": "MPL-2.0"
+  },
+  "verifiedOfficialUrshifuFiles": {
+    "species": {
+      "path": "data/cobblemon/species/generation8/urshifu.json",
+      "sha256": "6de27af6af143a9a36232a10137d105465ea4fac78f5d981efab10c0e9f94a5d"
+    },
+    "wushuStyleFeatureAssignment": {
+      "path": "data/cobblemon/species_feature_assignments/urshifu_wushu_style.json",
+      "sha256": "8d3b945e474a668a227a313e44695489ab0857e09fcdb1c7a0c22ea2494738a0"
+    },
+    "dynamaxFeatureAssignment": {
+      "path": "data/cobblemon/species_feature_assignments/dynamax_form.json",
+      "sha256": "7623613cc42e181124b8a5075d74529b5934861d0d188f9c4818b78a6d905eba"
+    },
+    "dexEntry": {
+      "path": "data/cobblemon/dex_entries/pokemon/galar/urshifu.json",
+      "sha256": "3cc2d86bde5655a93632da4e9d689cb0a4f7bbbba27a9ff48fa7aace4cbb2f70"
+    },
+    "ambientSound": {
+      "path": "assets/cobblemon/sounds/pokemon/urshifu/urshifu_ambient.ogg",
+      "sha256": "dceded5814ec0c2cfb202c70e502bc0ddf7f4d8028cf794e5897a80314e8a311"
+    },
+    "crySound": {
+      "path": "assets/cobblemon/sounds/pokemon/urshifu/urshifu_cry.ogg",
+      "sha256": "dceded5814ec0c2cfb202c70e502bc0ddf7f4d8028cf794e5897a80314e8a311"
+    }
+  },
+  "officialFormsPresentInSpeciesData": [
+    "single_strike-style",
+    "rapid_strike-style",
+    "gmax + single_strike-style",
+    "gmax + rapid_strike-style"
+  ],
+  "exhaustivePresentationSearch": {
+    "pathTerms": [
+      "urshifu",
+      "0892",
+      "/892/",
+      "_892_",
+      "892_urshifu"
+    ],
+    "contentTerms": [
+      "urshifu",
+      "cobblemon:urshifu"
+    ],
+    "presentationDirectoriesChecked": [
+      "/bedrock/",
+      "/models/",
+      "/posers/",
+      "/resolvers/",
+      "/animations/",
+      "/textures/pokemon/"
+    ],
+    "officialGeometryFilesFound": 0,
+    "officialPokemonTexturesFound": 0,
+    "officialPosersFound": 0,
+    "officialResolversFound": 0,
+    "officialAnimationFilesFound": 0,
+    "sharedPresentationReferencesFound": 0
+  },
+  "requiredPolicyOutcome": {
+    "mayReconstructAnatomy": false,
+    "mayCloneAnotherSpeciesModel": false,
+    "mayUseGeneratedConceptAsGeometry": false,
+    "mayUseScreenshotsAsGeometry": false,
+    "mayShipProductionModelNow": false,
+    "unblockCondition": "A stable Cobblemon release compatible with the repository target must distribute an official Urshifu presentation model and its corresponding presentation assets. The slice must then restart from those exact official files."
+  },
+  "auditWorkflow": {
+    "workflow": ".github/workflows/cobblemon-urshifu-source-inspect.yml",
+    "verifiedRunId": 33287893709,
+    "verifiedHeadSha": "d34de265db2046e92ec0a9f74db9e797c868dce3",
+    "artifactName": "urshifu-official-source-inspection",
+    "artifactDigest": "sha256:07dfd22438f561fc11ed520d8f9dae2750f60115a8f9415434c5c2c8c82b25bb"
+  }
+}
