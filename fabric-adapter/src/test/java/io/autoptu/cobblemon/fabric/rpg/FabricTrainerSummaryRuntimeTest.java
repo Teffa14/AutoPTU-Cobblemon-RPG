@@ -91,4 +91,45 @@ class FabricTrainerSummaryRuntimeTest {
                 "No canonical Trainer classes are available.",
                 "Revision: 4"), FabricTrainerSummaryRuntime.formatClassLines(summary));
     }
+
+    @Test
+    void formatsCanonicalFeaturesAsDedicatedStableReadSurface() {
+        CanonicalTrainerSummaryService.Summary summary = new CanonicalTrainerSummaryService.Summary(
+                "minecraft-player:test",
+                List.of("Researcher"),
+                List.of(new CanonicalTrainerSummaryService.Skill("Command", 2)),
+                List.of("Focused Training", "Let Me Help You With That"),
+                List.of("Tracker"),
+                2,
+                1,
+                14,
+                "cedar-team",
+                15L);
+
+        assertEquals(List.of(
+                "AutoPTU Trainer features",
+                "Focused Training",
+                "Let Me Help You With That",
+                "Revision: 15"), FabricTrainerSummaryRuntime.formatFeatureLines(summary));
+    }
+
+    @Test
+    void reportsMissingCanonicalFeaturesWithoutDerivingPtuFeatureState() {
+        CanonicalTrainerSummaryService.Summary summary = new CanonicalTrainerSummaryService.Summary(
+                "minecraft-player:test",
+                List.of("Survivalist"),
+                List.of(new CanonicalTrainerSummaryService.Skill("Survival", 4)),
+                List.of(),
+                List.of("Tracker"),
+                0,
+                0,
+                null,
+                "",
+                5L);
+
+        assertEquals(List.of(
+                "AutoPTU Trainer features",
+                "No canonical Trainer features are available.",
+                "Revision: 5"), FabricTrainerSummaryRuntime.formatFeatureLines(summary));
+    }
 }
