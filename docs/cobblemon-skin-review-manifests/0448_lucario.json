@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v8.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v9.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v8.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v9.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Single five-stage shoulder-to-side resonance drape with deep overlaps and one continuous diagonal contour",
-      "Minimal diagonal chest sash preserving the biological chest spike and abdomen",
-      "Thin articulation-safe arm, shin and tail accents subordinate to the drape"
+      "Single seven-stage shoulder-rooted resonance haori with broad outer crescent and continuous taper",
+      "Open diagonal lapel/sash that visually ties the haori into the torso while preserving the chest spike",
+      "Subordinate articulation-safe arm, shin and tail accents"
     ],
-    "macroFormPlan": "V8 removes every thigh-covering coat panel and every separated outer-crescent fragment seen in V7. The transformation is carried by one paper-thin, deeply overlapping shoulder-to-side drape whose panels progressively narrow toward a terminal point. Front anatomy remains nearly unobstructed and there is no skirt, shorts, backpack, cage, repeated bar or armor-shell system.",
+    "macroFormPlan": "V9 keeps V8's clean biological front but widens the signature into one connected shoulder-rooted haori. Seven deeply overlapping thin stages turn progressively outward/back, grow into a broad middle crescent, then taper to one terminal point. No skirt, shorts, cage, backpack, repeated bar or armor-shell system is introduced.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the V6 twelve-texel accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the candidate must read as Lucario carrying one authored asymmetrical ceremonial drape, not Lucario wearing blue shorts or floating tiles. The drape must remain a single connected silhouette in front, back and three-quarter evidence.",
+    "gameplayReadGoal": "At 160 px Lucario must read with one unmistakable asymmetric haori crescent from shoulder through hip, while the face, chest spike, limbs and tail remain species-clear. The matched-camera pixel floor stays at 0.0800 and must be exceeded by authored silhouette rather than threshold relaxation.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
