@@ -81,7 +81,7 @@ jobs:
           printf '%s  %s\n' "$OFFICIAL_NORMAL_SHA256" .official-source/lucario.png | sha256sum --check --strict
           printf '%s  %s\n' "$OFFICIAL_SHINY_SHA256" .official-source/lucario_shiny.png | sha256sum --check --strict
           printf '%s  %s\n' "$OFFICIAL_MODEL_LICENSE_SHA256" .official-source/model-license.txt | sha256sum --check --strict
-      - name: Generate refined production assets
+      - name: Generate reviewed refined production assets
         shell: bash
         run: |
           set -euo pipefail
@@ -96,7 +96,7 @@ jobs:
             --normal-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-normal.texture.json \
             --shiny-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-shiny.texture.json \
             --build-metadata-out docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-build-metadata.json
-      - name: Validate exact anatomy and refined macro-form
+      - name: Validate exact anatomy and reviewed 87-cube macro-form
         shell: bash
         run: |
           set -euo pipefail
@@ -115,11 +115,11 @@ jobs:
           expected=['ouros_aura_helm_system','ouros_aura_mantle_shell','ouros_aura_breastplate','ouros_aura_shrine_frame','ouros_aura_left_armguard','ouros_aura_right_armguard','ouros_aura_waistcoat','ouros_aura_relic_fin']
           assert [b['name'] for b in extras]==expected
           cubes=sum(len(b.get('cubes',[])) for b in extras)
-          assert cubes>=85,cubes
-          print('refined cosmetic cubes',cubes)
+          assert cubes==87,cubes
+          print('reviewed refined cosmetic cubes',cubes)
           PY
           cp .official-source/model-license.txt docs/cobblemon-skins/0448_lucario/official-model-license.txt
-      - name: Commit refined generated assets
+      - name: Commit reviewed refined generated assets
         shell: bash
         run: |
           set -euo pipefail
@@ -134,6 +134,6 @@ jobs:
             docs/cobblemon-skins/0448_lucario/aura-sentinel-v2-build-metadata.json \
             docs/cobblemon-skins/0448_lucario/official-model-license.txt
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'art: generate refined Aura Sentinel v2 assets'
+          git commit -m 'art: restore reviewed Aura Sentinel v2 refined assets'
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin HEAD:"${GITHUB_REF_NAME}"
