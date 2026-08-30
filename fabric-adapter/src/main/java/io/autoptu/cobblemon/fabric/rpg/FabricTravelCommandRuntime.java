@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalFastTravelCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalFastTravelService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -13,12 +14,13 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 /**
- * Read-only server-authoritative fast-travel catalogue command.
+ * Server-authoritative fast-travel fallback commands.
  *
- * <p>The command accepts no destination metadata from the client. It enumerates only the authored
- * catalogue and evaluates current readiness through the same {@link CanonicalFastTravelService}
- * used by the lodestone interaction. It performs no teleport; execution belongs to the normal
- * world interaction and the explicit destination command surface.
+ * <p>The no-argument form lists only authored destinations. The destination form accepts only a
+ * destination id selection from the client, then re-resolves Trainer identity, the observed nearby
+ * lodestone, authored destination metadata and current availability on the server before delegating
+ * execution to {@link FabricFastTravelRuntime}. No coordinates, unlock state or travel outcome are
+ * trusted from the command request.
  */
 public final class FabricTravelCommandRuntime {
     private static final int SEARCH_RADIUS = 5;
@@ -28,10 +30,15 @@ public final class FabricTravelCommandRuntime {
     private FabricTravelCommandRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("travel")
-                                .executes(context -> listDestinations(context.getSource())))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var travelCommand = CommandManager.literal("travel")
+                    .executes(context -> listDestinations(context.getSource()))
+                    .then(CommandManager.argument("destination", StringArgumentType.word())
+                            .executes(context -> travelToDestination(
+                                    context.getSource(),
+                                    StringArgumentType.getString(context, "destination"))));
+            dispatcher.register(CommandManager.literal("autoptu").then(travelCommand));
+        });
     }
 
     private static int listDestinations(ServerCommandSource source) {
@@ -70,7 +77,7 @@ public final class FabricTravelCommandRuntime {
                             distanceSquared,
                             destination.id(),
                             CanonicalFastTravelCatalogue.find(destination.id()).isPresent(),
-                            true
+                            FabricFastTravelRuntime.destinationAvailable(player.getServer(), destination)
                     )
             );
             String state = decision.allowed() ? "READY" : "UNAVAILABLE: " + decision.reason();
@@ -78,6 +85,22 @@ public final class FabricTravelCommandRuntime {
                     "- " + destination.displayName() + " [" + destination.id() + "] — " + state), false);
         }
         return 1;
+    }
+
+    private static int travelToDestination(ServerCommandSource source, String requestedDestinationId) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("Fast travel must be requested by an authenticated player."));
+            return 0;
+        }
+
+        BlockPos sourcePoint = findNearestObservedTravelPoint(player.getServerWorld(), player);
+        if (sourcePoint == null) {
+            player.sendMessage(Text.literal("Fast travel denied: no observed lodestone is within interaction range."), true);
+            return 0;
+        }
+
+        return FabricFastTravelRuntime.attemptTravel(player, sourcePoint, requestedDestinationId) ? 1 : 0;
     }
 
     static BlockPos findNearestObservedTravelPoint(ServerWorld world, ServerPlayerEntity player) {
