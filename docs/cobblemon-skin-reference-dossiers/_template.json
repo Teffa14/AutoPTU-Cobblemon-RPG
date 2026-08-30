@@ -1,0 +1,43 @@
+{
+  "format": "ouros.cobblemon-species-reference-dossier.v1",
+  "species": "replace-me",
+  "nationalDex": 0,
+  "researchDate": "YYYY-MM-DD",
+  "status": "REFERENCE BLOCKED",
+  "references": [
+    {
+      "referenceId": "project-species-variant-1",
+      "species": "replace-me",
+      "project": "External project name",
+      "sourceUrl": "https://example.com/source",
+      "sourceVersion": "version-or-unknown",
+      "implementationName": "Exact external skin/model/variant name",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [
+        {
+          "path": "path/to/model-or-texture.ext",
+          "kind": "MODEL_OR_TEXTURE",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "licenseStatus": "UNKNOWN",
+      "license": {
+        "name": "Unknown",
+        "sourceUrl": "https://example.com/license",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
+      "reuseMode": "STUDY_ONLY",
+      "requiredAttribution": "none for study-only",
+      "techniqueLessons": [
+        "Describe one concrete geometry/material/animation technique.",
+        "Describe a second concrete technique.",
+        "Describe a third concrete technique."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "Exact silhouette, motif, markings, palette layout, logo or costume identity unique to this external design."
+      ]
+    }
+  ],
+  "productionModelingGate": "BLOCKED_UNTIL_VALIDATOR_PASS"
+}
