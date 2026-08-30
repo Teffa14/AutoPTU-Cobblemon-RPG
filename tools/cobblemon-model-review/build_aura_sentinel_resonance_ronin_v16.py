@@ -42,9 +42,6 @@ def v16_bones() -> list[dict]:
     if {b["name"] for b in retained} != RETAINED:
         raise SystemExit("V14c retained-bone contract drifted")
 
-    # Matched 3/4 camera sits at negative X / negative Z. Root the dominant
-    # system on the official right shoulder (negative X), where it can actually
-    # change first-read silhouette instead of disappearing behind the torso.
     shoulder_shell = v1.bone("ouros_resonance_shoulder_shell", "shoulder_right", [-7.2, 30.3, -1.0], [
         mcube((-9.0, 28.45, -3.00), (4.35, 3.20, 1.25), 81, light=83, dark=80,
               pivot=(-7.15, 30.0, -2.35), rotation=(-8, 16, 27)),
@@ -54,8 +51,6 @@ def v16_bones() -> list[dict]:
               pivot=(-7.10, 31.55, -2.93), rotation=(-3, 8, 43)),
     ])
 
-    # Two main facets overlap into one near-side S curve. They deliberately
-    # change direction and width rather than forming parallel rectangular steps.
     flank_mantle = v1.bone("ouros_resonance_flank_mantle", "torso3", [-4.0, 24.5, -2.65], [
         mcube((-9.10, 20.20, -3.12), (4.65, 8.35, .48), 82, light=83, dark=81,
               pivot=(-6.90, 26.55, -2.88), rotation=(-5, 10, 18)),
@@ -65,9 +60,6 @@ def v16_bones() -> list[dict]:
               pivot=(-8.95, 22.35, -2.57), rotation=(-4, 13, 33)),
     ])
 
-    # One long lower fold and a shorter counter-fold keep negative space around
-    # the biological tail and legs. They terminate the same directional gesture
-    # instead of becoming a symmetric skirt.
     lower_fold = v1.bone("ouros_resonance_lower_fold", "torso", [-3.8, 14.2, -2.15], [
         mcube((-6.75, 6.35, -2.62), (3.20, 8.65, .38), 82, light=85, dark=81,
               pivot=(-5.05, 13.05, -2.43), rotation=(-7, -4, -13)),
@@ -91,7 +83,7 @@ def build_model() -> int:
         raise SystemExit("official Lucario bone prefix missing")
     extras = v16_bones()
     geo["bones"] = official + extras
-    v1.MODEL.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ",")) + "\n", encoding="utf-8")
+    v1.MODEL.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     return sum(len(b.get("cubes", [])) for b in extras)
 
 
@@ -99,11 +91,8 @@ def patch_manifest(cubes: int) -> None:
     data = json.loads(v1.MANIFEST.read_text(encoding="utf-8"))
     data["artStatus"] = "ARTISTIC FAIL"
     data["ownerApproval"] = {
-        "required": True,
-        "approved": False,
-        "approvedHeadSha": None,
-        "evidenceSetSha256": None,
-        "approvalRecord": None,
+        "required": True, "approved": False, "approvedHeadSha": None,
+        "evidenceSetSha256": None, "approvalRecord": None,
     }
     data["production"]["modelSha256"] = v1.sha256(v1.MODEL)
     data["production"]["productionBoneCount"] = v1.OFFICIAL_BONES + 9
@@ -117,11 +106,11 @@ def patch_manifest(cubes: int) -> None:
     data["builder"]["command"] = ["python", "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v16.py"]
     data["qualityIntent"]["signaturePieces"] = [
         "Open cowl/high collar preserving face, ears, aura sensors and chest spike",
-        "Camera-near right-shoulder shell flowing into two deeply overlapping flank facets with changing direction and width",
-        "Single long lower fold plus short counter-fold, leaving negative space around Lucario's tail and legs",
+        "Camera-near right-shoulder shell flowing into deeply overlapping flank facets with changing direction and width",
+        "Single long lower fold plus short counter-fold leaving negative space around tail and legs",
     ]
     data["qualityIntent"]["macroFormPlan"] = (
-        "V16b responds directly to V16 exact-head Blockbench evidence. The rear-centered mantle that disappeared behind the body is removed. The dominant cloth system is rooted to the official camera-near right shoulder and wraps down the near flank using two large overlapping facets, one narrow edge facet, and two unequal lower folds. Greaves are removed to reduce scattered gear. No visual threshold is relaxed."
+        "V16b responds directly to V16 exact-head Blockbench evidence. The rear-centered mantle that disappeared behind the body is removed. The dominant cloth system is rooted to the official camera-near right shoulder and wraps down the near flank using two large overlapping facets, one narrow edge facet and two unequal lower folds. Greaves are removed to reduce scattered gear. No visual threshold is relaxed."
     )
     data["qualityIntent"]["gameplayReadGoal"] = (
         "At 160 px the first read should gain one unmistakable asymmetric near-side mantle contour from shoulder to below the waist, with the biological head, chest spike, hands, feet and tail still obvious. The 3/4 view must show the signature form directly rather than relying on a rear-only silhouette."
@@ -133,30 +122,20 @@ def patch_manifest(cubes: int) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--bootstrap", action="store_true")
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(); parser.add_argument("--bootstrap", action="store_true"); args = parser.parse_args()
     if v1.sha256(v1.BODY) != v1.OFFICIAL_NORMAL_SHA256:
         raise SystemExit("normal body texture drifted")
     if v1.sha256(v1.SHINY) != v1.OFFICIAL_SHINY_SHA256:
         raise SystemExit("shiny body texture drifted")
-    cubes = build_model()
-    write_overlay(v1.OVERLAY)
-    v1.build_resolver()
-    if args.bootstrap:
-        patch_manifest(cubes)
+    cubes = build_model(); write_overlay(v1.OVERLAY); v1.build_resolver()
+    if args.bootstrap: patch_manifest(cubes)
     print(json.dumps({
-        "status": "BUILT",
-        "concept": "Aura Sentinel — Resonance Ronin V16b",
-        "officialBones": v1.OFFICIAL_BONES,
-        "cosmeticBones": 9,
-        "cosmeticCubes": cubes,
-        "modelSha256": v1.sha256(v1.MODEL),
-        "overlaySha256": v1.sha256(v1.OVERLAY),
-        "bodyTexelRework": "NONE",
-        "visualChange": "camera-near asymmetric shoulder-to-flank mantle; no greaves; unchanged floors",
+        "status":"BUILT", "concept":"Aura Sentinel — Resonance Ronin V16b",
+        "officialBones":v1.OFFICIAL_BONES, "cosmeticBones":9, "cosmeticCubes":cubes,
+        "modelSha256":v1.sha256(v1.MODEL), "overlaySha256":v1.sha256(v1.OVERLAY),
+        "bodyTexelRework":"NONE",
+        "visualChange":"camera-near asymmetric shoulder-to-flank mantle; no greaves; unchanged floors",
     }, indent=2))
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
