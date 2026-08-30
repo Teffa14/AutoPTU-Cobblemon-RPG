@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Resonance Ronin V14b: layered mantle arc with neck and hip continuity.
+"""Resonance Ronin V14c: layered mantle arc with neck, chest and hip continuity.
 
-V14 removed V13's oversized rectangular shoulder mass but its exact Blockbench
-review measured pixelDifferenceRatio=0.0771 against the 0.0800 technical floor.
-V14b does not relax that floor. It keeps the narrow overlapping mantle arc and
-adds only two motion-safe continuity systems: a high collar rooted to the official
-neck and a compact hip knot rooted to the official torso. These close the visual
-path from cowl -> shoulder -> back -> hip without reintroducing box armor, skirts,
-portal frames or broad slabs. Official Lucario anatomy remains exact and ordered.
+V14 removed V13's oversized rectangular shoulder mass. V14b improved continuity but
+its exact matched-camera Blockbench evidence reached pixelDifferenceRatio=0.0790,
+still below the unchanged 0.0800 floor. V14c keeps the same mantle silhouette and
+turns the almost hairline chest ribbon into a three-segment wrapped sash with tapered
+visual cadence around the official chest spike. No threshold is relaxed and no broad
+slab is introduced. Official Lucario anatomy remains exact and ordered.
 """
 from __future__ import annotations
 
@@ -40,8 +39,6 @@ def v14_bones() -> list[dict]:
               pivot=(2.15, 38.72, -1.67), rotation=(-4, 7, -11)),
     ])
 
-    # New V14b continuity: two narrow collar petals rooted to the official neck.
-    # They turn rearward toward the mantle instead of wrapping the face like armor.
     high_collar = v1.bone("ouros_resonance_high_collar", "neck", [0, 32.2, .45], [
         mcube((-4.05, 30.85, .55), (2.25, 3.55, .52), 84, light=85, dark=80,
               pivot=(-2.95, 32.35, .80), rotation=(-9, -13, 24)),
@@ -69,8 +66,6 @@ def v14_bones() -> list[dict]:
               pivot=(-2.25, 15.1, 2.20), rotation=(-12, 19, 18)),
     ])
 
-    # Compact termination/contact at the left-back hip. One shallow knot and one
-    # folded tag make the mantle read attached before the tails separate.
     hip_knot = v1.bone("ouros_resonance_hip_knot", "torso", [0, 15.0, 1.4], [
         mcube((-5.05, 13.95, .05), (3.15, 1.25, 1.85), 82, light=83, dark=81,
               pivot=(-3.45, 14.65, .95), rotation=(7, 14, 18)),
@@ -85,11 +80,16 @@ def v14_bones() -> list[dict]:
               pivot=(1.65, 13.5, 2.95), rotation=(-22, -8, -13)),
     ])
 
+    # V14c front continuity. Three short overlapping segments form one diagonal
+    # sash. Their changing width/angle creates a wrap rather than a straight bar,
+    # while the centre remains offset from Lucario's chest spike.
     chest_ribbon = v1.bone("ouros_resonance_chest_ribbon", "torso3", [0, 27.0, -3.65], [
-        mcube((-4.2, 27.25, -4.14), (4.65, .55, .22), 84, light=85, dark=80,
-              pivot=(-1.9, 27.52, -4.02), rotation=(0, 0, -31)),
-        mcube((-.15, 24.6, -4.02), (4.2, .52, .22), 84, light=85, dark=80,
-              pivot=(1.9, 24.85, -3.91), rotation=(0, 0, -24)),
+        mcube((-4.35, 27.1, -4.16), (3.75, .82, .24), 84, light=85, dark=80,
+              pivot=(-2.45, 27.50, -4.04), rotation=(0, 0, -34)),
+        mcube((-1.55, 25.25, -4.10), (3.45, .76, .24), 82, light=85, dark=81,
+              pivot=(.10, 25.62, -3.98), rotation=(0, 0, -27)),
+        mcube((1.10, 23.70, -4.00), (3.05, .66, .22), 84, light=85, dark=80,
+              pivot=(2.55, 24.02, -3.89), rotation=(0, 0, -20)),
     ])
 
     left_vambrace = v1.bone("ouros_resonance_left_vambrace", "arm_left2", [10.3, 29.0, -.4], [
@@ -138,40 +138,37 @@ def patch_manifest(cubes: int) -> None:
     overlay = next(t for t in data["production"]["textures"] if t["role"] == "OVERLAY")
     overlay["sha256"] = v1.sha256(v1.OVERLAY)
     for asset in data["production"].get("runtimeAssets", []):
-        if asset.get("role") == "RESOLVER":
-            asset["sha256"] = v1.sha256(v1.RESOLVER)
+        if asset.get("role") == "RESOLVER": asset["sha256"] = v1.sha256(v1.RESOLVER)
     data["builder"]["scriptPath"] = "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v14.py"
     data["builder"]["command"] = ["python", "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v14.py"]
     data["qualityIntent"]["signaturePieces"] = [
         "Layered shoulder-to-hip mantle arc built from narrow overlapping contact/drape forms rather than one broad pauldron",
-        "High asymmetrical collar petals that visually hand off the open cowl into the shoulder arc without enclosing Lucario's face",
-        "Compact hip knot feeding unequal split tails with broad negative space around the biological tail",
+        "High asymmetrical collar petals that hand the open cowl into the shoulder arc without enclosing Lucario's face",
+        "Three-segment diagonal chest sash and compact hip knot completing a continuous front-to-back ceremonial wrap",
     ]
     data["qualityIntent"]["macroFormPlan"] = (
-        "V14b keeps V14's five-fold diagonal mantle arc and adds two small contact systems at its endpoints: neck-rooted collar petals and a torso-rooted hip knot. The purpose is continuity, not size. The prior 0.0771 pixel-difference result is addressed without changing the 0.0800 floor or reintroducing slabs, skirts, cages or lower-front plates."
+        "V14c retains the V14b neck-to-hip mantle architecture. The only geometry change is that the prior near-hairline two-piece chest ribbon becomes a three-segment wrapped sash with changing widths and angles around the chest spike. This strengthens front/3-quarter continuity without enlarging the shoulder silhouette or changing any technical threshold."
     )
     data["qualityIntent"]["gameplayReadGoal"] = (
-        "At 160 px the first read should be one continuous asymmetric ceremonial mantle path from head/neck through shoulder and back into a resolved hip/tail termination. Lucario's chest spike, muzzle, legs and biological tail remain readable focal anatomy."
+        "At 160 px the first read should be one continuous asymmetric ceremonial wrap from cowl/collar through shoulder/back and visibly across the front as a diagonal sash before terminating at the hip and unequal tails. Biological landmarks remain unobstructed."
     )
     data["qualityIntent"]["iterationNote"] = (
-        "Exact V14 Blockbench review on head ced321f8f6476b293e3713073121e6db64f8ccba reproduced correctly but failed the unchanged technical visual floor at pixelDifferenceRatio=0.0771 < 0.0800. V14b adds only neck and hip continuity forms; no threshold is relaxed and owner approval remains absent."
+        "Exact V14b review on head c46f9e6bdafeb6c2236d65cdb8a6973fcbdbb0a7 improved the visual delta to 0.0790 but still failed the unchanged 0.0800 floor. V14c strengthens the authored front sash rather than lowering the floor or adding slab volume. Owner approval remains absent."
     )
     v1.MANIFEST.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(); parser.add_argument("--bootstrap", action="store_true"); args = parser.parse_args()
-    if v1.sha256(v1.BODY) != v1.OFFICIAL_NORMAL_SHA256:
-        raise SystemExit("normal body texture drifted from official Lucario")
-    if v1.sha256(v1.SHINY) != v1.OFFICIAL_SHINY_SHA256:
-        raise SystemExit("shiny body texture drifted from official Lucario")
+    if v1.sha256(v1.BODY) != v1.OFFICIAL_NORMAL_SHA256: raise SystemExit("normal body texture drifted from official Lucario")
+    if v1.sha256(v1.SHINY) != v1.OFFICIAL_SHINY_SHA256: raise SystemExit("shiny body texture drifted from official Lucario")
     cubes = build_model(); write_overlay(v1.OVERLAY); v1.build_resolver()
     if args.bootstrap: patch_manifest(cubes)
-    print(json.dumps({"status":"BUILT","concept":"Aura Sentinel — Resonance Ronin V14b",
+    print(json.dumps({"status":"BUILT","concept":"Aura Sentinel — Resonance Ronin V14c",
         "officialBones":v1.OFFICIAL_BONES,"cosmeticBones":11,"cosmeticCubes":cubes,
         "modelSha256":v1.sha256(v1.MODEL),"overlaySha256":v1.sha256(v1.OVERLAY),
         "resolverSha256":v1.sha256(v1.RESOLVER),"normalBodySha256":v1.sha256(v1.BODY),
         "shinyBodySha256":v1.sha256(v1.SHINY),"bodyTexelRework":"NONE",
-        "visualChange":"layered mantle arc with neck and hip continuity; unchanged visual thresholds"}, indent=2))
+        "visualChange":"layered mantle arc plus three-segment wrapped chest sash; unchanged thresholds"}, indent=2))
 
 if __name__ == "__main__": main()
