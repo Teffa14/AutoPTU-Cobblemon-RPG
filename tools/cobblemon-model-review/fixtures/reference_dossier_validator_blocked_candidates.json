@@ -1,0 +1,32 @@
+{
+  "format": "ouros.cobblemon-species-reference-dossier.v1",
+  "species": "testmon",
+  "nationalDex": 9999,
+  "status": "REFERENCE BLOCKED",
+  "references": [],
+  "candidateReferences": [
+    {
+      "candidateId": "pack-a-testmon-costume-candidate",
+      "species": "testmon",
+      "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
+      "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
+      "implementationName": "Testmon Costume Candidate",
+      "project": "Synthetic Pack A",
+      "sourceUrl": "https://example.com/pack-a/candidate",
+      "sourceVersion": "1.0",
+      "discoveryEvidence": [
+        "Synthetic candidate exists for validator staging coverage."
+      ],
+      "geometryMateriallyChangedStatus": "UNPROVEN",
+      "customVisualIdentityStatus": "PROVEN_BY_PROJECT_DESCRIPTION",
+      "assetInspectionStatus": "PENDING",
+      "assetFilesInspected": [],
+      "sourceFileAccessStatus": "SOURCE_FILES_NOT_YET_INSPECTED",
+      "whyNotCounted": "MODEL and TEXTURE files have not been inspected and hashed.",
+      "licenseStatus": "SYNTHETIC_TEST_ONLY",
+      "reuseMode": "STUDY_ONLY"
+    }
+  ],
+  "minimumCompleteReferencesRequired": 3,
+  "productionModelingGate": "BLOCKED_UNTIL_THREE_CUSTOM_GEOMETRY_SKINS_PASS"
+}

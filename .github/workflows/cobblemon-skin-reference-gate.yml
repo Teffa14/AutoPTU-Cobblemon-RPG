@@ -5,6 +5,8 @@ on:
     paths:
       - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/**'
       - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
       - 'src/main/resources/data/autoptu/cobblemon/skins/**'
       - 'docs/cobblemon-skins/**'
       - 'docs/cobblemon-skin-reference-dossiers/**'
@@ -12,6 +14,7 @@ on:
       - 'tools/cobblemon-model-review/validate_species_reference_dossier.py'
       - 'tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py'
       - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json'
+      - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_blocked_candidates.json'
       - '.github/workflows/cobblemon-skin-reference-gate.yml'
 
 permissions:
@@ -32,14 +35,47 @@ jobs:
             tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py
 
-      - name: Exercise custom-geometry skin dossier validator
+      - name: Prove production path coverage includes Cobblemon namespace
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          path = Path('tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py')
+          spec = importlib.util.spec_from_file_location('gate', path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec.loader
+          spec.loader.exec_module(module)
+          expected = {
+              'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json': '0094_gengar',
+              'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png': '0094_gengar',
+              'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json': '0448_lucario',
+          }
+          for asset, slug in expected.items():
+              matches = [pattern.match(asset) for pattern in module.PRODUCTION_PATTERNS]
+              found = [match.group('slug') for match in matches if match]
+              assert found == [slug], (asset, found)
+          print('production reference-gate path coverage PASS')
+          PY
+
+      - name: Exercise strict custom-geometry skin dossier validator
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json \
             --expected-species testmon
 
-      - name: Validate eligible same-species custom skins before production skin changes
+      - name: Exercise research-only blocked candidate staging
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py \
+            tools/cobblemon-model-review/fixtures/reference_dossier_validator_blocked_candidates.json \
+            --expected-species testmon \
+            --allow-blocked | tee /tmp/blocked-candidate-report.json
+          grep -q '"status": "REFERENCE_BLOCKED"' /tmp/blocked-candidate-report.json
+          grep -q '"productionModelingGate": "BLOCKED"' /tmp/blocked-candidate-report.json
+
+      - name: Validate research dossiers and enforce eligible skins before production changes
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
