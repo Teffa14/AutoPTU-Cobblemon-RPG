@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Aura Sentinel V7: reference-led macro-form rebuild after owner rejection.
+"""Aura Sentinel V7.1: reference-led continuous macro-form rebuild.
 
-Preserves the exact official Lucario body and replaces V6's fragmented bar/plate
-language with fewer, broader, rotated and overlapping systems. The design uses
-only generic lessons from same-species references: selective silhouette density,
-one dominant asymmetric system, oriented planes, negative space and full-body
-continuation. No third-party geometry, UVs, palette layouts, motifs or texture
-bytes are copied.
+Preserves the exact official Lucario body. This pass removes V7's detached-looking
+bars and skirt-like plate field, using fewer overlapping rotated forms with a
+single shoulder-to-back signature sweep. Only generic technique lessons from the
+same-species reference dossier are used. No third-party geometry, UVs, palette
+layouts, motifs or texture bytes are copied.
 """
 from __future__ import annotations
 import importlib.util, json
@@ -20,88 +19,83 @@ c=base.cube
 
 
 def helm_system()->dict:
-    return {"name":"ouros_aura_helm_system","parent":"head_angle","pivot":[0,38.0,-1.0],"cubes":[
-        c([-5.45,35.15,0.70],[10.90,4.25,1.55],"void",pivot=[0,37.28,1.48],rotation=[-5,0,0]),
-        c([-5.80,35.05,-2.60],[1.25,4.00,3.80],"indigo",pivot=[-5.18,37.05,-0.70],rotation=[0,0,-12]),
-        c([4.55,35.05,-2.60],[1.25,4.00,3.80],"cobalt",pivot=[5.18,37.05,-0.70],rotation=[0,0,12]),
-        c([-4.80,38.35,-3.55],[4.55,0.72,0.42],"silver",pivot=[-2.53,38.71,-3.34],rotation=[0,0,-16]),
-        c([0.25,38.35,-3.55],[4.55,0.72,0.42],"gold",pivot=[2.53,38.71,-3.34],rotation=[0,0,16]),
-        c([-6.55,39.05,0.15],[3.35,1.25,1.85],"amethyst",pivot=[-4.88,39.68,1.08],rotation=[0,0,-28])
+    return {"name":"ouros_aura_helm_system","parent":"head_angle","pivot":[0,37.0,-1.0],"cubes":[
+        c([-5.20,35.35,0.55],[10.40,3.20,1.40],"void",pivot=[0,36.95,1.25],rotation=[-5,0,0]),
+        c([-5.65,35.05,-2.45],[1.55,3.85,3.35],"indigo",pivot=[-4.88,36.98,-0.78],rotation=[0,0,-10]),
+        c([4.10,35.05,-2.45],[1.55,3.85,3.35],"cobalt",pivot=[4.88,36.98,-0.78],rotation=[0,0,10]),
+        c([-3.15,38.00,-3.42],[6.30,0.72,0.42],"gold",pivot=[0,38.36,-3.21],rotation=[0,0,0])
     ]}
 
 
 def mantle_shell()->dict:
-    return {"name":"ouros_aura_mantle_shell","parent":"torso3","pivot":[0,29.5,0],"cubes":[
-        c([-7.20,28.20,-2.95],[14.40,2.05,5.90],"void",pivot=[0,29.23,0],rotation=[4,0,0]),
-        c([-10.45,28.45,-2.45],[5.30,2.25,5.20],"indigo",pivot=[-7.80,29.58,0.15],rotation=[0,0,-20]),
-        c([-13.10,30.05,-1.95],[4.75,1.75,4.30],"amethyst",pivot=[-10.72,30.93,0.20],rotation=[0,0,-34]),
-        c([5.05,28.50,-2.35],[4.25,1.75,4.65],"cobalt",pivot=[7.18,29.38,-0.02],rotation=[0,0,15]),
-        c([-4.95,30.00,2.45],[9.90,2.45,1.45],"void",pivot=[0,31.23,3.18],rotation=[-8,0,0])
+    return {"name":"ouros_aura_mantle_shell","parent":"torso3","pivot":[0,29.2,0],"cubes":[
+        c([-7.05,28.05,-2.85],[14.10,2.05,5.65],"void",pivot=[0,29.08,-0.02],rotation=[4,0,0]),
+        c([-9.15,27.85,-2.25],[6.25,3.15,4.75],"indigo",pivot=[-6.03,29.43,0.13],rotation=[0,0,-19]),
+        c([-11.05,29.15,-1.95],[5.35,2.80,4.20],"amethyst",pivot=[-8.38,30.55,0.15],rotation=[0,0,-32]),
+        c([4.95,28.35,-2.25],[4.20,1.80,4.45],"cobalt",pivot=[7.05,29.25,-0.03],rotation=[0,0,14]),
+        c([-4.80,30.00,2.25],[9.60,2.35,1.40],"void",pivot=[0,31.18,2.95],rotation=[-8,0,0])
     ]}
 
 
 def breastplate()->dict:
     return {"name":"ouros_aura_breastplate","parent":"torso3","pivot":[0,27.0,-3.2],"cubes":[
-        c([-4.75,28.35,-4.02],[4.10,1.25,0.46],"indigo",pivot=[-2.70,28.98,-3.79],rotation=[0,0,-24]),
-        c([0.65,28.35,-4.02],[4.10,1.25,0.46],"cobalt",pivot=[2.70,28.98,-3.79],rotation=[0,0,24]),
-        c([-4.15,25.25,-4.08],[3.00,3.55,0.48],"void",pivot=[-2.65,27.03,-3.84],rotation=[0,0,-15]),
-        c([1.15,25.25,-4.08],[3.00,3.55,0.48],"void",pivot=[2.65,27.03,-3.84],rotation=[0,0,15]),
-        c([-1.20,26.15,-4.34],[2.40,0.62,0.24],"gold",pivot=[0,26.46,-4.22],rotation=[0,0,45])
+        c([-4.65,28.20,-4.02],[4.00,1.15,0.46],"indigo",pivot=[-2.65,28.78,-3.79],rotation=[0,0,-22]),
+        c([0.65,28.20,-4.02],[4.00,1.15,0.46],"cobalt",pivot=[2.65,28.78,-3.79],rotation=[0,0,22]),
+        c([-4.00,25.10,-4.05],[2.85,3.50,0.48],"void",pivot=[-2.58,26.85,-3.81],rotation=[0,0,-14]),
+        c([1.15,25.10,-4.05],[2.85,3.50,0.48],"void",pivot=[2.58,26.85,-3.81],rotation=[0,0,14]),
+        c([-1.05,26.20,-4.30],[2.10,0.58,0.24],"gold",pivot=[0,26.49,-4.18],rotation=[0,0,45])
     ]}
 
 
 def shrine_frame()->dict:
-    return {"name":"ouros_aura_shrine_frame","parent":"torso3","pivot":[-3.0,31.0,3.2],"cubes":[
-        c([-7.10,26.15,2.70],[5.20,2.35,2.00],"void",pivot=[-4.50,27.33,3.70],rotation=[-7,0,-13]),
-        c([-9.45,28.00,2.85],[5.65,2.55,1.85],"indigo",pivot=[-6.63,29.28,3.78],rotation=[-5,0,-25]),
-        c([-11.65,30.35,3.00],[5.45,2.35,1.70],"amethyst",pivot=[-8.93,31.53,3.85],rotation=[-3,0,-39]),
-        c([-13.10,33.05,3.10],[4.65,1.95,1.55],"cobalt",pivot=[-10.78,34.03,3.88],rotation=[0,0,-53]),
-        c([-8.15,31.00,4.35],[2.15,2.15,0.28],"aura",pivot=[-7.08,32.08,4.49],rotation=[0,0,45])
+    return {"name":"ouros_aura_shrine_frame","parent":"torso3","pivot":[-5.5,29.5,3.0],"cubes":[
+        c([-8.00,26.60,2.45],[5.50,3.45,2.05],"void",pivot=[-5.25,28.33,3.48],rotation=[-6,0,-15]),
+        c([-10.55,28.25,2.55],[5.65,3.25,1.90],"indigo",pivot=[-7.73,29.88,3.50],rotation=[-4,0,-28]),
+        c([-12.65,30.65,2.65],[5.25,2.85,1.72],"amethyst",pivot=[-10.03,32.08,3.51],rotation=[-2,0,-41]),
+        c([-13.95,33.45,2.75],[4.35,2.20,1.55],"cobalt",pivot=[-11.78,34.55,3.53],rotation=[0,0,-54])
     ]}
 
 
 def armguard(name:str,parent:str,left:bool)->dict:
     if left:
         return {"name":name,"parent":parent,"pivot":[2.65,18.1,-0.2],"cubes":[
-            c([1.05,15.30,-1.78],[3.50,4.55,0.66],"void",pivot=[2.80,17.58,-1.45],rotation=[0,0,-8]),
-            c([3.55,16.05,-1.25],[0.62,3.45,2.00],"indigo",pivot=[3.86,17.78,-0.25],rotation=[0,0,-14])
+            c([1.05,15.35,-1.72],[3.45,4.45,0.62],"void",pivot=[2.78,17.58,-1.41],rotation=[0,0,-7]),
+            c([3.45,16.10,-1.18],[0.60,3.30,1.90],"indigo",pivot=[3.75,17.75,-0.23],rotation=[0,0,-12])
         ]}
     return {"name":name,"parent":parent,"pivot":[-2.65,18.1,-0.2],"cubes":[
-        c([-4.55,15.55,-1.75],[3.35,4.20,0.62],"void",pivot=[-2.88,17.65,-1.44],rotation=[0,0,7]),
-        c([-4.35,16.35,-1.18],[0.58,3.10,1.90],"cobalt",pivot=[-4.06,17.90,-0.23],rotation=[0,0,12])
+        c([-4.50,15.55,-1.70],[3.30,4.15,0.60],"void",pivot=[-2.85,17.63,-1.40],rotation=[0,0,7]),
+        c([-4.25,16.35,-1.15],[0.58,3.05,1.85],"cobalt",pivot=[-3.96,17.88,-0.23],rotation=[0,0,11])
     ]}
 
 
 def waistcoat()->dict:
-    return {"name":"ouros_aura_waistcoat","parent":"torso","pivot":[0,19.5,1.9],"cubes":[
-        c([-4.80,18.75,2.50],[4.25,1.45,1.45],"void",pivot=[-2.68,19.48,3.23],rotation=[-7,0,9]),
-        c([0.55,18.75,2.50],[4.25,1.45,1.45],"void",pivot=[2.68,19.48,3.23],rotation=[-7,0,-9]),
-        c([-4.40,12.65,2.95],[3.55,6.65,0.62],"indigo",pivot=[-2.63,18.70,3.26],rotation=[-10,0,12]),
-        c([0.45,13.20,2.95],[3.40,6.05,0.62],"amethyst",pivot=[2.15,18.70,3.26],rotation=[-10,0,-10])
+    return {"name":"ouros_aura_waistcoat","parent":"torso","pivot":[0,19.3,2.0],"cubes":[
+        c([-4.65,18.75,2.45],[4.05,1.35,1.35],"void",pivot=[-2.63,19.43,3.13],rotation=[-7,0,8]),
+        c([0.60,18.75,2.45],[4.05,1.35,1.35],"void",pivot=[2.63,19.43,3.13],rotation=[-7,0,-8]),
+        c([-3.25,14.20,2.85],[6.50,5.05,0.56],"indigo",pivot=[0,18.55,3.13],rotation=[-9,0,0])
     ]}
 
 
 def relic_fin()->dict:
-    return {"name":"ouros_aura_relic_fin","parent":"torso3","pivot":[-8.0,31.0,2.8],"cubes":[
-        c([-10.20,28.20,1.75],[4.25,4.10,2.15],"void",pivot=[-8.08,30.25,2.83],rotation=[0,0,-18]),
-        c([-13.60,30.00,2.00],[5.35,3.10,1.85],"indigo",pivot=[-10.93,31.55,2.93],rotation=[0,0,-33]),
-        c([-16.55,32.65,2.15],[5.05,2.35,1.60],"amethyst",pivot=[-14.03,33.83,2.95],rotation=[0,0,-49]),
-        c([-18.30,35.55,2.30],[4.20,1.55,1.35],"cobalt",pivot=[-16.20,36.33,2.98],rotation=[0,0,-62])
+    return {"name":"ouros_aura_relic_fin","parent":"torso3","pivot":[-9.0,30.0,2.7],"cubes":[
+        c([-11.20,27.75,2.15],[5.65,4.45,2.00],"void",pivot=[-8.38,29.98,3.15],rotation=[-3,0,-27]),
+        c([-14.45,30.05,2.25],[5.85,3.65,1.78],"indigo",pivot=[-11.53,31.88,3.14],rotation=[-2,0,-43]),
+        c([-16.60,33.15,2.35],[5.10,2.75,1.55],"amethyst",pivot=[-14.05,34.53,3.13],rotation=[0,0,-57])
     ]}
 
 
 def greave(name:str,parent:str,left:bool)->dict:
     if left:
         return {"name":name,"parent":parent,"pivot":[3.55,5.5,-1.3],"cubes":[
-            c([1.55,-1.00,-1.88],[3.85,5.55,0.62],"void",pivot=[3.48,1.78,-1.57],rotation=[-5,0,-4]),
-            c([4.35,0.15,-1.28],[0.68,4.00,2.05],"cobalt",pivot=[4.69,2.15,-0.25],rotation=[0,0,-9]),
-            c([1.95,4.00,-2.02],[3.05,1.00,0.80],"indigo",pivot=[3.48,4.50,-1.62],rotation=[-10,0,-6])
+            c([1.55,-1.00,-1.86],[3.80,5.50,0.60],"void",pivot=[3.45,1.75,-1.56],rotation=[-5,0,-4]),
+            c([4.30,0.15,-1.25],[0.65,3.95,1.95],"cobalt",pivot=[4.63,2.13,-0.28],rotation=[0,0,-8]),
+            c([1.95,3.95,-2.00],[3.00,0.95,0.76],"indigo",pivot=[3.45,4.43,-1.62],rotation=[-9,0,-5])
         ]}
     return {"name":name,"parent":parent,"pivot":[-3.55,5.5,-1.3],"cubes":[
-        c([-5.40,-1.00,-1.88],[3.85,5.55,0.62],"void",pivot=[-3.48,1.78,-1.57],rotation=[-5,0,4]),
-        c([-5.05,0.15,-1.28],[0.68,4.00,2.05],"amethyst",pivot=[-4.71,2.15,-0.25],rotation=[0,0,9]),
-        c([-5.00,4.00,-2.02],[3.05,1.00,0.80],"indigo",pivot=[-3.48,4.50,-1.62],rotation=[-10,0,6])
-        ]}
+        c([-5.35,-1.00,-1.86],[3.80,5.50,0.60],"void",pivot=[-3.45,1.75,-1.56],rotation=[-5,0,4]),
+        c([-5.00,0.15,-1.25],[0.65,3.95,1.95],"amethyst",pivot=[-4.68,2.13,-0.28],rotation=[0,0,8]),
+        c([-4.95,3.95,-2.00],[3.00,0.95,0.76],"indigo",pivot=[-3.45,4.43,-1.62],rotation=[-9,0,5])
+    ]}
 
 
 def build_model(source:Path)->tuple[dict,int]:
