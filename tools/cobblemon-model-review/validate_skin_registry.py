@@ -12,6 +12,7 @@ from pathlib import Path
 
 FORMAT = "ouros.cobblemon-skin-registry.v1"
 AUTHORITY = "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE"
+LEGACY_VISUAL_EVIDENCE_ROOT = Path("test-evidence/visual/cobblemon-skins")
 LIFECYCLES = {
     "REFERENCE_BLOCKED",
     "REFERENCE_READY",
@@ -75,6 +76,22 @@ def main() -> None:
     args = parser.parse_args()
 
     root = args.repo_root.resolve()
+    legacy_visual_root = root / LEGACY_VISUAL_EVIDENCE_ROOT
+    if legacy_visual_root.exists():
+        legacy_files = sorted(
+            path.relative_to(root).as_posix()
+            for path in legacy_visual_root.rglob("*")
+            if path.is_file()
+        )
+        if legacy_files:
+            preview = legacy_files[:8]
+            suffix = "" if len(legacy_files) <= len(preview) else f" (+{len(legacy_files) - len(preview)} more)"
+            fail(
+                "legacy rejected skin review galleries must not be committed under "
+                f"{LEGACY_VISUAL_EVIDENCE_ROOT.as_posix()}; use immutable GitHub Actions review artifacts instead. "
+                f"files={preview}{suffix}"
+            )
+
     registry_path = args.registry if args.registry.is_absolute() else root / args.registry
     try:
         data = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -128,7 +145,7 @@ def main() -> None:
 
         if lifecycle == "OWNER_APPROVED_RELEASE":
             if entry["saleEligible"] is not True or art_status != "OWNER APPROVED":
-                fail(f"{where}: only OWNER APPROVED_RELEASE may be sale-eligible")
+                fail(f"{where}: only OWNER_APPROVED_RELEASE may be sale-eligible")
         else:
             if entry["saleEligible"] is not False:
                 fail(f"{where}: non-release lifecycle cannot be sale-eligible")
