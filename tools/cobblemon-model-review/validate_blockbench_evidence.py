@@ -81,10 +81,15 @@ def main() -> None:
     required_names = blockbench["requiredEvidenceNames"]
     evidence = data["evidence"]
     required_files = set(evidence["requiredFiles"])
+    generated_here = {
+        evidence["reviewContractFile"],
+        evidence["pngHashManifestFile"],
+        "evidence-set.json",
+    }
 
-    missing = [name for name in required_files if not (out / name).is_file()]
+    missing = [name for name in sorted(required_files - generated_here) if not (out / name).is_file()]
     if missing:
-        raise SystemExit(f"BLOCKBENCH EVIDENCE FAIL: required files missing: {missing}")
+        raise SystemExit(f"BLOCKBENCH EVIDENCE FAIL: required pre-validation files missing: {missing}")
 
     png_records = []
     for name in sorted(required_names):
@@ -158,6 +163,11 @@ def main() -> None:
     contract_path = out / evidence["reviewContractFile"]
     contract_path.write_text(json.dumps(contract, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (out / "evidence-set.json").write_text(json.dumps(contract, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    missing_after = [name for name in sorted(required_files) if not (out / name).is_file()]
+    if missing_after:
+        raise SystemExit(f"BLOCKBENCH EVIDENCE FAIL: required final files missing after contract generation: {missing_after}")
+
     print(json.dumps(contract, indent=2, ensure_ascii=False))
 
 
