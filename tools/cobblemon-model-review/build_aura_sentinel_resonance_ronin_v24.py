@@ -8,48 +8,67 @@ spec=importlib.util.spec_from_file_location('resonance_v23',V23_PATH)
 if spec is None or spec.loader is None: raise SystemExit('cannot load V23 builder')
 v23=importlib.util.module_from_spec(spec); spec.loader.exec_module(v23)
 v22=v23.v22; v1=v23.v1; mcube=v23.mcube
-v22.NORMAL_META=ROOT/'docs/cobblemon-skins/0448_lucario/v25-derived-normal.json'
-v22.SHINY_META=ROOT/'docs/cobblemon-skins/0448_lucario/v25-derived-shiny.json'
+v22.NORMAL_META=ROOT/'docs/cobblemon-skins/0448_lucario/v26-derived-normal.json'
+v22.SHINY_META=ROOT/'docs/cobblemon-skins/0448_lucario/v26-derived-shiny.json'
 def shell(origin,size,uv,*,pivot,rotation,light=82,dark=89): return mcube(origin,size,uv,light=light,dark=dark,pivot=pivot,rotation=rotation)
 def cosmetic_bones():
-    # V25: one compact shoulder/back mantle with real depth. The large forms overlap
-    # as a continuous diagonal envelope instead of V24's thin rising fins.
-    root=v1.bone('ouros_v25_mantle_root','shoulder_right',[-3.9,29.7,0.0],[
-        shell((-9.0,26.8,-2.5),(6.8,2.1,5.7),80,pivot=(-4.9,29.6,0.0),rotation=(16,-18,28),light=82,dark=90),
-        shell((-8.2,28.1,-1.7),(6.0,1.8,5.4),81,pivot=(-4.8,30.0,0.2),rotation=(-9,-29,20),light=83,dark=90)
+    # V26 deletes V25's descending/finned chain. One compact shoulder/back shell owns
+    # the silhouette; each piece is thick enough to read as volume rather than a bar.
+    root=v1.bone('ouros_v26_mantle_root','shoulder_right',[-3.8,29.7,0.0],[
+        shell((-9.0,26.7,-2.7),(6.9,2.5,6.0),80,pivot=(-4.8,29.6,0.0),rotation=(14,-18,27),light=82,dark=90),
+        shell((-8.3,28.1,-1.9),(6.2,2.1,5.7),81,pivot=(-4.7,30.0,0.2),rotation=(-8,-28,19),light=83,dark=90)
     ])
-    crest=v1.bone('ouros_v25_mantle_crest','torso3',[-4.4,29.8,1.0],[
-        shell((-11.2,28.8,-0.9),(7.8,2.0,5.0),80,pivot=(-6.1,30.2,0.8),rotation=(8,-23,39),light=82,dark=90),
-        shell((-11.6,32.1,-0.2),(7.0,1.7,4.5),81,pivot=(-7.0,32.7,1.0),rotation=(3,-17,49),light=84,dark=89)
+    crown=v1.bone('ouros_v26_mantle_crown','torso3',[-4.7,29.8,0.9],[
+        shell((-11.1,29.0,-1.4),(7.5,2.4,5.6),80,pivot=(-6.2,30.5,0.5),rotation=(7,-20,37),light=82,dark=90),
+        shell((-10.9,32.2,-0.8),(6.2,2.0,5.0),81,pivot=(-6.9,32.8,0.7),rotation=(1,-14,46),light=84,dark=89)
     ])
-    fall=v1.bone('ouros_v25_mantle_fall','torso2',[-3.2,23.0,1.0],[
-        shell((-7.9,21.3,-0.9),(5.7,1.8,5.2),80,pivot=(-4.6,25.4,0.8),rotation=(9,-18,20),light=81,dark=90),
-        shell((-6.4,16.8,-0.7),(4.7,1.45,4.8),81,pivot=(-3.9,21.2,0.8),rotation=(2,-12,8),light=82,dark=90),
-        shell((-4.8,12.8,-0.4),(3.2,1.0,4.3),80,pivot=(-3.1,17.0,0.6),rotation=(-5,-6,-6),light=83,dark=89)
+    back=v1.bone('ouros_v26_back_shell','torso2',[-2.8,24.0,1.0],[
+        shell((-6.2,20.6,-1.2),(5.0,2.2,5.6),80,pivot=(-3.8,25.1,0.7),rotation=(8,-15,15),light=81,dark=90)
     ])
-    edge=v1.bone('ouros_v25_chest_edge','torso3',[0.0,28.2,-2.4],[
+    edge=v1.bone('ouros_v26_chest_edge','torso3',[0.0,28.2,-2.4],[
         shell((-3.7,26.8,-3.35),(5.6,0.34,1.05),84,pivot=(-0.3,28.5,-3.0),rotation=(3,0,-27),light=86,dark=80)
     ])
-    return [root,crest,fall,edge]
+    return [root,crown,back,edge]
+def paint_pixel(r:int,g:int,b:int,a:int,x:int,y:int,*,shiny:bool):
+    if a==0: return r,g,b,a
+    mx,mn=max(r,g,b),min(r,g,b); sat=mx-mn; lum=(30*r+59*g+11*b)//100
+    cream=r>170 and g>135 and b<205; white=r>205 and g>205 and b>205; red=r>105 and r>g*1.35 and r>b*1.35
+    if cream or white or red: return r,g,b,a
+    blue=b>r*1.20 and b>g*1.08 and sat>25
+    if blue:
+        # Deep lacquered cobalt: stronger value hierarchy than V25, with sparse facing
+        # highlights and coordinate-stable microvariation; not a flat hue rotation.
+        facing=10 if ((x+2*y)%29 in (0,1,2)) else (4 if ((2*x+y)%17==0) else 0)
+        occlusion=max(0,(y-24)//7)
+        if shiny:
+            nr=int(r*.70)+5; ng=int(g*.78)+7+facing//3; nb=int(b*.90)+9+facing
+        else:
+            nr=int(r*.55)+5; ng=int(g*.66)+7+facing//3; nb=int(b*.82)+12+facing
+        nr-=occlusion//3; ng-=occlusion//4; nb-=occlusion//6
+        return *(max(0,min(255,v)) for v in (nr,ng,nb)),a
+    if lum<125 and sat<90:
+        edge=8 if ((3*x+y)%31 in (0,1)) else 0
+        occlusion=max(0,(y-20)//7)
+        nr=int(r*.70)+5+edge//4-occlusion//4
+        ng=int(g*.73)+6+edge//3-occlusion//4
+        nb=int(b*.88)+13+edge-occlusion//5
+        return *(max(0,min(255,v)) for v in (nr,ng,nb)),a
+    return r,g,b,a
 def post_patch():
     data=json.loads(v1.MANIFEST.read_text(encoding='utf-8'))
-    data['concept']='Aura Sentinel — Resonance Ronin V25'
-    data['artStatus']='ARTISTIC FAIL'
-    data['ownerApproval']={'required':True,'approved':False,'approvedHeadSha':None,'evidenceSetSha256':None,'approvalRecord':None}
+    data['concept']='Aura Sentinel — Resonance Ronin V26'; data['artStatus']='ARTISTIC FAIL'; data['ownerApproval']={'required':True,'approved':False,'approvedHeadSha':None,'evidenceSetSha256':None,'approvalRecord':None}
     p=data['production']; p['productionBoneCount']=v1.OFFICIAL_BONES+4; p['cosmeticBoneCount']=4; p['cosmeticCubeCount']=sum(len(b.get('cubes',[])) for b in cosmetic_bones())
     b=data['builder']; b['scriptPath']='tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v24.py'; b['command']=['python',b['scriptPath']]
-    b['outputs']=list(dict.fromkeys([x.replace('v24-derived-normal.json','v25-derived-normal.json').replace('v24-derived-shiny.json','v25-derived-shiny.json') for x in b['outputs']]))
+    b['outputs']=list(dict.fromkeys([x.replace('v25-derived-normal.json','v26-derived-normal.json').replace('v25-derived-shiny.json','v26-derived-shiny.json') for x in b['outputs']]))
     q=data['qualityIntent']
-    q['signaturePieces']=['One deep diagonal shoulder-to-back mantle envelope','Single descending back-to-hip taper with no forked bar tips','Small chest edge that visually hands off into the mantle rather than competing with it']
-    q['macroFormPlan']='V25 keeps V24 silhouette ambition but removes the thin fin vocabulary. Four thick overlapping upper shells form one compact shoulder/back crest; three progressively smaller deep lower shells continue the same contour toward the hip. All primary surfaces overlap in depth and scale down rather than terminating as isolated bars.'
-    q['gameplayReadGoal']='At 160 px the right shoulder/back mass must read as one broad tapered diagonal gesture with a quiet outer contour, not separate fins, slabs, or a backpack.'
-    q['iterationNote']='V24 passed the unchanged technical floors but direct Blockbench QA showed its thin rising facets collapsing into bars/fins, especially from the rear. V25 reduces the cosmetic system to eight cubes with greater depth, stronger overlap, a shorter crest, and a continuous shoulder-back-hip taper. Thresholds and attachment limits remain unchanged.'
-    data['variantCoverage']['variants'][0]['coverage']='Default preserves the exact official 87-bone Lucario geometry and uses a validated V25 normal texture derived independently from the exact official 1.7.3 baseline.'
-    data['variantCoverage']['variants'][1]['coverage']='Shiny uses the same V25 cosmetic geometry and overlay plus an independently derived V25 texture from the exact official shiny 1.7.3 baseline.'
+    q['signaturePieces']=['Compact deep shoulder/back mantle shell','Short rising crown built from overlapping volumes rather than fins','Single quiet chest edge that connects the shell to the torso']
+    q['macroFormPlan']='V26 removes the entire V25 descending chain after direct rear-view QA showed thin fins. Two deep shoulder roots overlap two broad crown volumes and one short back shell, producing a single compact asymmetric mass with no lower bar tips or forked panels.'
+    q['paintPlan']='Normal and shiny remain independently derived from exact 1.7.3 baselines. Blue biology is repainted as deep lacquered cobalt using multi-level value shaping, sparse facing highlights and deterministic microvariation; dark biology receives stronger indigo occlusion and edge accents. Cream spikes, white landmarks, red eyes, UV layout, dimensions and alpha semantics remain intact.'
+    q['gameplayReadGoal']='At 160 px read one dark cobalt shoulder/back crest with a broad diagonal outer contour. No fins, hanging slabs, backpack rectangle or detached bars may survive.'
+    q['iterationNote']='V25 passed technical floors but direct Blockbench QA still showed stacked head-side slabs and multiple rear fins. V26 deletes the descending chain, reduces the cosmetic system to six cubes, deepens the remaining shells, and increases authored paint contrast instead of adding geometry.'
+    data['variantCoverage']['variants'][0]['coverage']='Default preserves the exact official 87-bone Lucario geometry and uses a validated V26 normal texture independently derived from the exact official 1.7.3 baseline.'
+    data['variantCoverage']['variants'][1]['coverage']='Shiny uses the same V26 cosmetic geometry and overlay plus an independently derived V26 texture from the exact official shiny 1.7.3 baseline.'
     v1.MANIFEST.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 def main():
-    v22.cosmetic_bones=cosmetic_bones
-    v22.paint_pixel=v23.paint_pixel
-    v22.main()
-    post_patch()
+    v22.cosmetic_bones=cosmetic_bones; v22.paint_pixel=paint_pixel; v22.main(); post_patch()
 if __name__=='__main__': main()
