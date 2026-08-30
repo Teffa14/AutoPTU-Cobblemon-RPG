@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "f196dd224e8a382bef3fd9a23439dca9d6b699d69710b4b17046ce41d5b1da8f",
-    "productionBoneCount": 96,
-    "cosmeticBoneCount": 9,
-    "cosmeticCubeCount": 20,
+    "modelSha256": "48535d4caf39757ca7c44db725b81fa7567da670b13474ede5e750e059260168",
+    "productionBoneCount": 94,
+    "cosmeticBoneCount": 7,
+    "cosmeticCubeCount": 13,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V13 follows direct V12 Blockbench rejection. V12 passed engineering floors but remained ARTISTIC FAIL because the half-cloak read as a rectangular panel cascade and the lower-front composition resembled oversized shorts/plates. V13 deliberately reduces cosmetic systems and concentrates authorship into one continuous diagonal macroform. Owner approval remains absent."
+    "iterationNote": "V13 follows direct V12 Blockbench rejection: V12 passed engineering floors but remained ARTISTIC FAIL because the half-cloak read as a rectangular panel cascade and the lower-front composition resembled oversized shorts/plates. V13 deliberately reduces cosmetic systems and concentrates authorship into one continuous diagonal macroform. Owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
