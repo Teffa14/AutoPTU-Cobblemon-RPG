@@ -24,7 +24,9 @@ public final class FabricTrainerSummaryRuntime {
                                 .then(CommandManager.literal("skills")
                                         .executes(context -> showSkills(context.getSource())))
                                 .then(CommandManager.literal("classes")
-                                        .executes(context -> showClasses(context.getSource()))))));
+                                        .executes(context -> showClasses(context.getSource())))
+                                .then(CommandManager.literal("features")
+                                        .executes(context -> showFeatures(context.getSource()))))));
     }
 
     private static int show(ServerCommandSource source) {
@@ -45,6 +47,13 @@ public final class FabricTrainerSummaryRuntime {
         TrainerRequest request = resolve(source);
         if (request == null) return 0;
         for (String line : formatClassLines(request.summary())) request.player().sendMessage(Text.literal(line), false);
+        return 1;
+    }
+
+    private static int showFeatures(ServerCommandSource source) {
+        TrainerRequest request = resolve(source);
+        if (request == null) return 0;
+        for (String line : formatFeatureLines(request.summary())) request.player().sendMessage(Text.literal(line), false);
         return 1;
     }
 
@@ -104,6 +113,18 @@ public final class FabricTrainerSummaryRuntime {
             for (String trainerClass : summary.trainerClasses()) {
                 lines.add(trainerClass);
             }
+        }
+        lines.add("Revision: " + summary.revision());
+        return List.copyOf(lines);
+    }
+
+    static List<String> formatFeatureLines(CanonicalTrainerSummaryService.Summary summary) {
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add("AutoPTU Trainer features");
+        if (summary.trainerFeatures().isEmpty()) {
+            lines.add("No canonical Trainer features are available.");
+        } else {
+            lines.addAll(summary.trainerFeatures());
         }
         lines.add("Revision: " + summary.revision());
         return List.copyOf(lines);
