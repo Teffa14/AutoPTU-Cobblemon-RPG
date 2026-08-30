@@ -20,14 +20,30 @@ public final class FabricTrainerSummaryRuntime {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("trainer")
-                                .executes(context -> show(context.getSource())))));
+                                .executes(context -> show(context.getSource()))
+                                .then(CommandManager.literal("skills")
+                                        .executes(context -> showSkills(context.getSource()))))));
     }
 
     private static int show(ServerCommandSource source) {
+        TrainerRequest request = resolve(source);
+        if (request == null) return 0;
+        for (String line : formatLines(request.summary())) request.player().sendMessage(Text.literal(line), false);
+        return 1;
+    }
+
+    private static int showSkills(ServerCommandSource source) {
+        TrainerRequest request = resolve(source);
+        if (request == null) return 0;
+        for (String line : formatSkillLines(request.summary())) request.player().sendMessage(Text.literal(line), false);
+        return 1;
+    }
+
+    private static TrainerRequest resolve(ServerCommandSource source) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
             source.sendError(Text.literal("AutoPTU Trainer must be requested by an authenticated player."));
-            return 0;
+            return null;
         }
 
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
@@ -36,20 +52,16 @@ public final class FabricTrainerSummaryRuntime {
         CanonicalTrainerSummaryService.Summary summary = service.find(playerId).orElse(null);
         if (summary == null) {
             source.sendError(Text.literal("Canonical Trainer state is unavailable."));
-            return 0;
+            return null;
         }
-
-        for (String line : formatLines(summary)) player.sendMessage(Text.literal(line), false);
-        return 1;
+        return new TrainerRequest(player, summary);
     }
 
     static List<String> formatLines(CanonicalTrainerSummaryService.Summary summary) {
         ArrayList<String> lines = new ArrayList<>();
         lines.add("AutoPTU Trainer");
         lines.add("Classes: " + joinOrNone(summary.trainerClasses()));
-        lines.add("Skills: " + (summary.skills().isEmpty()
-                ? "none"
-                : summary.skills().stream().map(skill -> skill.id() + " " + skill.rank()).reduce((a, b) -> a + ", " + b).orElse("none")));
+        lines.add("Skills: " + formatSkills(summary.skills()));
         lines.add("Features: " + joinOrNone(summary.trainerFeatures()));
         lines.add("Pokemon capabilities: " + joinOrNone(summary.availablePokemonCapabilities()));
         lines.add("Action points: " + summary.actionPoints());
@@ -60,6 +72,26 @@ public final class FabricTrainerSummaryRuntime {
         return List.copyOf(lines);
     }
 
+    static List<String> formatSkillLines(CanonicalTrainerSummaryService.Summary summary) {
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add("AutoPTU Trainer skills");
+        if (summary.skills().isEmpty()) {
+            lines.add("No canonical Trainer skills are available.");
+        } else {
+            for (CanonicalTrainerSummaryService.Skill skill : summary.skills()) {
+                lines.add(skill.id() + ": " + skill.rank());
+            }
+        }
+        lines.add("Revision: " + summary.revision());
+        return List.copyOf(lines);
+    }
+
+    private static String formatSkills(List<CanonicalTrainerSummaryService.Skill> skills) {
+        return skills.isEmpty()
+                ? "none"
+                : skills.stream().map(skill -> skill.id() + " " + skill.rank()).reduce((a, b) -> a + ", " + b).orElse("none");
+    }
+
     private static String joinOrNone(List<String> values) {
         return values.isEmpty() ? "none" : String.join(", ", values);
     }
@@ -67,4 +99,6 @@ public final class FabricTrainerSummaryRuntime {
     private static String signed(int value) {
         return value > 0 ? "+" + value : Integer.toString(value);
     }
+
+    private record TrainerRequest(ServerPlayerEntity player, CanonicalTrainerSummaryService.Summary summary) {}
 }
