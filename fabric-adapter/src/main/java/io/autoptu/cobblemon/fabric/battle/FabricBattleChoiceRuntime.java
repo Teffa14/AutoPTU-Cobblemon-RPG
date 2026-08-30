@@ -39,6 +39,8 @@ public final class FabricBattleChoiceRuntime {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("battle")
+                                .then(CommandManager.literal("status")
+                                        .executes(context -> showStatus(context.getSource())))
                                 .then(CommandManager.literal("choices")
                                         .executes(context -> showChoices(context.getSource())))
                                 .then(CommandManager.literal("choose")
@@ -71,6 +73,33 @@ public final class FabricBattleChoiceRuntime {
 
     public static boolean hasBinding(UUID playerUuid) {
         return playerUuid != null && ACTIVE.containsKey(playerUuid);
+    }
+
+    /**
+     * Returns the current server-owned Minecraft battle projection for a player.
+     *
+     * This projection deliberately exposes only binding identity plus the count obtained from a
+     * fresh authoritative legal-choice query. It does not infer turn ownership, phase, HP,
+     * combatants, winner, faint state or any other PTU fact.
+     */
+    public static BattleStatusView status(UUID playerUuid) {
+        Objects.requireNonNull(playerUuid, "playerUuid");
+        SessionBinding binding = ACTIVE.get(playerUuid);
+        if (binding == null) {
+            return BattleStatusView.unbound();
+        }
+
+        BattleChoiceMenuService service = menuService;
+        if (service == null) {
+            return BattleStatusView.bound(binding.actorId(), null);
+        }
+
+        try {
+            List<BattleChoiceMenuService.Entry> choices = service.choices(binding.reservationId(), binding.actorId());
+            return BattleStatusView.bound(binding.actorId(), choices.size());
+        } catch (RuntimeException unavailable) {
+            return BattleStatusView.bound(binding.actorId(), null);
+        }
     }
 
     private static void refreshHud(MinecraftServer server) {
@@ -113,6 +142,32 @@ public final class FabricBattleChoiceRuntime {
         if (actorId == null || actorId.isBlank()) throw new IllegalArgumentException("actorId must not be blank");
         if (legalChoiceCount < 0) throw new IllegalArgumentException("legalChoiceCount cannot be negative");
         return "AutoPTU • " + actorId.strip() + " • legal choices " + legalChoiceCount;
+    }
+
+    private static int showStatus(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("Battle status must be requested by an authenticated player."));
+            return 0;
+        }
+
+        BattleStatusView status = status(player.getUuid());
+        if (!status.bound()) {
+            source.sendError(Text.literal("No active authoritative AutoPTU battle is bound to this player."));
+            return 0;
+        }
+
+        player.sendMessage(Text.literal("AutoPTU battle status"), false);
+        player.sendMessage(Text.literal("bound actor: " + status.actorId()), false);
+        if (status.authoritativeLegalChoiceCount() == null) {
+            player.sendMessage(Text.literal("authoritative legal choices: unavailable"), false);
+        } else {
+            player.sendMessage(Text.literal(
+                    "authoritative legal choices: " + status.authoritativeLegalChoiceCount()), false);
+        }
+        player.sendMessage(Text.literal(
+                "turn, HP, faint and result: unavailable unless emitted by authoritative battle state"), false);
+        return 1;
     }
 
     private static int showChoices(ServerCommandSource source) {
@@ -175,6 +230,22 @@ public final class FabricBattleChoiceRuntime {
         return error.getMessage() == null || error.getMessage().isBlank()
                 ? error.getClass().getSimpleName()
                 : error.getMessage();
+    }
+
+    public record BattleStatusView(boolean bound, String actorId, Integer authoritativeLegalChoiceCount) {
+        private static BattleStatusView unbound() {
+            return new BattleStatusView(false, null, null);
+        }
+
+        private static BattleStatusView bound(String actorId, Integer authoritativeLegalChoiceCount) {
+            if (actorId == null || actorId.isBlank()) {
+                throw new IllegalArgumentException("actorId must not be blank");
+            }
+            if (authoritativeLegalChoiceCount != null && authoritativeLegalChoiceCount < 0) {
+                throw new IllegalArgumentException("authoritativeLegalChoiceCount cannot be negative");
+            }
+            return new BattleStatusView(true, actorId.strip(), authoritativeLegalChoiceCount);
+        }
     }
 
     private record SessionBinding(String reservationId, String actorId) {
