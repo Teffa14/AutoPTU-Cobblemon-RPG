@@ -19,16 +19,15 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-V15_PATH = ROOT / "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v15.py"
-spec = importlib.util.spec_from_file_location("resonance_v15", V15_PATH)
+V14_PATH = ROOT / "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v14.py"
+spec = importlib.util.spec_from_file_location("resonance_v14", V14_PATH)
 if spec is None or spec.loader is None:
-    raise SystemExit("cannot load V15c builder")
-v15 = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(v15)
-v14 = v15.v14
-v1 = v15.v1
-mcube = v15.mcube
-write_overlay = v15.write_overlay
+    raise SystemExit("cannot load V14c builder")
+v14 = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(v14)
+v1 = v14.v1
+mcube = v14.mcube
+write_overlay = v14.write_overlay
 
 RETAINED = {
     "ouros_resonance_cowl",
