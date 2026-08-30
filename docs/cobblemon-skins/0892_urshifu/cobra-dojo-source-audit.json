@@ -6,6 +6,20 @@
   "concept": "Cobra Dojo Champion",
   "status": "BLOCKED_NO_OFFICIAL_PRESENTATION_MODEL",
   "presentationOnly": true,
+  "selectedForm": {
+    "displayName": "Single Strike Style",
+    "aspect": "single_strike-style",
+    "gmax": false,
+    "sourceRecord": "base species record",
+    "primaryType": "fighting",
+    "secondaryType": "dark",
+    "signatureMove": "wickedblow"
+  },
+  "excludedForms": [
+    "rapid_strike-style",
+    "gmax + single_strike-style",
+    "gmax + rapid_strike-style"
+  ],
   "authorityBoundary": "AutoPTU/Ouros remains authoritative for combatants, legality, HP/status, positions, RNG, damage and tactical results.",
   "target": {
     "minecraftVersion": "1.21.1",
@@ -49,6 +63,12 @@
     "gmax + single_strike-style",
     "gmax + rapid_strike-style"
   ],
+  "verifiedSelectedFormFacts": {
+    "baseRecordAspects": ["single_strike-style"],
+    "secondaryType": "dark",
+    "containsMove": "1:wickedblow",
+    "battleOnly": false
+  },
   "exhaustivePresentationSearch": {
     "pathTerms": [
       "urshifu",
@@ -82,7 +102,7 @@
     "mayUseGeneratedConceptAsGeometry": false,
     "mayUseScreenshotsAsGeometry": false,
     "mayShipProductionModelNow": false,
-    "unblockCondition": "A stable Cobblemon release compatible with the repository target must distribute an official Urshifu presentation model and its corresponding presentation assets. The slice must then restart from those exact official files."
+    "unblockCondition": "A stable Cobblemon release compatible with the repository target must distribute an official Urshifu Single Strike Style presentation model and its corresponding presentation assets. The slice must then restart from those exact official files."
   },
   "auditWorkflow": {
     "workflow": ".github/workflows/cobblemon-urshifu-source-inspect.yml",
