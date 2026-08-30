@@ -8,6 +8,7 @@ on:
       - 'src/main/resources/data/autoptu/cobblemon/skins/**'
       - 'docs/cobblemon-skins/**'
       - 'docs/cobblemon-skin-reference-dossiers/**'
+      - 'docs/cobblemon-skin-reference-eligibility.md'
       - 'tools/cobblemon-model-review/validate_species_reference_dossier.py'
       - 'tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py'
       - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json'
@@ -31,14 +32,14 @@ jobs:
             tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py
 
-      - name: Exercise reference-dossier validator
+      - name: Exercise custom-geometry skin dossier validator
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json \
             --expected-species testmon
 
-      - name: Validate reference dossiers before production skin changes
+      - name: Validate eligible same-species custom skins before production skin changes
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
