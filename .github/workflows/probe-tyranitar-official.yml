@@ -1,0 +1,72 @@
+name: Probe Tyranitar Official Assets
+on:
+  push:
+    branches: ['feat/tyranitar-abyssal-bastion']
+    paths: ['.github/workflows/probe-tyranitar-official.yml']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Download exact official Cobblemon 1.7.3 Fabric JAR
+        run: |
+          set -euo pipefail
+          mkdir -p .probe
+          curl --fail --silent --show-error --location -A 'Ouros-skin-probe' https://api.modrinth.com/v2/version/kF7CvxTo -o .probe/version.json
+          python - <<'PY' > .probe/download.env
+          import json, shlex
+          data=json.load(open('.probe/version.json'))
+          assert data['version_number']=='1.7.3' and data['game_versions']==['1.21.1']
+          f=next(x for x in data['files'] if x.get('primary'))
+          assert f['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(f['url']))
+          print('SHA512='+shlex.quote(f['hashes']['sha512']))
+          PY
+          source .probe/download.env
+          curl --fail --silent --show-error --location "$URL" -o .probe/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" .probe/cobblemon.jar | sha512sum -c --strict
+      - name: Inspect Tyranitar assets
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, zipfile, hashlib, re
+          from pathlib import Path
+          jar=Path('.probe/cobblemon.jar')
+          out=Path('test-evidence/probe'); out.mkdir(parents=True,exist_ok=True)
+          with zipfile.ZipFile(jar) as z:
+            names=z.namelist()
+            matches=[n for n in names if 'tyranitar' in n.lower()]
+            def raw(n): return z.read(n)
+            geos=[n for n in matches if n.endswith('.geo.json')]
+            anims=[n for n in matches if n.endswith('.animation.json')]
+            posers=[n for n in matches if '/posers/' in n and n.endswith('.json')]
+            resolvers=[n for n in matches if '/resolvers/' in n and n.endswith('.json')]
+            textures=[n for n in matches if n.endswith('.png')]
+            report={'matches':matches,'geometry':{},'animations':{},'posers':{},'resolvers':{},'textures':{}}
+            for n in geos:
+              data=json.loads(raw(n)); geom=data['minecraft:geometry'][0]; desc=geom['description']; bones=geom['bones']
+              report['geometry'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'identifier':desc.get('identifier'),'texture_width':desc.get('texture_width'),'texture_height':desc.get('texture_height'),'bone_count':len(bones),'bones':[{'name':b.get('name'),'parent':b.get('parent'),'pivot':b.get('pivot'),'rotation':b.get('rotation'),'cube_count':len(b.get('cubes',[])),'cubes':b.get('cubes',[])} for b in bones]}
+            for n in anims:
+              data=json.loads(raw(n)); report['animations'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'names':list(data.get('animations',{}))}
+            for n in posers:
+              report['posers'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'content':json.loads(raw(n))}
+            for n in resolvers:
+              report['resolvers'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'content':json.loads(raw(n))}
+            for n in textures:
+              report['textures'][n]={'sha256':hashlib.sha256(raw(n)).hexdigest(),'size':len(raw(n))}
+          (out/'tyranitar-official.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+          print(json.dumps({k:list(v) if isinstance(v,dict) else v for k,v in report.items() if k!='matches'},indent=2))
+          PY
+      - name: Commit probe report
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add test-evidence/probe/tyranitar-official.json
+          git commit -m 'Evidence: record official Tyranitar asset probe'
+          git push origin HEAD:${GITHUB_REF_NAME}
