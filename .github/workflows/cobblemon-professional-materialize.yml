@@ -9,7 +9,7 @@ on:
       - '.github/workflows/cobblemon-professional-materialize.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   materialize-active-professional-candidate:
@@ -20,7 +20,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-          persist-credentials: false
+          persist-credentials: true
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
@@ -104,3 +104,28 @@ jobs:
           path: professional-materialized
           if-no-files-found: error
           retention-days: 7
+
+      - name: Commit deterministic materialization to PR branch
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          MANIFEST: ${{ steps.active.outputs.manifest }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          mapfile -t outputs < <(python - <<'PY'
+          import json,os
+          m=json.load(open(os.environ['MANIFEST'],encoding='utf-8'))
+          print(os.environ['MANIFEST'])
+          for path in m['builder']['outputs']:
+              print(path)
+          PY
+          )
+          git add -- "${outputs[@]}"
+          if git diff --cached --quiet; then
+            echo 'Materialized production bytes already match the PR head.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Lucario: materialize deterministic V9 production bytes'
+          git push origin "HEAD:${HEAD_REF}"
