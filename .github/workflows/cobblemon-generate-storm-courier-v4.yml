@@ -49,21 +49,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .official-source/extracted
+          mkdir -p .official-source
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
             -A 'Ouros-AutoPTU-Cobblemon-RPG/storm-courier-v4-generator' \
             "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
             -o .official-source/version.json
-
           python - <<'PY' > .official-source/download.env
           import json, shlex
           data = json.load(open('.official-source/version.json', encoding='utf-8'))
-          assert data['id'] == 'kF7CvxTo', data['id']
-          assert data['version_number'] == '1.7.3', data['version_number']
-          assert '1.21.1' in data['game_versions'], data['game_versions']
-          assert 'fabric' in data['loaders'], data['loaders']
+          assert data['id'] == 'kF7CvxTo'
+          assert data['version_number'] == '1.7.3'
+          assert '1.21.1' in data['game_versions']
+          assert 'fabric' in data['loaders']
           primary = next(f for f in data['files'] if f.get('primary'))
-          assert primary['filename'] == 'Cobblemon-fabric-1.7.3+1.21.1.jar', primary['filename']
+          assert primary['filename'] == 'Cobblemon-fabric-1.7.3+1.21.1.jar'
           print('URL=' + shlex.quote(primary['url']))
           print('SHA512=' + shlex.quote(primary['hashes']['sha512']))
           PY
@@ -71,53 +70,37 @@ jobs:
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
           printf '%s  %s\n' "$SHA512" '.official-source/cobblemon.jar' | sha512sum --check --strict
 
-      - name: Extract and pin official Pikachu model texture animation poser resolver and license
+      - name: Extract and pin exact official Pikachu presentation assets
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib
-          import json
-          import os
-          import zipfile
+          import hashlib, json, os, zipfile
           from pathlib import Path
 
           jar = Path('.official-source/cobblemon.jar')
           version = json.loads(Path('.official-source/version.json').read_text(encoding='utf-8'))
           primary = next(f for f in version['files'] if f.get('primary'))
-          fixed = {
-              'maleModel': 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json',
-              'femaleModel': 'assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json',
-              'animation': 'assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json',
-              'normalTexture': 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png',
-              'shinyTexture': 'assets/cobblemon/textures/pokemon/0025_pikachu/pikachu_shiny.png',
-              'license': 'LICENSE',
+          sources = {
+              'maleModel': ('assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json', 'pikachu_male.geo.json'),
+              'femaleModel': ('assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json', 'pikachu_female.geo.json'),
+              'animation': ('assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json', 'pikachu.animation.json'),
+              'poser': ('assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json', 'pikachu.poser.json'),
+              'resolver': ('assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/pikachu.json', 'pikachu.resolver.json'),
+              'normalTexture': ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png', 'pikachu.png'),
+              'shinyTexture': ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu_shiny.png', 'pikachu_shiny.png'),
+              'license': ('LICENSE', 'LICENSE'),
           }
+          files = {}
           with zipfile.ZipFile(jar) as archive:
-              names = archive.namelist()
-              poser = [p for p in names if '/posers/' in p and '/0025_pikachu/' in p and p.endswith('.json')]
-              resolver = [p for p in names if '/resolvers/' in p and '/0025_pikachu/' in p and p.endswith('.json')]
-              if len(poser) != 1:
-                  raise SystemExit(f'expected exactly one Pikachu poser in official JAR, got {poser}')
-              if len(resolver) != 1:
-                  raise SystemExit(f'expected exactly one Pikachu resolver in official JAR, got {resolver}')
-              fixed['poser'] = poser[0]
-              fixed['resolver'] = resolver[0]
-
-              out = Path('.official-source/extracted')
-              hashes = {}
-              files = {}
-              for label, member in fixed.items():
+              for label, (member, target_name) in sources.items():
                   try:
                       payload = archive.read(member)
                   except KeyError as exc:
-                      raise SystemExit(f'official JAR missing required {label}: {member}') from exc
-                  target = out / Path(member).name
-                  if target.exists():
-                      target = out / f'{label}_{Path(member).name}'
-                  target.write_bytes(payload)
-                  hashes[label] = hashlib.sha256(payload).hexdigest()
-                  files[label] = {'jarPath': member, 'sha256': hashes[label], 'extracted': target.name}
+                      related = [p for p in archive.namelist() if '/0025_pikachu/' in p and p.endswith('.json')]
+                      raise SystemExit(f'official JAR missing required {label}: {member}; Pikachu JSON entries={related}') from exc
+                  Path('.official-source', target_name).write_bytes(payload)
+                  files[label] = {'jarPath': member, 'sha256': hashlib.sha256(payload).hexdigest()}
 
           expected = {
               'maleModel': os.environ['OFFICIAL_PIKACHU_MALE_SHA256'],
@@ -125,15 +108,12 @@ jobs:
               'normalTexture': os.environ['OFFICIAL_PIKACHU_TEXTURE_SHA256'],
               'animation': os.environ['OFFICIAL_PIKACHU_ANIMATION_SHA256'],
           }
-          for label, value in expected.items():
-              if hashes[label] != value:
-                  raise SystemExit(f'{label} hash mismatch expected={value} actual={hashes[label]}')
+          for label, digest in expected.items():
+              assert files[label]['sha256'] == digest, (label, files[label]['sha256'], digest)
 
           jar_sha256 = hashlib.sha256(jar.read_bytes()).hexdigest()
           jar_sha512 = hashlib.sha512(jar.read_bytes()).hexdigest()
-          if jar_sha512 != primary['hashes']['sha512']:
-              raise SystemExit('downloaded JAR SHA-512 differs from pinned Modrinth version metadata')
-
+          assert jar_sha512 == primary['hashes']['sha512']
           manifest = {
               'format': 'ouros.cobblemon-official-source-manifest.v1',
               'minecraftVersion': '1.21.1',
@@ -147,65 +127,36 @@ jobs:
           }
           generated = Path('.official-source/storm-courier-v4-source-manifest.json')
           generated.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-
           committed = Path('docs/cobblemon-skins/0025_pikachu/storm-courier-v4-source-manifest.json')
           if committed.exists():
-              old = json.loads(committed.read_text(encoding='utf-8'))
-              if old != manifest:
-                  raise SystemExit(
-                      'official Cobblemon source drifted from the committed Storm Courier v4 manifest; '
-                      'review release/source migration explicitly before continuing'
-                  )
-
+              assert json.loads(committed.read_text(encoding='utf-8')) == manifest, 'official source drift versus committed manifest'
           print(json.dumps(manifest, indent=2))
           PY
 
-          # Give later steps stable extracted names independent of the discovered poser/resolver filenames.
-          python - <<'PY'
-          import json, shutil
-          from pathlib import Path
-          manifest = json.loads(Path('.official-source/storm-courier-v4-source-manifest.json').read_text())
-          root = Path('.official-source/extracted')
-          for label, target in {
-              'maleModel': 'pikachu_male.geo.json',
-              'femaleModel': 'pikachu_female.geo.json',
-              'animation': 'pikachu.animation.json',
-              'normalTexture': 'pikachu.png',
-              'shinyTexture': 'pikachu_shiny.png',
-              'poser': 'pikachu.poser.json',
-              'resolver': 'pikachu.resolver.json',
-              'license': 'LICENSE',
-          }.items():
-              shutil.copyfile(root / manifest['files'][label]['extracted'], Path('.official-source') / target)
-          PY
-
-      - name: Inspect official Pikachu presentation contract
+      - name: Inspect official models poser resolver animations and forms
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
-
           male = json.loads(Path('.official-source/pikachu_male.geo.json').read_text(encoding='utf-8'))
           female = json.loads(Path('.official-source/pikachu_female.geo.json').read_text(encoding='utf-8'))
           animation = json.loads(Path('.official-source/pikachu.animation.json').read_text(encoding='utf-8'))
           poser = json.loads(Path('.official-source/pikachu.poser.json').read_text(encoding='utf-8'))
           resolver = json.loads(Path('.official-source/pikachu.resolver.json').read_text(encoding='utf-8'))
-
           assert len(male['minecraft:geometry'][0]['bones']) == 90
           assert len(female['minecraft:geometry'][0]['bones']) == 90
           for name in ('animation.pikachu.ground_idle', 'animation.pikachu.battle_idle', 'animation.pikachu.ground_walk'):
               assert name in animation['animations'], name
-
-          # The exact poser/resolver JSONs are preserved in the source manifest. This check proves they parse
-          # as real official assets before Ouros derives any presentation files.
           assert isinstance(poser, dict) and poser
           assert isinstance(resolver, dict) and resolver
-          print('Official Pikachu poser/resolver parsed from the pinned JAR.')
+          raw = json.dumps(resolver)
+          assert 'female' in raw, 'official Pikachu resolver no longer exposes expected female presentation branch'
+          print('Official Pikachu male/female geometry, poser, resolver and animation contract parsed from pinned JAR.')
           PY
 
-      - name: Generate v4 production geometry and full-surface textures
+      - name: Generate v4 geometry and full-surface textures
         shell: bash
         run: |
           set -euo pipefail
@@ -234,25 +185,20 @@ jobs:
           import json
           from pathlib import Path
           expected = [
-              'ouros_storm_head_system',
-              'ouros_storm_mantle_shell',
-              'ouros_storm_torso_suit',
-              'ouros_storm_core',
-              'ouros_storm_power_frame',
-              'ouros_storm_left_pylon',
-              'ouros_storm_right_pylon',
-              'ouros_storm_tail_conductor',
+              'ouros_storm_head_system', 'ouros_storm_mantle_shell', 'ouros_storm_torso_suit',
+              'ouros_storm_core', 'ouros_storm_power_frame', 'ouros_storm_left_pylon',
+              'ouros_storm_right_pylon', 'ouros_storm_tail_conductor',
           ]
           for path in (
               Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json'),
               Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json'),
           ):
               bones = json.loads(path.read_text(encoding='utf-8'))['minecraft:geometry'][0]['bones']
-              assert len(bones) == 98, (path, len(bones))
-              assert [bone['name'] for bone in bones[90:]] == expected, path
+              assert len(bones) == 98
+              assert [bone['name'] for bone in bones[90:]] == expected
           PY
 
-      - name: Validate full-surface normal and shiny derivations
+      - name: Validate full-surface normal and shiny texture derivation
         shell: bash
         run: |
           set -euo pipefail
@@ -268,7 +214,7 @@ jobs:
             --metadata docs/cobblemon-skins/0025_pikachu/storm-courier-v4-shiny.texture.json \
             --expected-official-sha256 "$shiny_sha"
 
-      - name: Validate accessory atlas reservation remains outside original UV footprint
+      - name: Validate accessory UV reservation
         shell: bash
         run: |
           set -euo pipefail
@@ -276,52 +222,32 @@ jobs:
           import json
           from pathlib import Path
           from PIL import Image
-
           data = json.loads(Path('.official-source/pikachu_male.geo.json').read_text(encoding='utf-8'))['minecraft:geometry'][0]
-          width = data['description']['texture_width']
-          height = data['description']['texture_height']
+          width, height = data['description']['texture_width'], data['description']['texture_height']
           assert (width, height) == (128, 64)
           used = set()
-
           def mark(x, y, w, h):
-              x0, x1 = sorted((int(x), int(x + w)))
-              y0, y1 = sorted((int(y), int(y + h)))
+              x0, x1 = sorted((int(x), int(x + w))); y0, y1 = sorted((int(y), int(y + h)))
               for yy in range(max(0, y0), min(height, y1)):
-                  for xx in range(max(0, x0), min(width, x1)):
-                      used.add((xx, yy))
-
+                  for xx in range(max(0, x0), min(width, x1)): used.add((xx, yy))
           for bone in data['bones']:
               for item in bone.get('cubes', []):
-                  dx, dy, dz = item.get('size', [0, 0, 0])
-                  uv = item.get('uv', [0, 0])
+                  dx, dy, dz = item.get('size', [0, 0, 0]); uv = item.get('uv', [0, 0])
                   if isinstance(uv, list):
                       u, v = uv
-                      for rect in (
-                          (u + dz, v, dx, dz),
-                          (u + dz + dx, v, dx, dz),
-                          (u, v + dz, dz, dy),
-                          (u + dz, v + dz, dx, dy),
-                          (u + dz + dx, v + dz, dz, dy),
-                          (u + 2 * dz + dx, v + dz, dx, dy),
-                      ):
-                          mark(*rect)
+                      for rect in ((u+dz,v,dx,dz),(u+dz+dx,v,dx,dz),(u,v+dz,dz,dy),(u+dz,v+dz,dx,dy),(u+dz+dx,v+dz,dz,dy),(u+2*dz+dx,v+dz,dx,dy)): mark(*rect)
                   else:
                       for face in uv.values():
                           if isinstance(face, dict):
-                              point = face.get('uv', [0, 0])
-                              extent = face.get('uv_size', [1, 1])
-                              mark(point[0], point[1], extent[0], extent[1])
-
-          reserved = {(x, 63) for x in range(8)}
-          assert not reserved & used, sorted(reserved & used)
+                              p=face.get('uv',[0,0]); e=face.get('uv_size',[1,1]); mark(p[0],p[1],e[0],e[1])
+          reserved = {(x,63) for x in range(8)}
+          assert not reserved & used
           overlay = Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png').convert('RGBA')
-          assert overlay.size == (128, 64)
-          painted = {(x, y) for y in range(64) for x in range(128) if overlay.getpixel((x, y))[3] > 0}
-          assert painted == reserved, painted
-          print('Accessory atlas reservation verified:', sorted(painted))
+          painted = {(x,y) for y in range(64) for x in range(128) if overlay.getpixel((x,y))[3] > 0}
+          assert painted == reserved
           PY
 
-      - name: Validate production resolver uses derived texture branches only
+      - name: Validate resolver keeps official poser and sex/shiny branches
         shell: bash
         run: |
           set -euo pipefail
@@ -329,30 +255,25 @@ jobs:
           import json
           from pathlib import Path
           resolver = json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/90_ouros_storm_courier.json').read_text(encoding='utf-8'))
-          assert resolver['species'] == 'cobblemon:pikachu'
-          assert resolver['order'] == 90
           expected = {
-              ('ouros_storm_courier',): ('cobblemon:ouros_storm_courier_pikachu_male.geo', 'cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier.png'),
-              ('ouros_storm_courier', 'shiny'): ('cobblemon:ouros_storm_courier_pikachu_male.geo', 'cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier_shiny.png'),
-              ('ouros_storm_courier', 'female'): ('cobblemon:ouros_storm_courier_pikachu_female.geo', 'cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier.png'),
-              ('ouros_storm_courier', 'shiny', 'female'): ('cobblemon:ouros_storm_courier_pikachu_female.geo', 'cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier_shiny.png'),
+              ('ouros_storm_courier',): ('cobblemon:ouros_storm_courier_pikachu_male.geo','cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier.png'),
+              ('ouros_storm_courier','shiny'): ('cobblemon:ouros_storm_courier_pikachu_male.geo','cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier_shiny.png'),
+              ('ouros_storm_courier','female'): ('cobblemon:ouros_storm_courier_pikachu_female.geo','cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier.png'),
+              ('ouros_storm_courier','shiny','female'): ('cobblemon:ouros_storm_courier_pikachu_female.geo','cobblemon:textures/pokemon/0025_pikachu/ouros_storm_courier_shiny.png'),
           }
+          assert resolver['species'] == 'cobblemon:pikachu' and resolver['order'] == 90
           assert {tuple(v['aspects']) for v in resolver['variations']} == set(expected)
           for variation in resolver['variations']:
-              key = tuple(variation['aspects'])
-              model, texture = expected[key]
               assert variation['poser'] == 'cobblemon:pikachu'
-              assert variation['model'] == model
-              assert variation['texture'] == texture
+              assert (variation['model'], variation['texture']) == expected[tuple(variation['aspects'])]
               assert any(layer['name'] == 'ouros_storm_courier' for layer in variation['layers'])
           PY
 
-      - name: Stage source manifest and generated v4 assets
+      - name: Commit pinned manifest and generated production assets
         shell: bash
         run: |
           set -euo pipefail
-          cp .official-source/storm-courier-v4-source-manifest.json \
-            docs/cobblemon-skins/0025_pikachu/storm-courier-v4-source-manifest.json
+          cp .official-source/storm-courier-v4-source-manifest.json docs/cobblemon-skins/0025_pikachu/storm-courier-v4-source-manifest.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
