@@ -53,7 +53,7 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "7a6545eb63fa5b5d442c55ba4311a4df257bd5ad2f3ce064603e2eaad3aadd24",
+    "modelSha256": "2f32f54aa6bee14b6ee7da310728b02f57d01222a8d40c910f4cd77af0e01cfc",
     "productionBoneCount": 91,
     "cosmeticBoneCount": 4,
     "cosmeticCubeCount": 10,
@@ -168,7 +168,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V23 attachment and paint passed, but exact Blockbench evidence failed the unchanged silhouette floor at 0.0146 and direct review showed the form disappearing behind the body. V24 preserves paint and pushes one contiguous sweep outward and upward."
+    "iterationNote": "V23 attachment and paint passed, but exact Blockbench evidence failed the unchanged silhouette floor at 0.0146 and direct review showed the form disappearing behind the body. V24 preserves paint and pushes one contiguous sweep outward and upward. The upper tip is deliberately pulled inward to overlap its predecessor and satisfy the real attachment contract without changing thresholds."
   },
   "variantCoverage": {
     "audited": true,
