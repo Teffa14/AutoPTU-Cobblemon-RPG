@@ -1,32 +1,56 @@
-name: Rift Warden Real Blockbench Evidence
+name: Rift Warden V2 Current Official Model Review
 
 on:
   push:
     branches:
-      - 'feat/gengar-rift-warden-epic'
+      - 'art/gengar-rift-warden-v2-full-transformation'
     paths:
       - '.github/workflows/cobblemon-rift-warden-poses.yml'
-      - 'tools/cobblemon-model-review/**'
+      - 'tools/cobblemon-model-review/blockbench_capture.mjs'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'tools/cobblemon-model-review/validate_accessory_overlay.py'
+      - 'tools/cobblemon-model-review/validate_cosmetic_attachment.py'
+      - 'tools/cobblemon-model-review/build_rift_warden_gengar_v2_current.py'
+      - 'docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-rift-warden-poses.yml'
+      - 'tools/cobblemon-model-review/blockbench_capture.mjs'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'tools/cobblemon-model-review/validate_accessory_overlay.py'
+      - 'tools/cobblemon-model-review/validate_cosmetic_attachment.py'
+      - 'tools/cobblemon-model-review/build_rift_warden_gengar_v2_current.py'
+      - 'docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: rift-warden-real-evidence-${{ github.ref }}
+  group: rift-warden-v2-current-review-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_JAR_SHA256: f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3
+  COBBLEMON_JAR_SHA512: 7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e
+  OFFICIAL_MODEL_SHA256: 57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38
+  OFFICIAL_ANIMATION_SHA256: 68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f
+  OFFICIAL_NORMAL_SHA256: 7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65
+  OFFICIAL_SHINY_SHA256: 1a0821422f8bfbe43a02132c658e48213e6adedbc1b5854f125683951deaeb21
+  EXPECTED_OVERLAY_SHA256: cd5d2b5e8eb31478ef0a4429bc5b7db13eb6561dac7176fc90e0b9f8eca15725
   BLOCKBENCH_VERSION: 5.1.6
   BLOCKBENCH_SHA256: c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e
+  GAMEPLAY_RESOLUTION: '160'
 
 jobs:
-  render-real-evidence:
+  blockbench-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,149 +66,186 @@ jobs:
           npm install --no-save --ignore-scripts playwright-core@1.55.0
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+
       - name: Download exact official Gengar source
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .pose/official
+          mkdir -p .review/official .review/renders .review/output
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
-            -A 'Ouros-AutoPTU-Cobblemon-RPG/gengar-blockbench-review' \
-            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .pose/version.json
-          python - <<'PY' > .pose/download.env
+            -A 'Ouros/rift-warden-v2-review' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .review/version.json
+          python - <<'PY' > .review/download.env
           import json,shlex
-          data=json.load(open('.pose/version.json',encoding='utf-8'))
+          data=json.load(open('.review/version.json'))
           assert data['id']=='kF7CvxTo' and data['version_number']=='1.7.3'
-          assert data['game_versions']==['1.21.1'] and 'fabric' in data['loaders']
+          assert '1.21.1' in data['game_versions'] and 'fabric' in data['loaders']
           primary=next(f for f in data['files'] if f.get('primary'))
           assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
-          print('URL='+shlex.quote(primary['url'])); print('SHA512='+shlex.quote(primary['hashes']['sha512']))
+          assert primary['hashes']['sha512']=='7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+          print('URL='+shlex.quote(primary['url']))
           PY
-          source .pose/download.env
-          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .pose/cobblemon.jar
-          printf '%s  %s\n' "$SHA512" '.pose/cobblemon.jar' | sha512sum --check --strict
-          unzip -p .pose/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0094_gengar/gengar.geo.json' > .pose/official/gengar.geo.json
-          unzip -p .pose/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0094_gengar/gengar.animation.json' > .pose/official/gengar.animation.json
-          unzip -p .pose/cobblemon.jar 'assets/cobblemon/textures/pokemon/0094_gengar/gengar.png' > .pose/official/gengar.png
-          test "$(sha256sum .pose/official/gengar.geo.json | awk '{print $1}')" = '57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38'
-          test "$(sha256sum .pose/official/gengar.animation.json | awk '{print $1}')" = '68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f'
-          test "$(sha256sum .pose/official/gengar.png | awk '{print $1}')" = '7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65'
-      - name: Prove cosmetic preserves all official bones
+          source .review/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .review/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" .review/cobblemon.jar | sha512sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" .review/cobblemon.jar | sha256sum --check --strict
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0094_gengar/gengar.geo.json' > .review/official/gengar.geo.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0094_gengar/gengar.animation.json' > .review/official/gengar.animation.json
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/textures/pokemon/0094_gengar/gengar.png' > .review/official/gengar.png
+          unzip -p .review/cobblemon.jar 'assets/cobblemon/textures/pokemon/0094_gengar/gengar_shiny.png' > .review/official/gengar_shiny.png
+          printf '%s  %s\n' "$OFFICIAL_MODEL_SHA256" .review/official/gengar.geo.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_ANIMATION_SHA256" .review/official/gengar.animation.json | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_NORMAL_SHA256" .review/official/gengar.png | sha256sum --check --strict
+          printf '%s  %s\n' "$OFFICIAL_SHINY_SHA256" .review/official/gengar_shiny.png | sha256sum --check --strict
+
+      - name: Validate exact production asset
         shell: bash
         run: |
           set -euo pipefail
-          python tools/cobblemon-model-review/validate_original_model.py \
-            --official .pose/official/gengar.geo.json \
-            --candidate fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json
-      - name: Build exact review texture
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json'
+          overlay='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png'
+          python tools/cobblemon-model-review/validate_original_model.py --official .review/official/gengar.geo.json --candidate "$model"
+          python tools/cobblemon-model-review/validate_accessory_overlay.py --official .review/official/gengar.png --overlay "$overlay" --expected-official-sha256 "$OFFICIAL_NORMAL_SHA256"
+          python tools/cobblemon-model-review/validate_cosmetic_attachment.py --official .review/official/gengar.geo.json --candidate "$model" --anchor-gap 1.50 --piece-gap 1.00
+          printf '%s  %s\n' "$EXPECTED_OVERLAY_SHA256" "$overlay" | sha256sum --check --strict
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          model=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json').read_text())['minecraft:geometry'][0]
+          meta=json.loads(Path('docs/cobblemon-skins/0094_gengar/rift-warden-build-metadata.json').read_text())
+          expected=['ouros_rift_cowl','ouros_rift_mantle','ouros_rift_gate','ouros_rift_relic_wing','ouros_rift_lower_shroud','ouros_rift_armguard_left','ouros_rift_armguard_right','ouros_rift_wrist_left','ouros_rift_wrist_right']
+          assert len(model['bones'])==87 and [b['name'] for b in model['bones'][78:]]==expected
+          assert meta['originalBoneCount']==78 and meta['derivedBoneCount']==87 and meta['cosmeticCubeCount']==75
+          assert meta['bodyTexelRework']=='NONE'
+          assert meta['productionBodyTextureSha256']==meta['officialTextureBaselineSha256']=='7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65'
+          PY
+
+      - name: Build exact Blockbench preview textures
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from PIL import Image
-          base=Image.open('.pose/official/gengar.png').convert('RGBA')
           overlay=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png').convert('RGBA')
-          assert base.size==overlay.size==(128,128)
-          Image.alpha_composite(base,overlay).save('.pose/rift-warden.png',optimize=True)
+          assert overlay.size==(128,128)
+          for source,target in (('.review/official/gengar.png','.review/warden-normal.png'),('.review/official/gengar_shiny.png','.review/warden-shiny.png')):
+              body=Image.open(source).convert('RGBA')
+              Image.alpha_composite(body,overlay).save(target,optimize=True)
           PY
+
       - name: Download pinned Blockbench
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
             "https://github.com/JannisX11/blockbench/releases/download/v${BLOCKBENCH_VERSION}/Blockbench_${BLOCKBENCH_VERSION}.AppImage" \
-            -o .pose/blockbench.AppImage
-          printf '%s  %s\n' "$BLOCKBENCH_SHA256" '.pose/blockbench.AppImage' | sha256sum --check --strict
-          chmod +x .pose/blockbench.AppImage
-          (cd .pose && ./blockbench.AppImage --appimage-extract >/dev/null)
-          test -x .pose/squashfs-root/AppRun
-      - name: Render exact official and Rift Warden states in Blockbench
+            -o .review/blockbench.AppImage
+          printf '%s  %s\n' "$BLOCKBENCH_SHA256" .review/blockbench.AppImage | sha256sum --check --strict
+          chmod +x .review/blockbench.AppImage
+          (cd .review && ./blockbench.AppImage --appimage-extract >/dev/null)
+
+      - name: Render matched-camera official and V2 evidence
         shell: bash
         run: |
           set -euo pipefail
-          root='test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses'
-          rm -rf "$root" .pose/renders; mkdir -p "$root" .pose/renders
-          cleanup_blockbench() { pid="${1:-}"; if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi; pkill -f "$PWD/.pose/squashfs-root/blockbench" 2>/dev/null || true; pkill -f "$PWD/.pose/squashfs-root/AppRun" 2>/dev/null || true; sleep 2; }
-          render_once() {
-            model="$1"; texture="$2"; animation="$3"; frame="$4"; output="$5"; port="$6"; name="$7"; attempt="$8"
-            userdata="$PWD/.pose/user-${name}-${attempt}"; log="$PWD/.pose/${name}-${attempt}.log"
-            rm -rf "$userdata" "$output"; mkdir -p "$userdata" "$output"
-            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.pose/squashfs-root" \
-              .pose/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan \
-              --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$userdata" \
-              "$model" > "$log" 2>&1 &
+          cleanup() { pid="${1:-}"; if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi; pkill -f "$PWD/.review/squashfs-root/blockbench" 2>/dev/null || true; pkill -f "$PWD/.review/squashfs-root/AppRun" 2>/dev/null || true; sleep 2; }
+          once() {
+            model="$1"; texture="$2"; anim="$3"; time="$4"; out="$5"; port="$6"; tag="$7"; profile_in="$8"; profile_out="$9"; attempt="${10}"
+            userdata="$PWD/.review/user-${tag}-${attempt}"; log="$PWD/.review/${tag}-${attempt}.log"; rm -rf "$userdata" "$out"; mkdir -p "$userdata" "$out"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.review/squashfs-root" .review/squashfs-root/AppRun \
+              --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle \
+              --remote-debugging-port="$port" --userData "$userdata" "$model" >"$log" 2>&1 &
             pid=$!; ready=0
             for _ in $(seq 1 90); do
               if curl --fail --silent "http://127.0.0.1:${port}/json/version" >/dev/null 2>&1; then ready=1; break; fi
-              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; cleanup_blockbench "$pid"; return 1; fi
+              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; cleanup "$pid"; return 1; fi
               sleep 1
             done
-            if [ "$ready" -ne 1 ]; then cat "$log"; cleanup_blockbench "$pid"; return 1; fi
-            if ! node tools/cobblemon-model-review/blockbench_capture.mjs --endpoint "http://127.0.0.1:${port}" \
-              --texture "$texture" --animation "$PWD/.pose/official/gengar.animation.json" \
-              --animation-name "$animation" --animation-time "$frame" --output-dir "$output"; then
-              cat "$log"; cleanup_blockbench "$pid"; return 1
-            fi
-            cleanup_blockbench "$pid"
+            if [ "$ready" -ne 1 ]; then cat "$log"; cleanup "$pid"; return 1; fi
+            args=(--endpoint "http://127.0.0.1:${port}" --texture "$texture" --animation "$PWD/.review/official/gengar.animation.json" --animation-name "$anim" --animation-time "$time" --gameplay-resolution "$GAMEPLAY_RESOLUTION" --output-dir "$out")
+            if [ -n "$profile_in" ]; then args+=(--camera-profile-in "$profile_in"); fi
+            if [ -n "$profile_out" ]; then args+=(--camera-profile-out "$profile_out"); fi
+            if ! node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}"; then cat "$log"; cleanup "$pid"; return 1; fi
+            cleanup "$pid"
           }
-          render_model() { for attempt in 1 2 3; do if render_once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$attempt"; then return 0; fi; done; return 1; }
-          official="$PWD/.pose/official/gengar.geo.json"
+          render() { for attempt in 1 2 3; do if once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$attempt"; then return 0; fi; done; return 1; }
+          official="$PWD/.review/official/gengar.geo.json"
           warden="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0094_gengar/ouros_rift_warden_gengar.geo.json"
-          render_model "$official" "$PWD/.pose/official/gengar.png" 'animation.gengar.ground_idle' 0.35 "$PWD/.pose/renders/official-hero" 9251 official-hero
-          render_model "$warden" "$PWD/.pose/rift-warden.png" 'animation.gengar.ground_idle' 0.35 "$PWD/.pose/renders/hero" 9252 hero
-          render_model "$warden" "$PWD/.pose/rift-warden.png" 'animation.gengar.air_idle' 0.35 "$PWD/.pose/renders/air-idle" 9253 air-idle
-          render_model "$warden" "$PWD/.pose/rift-warden.png" 'animation.gengar.air_fly' 0.35 "$PWD/.pose/renders/air-fly" 9254 air-fly
-          cp .pose/renders/official-hero/three_quarter.png "$root/official_reference_three_quarter.png"
-          cp .pose/renders/hero/three_quarter.png "$root/hero_three_quarter.png"
-          cp .pose/renders/air-idle/three_quarter.png "$root/air_idle_three_quarter.png"
-          cp .pose/renders/air-fly/three_quarter.png "$root/air_fly_three_quarter.png"
-          cp .pose/renders/hero/front.png "$root/hero_front.png"
-          cp .pose/renders/hero/left.png "$root/hero_left.png"
-          cp .pose/renders/hero/right.png "$root/hero_right.png"
-          cp .pose/renders/hero/back.png "$root/hero_back.png"
-      - name: Validate provenance and record official clip limitations
+          camera="$PWD/.review/official-camera.json"
+          render "$official" "$PWD/.review/official/gengar.png" 'animation.gengar.ground_idle' 0.35 "$PWD/.review/renders/official" 9621 official '' "$camera"
+          render "$warden" "$PWD/.review/warden-normal.png" 'animation.gengar.ground_idle' 0.35 "$PWD/.review/renders/hero" 9622 hero "$camera" ''
+          render "$warden" "$PWD/.review/warden-normal.png" 'animation.gengar.air_idle' 0.35 "$PWD/.review/renders/air-idle" 9623 air-idle "$camera" ''
+          render "$warden" "$PWD/.review/warden-normal.png" 'animation.gengar.air_fly' 0.35 "$PWD/.review/renders/air-fly" 9624 air-fly "$camera" ''
+          render "$warden" "$PWD/.review/warden-shiny.png" 'animation.gengar.ground_idle' 0.35 "$PWD/.review/renders/shiny" 9625 shiny "$camera" ''
+
+      - name: Assemble V2 evidence and provenance
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib,json
+          import hashlib,json,shutil
           from pathlib import Path
           from PIL import Image
-          renders=Path('.pose/renders')
-          expected={'official-hero':('animation.gengar.ground_idle',78),'hero':('animation.gengar.ground_idle',86),'air-idle':('animation.gengar.air_idle',86),'air-fly':('animation.gengar.air_fly',86)}
-          for name,(animation,bones) in expected.items():
-              m=json.loads((renders/name/'blockbench-metadata.json').read_text())
-              assert m['viewer']=='Blockbench' and m['sourceOfTransforms']=='Blockbench Bedrock animation codec'
-              assert m['modelInfo']['boneCount']==bones
-              assert m['modelInfo']['appliedAnimation']['name']==animation and m['modelInfo']['appliedAnimation']['codec']=='bedrock'
-          root=Path('test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses')
-          files=['official_reference_three_quarter.png','hero_three_quarter.png','air_idle_three_quarter.png','air_fly_three_quarter.png','hero_front.png','hero_left.png','hero_right.png','hero_back.png']
+          out=Path('.review/output')
+          mapping={
+            'official_reference_three_quarter.png':Path('.review/renders/official/three_quarter.png'),
+            'hero_three_quarter.png':Path('.review/renders/hero/three_quarter.png'),
+            'air_idle_three_quarter.png':Path('.review/renders/air-idle/three_quarter.png'),
+            'air_fly_three_quarter.png':Path('.review/renders/air-fly/three_quarter.png'),
+            'hero_front.png':Path('.review/renders/hero/front.png'),
+            'hero_left.png':Path('.review/renders/hero/left.png'),
+            'hero_right.png':Path('.review/renders/hero/right.png'),
+            'hero_back.png':Path('.review/renders/hero/back.png'),
+            'official_reference_gameplay_160.png':Path('.review/renders/official/three_quarter_gameplay_160.png'),
+            'hero_gameplay_160.png':Path('.review/renders/hero/three_quarter_gameplay_160.png'),
+            'air_idle_gameplay_160.png':Path('.review/renders/air-idle/three_quarter_gameplay_160.png'),
+            'air_fly_gameplay_160.png':Path('.review/renders/air-fly/three_quarter_gameplay_160.png'),
+            'shiny_three_quarter.png':Path('.review/renders/shiny/three_quarter.png')}
           hashes={}
-          for filename in files:
-              p=root/filename; image=Image.open(p).convert('RGBA'); assert image.size==(1024,1024) and image.getbbox() is not None
-              hashes[filename]=hashlib.sha256(p.read_bytes()).hexdigest()
-          animations=set(json.loads(Path('.pose/official/gengar.animation.json').read_text())['animations'])
-          assert 'animation.gengar.ground_idle' in animations and 'animation.gengar.air_fly' in animations
-          assert not any('battle' in a for a in animations) and not any('walk' in a for a in animations)
-          manifest={'format':'ouros.cobblemon-blockbench-pose-evidence.v1','viewer':'Blockbench 5.1.6','modelSource':'official Cobblemon 1.7.3 Fabric JAR, Modrinth version kF7CvxTo','modelSha256':'57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38','animationSha256':'68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f','textureSha256':'7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65','originalBoneCount':78,'derivedBoneCount':86,'poses':{'hero':{'animation':'animation.gengar.ground_idle','time':0.35},'air_idle':{'animation':'animation.gengar.air_idle','time':0.35},'air_fly':{'animation':'animation.gengar.air_fly','time':0.35}},'battleEvidence':{'status':'not-rendered','reason':'Official Gengar animation JSON contains no dedicated battle clip; no manual battle pose is fabricated.'},'walkingEvidence':{'status':'not-rendered','reason':'Official Gengar animation JSON contains no walking clip; air_fly is captured as the official locomotion evidence instead.'},'files':hashes}
-          (root/'pose-metadata.json').write_text(json.dumps(manifest,indent=2)+'\n')
-          print(json.dumps(manifest,indent=2))
+          for name,src in mapping.items():
+              assert src.is_file(),src
+              shutil.copy2(src,out/name)
+              im=Image.open(out/name).convert('RGBA')
+              assert im.size==((160,160) if 'gameplay_160' in name else (1024,1024))
+              hashes[name]=hashlib.sha256((out/name).read_bytes()).hexdigest()
+          metas={tag:json.loads(Path(f'.review/renders/{tag}/blockbench-metadata.json').read_text()) for tag in ('official','hero','air-idle','air-fly','shiny')}
+          assert metas['official']['modelInfo']['boneCount']==78
+          for tag in ('hero','air-idle','air-fly','shiny'):
+              assert metas[tag]['modelInfo']['boneCount']==87
+              assert metas[tag]['cameraContract']=='matched to official reference camera profile'
+          report={
+            'format':'ouros.cobblemon-full-transformation-review.v3',
+            'viewer':'Blockbench 5.1.6',
+            'cobblemonVersion':'1.7.3',
+            'minecraftTarget':'1.21.1',
+            'officialModelSha256':'57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38',
+            'officialAnimationSha256':'68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f',
+            'officialNormalSha256':'7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65',
+            'officialShinySha256':'1a0821422f8bfbe43a02132c658e48213e6adedbc1b5854f125683951deaeb21',
+            'accessoryOverlaySha256':'cd5d2b5e8eb31478ef0a4429bc5b7db13eb6561dac7176fc90e0b9f8eca15725',
+            'bodyTexelRework':'NONE',
+            'originalBones':78,
+            'derivedBones':87,
+            'cosmeticBones':9,
+            'cosmeticCubes':75,
+            'gameplayResolution':160,
+            'animations':{
+              'hero':{'name':'animation.gengar.ground_idle','time':0.35},
+              'airIdle':{'name':'animation.gengar.air_idle','time':0.35},
+              'airFly':{'name':'animation.gengar.air_fly','time':0.35}},
+            'battleEvidence':'OMITTED: official Gengar Bedrock animation file has no dedicated battle clip',
+            'walkingEvidence':'OMITTED: official Gengar Bedrock animation file has no walking clip; air_fly is the official locomotion evidence',
+            'pngSha256':hashes,
+            'artisticAcceptance':'PENDING_HUMAN_VISUAL_REVIEW'}
+          (out/'blockbench-review-metadata.json').write_text(json.dumps(report,indent=2)+'\n')
+          shutil.copy2('.review/official-camera.json',out/'official-camera.json')
+          print(json.dumps(report,indent=2))
           PY
-      - name: Upload real Blockbench evidence
+
+      - name: Upload current V2 evidence
         uses: actions/upload-artifact@v4
         with:
-          name: rift-warden-real-poses
-          path: test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses
+          name: rift-warden-v2-current-blockbench-review
+          path: .review/output
           if-no-files-found: error
           retention-days: 14
-      - name: Commit validated evidence
-        shell: bash
-        run: |
-          set -euo pipefail
-          root='test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses'
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add "$root"
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Evidence: add Rift Warden Blockbench review'
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin HEAD:"${GITHUB_REF_NAME}"
