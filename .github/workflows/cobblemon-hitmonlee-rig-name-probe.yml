@@ -16,16 +16,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o version.json
-          python - <<'PY' > env
+          mkdir -p .probe
+          curl -fsSL "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .probe/version.json
+          python - <<'PY' > .probe/download.env
           import json,shlex
-          d=json.load(open('version.json')); p=next(f for f in d['files'] if f.get('primary')); print('URL='+shlex.quote(p['url']))
+          d=json.load(open('.probe/version.json')); p=next(f for f in d['files'] if f.get('primary')); print('JAR_URL='+shlex.quote(p['url']))
           PY
-          source env; curl -fsSL "$URL" -o cobblemon.jar
-          printf '%s  %s\n' "$JAR_SHA256" cobblemon.jar | sha256sum -c -
+          source .probe/download.env
+          curl -fsSL "$JAR_URL" -o .probe/cobblemon.jar
+          printf '%s  %s\n' "$JAR_SHA256" .probe/cobblemon.jar | sha256sum -c -
           python - <<'PY'
           import json,zipfile
-          with zipfile.ZipFile('cobblemon.jar') as z:
+          with zipfile.ZipFile('.probe/cobblemon.jar') as z:
             d=json.loads(z.read('assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/hitmonlee.geo.json'))
-          for i,b in enumerate(d['minecraft:geometry'][0]['bones']): print(i,b.get('name'),'parent=',b.get('parent'),'pivot=',b.get('pivot'))
+          for i,b in enumerate(d['minecraft:geometry'][0]['bones']):
+            print(i,b.get('name'),'parent=',b.get('parent'),'pivot=',b.get('pivot'))
           PY
