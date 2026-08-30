@@ -8,7 +8,7 @@ The authoritative art contract is `docs/cobblemon-skin-art-direction.md`. Techni
 
 The owner rejected the current artistic quality of the model set. Therefore there are currently **no artistically accepted Ouros Cobblemon skins** in this catalog.
 
-Previous CI, source-provenance, anatomy, resolver, Blockbench, Playable Test Build and Integration Core results remain useful technical evidence. They do not imply visual acceptance. A model can return to `FULL TRANSFORMATION ACCEPTED` only after a materially improved exact current model is shown through the required Blockbench evidence and the owner explicitly approves that exact evidence set.
+Previous CI, source-provenance, anatomy, resolver, Blockbench, Playable Test Build and Integration Core results remain useful technical evidence. They do not imply visual acceptance. A model can enter `OWNER_APPROVED_RELEASE` only after a materially improved exact current model is shown through the required Blockbench evidence and the owner explicitly approves that exact evidence set.
 
 Assistant review and green CI are not owner approval. No future model may self-promote from `OWNER REVIEW REQUIRED` to an accepted artistic state.
 
@@ -98,7 +98,7 @@ Every candidate also needs a real gameplay-scale sample with the Pokemon approxi
 
 `OWNER REVIEW REQUIRED` means internal technical and visual-preflight gates may be green, but the exact current Blockbench evidence has not yet received explicit owner approval.
 
-`FULL TRANSFORMATION ACCEPTED` means the exact current production model passes all technical gates **and** the owner explicitly approved the exact current Blockbench evidence set. Any later production-asset change invalidates that approval.
+`OWNER_APPROVED_RELEASE` means the exact current production model passes all technical gates **and** the owner explicitly approved the exact current Blockbench evidence set. Any later production-asset change invalidates that approval.
 
 ## Legacy audit queue
 
@@ -107,6 +107,7 @@ Every candidate also needs a real gameplay-scale sample with the Pokemon approxi
 | Pikachu | Storm Courier | existing implementation/evidence retained | USER REJECTED — REWORK REQUIRED | Redesign to premium authored full-character quality; show new current Blockbench evidence for owner approval |
 | Lucario | Aura Sentinel | exact 87-bone official source + historical cosmetic work; prior technical gates retained | USER REJECTED — REWORK REQUIRED | Keep exact official baseline; redesign visual model substantially and use the current professional manifest/Blockbench pipeline before owner review |
 | Gengar | Rift Warden | exact official-source V2 technical work exists on rejected PR #327 | USER REJECTED — REWORK REQUIRED | Satisfy the current 3-reference Cobblemon-pack gate, then redesign actual geometry rather than add more/larger boxes |
+| Hitmonlee | Cobra Dojo | historical implementation/evidence retained | USER REJECTED — REWORK REQUIRED | Complete the current reference and professional-manifest gates before any production rework |
 | Mimikyu | Eclipse Herald | historical technical baseline | USER REJECTED — REWORK REQUIRED | Rebuild/rework to premium standard and present exact current Blockbench evidence |
 | Charizard | Solar Legion | historical 138-bone technical pass | USER REJECTED — REWORK REQUIRED | Rebuild from exact current Charizard source and redesign visual language |
 | Greninja | Shadow Tide | historical normal/Ash technical pass | USER REJECTED — REWORK REQUIRED | Rebuild official forms independently and redesign visual language |
@@ -159,4 +160,4 @@ Current artistic status: `USER REJECTED — REWORK REQUIRED`. Rebuild from the e
 
 Report the Pokemon/concept, three or more same-species Cobblemon-pack references actually inspected, official release and hashes, original bones preserved, cosmetic bones/cubes, signature pieces, body/overlay texture derivation and hashes, official animations used, four clickable current Blockbench PNGs, concrete internal artistic evaluation, professional manifest/evidence-set hash, validators/tests/build/CI, PR/merge state, sex/form differences, **owner approval state**, and the next slice.
 
-Never report `ART ACCEPTED`, `FULL TRANSFORMATION ACCEPTED`, `EPIC ACCEPTED`, ready-to-merge artistic status, or equivalent without explicit owner approval of the exact current evidence set.
+Never report `ART ACCEPTED`, `FULL TRANSFORMATION ACCEPTED`, `EPIC ACCEPTED`, `OWNER APPROVED_RELEASE`, ready-to-sell status, or equivalent without explicit owner approval of the exact current evidence set and a passing approval record.

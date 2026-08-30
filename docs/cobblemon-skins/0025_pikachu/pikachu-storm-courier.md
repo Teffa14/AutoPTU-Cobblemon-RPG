@@ -1,6 +1,10 @@
 # Pikachu — Storm Courier
 
-Art status: FULL-TRANSFORMATION OVERHAUL IN PROGRESS under issue #308.
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 The previous 98-bone epic-v3 pass remains a technically validated historical baseline. It is no longer considered artistically complete because its first read remains too close to "Pikachu plus goggles, straps, backpack and small field hardware". Do not use v3 as the visual quality bar for new skins.
 

@@ -14,6 +14,7 @@
   },
   "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0001_replace_species.json",
   "officialSource": {
+    "modrinthProjectId": "MdwFAVRL",
     "modrinthVersionId": "kF7CvxTo",
     "version": "1.7.3",
     "minecraftVersion": "1.21.1",
@@ -21,6 +22,8 @@
     "jarFilename": "Cobblemon-fabric-1.7.3+1.21.1.jar",
     "jarSha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
     "jarSha512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+    "releaseChannel": "release",
+    "enforceLatestCompatibleStable": true,
     "modelPath": "assets/cobblemon/bedrock/pokemon/models/0001_replace_species/replace_species.geo.json",
     "modelSha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "officialBoneCount": 1,
@@ -29,7 +32,24 @@
       "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "animationPath": "assets/cobblemon/bedrock/pokemon/animations/0001_replace_species/replace_species.animation.json",
-    "animationSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "animationSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "auxiliaryAssets": [
+      {
+        "role": "POSER",
+        "path": "assets/cobblemon/bedrock/pokemon/posers/0001_replace_species/replace_species.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "role": "RESOLVER",
+        "path": "assets/cobblemon/bedrock/pokemon/resolvers/0001_replace_species/replace_species.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "role": "MODEL_LICENSE",
+        "path": "assets/cobblemon/bedrock/pokemon/models/0001_replace_species/replace_species.geo.json.license",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ]
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0001_replace_species/ouros_replace_concept.geo.json",
@@ -56,6 +76,13 @@
         "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
         "derivation": "ACCESSORY_OVERLAY"
       }
+    ],
+    "runtimeAssets": [
+      {
+        "role": "RESOLVER",
+        "path": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0001_replace_species/90_ouros_replace_concept.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
     ]
   },
   "builder": {
@@ -68,7 +95,8 @@
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0001_replace_species/ouros_replace_concept.geo.json",
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept.png",
-      "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept_accessories.png"
+      "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0001_replace_species/ouros_replace_concept_accessories.png",
+      "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0001_replace_species/90_ouros_replace_concept.json"
     ]
   },
   "blockbench": {

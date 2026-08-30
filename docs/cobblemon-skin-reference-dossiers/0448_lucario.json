@@ -1,0 +1,190 @@
+{
+  "format": "ouros.cobblemon-species-reference-dossier.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "researchDate": "2026-08-30",
+  "status": "REFERENCE READY",
+  "references": [
+    {
+      "referenceId": "lucario-overhaul-1.2.2-ruins-style",
+      "species": "lucario",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystem": "COBBLEMON_PACK",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
+      "project": "Lucario Overhaul",
+      "sourceUrl": "https://modrinth.com/datapack/lucario-overhaul/version/CxAutgZe",
+      "sourceVersion": "1.2.2 (Modrinth version CxAutgZe)",
+      "implementationName": "Ruins Style Lucario",
+      "licenseStatus": "MIT_DECLARED_BY_MODRINTH; STUDY_ONLY_FOR_THIS_COMMERCIAL_WORKFLOW",
+      "assetInspectionStatus": "COMPLETE",
+      "sourcePackage": {
+        "filename": "Lucario_Overhaul_v1.2.2.zip",
+        "sha256": "853643feadaa3666d4278b9e636568c502d122b01c071c9a4b21fc2a69ce14cd"
+      },
+      "assetFilesInspected": [
+        {
+          "kind": "MODEL",
+          "path": "assets/cobblemon/bedrock/models/lucarioruins/lucarioruins.geo.json",
+          "sha256": "37b602e1cdc094acdb4a58d8f3f503e126ccad5b8bebae1c9266efcfdaace50c"
+        },
+        {
+          "kind": "TEXTURE",
+          "path": "assets/cobblemon/textures/pokemon/lucarioruins/lucarioruins.png",
+          "sha256": "9204cf1f723bf01497d8e2c9becb99ed870083a0374d52b025e5c9ef674244fd"
+        },
+        {
+          "kind": "ANIMATION",
+          "path": "assets/cobblemon/bedrock/pokemon/animations/0448_lucarioruins/lucarioruins.animation.json",
+          "sha256": "b37c44f8333249e07b739c1af97cd082b17e783ba8e942b515ee93a0e9980e8c"
+        },
+        {
+          "kind": "POSER",
+          "path": "assets/cobblemon/bedrock/posers/lucarioruins.json",
+          "sha256": "9a9e03eb5af869ddb19cf09dcd15a095a677f23183179c6e06c78111f85e94ea"
+        }
+      ],
+      "inspectionSummary": "The inspected model has 92 bones and 126 cubes on a 128x128 atlas. Torso flap/flap2 and four chained head-flap bones add materially distinct costume geometry and animation-ready pivots.",
+      "techniqueLessons": [
+        "Use two-stage parented cloth planes with opposing rotations to create a long drape that can bend without becoming a rigid slab.",
+        "Distribute the costume between torso and head contours so the three-quarter silhouette changes as one character design instead of isolated accessories.",
+        "Reserve coherent atlas regions for thin cloth surfaces and paint their edge/value hierarchy so zero-depth planes remain readable at gameplay scale."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The exact Ruins Style costume silhouette and segmented head cloth",
+        "The ring motif, outfit markings, palette, and Pokémon Unite-derived visual identity"
+      ],
+      "reuseMode": "STUDY_ONLY",
+      "license": {
+        "name": "MIT (project metadata)",
+        "sourceUrl": "https://modrinth.com/datapack/lucario-overhaul",
+        "allowsDerivatives": true,
+        "allowsRedistribution": true
+      }
+    },
+    {
+      "referenceId": "lucario-overhaul-1.2.2-space-style",
+      "species": "lucario",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystem": "COBBLEMON_PACK",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
+      "project": "Lucario Overhaul",
+      "sourceUrl": "https://modrinth.com/datapack/lucario-overhaul/version/CxAutgZe",
+      "sourceVersion": "1.2.2 (Modrinth version CxAutgZe)",
+      "implementationName": "Space Style Lucario",
+      "licenseStatus": "MIT_DECLARED_BY_MODRINTH; STUDY_ONLY_FOR_THIS_COMMERCIAL_WORKFLOW",
+      "assetInspectionStatus": "COMPLETE",
+      "sourcePackage": {
+        "filename": "Lucario_Overhaul_v1.2.2.zip",
+        "sha256": "853643feadaa3666d4278b9e636568c502d122b01c071c9a4b21fc2a69ce14cd"
+      },
+      "assetFilesInspected": [
+        {
+          "kind": "MODEL",
+          "path": "assets/cobblemon/bedrock/models/lucariospace/lucariospace.geo.json",
+          "sha256": "1d5e40b57a4ca243aede0c98a941bd4f4e40b783b8ac8a0d2500692b1783443b"
+        },
+        {
+          "kind": "TEXTURE",
+          "path": "assets/cobblemon/textures/pokemon/lucariospace/lucariospace.png",
+          "sha256": "9b50bb7bf696d07bdc9f06694b0bcb35d93524b44bbbe6b627e24ad6e4454c59"
+        },
+        {
+          "kind": "ANIMATION",
+          "path": "assets/cobblemon/bedrock/pokemon/animations/0448_lucariospace/lucario.animation.json",
+          "sha256": "a3396478d715be2302d2c228d8c86edb457a0c27eb7a8486d67065e0af9f47bb"
+        },
+        {
+          "kind": "POSER",
+          "path": "assets/cobblemon/bedrock/posers/lucariospace.json",
+          "sha256": "e1a3c5f1cced69a40a1cd9efd95b70e6927bb17266bd72c7d392272609bfba86"
+        }
+      ],
+      "inspectionSummary": "The inspected model has 85 bones and 102 cubes on a 128x128 atlas. Suit shells are integrated into chest, arm, leg, and head groups instead of existing as one floating costume block.",
+      "techniqueLessons": [
+        "Layer slightly inflated suit shells over the primary chest mass to preserve anatomical read while creating a distinct material envelope.",
+        "Carry the theme through mirrored arm and leg volumes so the lower body participates in the transformation and motion stays parent-safe.",
+        "Use several overlapping chest cubes with different depth and UV regions to separate collar, torso shell, shoulder transition, and biological landmarks."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The exact Space Style suit and helmet construction",
+        "The suit panel layout, visor treatment, palette, and Pokémon Unite-derived markings"
+      ],
+      "reuseMode": "STUDY_ONLY",
+      "license": {
+        "name": "MIT (project metadata)",
+        "sourceUrl": "https://modrinth.com/datapack/lucario-overhaul",
+        "allowsDerivatives": true,
+        "allowsRedistribution": true
+      }
+    },
+    {
+      "referenceId": "cobblemon-more-cosmetics-1.1.71-covert-style",
+      "species": "lucario",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystem": "COBBLEMON_PACK",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
+      "project": "CobblemonMoreCosmetics",
+      "sourceUrl": "https://modrinth.com/datapack/cobblemonmorecosmetics/version/jN3II9NG",
+      "sourceVersion": "1.1.71 / release archive 1.1.7-1.21.x (Modrinth version jN3II9NG)",
+      "implementationName": "Covert Style Lucario",
+      "licenseStatus": "MIT_DECLARED_BY_MODRINTH; STUDY_ONLY_FOR_THIS_COMMERCIAL_WORKFLOW",
+      "assetInspectionStatus": "COMPLETE",
+      "sourcePackage": {
+        "filename": "CobblemonMoreCosmetics Release v1.1.7-1.21.x.zip",
+        "sha256": "ee651586eae945e7118904223b01a34a19608fad9b8111f5aa64177d378d5e59"
+      },
+      "assetFilesInspected": [
+        {
+          "kind": "MODEL",
+          "path": "assets/cobblemon/bedrock/pokemon/models/cosmetic/morecosmetics/lucario_covert.geo.json",
+          "sha256": "5610de009fc5b56d92c5750f3b6515f963700ff126e9b8eb0427809cb319d719"
+        },
+        {
+          "kind": "TEXTURE",
+          "path": "assets/cobblemon/textures/pokemon/cosmetic/morecosmetics/lucario/lucario_covert.png",
+          "sha256": "781f1067f8781a42c0637494fe5348fab6c308418e568ebce8eb950df854988e"
+        },
+        {
+          "kind": "RESOLVER",
+          "path": "assets/cobblemon/bedrock/pokemon/resolvers/cosmetic/morecosmetics/50_lucario_covert.json",
+          "sha256": "2fe19b41b0ef0cecfbe71d881557ae4bf6b3f29cc7b0e2b8cd287e17f93632fb"
+        },
+        {
+          "kind": "SPECIES_ADDITION",
+          "path": "data/cobblemon/species_additions/morecosmetics/lucario_covert.json",
+          "sha256": "389757b68bd844d35df441797582f554e809f7bcb452af133bd1635305253956"
+        }
+      ],
+      "inspectionSummary": "The inspected model has 113 bones and 92 cubes on a 256x128 atlas. Large hood/coat shells overlap the official torso and head hierarchy, with separate arm overlays and front/back chest planes.",
+      "techniqueLessons": [
+        "Build a dominant costume read from overlapping head and torso shells that share the official hierarchy instead of a detached back-frame silhouette.",
+        "Place costume UVs in a dedicated expanded-atlas region so large authored surfaces receive material detail without repainting unrelated biological texels.",
+        "Use separate arm overlays plus front/back chest planes to maintain material continuity across animation while preserving openings around face and limbs."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The exact Covert Style hood, cloak profile, and garment panel layout",
+        "The original project's palette, texture markings, and recognizable covert-costume identity"
+      ],
+      "reuseMode": "STUDY_ONLY",
+      "license": {
+        "name": "MIT (project metadata)",
+        "sourceUrl": "https://modrinth.com/datapack/cobblemonmorecosmetics",
+        "allowsDerivatives": true,
+        "allowsRedistribution": true
+      }
+    }
+  ],
+  "candidateReferences": [],
+  "minimumCompleteReferencesRequired": 3,
+  "currentCompleteEligibleReferenceCount": 3,
+  "distinctExternalProjectCount": 2,
+  "productionModelingGate": "OPEN",
+  "reuseDecision": "All three references remain STUDY_ONLY for this commercial workflow despite MIT project metadata; learn construction techniques but do not copy costume identity, geometry, UVs, texture, palette, or markings.",
+  "nextAction": "Author a new Aura Sentinel concept, deterministic builder, production resolver, and professional manifest from the exact current official Cobblemon Lucario baseline. Do not reuse the rejected historical builder or model design."
+}

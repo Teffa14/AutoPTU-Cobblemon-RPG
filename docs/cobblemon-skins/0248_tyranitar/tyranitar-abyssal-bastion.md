@@ -1,6 +1,10 @@
 # Tyranitar — Abyssal Bastion
 
-Status: EPIC V2 ACCEPTED IN BLOCKBENCH. Repository-wide PR gates must be green before merge.
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 ## Scope
 
@@ -69,7 +73,7 @@ The exact production model, official texture, Ouros overlay and official `tyrani
 
 The official Cobblemon 1.7.3 Tyranitar animation JSON exposes only `ground_idle`, `blink`, `mouth_open` and `cry`. It contains no Bedrock `ground_walk`, `battle_idle` or equivalent battle clip. Walking and battle screenshots are therefore deliberately omitted rather than fabricated from manual transforms. Normal movement remains code-backed/procedural in Cobblemon.
 
-The accepted v2 Blockbench review verifies 61 bones for the official reference and 69 for the production cosmetic model. Front, left, right, back and three-quarter renders are stored under `test-evidence/visual/cobblemon-skins/0248_tyranitar/abyssal-bastion-real-poses/` with hashes and provenance in `pose-metadata.json`.
+The historical v2 Blockbench review recorded 61 bones for the official reference and 69 for the production cosmetic model. Front, left, right, back and three-quarter renders are stored under `test-evidence/visual/cobblemon-skins/0248_tyranitar/abyssal-bastion-real-poses/` with hashes and provenance in `pose-metadata.json`.
 
 ## Files
 

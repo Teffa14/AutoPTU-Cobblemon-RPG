@@ -1,0 +1,21 @@
+{
+  "format": "ouros.cobblemon-owner-art-approval.v1",
+  "decision": "APPROVED",
+  "approverRole": "PROJECT_OWNER",
+  "approvedAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "ownerLogin": "Teffa14",
+  "githubPullRequest": 0,
+  "githubReviewId": 0,
+  "approvedHeadSha": "0000000000000000000000000000000000000000",
+  "evidenceSetSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "reviewedArtifact": "replace-species-replace-concept-professional-review",
+  "reviewedEvidence": [
+    "official_reference_three_quarter.png",
+    "hero_three_quarter.png",
+    "hero_front.png",
+    "hero_back.png",
+    "hero_gameplay_160.png",
+    "contact_sheet.png"
+  ],
+  "ownerStatement": "Replace with the owner's explicit approval of this exact evidence set."
+}

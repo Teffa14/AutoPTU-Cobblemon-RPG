@@ -1,6 +1,10 @@
 # 0094 Gengar — Rift Warden
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 Rift Warden is a presentation-only Ouros cosmetic derived from the exact Gengar model distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It does not implement or consume Cobblemon battle-state authority.
 
@@ -62,7 +66,7 @@ Pinned viewer: Blockbench 5.1.6, SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557
 
 Evidence directory: `test-evidence/visual/cobblemon-skins/0094_gengar/rift-warden-real-poses/`.
 
-The accepted review loads the exact production `.geo.json`, official texture and Ouros overlay. It compares official and cosmetic Gengar with matched camera/scale/frame and records hero front/left/right/back plus official `ground_idle`, `air_idle` and `air_fly` states. The front silhouette changes immediately through the shoulder shrouds and rear pylons, the three-quarter view gains a strong vertical rift-frame hierarchy, and the official eyes and grin remain unobstructed. The split halo fragment above the head is intentionally detached spatially as a rift motif; it remains visually stable across idle and flight. No severe cosmetic detachment appears in the tested official clips.
+The historical review loaded the exact production `.geo.json`, official texture and Ouros overlay. It compared official and cosmetic Gengar with matched camera/scale/frame and recorded hero front/left/right/back plus official `ground_idle`, `air_idle` and `air_fly` states. These observations are technical history only and do not override the owner's rejection.
 
 No `battle_ready` PNG is claimed because the official Gengar animation JSON has no dedicated battle clip. No walking PNG is claimed because that JSON has no walking clip; `air_fly` is used as the official locomotion evidence instead.
 

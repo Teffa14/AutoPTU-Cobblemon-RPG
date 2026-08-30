@@ -14,6 +14,12 @@ The skin pipeline is presentation-only. It may use Cobblemon/Minecraft models, t
 
 ## Required pipeline stages
 
+### 0. Exhaustive registry and lifecycle lock
+
+`docs/cobblemon-skin-registry.json` is the single source of truth for every committed Ouros production model. `validate_skin_registry.py` requires exact coverage between registry entries and on-disk `ouros_*.geo.json` assets.
+
+`REFERENCE_BLOCKED`, `REFERENCE_READY`, and `LEGACY_QUARANTINED` production bytes are immutable. `REFERENCE_READY` means research passed but no production contract exists yet. A skin can change only after its strict reference dossier passes, a real professional manifest exists, and the registry promotes it to `PROFESSIONAL_CANDIDATE`. Only `OWNER_APPROVED_RELEASE` may set `saleEligible: true`.
+
 ### 1. Same-species Cobblemon-pack research gate
 
 No production geometry starts until the exact species has at least three COMPLETE references that satisfy `docs/cobblemon-skin-reference-eligibility.md`.
@@ -25,6 +31,7 @@ Each counted reference must be a real custom-geometry skin from a real Cobblemon
 The professional manifest pins:
 
 - Modrinth version id;
+- Modrinth project id and stable release channel;
 - Cobblemon version;
 - Minecraft version and loader;
 - primary JAR filename;
@@ -32,15 +39,20 @@ The professional manifest pins:
 - exact official species model path/hash;
 - official reference texture path/hash;
 - official animation path/hash;
+- official poser, resolver and model-license paths/hashes;
 - official bone count.
 
 `prepare_professional_review_assets.py` downloads that exact release, verifies hashes, extracts the actual assets and rejects source drift.
+
+It also queries the official Modrinth project at review time and rejects the manifest if its pinned release is no longer the latest listed stable release compatible with the declared Minecraft version and loader.
 
 ### 3. Deterministic builder
 
 Every production skin has one declared Python builder and argv in its professional manifest.
 
 `run_manifest_builder.py` reruns that exact builder in GitHub and requires the resulting model and texture bytes to match the committed SHA-256 values. A builder that cannot reproduce committed production bytes is not production-ready.
+
+The same reproducibility contract covers production resolver/routing files; a correct model with stale or hand-edited runtime routing does not pass.
 
 This removes the old pattern where a model could be committed but the repository could no longer prove how to regenerate it.
 
@@ -134,7 +146,9 @@ The pipeline should converge on two reusable layers:
 1. **Professional Skin Quality Gate** — lightweight PR gate for manifests, reference contract and deterministic metadata.
 2. **Professional Blockbench Review** — reusable/heavy workflow that regenerates the model, downloads the exact official JAR and Blockbench binary, validates source/anatomy/texture/attachment, captures matched-camera evidence, builds the contact sheet and uploads the evidence artifact.
 
-Species-specific workflows should become thin wrappers that only point to a professional manifest. Do not keep cloning 100-200 lines of almost-identical Blockbench shell logic for every version/species.
+The repository uses only the reusable generic review plus a changed-manifest dispatcher. Species-specific generation/review workflows and rejected one-off builders are legacy and must not be restored. A species is configured exclusively through its professional manifest.
+
+See `docs/cobblemon-skin-studio-runbook.md` for the exact operator workflow and owner release protocol.
 
 ## Art-quality failure modes that still require human judgment
 

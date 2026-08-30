@@ -1,6 +1,10 @@
 # 0448 Lucario — Aura Sentinel
 
-Status: FULL TRANSFORMATION ACCEPTED; V4 HUMAN VISUAL QA PASSED; FINAL HUMAN HEAD CI REQUIRED
+Status: USER REJECTED — REWORK REQUIRED; REFERENCE READY (ACTIVE SLICE)
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 Aura Sentinel is an Ouros presentation-only cosmetic derived from the exact Lucario assets distributed in the official Cobblemon 1.7.3 Fabric JAR for Minecraft 1.21.1. It never grants Cobblemon or Minecraft battle-state authority. AutoPTU/Ouros remains authoritative for combatants, legality, HP/status, tactical positions, RNG, damage and outcomes.
 
@@ -25,7 +29,7 @@ The exact model license extracted from the pinned official JAR is preserved at `
 
 ## Superseded passes
 
-The original Aura Sentinel accessory-first pass and the later full-body-repaint experiment are engineering history only. They do not define the current accepted asset. V4 was regenerated directly from the exact current official Lucario geometry and restores the strict biological-texture preservation contract.
+The original Aura Sentinel accessory-first pass and the later full-body-repaint experiment are engineering history only. They do not define an accepted asset. V4 was regenerated directly from the exact current official Lucario geometry and restores the strict biological-texture preservation contract.
 
 Any old documentation that described thousands of occupied biological pixels being recolored is superseded by this V4 record.
 
@@ -150,7 +154,7 @@ The rear view has a dominant shrine/mantle silhouette. Left and right views show
 
 The official battle-idle capture keeps the armor coherent without catastrophic detachment or severe obvious clipping. The structural attachment validator also reports PASS for all ten cosmetic groups.
 
-Artistic status: `FULL TRANSFORMATION ACCEPTED` for the reviewed V4 asset set.
+Historical assistant assessment (superseded by the owner): technically reviewable. Current artistic status: `USER REJECTED — REWORK REQUIRED`.
 
 ## Reviewed-head repository gates
 

@@ -3,53 +3,60 @@ name: Cobblemon Professional Skin Quality Gate
 on:
   pull_request:
     paths:
-      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/**'
-      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/**'
+      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/**'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/**'
       - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
       - 'src/main/resources/data/autoptu/cobblemon/skins/**'
-      - 'docs/cobblemon-skin-review-manifests/**'
-      - 'docs/cobblemon-skin-professional-pipeline.md'
-      - 'docs/cobblemon-skin-reference-eligibility.md'
-      - 'tools/cobblemon-model-review/validate_professional_skin_manifest.py'
-      - 'tools/cobblemon-model-review/validate_changed_skin_professional_manifests.py'
-      - 'tools/cobblemon-model-review/run_manifest_builder.py'
-      - 'tools/cobblemon-model-review/prepare_professional_review_assets.py'
-      - 'tools/cobblemon-model-review/validate_blockbench_evidence.py'
-      - 'tools/cobblemon-model-review/build_review_contact_sheet.py'
-      - 'tools/cobblemon-model-review/validate_species_reference_dossier.py'
-      - 'tools/cobblemon-model-review/fixtures/reference_dossier_validator_*.json'
-      - '.github/workflows/cobblemon-professional-skin-quality-gate.yml'
-      - '.github/workflows/cobblemon-professional-blockbench-review.yml'
+      - 'docs/cobblemon-skin-*/**'
+      - 'docs/cobblemon-skin-*.md'
+      - 'docs/cobblemon-skins/**'
+      - 'tools/cobblemon-model-review/**'
+      - '.github/CODEOWNERS'
+      - '.github/workflows/cobblemon-professional-*.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   professional-contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
-      - name: Compile professional skin tooling
+      - name: Compile and regression-test professional tooling
         run: |
           set -euo pipefail
-          python -m py_compile \
-            tools/cobblemon-model-review/validate_species_reference_dossier.py \
-            tools/cobblemon-model-review/validate_professional_skin_manifest.py \
-            tools/cobblemon-model-review/validate_changed_skin_professional_manifests.py \
-            tools/cobblemon-model-review/run_manifest_builder.py \
-            tools/cobblemon-model-review/prepare_professional_review_assets.py \
-            tools/cobblemon-model-review/validate_blockbench_evidence.py \
-            tools/cobblemon-model-review/build_review_contact_sheet.py
+          python -m compileall -q tools/cobblemon-model-review
+          python -m unittest tools/cobblemon-model-review/test_professional_pipeline.py
 
-      - name: Prove mandatory references are real Cobblemon-pack skins
+      - name: Enforce exhaustive registry and legacy quarantine
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_skin_registry.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('docs/cobblemon-skin-registry.json').read_text(encoding='utf-8'))
+          data['entries'][0]['saleEligible']=True
+          Path('/tmp/invalid-skin-registry.json').write_text(json.dumps(data),encoding='utf-8')
+          PY
+          if python tools/cobblemon-model-review/validate_skin_registry.py \
+            --registry /tmp/invalid-skin-registry.json --skip-manifest-validation; then
+            echo 'ERROR: quarantined art became sale-eligible' >&2
+            exit 1
+          fi
+
+      - name: Prove strict same-species reference behavior
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/validate_species_reference_dossier.py \
@@ -58,101 +65,66 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          src=Path('tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json')
-          data=json.loads(src.read_text())
+          source=Path('tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json')
+          data=json.loads(source.read_text(encoding='utf-8'))
           data['references'][0]['sourceEcosystem']='STANDALONE_3D_MODEL'
-          Path('/tmp/standalone-reference.json').write_text(json.dumps(data))
+          Path('/tmp/standalone-reference.json').write_text(json.dumps(data),encoding='utf-8')
           PY
           if python tools/cobblemon-model-review/validate_species_reference_dossier.py \
             /tmp/standalone-reference.json --expected-species testmon; then
-            echo 'ERROR: standalone 3D reference incorrectly passed Cobblemon-pack gate' >&2
+            echo 'ERROR: standalone 3D model bypassed the Cobblemon-pack reference gate' >&2
             exit 1
           fi
           python tools/cobblemon-model-review/validate_species_reference_dossier.py \
             tools/cobblemon-model-review/fixtures/reference_dossier_validator_blocked_candidates.json \
             --expected-species testmon --allow-blocked
 
-      - name: Exercise professional manifest hash and owner-approval contract
+      - name: Verify release approvals came from the repository owner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          GH_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
-          mkdir -p .professional-fixture
-          cat > .professional-fixture/model.geo.json <<'JSON'
-          {
-            "minecraft:geometry": [
-              {
-                "description": {"identifier": "geometry.fixture", "texture_width": 16, "texture_height": 16},
-                "bones": [
-                  {"name": "root", "pivot": [0,0,0], "cubes": [{"origin":[0,0,0],"size":[1,1,1],"uv":[0,0]}]},
-                  {"name": "ouros_signature", "parent": "root", "pivot": [0,0,0], "cubes": [{"origin":[0,1,0],"size":[1,1,1],"uv":[1,1]}]}
-                ]
-              }
-            ]
-          }
-          JSON
-          printf 'fixture-texture-bytes\n' > .professional-fixture/body.png
-          MODEL_SHA="$(sha256sum .professional-fixture/model.geo.json | awk '{print $1}')"
-          BODY_SHA="$(sha256sum .professional-fixture/body.png | awk '{print $1}')"
-          python - "$MODEL_SHA" "$BODY_SHA" <<'PY'
-          import json,sys
-          model_sha,body_sha=sys.argv[1:]
-          data={
-            'format':'ouros.cobblemon-professional-skin-review.v1',
-            'species':'testmon','nationalDex':9999,'concept':'Professional Fixture',
-            'authorityBoundary':'PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE',
-            'artStatus':'OWNER REVIEW REQUIRED',
-            'ownerApproval':{'required':True,'approved':False,'approvedHeadSha':None,'evidenceSetSha256':None,'approvalRecord':None},
-            'referenceDossier':'tools/cobblemon-model-review/fixtures/reference_dossier_validator_pass.json',
-            'officialSource':{
-              'modrinthVersionId':'fixture','version':'1.0','minecraftVersion':'1.21.1','loader':'fabric',
-              'jarFilename':'fixture.jar','jarSha256':'1'*64,'jarSha512':'2'*128,
-              'modelPath':'assets/cobblemon/fixture.geo.json','modelSha256':'3'*64,'officialBoneCount':1,
-              'referenceTexture':{'path':'assets/cobblemon/fixture.png','sha256':body_sha},
-              'animationPath':'assets/cobblemon/fixture.animation.json','animationSha256':'4'*64
-            },
-            'production':{
-              'modelPath':'.professional-fixture/model.geo.json','modelSha256':model_sha,
-              'productionBoneCount':2,'cosmeticBoneCount':1,'cosmeticCubeCount':1,
-              'textures':[{'role':'BODY','path':'.professional-fixture/body.png','sha256':body_sha,'derivation':'OFFICIAL_IDENTICAL'}]
-            },
-            'builder':{
-              'deterministic':True,
-              'scriptPath':'tools/cobblemon-model-review/build_aura_sentinel_lucario.py',
-              'command':['python','tools/cobblemon-model-review/build_aura_sentinel_lucario.py'],
-              'outputs':['.professional-fixture/model.geo.json','.professional-fixture/body.png']
-            },
-            'blockbench':{
-              'version':'5.1.6','appImageSha256':'5'*64,'matchedCamera':True,'gameplayResolution':160,
-              'heroAnimation':'animation.testmon.idle','heroAnimationTime':0.2,
-              'battleAnimation':'animation.testmon.battle','battleAnimationTime':0.2,
-              'requiredEvidenceNames':['official_reference_three_quarter.png','hero_three_quarter.png','battle_ready_three_quarter.png','hero_gameplay_160.png'],
-              'technicalVisualFloor':{'minimumPixelDifferenceRatio':0.03,'minimumSilhouetteDeltaRatio':0.0}
-            },
-            'evidence':{
-              'artifactName':'fixture-professional-review','reviewContractFile':'review-contract.json','pngHashManifestFile':'png-sha256.txt',
-              'requiredFiles':['official_reference_three_quarter.png','hero_three_quarter.png','battle_ready_three_quarter.png','hero_gameplay_160.png','review-contract.json','png-sha256.txt']
-            },
-            'qualityIntent':{
-              'referenceLessons':['contour wrapping','painted depth','motion-aware attachment'],
-              'signaturePieces':['signature mantle'],
-              'macroFormPlan':'one connected tapered mass with deliberate negative space',
-              'paintPlan':'value ramps, occlusion and edge control',
-              'gameplayReadGoal':'signature remains legible at 160 px',
-              'antiPatternsToReject':['base plus accessories','rectangular cage','flat recolor'],
-              'thirdPartyReusePolicy':'TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR'
-            },
-            'variantCoverage':{'audited':True,'variants':[{'name':'default','coverage':'fixture coverage'}]},
-            'technicalChecks':['REFERENCE_DOSSIER','OFFICIAL_SOURCE_HASHES','ORIGINAL_BONE_EQUALITY','COSMETIC_ATTACHMENT','BUILDER_REPRODUCIBILITY','BLOCKBENCH_MATCHED_CAMERA','GAMEPLAY_SCALE_EVIDENCE','PLAYABLE_TEST_BUILD','INTEGRATION_CORE_CI']
-          }
-          open('.professional-fixture/manifest.json','w').write(json.dumps(data,indent=2)+'\n')
-          PY
-          python tools/cobblemon-model-review/validate_professional_skin_manifest.py .professional-fixture/manifest.json
-          printf '\n' >> .professional-fixture/model.geo.json
-          if python tools/cobblemon-model-review/validate_professional_skin_manifest.py .professional-fixture/manifest.json; then
-            echo 'ERROR: stale production hash incorrectly passed professional manifest gate' >&2
-            exit 1
-          fi
+          python - <<'PY'
+          import json, os, urllib.request
+          from pathlib import Path
 
-      - name: Enforce professional manifest on changed production skins
+          registry=json.loads(Path('docs/cobblemon-skin-registry.json').read_text(encoding='utf-8'))
+          releases=[entry for entry in registry['entries'] if entry['lifecycle']=='OWNER_APPROVED_RELEASE']
+          for entry in releases:
+              manifest=json.loads(Path(entry['manifest']).read_text(encoding='utf-8'))
+              record=json.loads(Path(manifest['ownerApproval']['approvalRecord']).read_text(encoding='utf-8'))
+              owner=os.environ['GH_REPOSITORY_OWNER']
+              if record['ownerLogin'].lower()!=owner.lower():
+                  raise SystemExit(f"approval owner mismatch for {entry['slug']}")
+              url=(f"https://api.github.com/repos/{os.environ['GH_REPOSITORY']}/pulls/"
+                   f"{record['githubPullRequest']}/reviews/{record['githubReviewId']}")
+              request=urllib.request.Request(url,headers={
+                  'Accept':'application/vnd.github+json',
+                  'Authorization':f"Bearer {os.environ['GH_TOKEN']}",
+                  'X-GitHub-Api-Version':'2022-11-28',
+                  'User-Agent':'Ouros-Cobblemon-owner-approval-gate',
+              })
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  review=json.load(response)
+              expected={
+                  'id':record['githubReviewId'],
+                  'state':'APPROVED',
+                  'commit_id':record['approvedHeadSha'],
+                  'submitted_at':record['approvedAt'],
+              }
+              for key,value in expected.items():
+                  if review.get(key)!=value:
+                      raise SystemExit(f"GitHub owner review mismatch for {entry['slug']}: {key}")
+              if review.get('user',{}).get('login','').lower()!=owner.lower():
+                  raise SystemExit(f"GitHub review for {entry['slug']} was not authored by {owner}")
+              print(f"Verified owner approval for {entry['slug']}")
+          if not releases:
+              print('No owner-approved releases; owner review verification is not applicable.')
+          PY
+
+      - name: Enforce manifest on changed production bytes
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}

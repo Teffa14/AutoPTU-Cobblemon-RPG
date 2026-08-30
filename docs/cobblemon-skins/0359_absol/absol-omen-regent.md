@@ -1,6 +1,10 @@
 # 0359 Absol — Omen Regent
 
-Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 ## Official source
 
@@ -30,7 +34,7 @@ The first generated pass was structurally valid but artistically rejected after 
 
 V2 deliberately increases hierarchy and mass. Shoulder plates extend well beyond the body, the split mantle creates a broad lower silhouette, the rear frame becomes a thick broken eclipse instead of two thin standards, and the asymmetric relic creates a strong diagonal read behind the natural horn. Purple aura insets and gold/silver edge hardware provide secondary contrast while dark cloth/armor remains the dominant material family.
 
-Direct Blockbench review accepted V2. The official reference and skin use the same model scale, camera, `animation.absol.ground_idle` clip and frame. The skin remains unmistakably Absol because the red eyes, muzzle, white head, natural horn, fur, quadruped stance and tail remain visible. `animation.absol.cry` was also rendered and keeps cosmetic groups attached to their intended animated parents without severe detachment.
+Historical Blockbench review recorded V2 as technically reviewable. The official reference and skin use the same model scale, camera, `animation.absol.ground_idle` clip and frame. The skin remains unmistakably Absol because the red eyes, muzzle, white head, natural horn, fur, quadruped stance and tail remain visible. `animation.absol.cry` was also rendered and keeps cosmetic groups attached to their intended animated parents without severe detachment.
 
 The official poser defines standing with `ground_idle` and walking with `ground_idle` plus procedural `q.quadruped_walk`. The official Bedrock animation file does not contain a dedicated walking or battle-idle clip. Accordingly, this evidence set does not fabricate `walking_three_quarter` or `battle_ready_three_quarter`; those omissions are explicit in pose metadata.
 
@@ -44,7 +48,7 @@ The production resolver preserves the two official branches: normal and `shiny`.
 
 Real preview evidence is produced by pinned Blockbench 5.1.6, SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
 
-The accepted V2 evidence directory is `test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses/` and contains the matched official reference, hero three-quarter, cry three-quarter and hero front/left/right/back views plus pose metadata and PNG hashes.
+The historical V2 evidence directory is `test-evidence/visual/cobblemon-skins/0359_absol/omen-regent-real-poses/` and contains the matched official reference, hero three-quarter, cry three-quarter and hero front/left/right/back views plus pose metadata and PNG hashes.
 
 PR #304 merged Omen Regent after the exact final head completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully. Integration Core also completed two production Fabric + Cobblemon dedicated-server boots. The final merge commit is `2658bda967fa7d527a49eacb1de741d504793753`.
 
