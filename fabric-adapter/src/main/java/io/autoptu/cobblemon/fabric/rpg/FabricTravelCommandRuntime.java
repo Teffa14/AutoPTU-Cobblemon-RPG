@@ -30,14 +30,15 @@ public final class FabricTravelCommandRuntime {
     private FabricTravelCommandRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("travel")
-                                .executes(context -> listDestinations(context.getSource()))
-                                .then(CommandManager.argument("destination", StringArgumentType.word())
-                                        .executes(context -> travelToDestination(
-                                                context.getSource(),
-                                                StringArgumentType.getString(context, "destination"))))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var travelCommand = CommandManager.literal("travel")
+                    .executes(context -> listDestinations(context.getSource()))
+                    .then(CommandManager.argument("destination", StringArgumentType.word())
+                            .executes(context -> travelToDestination(
+                                    context.getSource(),
+                                    StringArgumentType.getString(context, "destination"))));
+            dispatcher.register(CommandManager.literal("autoptu").then(travelCommand));
+        });
     }
 
     private static int listDestinations(ServerCommandSource source) {
