@@ -94,6 +94,7 @@ Slash commands are not the final UX. Normal play should move to screens, keybind
 | CUR-041 | LIVE | Authored world-object interaction gate | PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a` adds server-authoritative `canInteract` gating for explicitly authored chests, switches, doors, terminals and shrines while leaving ordinary vanilla objects untouched. |
 | CUR-042 | LIVE | namespaced PTU recovery bed | PR #279 replaces the vanilla-bed + gold-marker signature with `autoptu_cobblemon_rpg_fabric_adapter:ptu_recovery_bed`. Its datapack recipe consumes any vanilla bed plus Cobblemon Healing Machine; the block restores Minecraft player health and delegates persistent party HP to the canonical healing service. Canonical status/injury recovery remains upstream-blocked. |
 | CUR-043 | LIVE | authenticated canonical Trainer summary | PR #322 / merge `0a0fe3cc22b3b46a7c350d6b9a7c13ae5f50e442`. `/autoptu trainer` projects only durable server-owned Trainer classes, skills, Features, capabilities, AP, initiative profile, team identity and revision through a reusable read-only service. |
+| CUR-044 | LIVE | authenticated canonical Trainer skills | PR #323 / merge `8bc5d40ed0ded20066925dddb0153cbb6113af40`. `/autoptu trainer skills` resolves the authenticated Minecraft UUID to the canonical Trainer and projects only persisted skill IDs/ranks plus save revision through `CanonicalTrainerSummaryService`; no PTU rank is inferred locally. |
 
 ---
 
@@ -132,7 +133,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 |---|---|---|
 | CMD-001 | LIVE | `/autoptu status` — verified on main `843e71a1fb6e9bc6cd1272342432cff7804d8dbe` |
 | CMD-002 | LIVE | `/autoptu trainer` — PR #322 / merge `0a0fe3cc22b3b46a7c350d6b9a7c13ae5f50e442`; authenticated read-only projection from the canonical Trainer aggregate through `CanonicalTrainerSummaryService`. |
-| CMD-003 | TODO | `/autoptu trainer skills` |
+| CMD-003 | LIVE | `/autoptu trainer skills` — PR #323 / merge `8bc5d40ed0ded20066925dddb0153cbb6113af40`; authenticated read-only projection of durable canonical skill IDs/ranks and revision through `CanonicalTrainerSummaryService`. |
 | CMD-004 | TODO | `/autoptu trainer classes` |
 | CMD-005 | TODO | `/autoptu trainer features` |
 | CMD-006 | LIVE | `/autoptu starter list` — PR #202 / `e86b1d2144a1faa35be19bb408f1e301033c4863` |
