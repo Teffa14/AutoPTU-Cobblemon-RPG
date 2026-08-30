@@ -1,0 +1,57 @@
+{
+  "format": "ouros.cobblemon-art-review.v1",
+  "pokemon": "Hitmonlee",
+  "concept": "Cobra Dojo Striker",
+  "status": "FULL_TRANSFORMATION_ACCEPTED",
+  "reviewedAtUtc": "2026-08-30T02:58:04Z",
+  "blockbench": {
+    "version": "5.1.6",
+    "appImageSha256": "c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e",
+    "workflowRunId": 33289138725,
+    "workflowHeadSha": "7ab31418a2f75ea2b69720bd86b77d5095428cd0",
+    "artifact": "hitmonlee-cobra-dojo-blockbench-review-v2",
+    "artifactId": 9725413261,
+    "artifactDigest": "sha256:6cc16c1a57d156de07991eeb3962c9dc89b5653d7d5136dca285ff67f169622f",
+    "matchedOfficialCamera": true,
+    "gameplayResolution": 160
+  },
+  "sourceAndGeometry": {
+    "officialBones": 30,
+    "productionBones": 43,
+    "cosmeticBones": 13,
+    "cosmeticCubes": 94,
+    "officialModelSha256": "f92b067c781f9210dec305860bdb09141efad5c238396ac7988c4bbbed82840d",
+    "productionModelSha256": "e938f5664fbc822646142c5c4e8201772920c89550020f64048a939f8fcaee9b"
+  },
+  "officialAnimationsReviewed": {
+    "referenceAndHero": "animation.hitmonlee.ground_idle@0.35",
+    "battle": "animation.hitmonlee.battle_idle@0.35",
+    "walk": "animation.hitmonlee.ground_walk@0.25"
+  },
+  "pngSha256": {
+    "official_reference_three_quarter.png": "a74590cf6406c15d03acf03108d3c5c43c5cfb37d4fc3709b60ebbac3005cd01",
+    "hero_three_quarter.png": "80308e6f5eb15fd56d0915370437daea6908c246da5848e330ed1c3883f2d237",
+    "battle_ready_three_quarter.png": "7f50ae96e841cf7addd1c59d29f3030f6e867ecf4eda10e0c2510f6544392cec",
+    "walking_three_quarter.png": "844dbfcdc356b00311b9c9eee2eb7412fecfcded96d52a9f7b9d6794c5ee9712",
+    "hero_front.png": "1c90a5b7e7e8e259ad39f08cfa17cbd03f2c52a652248887e4bcd420400ddcaa",
+    "hero_left.png": "d4c90072c790e384dfd83ea84a2c0d2bb5cf7e6aa4a52b62b4a795b5c6ba5277",
+    "hero_right.png": "44b4d2d8c8362c15cc16ba087ce3b52f9f45b5d05b1f1e899e84e94e102f7125",
+    "hero_back.png": "1b51d580ec54c2e3260116c4a53f3f3e9124c7c7fbd9c93622987b2da78cecab",
+    "official_reference_gameplay_160.png": "617b486f2740abc2357c826d73153899707e396f09bc152050616efc07e3cb85",
+    "hero_gameplay_160.png": "5aa28ba51f11d1ed8fba2628f3972824b08bfb2bc9cc417aa95d8c0b417dda6a",
+    "battle_ready_gameplay_160.png": "7e8ff6b71b0e3608a1e9728f37aeac04a8fd624ec98b3041c8e0aa1fd2fe96a6",
+    "walking_gameplay_160.png": "9d370cc55e4ff24721eb6003ed9e48c708e74c330d0050e445f5fd63b14d19f6",
+    "shiny_three_quarter.png": "413e60cc7ff5e3bdef5c51ee44ebd1b7ab887228aeec0efa338f9097eee8550c"
+  },
+  "visualQa": {
+    "immediateTransformationRead": "PASS — black/charcoal rematerialization plus the large hood, connected gi and leg strike system replace the untouched-base first read.",
+    "signatureSilhouette": "PASS — cobra hood/cowl, broad gi shoulders and articulated kick guards remain legible in the matched three-quarter view.",
+    "premiumThreeQuarter": "PASS — material hierarchy, asymmetry and connected equipment masses read as one designed martial-arts kit rather than scattered accessories.",
+    "fantasyWithoutLabel": "PASS — the gi/sash, strike guards and black/gold tournament styling read as an elite dojo kick specialist; cobra language is carried primarily by the hood and fang rails.",
+    "speciesClarity": "PASS — official eye plane, long arms, telescoping legs, hands and feet remain visibly Hitmonlee.",
+    "animationSafety": "PASS — official battle-idle and walk captures show no severe detached cosmetic group; leg guards follow their corresponding official telescoping leg segments.",
+    "gameplayScale": "PASS — at 160 px the black/gold body, hood mass, gi and segmented leg hardware remain readable.",
+    "allViewCoherence": "PASS WITH NOTE — front and three-quarter views are strongest. The rear hood panel is deliberately broad but flatter and less articulated than the front; this is a future refinement target, not a blocker for v1."
+  },
+  "authorityBoundary": "Presentation only. AutoPTU/Ouros remains authoritative for combatants, legality, HP/status, positions, RNG, damage and tactical outcomes."
+}
