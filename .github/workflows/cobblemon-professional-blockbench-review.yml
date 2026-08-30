@@ -7,12 +7,22 @@ on:
         description: Repository-relative professional skin review manifest
         required: true
         type: string
+      head_sha:
+        description: Exact source head whose production bytes and evidence are being reviewed
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       manifest_path:
         description: Repository-relative professional skin review manifest
         required: true
         type: string
+      head_sha:
+        description: Exact source head to review; defaults to the dispatched ref SHA
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -23,11 +33,13 @@ jobs:
     timeout-minutes: 45
     env:
       MANIFEST_PATH: ${{ inputs.manifest_path }}
+      REVIEW_HEAD_SHA: ${{ inputs.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ env.REVIEW_HEAD_SHA }}
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
@@ -214,7 +226,7 @@ jobs:
           python tools/cobblemon-model-review/validate_blockbench_evidence.py \
             --manifest "$MANIFEST_PATH" \
             --output-dir "$OUTPUT_DIR" \
-            --head-sha "${{ github.sha }}"
+            --head-sha "$REVIEW_HEAD_SHA"
 
       - name: Upload exact professional review artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
