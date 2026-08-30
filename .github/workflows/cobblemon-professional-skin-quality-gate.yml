@@ -12,6 +12,7 @@ on:
       - 'docs/cobblemon-skin-*.md'
       - 'docs/cobblemon-skins/**'
       - 'tools/cobblemon-model-review/**'
+      - 'test-evidence/visual/cobblemon-skins/**'
       - '.github/CODEOWNERS'
       - '.github/workflows/cobblemon-professional-*.yml'
   workflow_dispatch:
@@ -55,6 +56,14 @@ jobs:
             echo 'ERROR: quarantined art became sale-eligible' >&2
             exit 1
           fi
+          mkdir -p test-evidence/visual/cobblemon-skins/synthetic-rejected
+          printf 'legacy-preview-must-not-be-committed\n' > test-evidence/visual/cobblemon-skins/synthetic-rejected/hero.txt
+          if python tools/cobblemon-model-review/validate_skin_registry.py --skip-manifest-validation; then
+            echo 'ERROR: committed-style rejected review evidence bypassed registry hygiene' >&2
+            exit 1
+          fi
+          rm -rf test-evidence/visual/cobblemon-skins
+          python tools/cobblemon-model-review/validate_skin_registry.py --skip-manifest-validation
 
       - name: Prove strict same-species reference behavior
         run: |
