@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "cecdba527c0e21ef97fdfdb1d34e75ec6cd87bc13e4abc2ff07cfd11fc837696",
+    "modelSha256": "1a1781b907fa11f98deb0bb51cc12992f3dab512c851e44c4e033d2a88465dee",
     "productionBoneCount": 97,
     "cosmeticBoneCount": 10,
-    "cosmeticCubeCount": 73,
+    "cosmeticCubeCount": 71,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v2.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v3.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v2.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v3.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -149,12 +149,12 @@
     ],
     "signaturePieces": [
       "Asymmetric resonance shawl wrapping both shoulders into the torso silhouette",
-      "One continuous tapered dorsal resonance pennant rising from the left scapula",
+      "Connected diagonal resonance mantle rooted at the left scapula and tapering toward the hip",
       "Split battle coat that transforms the lower body in motion"
     ],
-    "macroFormPlan": "A low open circlet, broad asymmetric shoulder shawl, tapered chest shell, one continuous tapered left dorsal pennant, split coat tails, plated forearms and plated shins create a continuous top-to-bottom silhouette without a rectangular portal, detached cluster or backpack frame.",
+    "macroFormPlan": "A low open circlet, broad asymmetric shoulder shawl, tapered chest shell, connected shoulder-to-hip resonance mantle, split coat tails, plated forearms and plated shins create a diagonal full-body composition. The mantle uses overlapping progressively smaller planes and a visible scapular contact root rather than a pole, portal, backpack frame or detached dorsal island.",
     "paintPlan": "Eight verified free accessory texels provide a high-contrast material hierarchy of midnight cloth, indigo, blue steel, silver, antique gold, aura cyan, amethyst and ivory; biological pixels remain byte-identical to official Lucario.",
-    "gameplayReadGoal": "At 160 px the left-heavy shawl, diagonal dorsal banner, cyan/gold edge accents and long split coat must remain legible before any micro-detail is visible.",
+    "gameplayReadGoal": "At 160 px the left-heavy shawl and shoulder-to-hip mantle must form one diagonal silhouette, while the split coat and cyan/gold material accents preserve the ronin read without relying on micro-detail.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
