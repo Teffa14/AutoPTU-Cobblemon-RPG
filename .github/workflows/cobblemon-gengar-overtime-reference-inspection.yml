@@ -1,0 +1,86 @@
+name: Inspect Overtime Gengar Reference
+
+on:
+  push:
+    branches:
+      - 'art/gengar-overtime-reference-inspection'
+    paths:
+      - '.github/workflows/cobblemon-gengar-overtime-reference-inspection.yml'
+      - 'tools/cobblemon-model-review/inspect_external_skin_package.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download exact public Poke Costume 3.1.1 package from Modrinth
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .external
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/reference-inspector' \
+            'https://api.modrinth.com/v2/version/TTqHf0wu' \
+            -o .external/version.json
+          python - <<'PY' > .external/download.env
+          import json, shlex
+          data=json.load(open('.external/version.json',encoding='utf-8'))
+          assert data['id']=='TTqHf0wu'
+          assert data['version_number']=='3.1.1'
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']=='Poké Costume 3.1.1 [Overtime!].zip'
+          print('URL='+shlex.quote(primary['url']))
+          print('SHA512='+shlex.quote(primary['hashes']['sha512']))
+          print('SHA1='+shlex.quote(primary['hashes']['sha1']))
+          print('SIZE='+shlex.quote(str(primary['size'])))
+          PY
+          source .external/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/reference-inspector' \
+            "$URL" -o .external/poke-costume-3.1.1.zip
+          test "$(stat -c '%s' .external/poke-costume-3.1.1.zip)" = "$SIZE"
+          printf '%s  %s\n' "$SHA512" '.external/poke-costume-3.1.1.zip' | sha512sum --check --strict
+          printf '%s  %s\n' "$SHA1" '.external/poke-costume-3.1.1.zip' | sha1sum --check --strict
+          sha256sum .external/poke-costume-3.1.1.zip | tee .external/package-sha256.txt
+
+      - name: Record package contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -Z1 .external/poke-costume-3.1.1.zip | sort | tee .external/package-files.txt
+
+      - name: Inspect real Gengar model and texture files
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/cobblemon-model-review/inspect_external_skin_package.py \
+            .external/poke-costume-3.1.1.zip \
+            --species gengar \
+            --alias overtime \
+            --alias 0094 \
+            --output .external/overtime-gengar-inspection.json \
+            | tee .external/overtime-gengar-inspection.log
+
+      - name: Upload hash-only inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: overtime-gengar-reference-inspection
+          path: |
+            .external/version.json
+            .external/download.env
+            .external/package-sha256.txt
+            .external/package-files.txt
+            .external/overtime-gengar-inspection.json
+            .external/overtime-gengar-inspection.log
+          if-no-files-found: warn
+          retention-days: 30
