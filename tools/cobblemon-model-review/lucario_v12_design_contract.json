@@ -1,7 +1,7 @@
 {
   "species": "lucario",
   "concept": "Aura Sentinel — Resonance Ronin V12",
-  "purpose": "Exact-head evidence trigger and V12 materialized design constraint record.",
+  "purpose": "Exact-head evidence trigger and V12 materialized design constraint record after syncing current main adb0b72e9a3ebdb44553be495b667046dc31a9a7.",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "officialModelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
   "officialBoneCount": 87,
@@ -14,5 +14,6 @@
   "minimumSilhouetteDeltaRatio": 0.04,
   "thresholdRelaxationAllowed": false,
   "ownerApproval": false,
-  "preOwnerMaximumStatus": "OWNER REVIEW REQUIRED"
+  "preOwnerMaximumStatus": "OWNER REVIEW REQUIRED",
+  "currentInternalStatus": "ARTISTIC FAIL"
 }
