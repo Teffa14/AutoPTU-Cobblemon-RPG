@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "5e5a27959434e4829f432f8d58c5d60632bfe2d6cf541f80eb3c52b18774da36",
+    "modelSha256": "30a3d63e55f5ac5918d9f0a718f556cdfee63a22376caed1cb84e2b6672fd03c",
     "productionBoneCount": 100,
     "cosmeticBoneCount": 13,
-    "cosmeticCubeCount": 29,
+    "cosmeticCubeCount": 31,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Continuous cowl/collar/shoulder/back/hip mantle arc with no broad rectangular pauldron",
-      "Three unequal shoulder pennons forming a separated rising/receding contour sweep rather than one wing or slab",
-      "Hip knot resolving into unequal tails plus two narrow outward streamers with negative space around Lucario's biological tail"
+      "Continuous cowl/collar/shoulder/back/hip mantle arc with the official chest spike and face left open",
+      "One shoulder-rooted four-stage crescent sweep whose overlapping facets taper and rotate progressively instead of forming a slab or repeated bars",
+      "Asymmetric hip knot with split tapered ribbons preserving negative space around Lucario's biological tail"
     ],
-    "macroFormPlan": "V15 preserves V14c's surface continuity and answers its measured silhouette deficit directly. The external contour is authored at two connected endpoints only: three thin shoulder pennons and two thin hip streamers. Their size, angle and depth taper progressively, and gaps remain visible between pieces. No threshold changes and no biological edits.",
+    "macroFormPlan": "V15b preserves V14c's narrow mantle architecture but replaces V15's undersized separated pennons with one connected visual crescent. Four thin overlapping shoulder facets expand outward only after a substantial shoulder contact mass, progressively narrowing and rotating to create a curved silhouette. The opposite hip resolves the same diagonal with three shorter split ribbons. No threshold changes and no biological edits.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the first read should be a single asymmetric diagonal ceremonial sweep: higher and more open at the left shoulder, then turning around the back and resolving lower/outward at the opposite hip. The contour must read as layered cloth motion rather than armor blocks.",
+    "gameplayReadGoal": "At 160 px the first read should be a single ceremonial crescent sweeping from Lucario's left shoulder around the back into the opposite hip. The outer edge must remain legible as tapered cloth motion with visible negative space, while the face, ears, aura sensors, chest spike, hands, feet and biological tail remain unmistakably Lucario.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "Exact V14c head 9238a5ad3b0f87891a9e9e31db849291d97e7810 passed source, builder, bone and attachment checks but failed the unchanged silhouette floor at 0.0289 < 0.0400. V15 adds only contour-authored shoulder/hip sweep pieces; owner approval remains absent."
+    "iterationNote": "Exact V15 head 0bf6e61c00fc01f7d22a55e3ca123534e283725f passed reference, source, builder, bone, attachment and rendering stages but failed the unchanged matched-camera silhouette floor at 0.0303 < 0.0400. V15b materially reauthors the signature contour rather than lowering the floor; owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
