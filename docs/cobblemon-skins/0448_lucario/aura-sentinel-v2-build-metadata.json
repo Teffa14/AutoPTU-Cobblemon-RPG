@@ -3,18 +3,18 @@
   "originalBoneCount": 87,
   "derivedBoneCount": 97,
   "cosmeticBones": [
-    "ouros_aura_helm_system",
-    "ouros_aura_mantle_shell",
-    "ouros_aura_breastplate",
-    "ouros_aura_shrine_frame",
+    "ouros_aura_crown",
+    "ouros_aura_mantle",
+    "ouros_aura_chest_sash",
+    "ouros_aura_back_crest",
     "ouros_aura_left_armguard",
     "ouros_aura_right_armguard",
-    "ouros_aura_waistcoat",
-    "ouros_aura_relic_fin",
+    "ouros_aura_waist_sash",
+    "ouros_aura_trailing_ribbon",
     "ouros_aura_left_greave",
     "ouros_aura_right_greave"
   ],
-  "cosmeticCubeCount": 87,
+  "cosmeticCubeCount": 37,
   "palettePixels": {
     "void": [
       80,
