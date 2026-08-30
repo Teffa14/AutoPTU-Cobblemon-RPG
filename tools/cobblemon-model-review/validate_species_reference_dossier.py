@@ -3,7 +3,8 @@
 
 Strict mode is the hard pre-model gate: production geometry must not be generated
 until at least three distinct external CUSTOM GEOMETRY SKINS of the exact same
-base species have been inspected from actual MODEL + TEXTURE files.
+base species have been inspected from actual MODEL + TEXTURE files that originate
+from real Cobblemon packs/resource packs/modpacks/server packs.
 
 `--allow-blocked` is research-only. It validates dossier/candidate structure while
 allowing fewer than three complete references. It never opens production.
@@ -21,8 +22,10 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 VALID_REUSE_MODES = {"STUDY_ONLY", "LICENSED_DERIVATIVE_DONOR"}
 REQUIRED_REFERENCE_CLASS = "CUSTOM_GEOMETRY_SKIN"
 REQUIRED_CANONICAL_RELATION = "NON_CANONICAL_CUSTOM_SKIN"
+REQUIRED_SOURCE_ECOSYSTEM = "COBBLEMON_PACK"
 REQUIRED_CANDIDATE_CLASS = "CUSTOM_GEOMETRY_SKIN_CANDIDATE"
 REQUIRED_CANDIDATE_RELATION = "NON_CANONICAL_CUSTOM_SKIN"
+REQUIRED_CANDIDATE_ECOSYSTEM = "COBBLEMON_PACK"
 VALID_PROOF_STATUS = {"PROVEN", "UNPROVEN", "PROVEN_BY_PROJECT_DESCRIPTION", "PROVEN_BY_3D_MODEL_DESCRIPTION"}
 
 
@@ -95,6 +98,11 @@ def validate_candidates(data: dict, species: str, used_ids: set[str]) -> int:
             raise SystemExit(f"{where}.candidateClass must be {REQUIRED_CANDIDATE_CLASS}")
         if require_text(candidate, "canonicalRelationCandidate", where) != REQUIRED_CANDIDATE_RELATION:
             raise SystemExit(f"{where}.canonicalRelationCandidate must be {REQUIRED_CANDIDATE_RELATION}")
+        if require_text(candidate, "sourceEcosystemCandidate", where) != REQUIRED_CANDIDATE_ECOSYSTEM:
+            raise SystemExit(
+                f"{where}.sourceEcosystemCandidate must be {REQUIRED_CANDIDATE_ECOSYSTEM}; "
+                "standalone 3D models/viewers/marketplace sculpts cannot satisfy the mandatory Cobblemon-skin gate"
+            )
 
         require_text(candidate, "project", where)
         require_url(candidate, "sourceUrl", where)
@@ -213,6 +221,13 @@ def main() -> None:
                 "canonical forms/transformations do not count as skins"
             )
 
+        source_ecosystem = require_text(ref, "sourceEcosystem", where)
+        if source_ecosystem != REQUIRED_SOURCE_ECOSYSTEM:
+            raise SystemExit(
+                f"REFERENCE BLOCKED: {where}.sourceEcosystem={source_ecosystem!r}; "
+                "mandatory references must come from real Cobblemon pack implementations, not standalone 3D models/viewers"
+            )
+
         if ref.get("geometryMateriallyChanged") is not True:
             raise SystemExit(f"REFERENCE BLOCKED: {where}.geometryMateriallyChanged must be true")
         if ref.get("customVisualIdentity") is not True:
@@ -276,7 +291,7 @@ def main() -> None:
     if complete < args.minimum:
         if not args.allow_blocked:
             raise SystemExit(
-                f"REFERENCE BLOCKED: need at least {args.minimum} eligible COMPLETE external custom-geometry skins; "
+                f"REFERENCE BLOCKED: need at least {args.minimum} eligible COMPLETE external Cobblemon-pack custom-geometry skins; "
                 f"found {complete}; staged candidates={candidate_count}"
             )
         report = {
@@ -285,6 +300,7 @@ def main() -> None:
             "nationalDex": dex,
             "completeEligibleCustomSkinCount": complete,
             "stagedCandidateCount": candidate_count,
+            "requiredSourceEcosystem": REQUIRED_SOURCE_ECOSYSTEM,
             "productionModelingGate": "BLOCKED",
             "artApproval": "NOT_EVALUATED",
         }
@@ -304,6 +320,7 @@ def main() -> None:
         "stagedCandidateCount": candidate_count,
         "distinctProjectCount": len(projects),
         "licensedDerivativeDonorCount": donor_count,
+        "requiredSourceEcosystem": REQUIRED_SOURCE_ECOSYSTEM,
         "productionModelingGate": "OPEN",
         "artApproval": "NOT_EVALUATED",
     }

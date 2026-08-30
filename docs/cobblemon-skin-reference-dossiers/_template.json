@@ -1,43 +1,39 @@
 {
   "format": "ouros.cobblemon-species-reference-dossier.v1",
   "species": "replace-me",
-  "nationalDex": 0,
+  "nationalDex": 1,
   "researchDate": "YYYY-MM-DD",
   "status": "REFERENCE BLOCKED",
-  "references": [
+  "references": [],
+  "candidateReferences": [
     {
-      "referenceId": "project-species-variant-1",
+      "candidateId": "project-replace-me-costume-candidate",
       "species": "replace-me",
-      "project": "External project name",
+      "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
+      "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystemCandidate": "COBBLEMON_PACK",
+      "implementationName": "Exact external custom skin/costume name",
+      "project": "External Cobblemon pack/project name",
       "sourceUrl": "https://example.com/source",
       "sourceVersion": "version-or-unknown",
-      "implementationName": "Exact external skin/model/variant name",
+      "discoveryEvidence": [
+        "Describe why this is a real same-species non-canonical custom skin in a Cobblemon pack."
+      ],
+      "geometryMateriallyChangedStatus": "UNPROVEN",
+      "customVisualIdentityStatus": "PROVEN_BY_PROJECT_DESCRIPTION",
       "assetInspectionStatus": "PENDING",
-      "assetFilesInspected": [
-        {
-          "path": "path/to/model-or-texture.ext",
-          "kind": "MODEL_OR_TEXTURE",
-          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-        }
-      ],
+      "assetFilesInspected": [],
+      "sourceFileAccessStatus": "SOURCE_FILES_NOT_YET_INSPECTED",
+      "whyNotCounted": "MODEL and TEXTURE files have not yet been directly inspected and SHA-256 hashed.",
       "licenseStatus": "UNKNOWN",
-      "license": {
-        "name": "Unknown",
-        "sourceUrl": "https://example.com/license",
-        "allowsDerivatives": false,
-        "allowsRedistribution": false
-      },
-      "reuseMode": "STUDY_ONLY",
-      "requiredAttribution": "none for study-only",
-      "techniqueLessons": [
-        "Describe one concrete geometry/material/animation technique.",
-        "Describe a second concrete technique.",
-        "Describe a third concrete technique."
-      ],
-      "distinctiveElementsNotToCopy": [
-        "Exact silhouette, motif, markings, palette layout, logo or costume identity unique to this external design."
-      ]
+      "reuseMode": "STUDY_ONLY"
     }
   ],
-  "productionModelingGate": "BLOCKED_UNTIL_VALIDATOR_PASS"
+  "minimumCompleteReferencesRequired": 3,
+  "productionModelingGate": "BLOCKED_UNTIL_THREE_CUSTOM_GEOMETRY_COBBLEMON_PACK_SKINS_PASS",
+  "notes": [
+    "Move a candidate into references[] only after real MODEL + TEXTURE inspection proves CUSTOM_GEOMETRY_SKIN eligibility.",
+    "Counted references require sourceEcosystem: COBBLEMON_PACK, exact same species, non-canonical custom identity, actual hashes, license/reuse mode, at least three technique lessons and distinctive elements not to copy.",
+    "Mega/Gmax/canonical forms, shiny/recolor-only variants, ordinary accuracy remodels and standalone generic 3D models/viewers do not count."
+  ]
 }

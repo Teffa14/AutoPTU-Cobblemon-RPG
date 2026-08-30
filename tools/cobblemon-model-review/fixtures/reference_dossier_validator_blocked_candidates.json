@@ -10,6 +10,7 @@
       "species": "testmon",
       "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
       "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
+      "sourceEcosystemCandidate": "COBBLEMON_PACK",
       "implementationName": "Testmon Costume Candidate",
       "project": "Synthetic Pack A",
       "sourceUrl": "https://example.com/pack-a/candidate",
