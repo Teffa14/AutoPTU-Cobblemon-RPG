@@ -6,6 +6,9 @@ on:
       - 'art/gengar-overtime-reference-inspection'
     paths:
       - '.github/workflows/cobblemon-gengar-meshy-reference-discovery.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-gengar-meshy-reference-discovery.yml'
   workflow_dispatch:
 
 permissions:
