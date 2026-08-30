@@ -1,6 +1,6 @@
 # Resonance Ronin V15 exact-head review note
 
-This note follows deterministic materialization of V15 and changes no production asset.
+This note follows deterministic materialization of V15 and the safe merge of current `main` commit `20813de74f1d2415b522fdcc2a7836ca18408515` into the active review branch. It changes no production asset.
 
 Materialized model SHA-256: `5e5a27959434e4829f432f8d58c5d60632bfe2d6cf541f80eb3c52b18774da36`.
 
