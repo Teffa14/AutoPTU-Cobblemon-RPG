@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "a7d5857fe914e2da817a8dc761ff03fcfbd3e68f1281fd209f0b220432aefa62",
-    "productionBoneCount": 97,
-    "cosmeticBoneCount": 10,
-    "cosmeticCubeCount": 26,
+    "modelSha256": "d7e205055f234c72d7cde53eb71f800df4d0665f5e0f53e63e5ff504a854bf04",
+    "productionBoneCount": 95,
+    "cosmeticBoneCount": 8,
+    "cosmeticCubeCount": 15,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -90,10 +90,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v7.py",
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v8.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v7.py"
+      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v8.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Four-stage left shoulder crescent extending materially beyond the official arm silhouette",
-      "Four-panel diagonal rear resonance cape from scapula to lower-left outer contour",
-      "Three long separated rear coat tails preserving front-leg negative space"
+      "Single five-stage shoulder-to-side resonance drape with deep overlaps and one continuous diagonal contour",
+      "Minimal diagonal chest sash preserving the biological chest spike and abdomen",
+      "Thin articulation-safe arm, shin and tail accents subordinate to the drape"
     ],
-    "macroFormPlan": "V7 answers the V6 1.08% silhouette-floor failure by moving authored cloth outside the official silhouette rather than thickening armor. A four-stage rotated shoulder crescent reaches past the official arm envelope, then overlaps into a diagonal rear cape and three long rear tails. The chest remains almost empty so Lucario's spike, face, aura sensors and athletic body stay unequivocal.",
+    "macroFormPlan": "V8 removes every thigh-covering coat panel and every separated outer-crescent fragment seen in V7. The transformation is carried by one paper-thin, deeply overlapping shoulder-to-side drape whose panels progressively narrow toward a terminal point. Front anatomy remains nearly unobstructed and there is no skirt, shorts, backpack, cage, repeated bar or armor-shell system.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the V6 twelve-texel accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "Matched-camera 160 px must retain the left shoulder crescent, diagonal cape edge and separated long rear tails as one premium asymmetrical silhouette, while avoiding backpack, shorts, cage, bar or box-armor reads.",
+    "gameplayReadGoal": "At 160 px the candidate must read as Lucario carrying one authored asymmetrical ceremonial drape, not Lucario wearing blue shorts or floating tiles. The drape must remain a single connected silhouette in front, back and three-quarter evidence.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
