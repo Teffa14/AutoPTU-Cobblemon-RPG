@@ -4,16 +4,19 @@ This document is the authoritative eligibility contract for the mandatory three-
 
 ## What counts
 
-A counted reference must be an external **custom skin/costume/themed variant of the exact same base species** whose authored visual identity materially changes the model geometry. It must be something a player would recognize as a different skin of that Pokemon, not merely a canonical form or recolor.
+A counted reference must be an external **custom skin/costume/themed variant of the exact same base species from a real Cobblemon customization pack** whose authored visual identity materially changes the model geometry. It must be something a player would recognize as a different skin of that Pokemon, not merely a canonical form or recolor.
+
+`Cobblemon customization pack` means a datapack, resource pack, modpack-bundled pack, server resource pack or equivalent package whose assets are authored to run on Cobblemon. A standalone 3D model from Sketchfab, Meshy, CGTrader, Blender, a generic Minecraft model gallery or another game does not satisfy this gate even when it depicts the same Pokemon and even when it has a permissive license. Those sources may be separate high-level art research, but they are not one of the mandatory three Cobblemon skin references.
 
 To count, every reference must satisfy all of these conditions:
 
 - `referenceClass: CUSTOM_GEOMETRY_SKIN`;
 - `canonicalRelation: NON_CANONICAL_CUSTOM_SKIN`;
+- `sourceEcosystem: COBBLEMON_PACK`;
 - exact same base species as the Ouros target;
 - materially different custom geometry, not only texture changes;
 - a custom visual identity such as costume, armor, role, culture, themed equipment, non-canonical transformation or similarly authored skin treatment;
-- actual model file inspection (`.geo.json`, `.bbmodel` or equivalent) and actual production texture inspection;
+- actual model file inspection (`.geo.json`, `.bbmodel` or equivalent) and actual production texture inspection from that Cobblemon pack;
 - `assetInspectionStatus: COMPLETE` only after those real files are inspected and hashed;
 - at least three concrete geometry/texture/animation lessons;
 - license/reuse mode documented separately from artistic usefulness.
@@ -24,9 +27,9 @@ A reference may be a custom non-canonical form implemented by a community pack *
 
 Internet research will often find a promising costume before its source files can be inspected. Keep those discoveries under a dossier's `candidateReferences` array. **Only `references` entries are counted by the hard gate.**
 
-A candidate can record a public project page, changelog, server skin listing or interactive 3D viewer, but it stays uncounted until the actual MODEL and TEXTURE files are lawfully accessible, inspected and SHA-256 hashed.
+A candidate can record a public project page, changelog, server skin listing or interactive 3D viewer, but it stays uncounted until the actual Cobblemon-pack MODEL and TEXTURE files are lawfully accessible, inspected and SHA-256 hashed.
 
-An interactive 3D viewer is useful discovery evidence because it can prove that an authored 3D presentation exists. It is still **not** `assetInspectionStatus: COMPLETE` when the underlying model and texture files cannot be obtained for direct inspection. Triangle/vertex counts, screenshots, thumbnails and viewer metadata do not substitute for the source model and texture.
+An interactive 3D viewer is useful discovery evidence because it can prove that an authored 3D presentation exists. It is still **not** `assetInspectionStatus: COMPLETE` when the underlying model and texture files cannot be obtained for direct inspection. Triangle/vertex counts, screenshots, thumbnails and viewer metadata do not substitute for the source model and texture, and a standalone viewer model does not become a counted Cobblemon-pack reference merely because it depicts the target species.
 
 Recommended candidate fields:
 
@@ -36,6 +39,7 @@ Recommended candidate fields:
 - `canonicalRelationCandidate: NON_CANONICAL_CUSTOM_SKIN`
 - `implementationName`
 - `project`, `sourceUrl`, `sourceVersion`
+- `sourceEcosystemStatus: PROVEN | UNPROVEN`
 - `discoveryEvidence`
 - `geometryMateriallyChangedStatus: PROVEN | UNPROVEN`
 - `customVisualIdentityStatus: PROVEN | UNPROVEN`
@@ -43,7 +47,7 @@ Recommended candidate fields:
 - `whyNotCounted`
 - preliminary license/provenance notes
 
-When real MODEL + TEXTURE inspection proves eligibility, move the candidate into `references` and replace discovery-only statements with exact file paths, hashes and concrete lessons.
+When real MODEL + TEXTURE inspection from the Cobblemon customization pack proves eligibility, move the candidate into `references`, set `sourceEcosystem: COBBLEMON_PACK`, and replace discovery-only statements with exact file paths, hashes and concrete lessons.
 
 ## What never counts
 
@@ -57,12 +61,13 @@ The following may be useful for other research, but they do **not** satisfy the 
 - canonical battle transformations;
 - a community remodel whose purpose is only to replace/improve the ordinary canonical base model without creating a distinct skin identity;
 - the untouched official Cobblemon model;
+- a standalone 3D model or sculpt that is not an asset from a Cobblemon customization pack;
 - three screenshots, renders or gallery images;
 - three revisions of one skin;
 - one skin repackaged by several modpacks;
 - a model for a different species, evolution or pre-evolution.
 
-Examples: Mega Gengar is not a Gengar skin reference. A better Gengar shiny is not a Gengar skin reference. A normal-Gengar accuracy remodel is not a Gengar skin reference. A custom `Overtime Gengar` costume with its own materially different model can be a candidate if the real model and texture files are inspected.
+Examples: Mega Gengar is not a Gengar skin reference. A better Gengar shiny is not a Gengar skin reference. A normal-Gengar accuracy remodel is not a Gengar skin reference. A generic CC0 Gengar-with-costume model hosted on a 3D marketplace is not a counted Cobblemon skin reference. A custom `Overtime Gengar` costume distributed as a Cobblemon pack with its own materially different model can count when the real model and texture files are inspected.
 
 ## Required dossier fields
 
@@ -70,6 +75,7 @@ Each counted reference records:
 
 - `referenceClass: CUSTOM_GEOMETRY_SKIN`
 - `canonicalRelation: NON_CANONICAL_CUSTOM_SKIN`
+- `sourceEcosystem: COBBLEMON_PACK`
 - `geometryMateriallyChanged: true`
 - `customVisualIdentity: true`
 - `implementationName`
