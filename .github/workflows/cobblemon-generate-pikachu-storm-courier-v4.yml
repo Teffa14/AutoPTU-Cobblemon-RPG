@@ -73,7 +73,7 @@ jobs:
            ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu_shiny.png','pikachu_shiny.png',None),
            ('assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json','pikachu.animation.json',None),
            ('assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json','pikachu.poser.json',None),
-           ('assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/pikachu.json','pikachu.resolver.json',None),
+           ('assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json','pikachu.resolver.json',None),
           ]
           with zipfile.ZipFile('.storm/cobblemon.jar') as z:
            names=set(z.namelist())
@@ -97,7 +97,6 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          from pathlib import Path
           for sex in ('male','female'):
            base=json.load(open(f'.storm/official/pikachu_{sex}.geo.json'))['minecraft:geometry'][0]['bones']
            out=json.load(open(f'.storm/output/ouros_storm_courier_v4_pikachu_{sex}.geo.json'))['minecraft:geometry'][0]['bones']
