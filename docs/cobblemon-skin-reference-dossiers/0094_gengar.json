@@ -4,42 +4,100 @@
   "nationalDex": 94,
   "researchDate": "2026-08-30",
   "status": "REFERENCE BLOCKED",
-  "notes": "The counted references array intentionally contains only COMPLETE eligible custom-geometry skins. Discovery-only candidates are staged separately and do not open production. Mega/Gmax/canonical forms, shiny/recolor-only variants and ordinary canonical remodels do not count.",
+  "notes": "One eligible same-species custom-geometry skin is now COMPLETE from real package inspection. Production remains blocked until three eligible COMPLETE references exist. Overtime is study-only because its downloaded package contains no license file and current public project metadata conflicts between Modrinth (MIT label) and CurseForge (All Rights Reserved). Mega/Gmax/canonical forms, shiny/recolor-only variants and ordinary canonical remodels do not count.",
   "eligibilityContract": "docs/cobblemon-skin-reference-eligibility.md",
-  "references": [],
-  "candidateReferences": [
+  "references": [
     {
-      "candidateId": "poke-costume-overtime-gengar",
+      "referenceId": "poke-costume-3.1.1-overtime-gengar",
       "species": "gengar",
-      "candidateClass": "CUSTOM_GEOMETRY_SKIN_CANDIDATE",
-      "canonicalRelationCandidate": "NON_CANONICAL_CUSTOM_SKIN",
-      "implementationName": "Overtime Gengar",
+      "referenceClass": "CUSTOM_GEOMETRY_SKIN",
+      "canonicalRelation": "NON_CANONICAL_CUSTOM_SKIN",
+      "geometryMateriallyChanged": true,
+      "customVisualIdentity": true,
       "project": "Poke Costume [Cobblemon]",
-      "sourceUrl": "https://modrinth.com/datapack/poke-costume/version/3.1.1.1",
-      "sourceVersion": "3.1.1.1; Overtime Gengar introduced in 3.1.1",
-      "secondarySourceUrls": [
-        "https://modrinth.com/datapack/poke-costume/version/3.1.1",
-        "https://www.curseforge.com/minecraft/data-packs/poke-costume-cobblemon/files/7050635"
+      "sourceUrl": "https://modrinth.com/datapack/poke-costume/version/3.1.1",
+      "sourceVersion": "3.1.1 / Modrinth version TTqHf0wu",
+      "implementationName": "Overtime Gengar",
+      "assetInspectionStatus": "COMPLETE",
+      "packageInspection": {
+        "filename": "Poké Costume 3.1.1 [Overtime!].zip",
+        "sizeBytes": 213720,
+        "sha256": "24cd9a651b6008faf84c31201a9bcc0acdeacf9347f3c983b065c4bbdef2d508",
+        "workflowRunId": 33309036549,
+        "inspectionArtifactId": 9731395067,
+        "artifactSha256": "eed38ee3fe84ef4bf409d3aaae168dbeb58980f81d2cd30489fae3f1f7e8ccdf"
+      },
+      "assetFilesInspected": [
+        {
+          "kind": "MODEL",
+          "path": "assets/cobblemon/bedrock/pokemon/models/0094_gengar/gengar_ot.geo.json",
+          "sha256": "5cb86fc3cc9dcf4e996cc91573bf12ac8d2cf21b421d9319c22fa73a086123b9"
+        },
+        {
+          "kind": "TEXTURE",
+          "path": "assets/cobblemon/textures/pokemon/0094_gengar_ot/gengar_ot.png",
+          "sha256": "421d6b3d98865c0ab6a60374eb7c81987fd0602d1056d9ccd151f73f58e11c1e"
+        },
+        {
+          "kind": "TEXTURE",
+          "path": "assets/cobblemon/textures/pokemon/0094_gengar_ot/gengar_ot_emissive.png",
+          "sha256": "95c7142977648dc8a54a5123be7d3493b9b7fcc960d0cece3c7512c80999a1be"
+        },
+        {
+          "kind": "TEXTURE",
+          "path": "assets/cobblemon/textures/pokemon/0094_gengar_ot/gengar_ot_shiny.png",
+          "sha256": "ede3829eb0b343db8e4a3b9573c80cafe3fe4b40ac2fe462118b2f776136ca51"
+        },
+        {
+          "kind": "ANIMATION",
+          "path": "assets/cobblemon/bedrock/pokemon/animations/0094_gengar/gengar_ot.animation.json",
+          "sha256": "221e06ed966830cd4524af0d8fe422bd7133f7b6a92de37c16d4782470455df0"
+        },
+        {
+          "kind": "POSER",
+          "path": "assets/cobblemon/bedrock/pokemon/posers/0094_gengar/gengar_ot.json",
+          "sha256": "9c0f9f831402e30c18a2d9e041aa644cd628763c7fcd3d1784322b26bd0975c4"
+        },
+        {
+          "kind": "RESOLVER",
+          "path": "assets/cobblemon/bedrock/pokemon/resolvers/0094_gengar/4_gengar_ot.json",
+          "sha256": "c462523414a414938dd559e4f30689c2ca9d7c831f9fb0be00952ef9d8cf9698"
+        }
       ],
-      "discoveryEvidence": [
-        "The project describes itself as adding costumes for Cobblemon Pokemon and explicitly lists Gengar [Overtime].",
-        "The 3.1.1 changelog explicitly says ADDED Overtime Gengar; 3.1.1.1 is the resolver-fix release of the same 208.71 KiB package.",
-        "Public project metadata is sufficient to establish a real custom-costume candidate, but not to prove the model geometry or texture implementation."
-      ],
-      "geometryMateriallyChangedStatus": "UNPROVEN",
-      "customVisualIdentityStatus": "PROVEN_BY_PROJECT_DESCRIPTION",
-      "assetInspectionStatus": "PENDING",
-      "assetFilesInspected": [],
-      "sourceFileAccessStatus": "PUBLIC_PACKAGE_LISTED_BUT_PACKAGE_BYTES_NOT_INSPECTED_IN_THIS_RUN",
-      "whyNotCounted": "The actual Overtime Gengar MODEL and TEXTURE files have not been opened and SHA-256 hashed. Geometry change therefore remains unproven.",
-      "licenseStatus": "PUBLIC_METADATA_CONFLICT_REVIEW_REQUIRED",
-      "licenseEvidence": [
-        "Modrinth currently labels the project MIT.",
-        "CurseForge currently labels the project All Rights Reserved."
-      ],
+      "structuralEvidence": {
+        "officialComparisonSource": "Cobblemon 1.7.3 Fabric / kF7CvxTo / official Gengar model SHA-256 57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38",
+        "officialBoneCount": 78,
+        "externalBoneCount": 82,
+        "addedBoneNames": ["necktie", "bone", "glasses", "bag"],
+        "missingOfficialBoneCount": 0,
+        "changedCommonBoneCount": 20,
+        "costumeAnimationEvidence": "The custom animation set contains 8 clips. The bag is explicitly animated in ground idle, ground walk, air fly and air idle; the necktie child bone is explicitly animated in ground walk.",
+        "poserEvidence": "The custom poser exposes standing, walking, battle-standing, float, hover, flying, swim and sleep poses.",
+        "resolverEvidence": "The resolver binds the ot aspect to a dedicated Gengar model, poser and normal texture, with a separate shiny Overtime texture variation."
+      },
+      "licenseStatus": "CONFLICTING_PUBLIC_METADATA_AND_NO_PACKAGE_LICENSE_FILE",
+      "license": {
+        "name": "Unresolved: Modrinth labels MIT; CurseForge labels All Rights Reserved; inspected ZIP has no license/licence/copying entry",
+        "sourceUrl": "https://modrinth.com/datapack/poke-costume/version/3.1.1",
+        "allowsDerivatives": false,
+        "allowsRedistribution": false
+      },
       "reuseMode": "STUDY_ONLY",
-      "reuseReason": "Do not promote to derivative donor until the exact downloaded package contains a compatible license/provenance grant and the relevant asset files are verified."
-    },
+      "requiredAttribution": "No third-party bytes, geometry, UVs, palette, markings, animation curves or costume motifs are reused by Ouros while licensing remains unresolved.",
+      "techniqueLessons": [
+        "Distribute costume identity across anatomy-specific attachment zones rather than one global scaffold: the inspected model adds a necktie rooted to torso, glasses rooted to eyes, and a bag rooted to the distal left arm.",
+        "Use layered and angled secondary geometry inside a signature piece instead of a single box: the necktie child system uses six cubes, five with cube rotation and inflation, while the necktie root remains a small two-cube anchor.",
+        "Treat offset equipment as animation-aware geometry: the bag receives explicit animation tracks in ground idle, ground walk, air fly and air idle, while the necktie child receives an explicit ground-walk track; the custom poser covers standing, walking, battle-standing and aerial states.",
+        "Keep presentation variants explicit in the resolver: the Overtime aspect selects a dedicated model/poser/texture and the shiny variant selects its own derived costume texture instead of relying on an implicit global recolor."
+      ],
+      "distinctiveElementsNotToCopy": [
+        "The exact Overtime office-worker costume fantasy and its specific combination/arrangement of necktie, glasses and bag.",
+        "The exact costume silhouette, cube proportions, pivots, UV layout, texture palette, markings, emissive treatment and animation curves.",
+        "Any of the 20 common official Gengar bone modifications present in this external model; Ouros production must preserve the current official biological Gengar model exactly."
+      ]
+    }
+  ],
+  "candidateReferences": [
     {
       "candidateId": "rainova-galaxy-gengar",
       "species": "gengar",
@@ -49,9 +107,7 @@
       "project": "Rainova / rainsrenders Sketchfab",
       "sourceUrl": "https://sketchfab.com/3d-models/galaxy-gengar-cobblemon-610ee908929b4a218f81bb9671e33778",
       "sourceVersion": "published 2026-03-01",
-      "contextUrls": [
-        "https://parkballgang.com/wiki/economy/crates"
-      ],
+      "contextUrls": ["https://parkballgang.com/wiki/economy/crates"],
       "discoveryEvidence": [
         "The public Sketchfab entry is explicitly titled Galaxy Gengar (Cobblemon), describes Galaxy themed Gengar and Mega Gengar, and says the original Gengar model came from Cobblemon.",
         "The public 3D entry reports roughly 1.7k triangles and 1.1k vertices and states that it was uploaded with Blockbench.",
@@ -62,7 +118,7 @@
       "assetInspectionStatus": "PENDING",
       "assetFilesInspected": [],
       "sourceFileAccessStatus": "INTERACTIVE_3D_MODEL_VISIBLE_SOURCE_FILES_NOT_PUBLICLY_EXPOSED",
-      "whyNotCounted": "An interactive 3D presentation is stronger than a screenshot but does not expose the actual MODEL + TEXTURE source files needed for direct inspection and SHA-256 hashing. Geometry change versus texture-only treatment is not yet proven from source files.",
+      "whyNotCounted": "The public viewer does not expose the actual MODEL + TEXTURE files required for direct hashing and geometry-delta verification.",
       "licenseStatus": "NO_EXPLICIT_DERIVATIVE_REDISTRIBUTION_GRANT_VERIFIED",
       "reuseMode": "STUDY_ONLY",
       "reuseReason": "Viewer inspection may guide high-level technique only. Do not copy or redistribute model/texture bytes without an explicit compatible license."
@@ -86,7 +142,7 @@
       "assetInspectionStatus": "PENDING",
       "assetFilesInspected": [],
       "sourceFileAccessStatus": "INTERACTIVE_3D_MODEL_VISIBLE_SOURCE_FILES_NOT_PUBLICLY_EXPOSED",
-      "whyNotCounted": "The underlying Gengar MODEL and TEXTURE files are not exposed for direct inspection in the public viewer, so exact geometry delta, UV treatment and texture SHA-256 cannot be verified.",
+      "whyNotCounted": "The underlying Gengar MODEL and TEXTURE source files are not exposed for direct inspection and SHA-256 hashing.",
       "licenseStatus": "NO_EXPLICIT_DERIVATIVE_REDISTRIBUTION_GRANT_VERIFIED",
       "reuseMode": "STUDY_ONLY",
       "reuseReason": "Study the public presentation only; do not copy or redistribute model/texture bytes without an explicit compatible license."
@@ -98,7 +154,7 @@
       "sourceUrl": "https://parkballgang.com/wiki/economy/crates",
       "evidence": "Parkball Gang lists Gengar among its Summer Crate cosmetic Pokemon skins.",
       "status": "LEAD_ONLY",
-      "blocker": "No publicly inspectable Gengar Summer MODEL + TEXTURE asset set was located in this run."
+      "blocker": "No publicly inspectable Gengar Summer MODEL + TEXTURE asset set was located."
     },
     {
       "leadId": "cobblemon-gg-halloween-gengar",
@@ -116,30 +172,15 @@
     }
   ],
   "rejectedReferences": [
-    {
-      "referenceId": "cobble-remodels-v4-gengar",
-      "reason": "INVALID_REFERENCE_CLASS: ordinary canonical Gengar remodel/accuracy edit, not a distinct themed custom skin."
-    },
-    {
-      "referenceId": "better-shiny-mon-gengar",
-      "reason": "INVALID_REFERENCE_CLASS: shiny/texture redesign. Texture-only or shiny references never count toward the three custom-geometry skins."
-    },
-    {
-      "referenceId": "mega-gengar-any-pack",
-      "reason": "INVALID_REFERENCE_CLASS: Mega Gengar is a canonical Pokemon transformation/form, not a Gengar skin reference."
-    },
-    {
-      "referenceId": "gmax-gengar-any-pack",
-      "reason": "INVALID_REFERENCE_CLASS: Gigantamax Gengar is a canonical Pokemon form, not a Gengar skin reference."
-    },
-    {
-      "referenceId": "cobblemon-delta-ultra-gengar",
-      "reason": "ELIGIBILITY_UNPROVEN: may be reconsidered only if real assets prove a non-canonical themed skin with materially changed geometry; a palette/form label alone does not count."
-    }
+    {"referenceId": "cobble-remodels-v4-gengar", "reason": "INVALID_REFERENCE_CLASS: ordinary canonical Gengar remodel/accuracy edit, not a distinct themed custom skin."},
+    {"referenceId": "better-shiny-mon-gengar", "reason": "INVALID_REFERENCE_CLASS: shiny/texture redesign. Texture-only or shiny references never count toward the three custom-geometry skins."},
+    {"referenceId": "mega-gengar-any-pack", "reason": "INVALID_REFERENCE_CLASS: Mega Gengar is a canonical Pokemon transformation/form, not a Gengar skin reference."},
+    {"referenceId": "gmax-gengar-any-pack", "reason": "INVALID_REFERENCE_CLASS: Gigantamax Gengar is a canonical Pokemon form, not a Gengar skin reference."},
+    {"referenceId": "cobblemon-delta-ultra-gengar", "reason": "ELIGIBILITY_UNPROVEN: may be reconsidered only if real assets prove a non-canonical themed skin with materially changed geometry; a palette/form label alone does not count."}
   ],
   "minimumCompleteReferencesRequired": 3,
-  "currentPlausibleCandidateCount": 3,
-  "currentCompleteEligibleReferenceCount": 0,
+  "currentPlausibleCandidateCount": 2,
+  "currentCompleteEligibleReferenceCount": 1,
   "productionModelingGate": "BLOCKED_UNTIL_THREE_CUSTOM_GEOMETRY_SKINS_PASS",
-  "nextAction": "Obtain and directly inspect actual MODEL + TEXTURE files for Overtime Gengar first; then either obtain source files for Galaxy/Halloween Gengar or replace them with equally strong downloadable custom-geometry Gengar skins. No Rift Warden production generation is allowed before three references move into references[] as COMPLETE."
+  "nextAction": "Find and directly inspect two more exact-species non-canonical custom-geometry Gengar skins from real MODEL + TEXTURE files. Galaxy/Halloween remain candidates only; replace them if their source files cannot be obtained lawfully. No Rift Warden production generation is allowed at 1/3."
 }
