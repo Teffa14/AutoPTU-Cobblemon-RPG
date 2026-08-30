@@ -1,0 +1,50 @@
+name: Bootstrap Lucario Aura Sentinel V5
+
+on:
+  push:
+    branches:
+      - 'art/lucario-aura-sentinel-v5-resonance-ronin'
+    paths:
+      - '.github/workflows/cobblemon-bootstrap-lucario-v5.yml'
+      - 'tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Build new Resonance Ronin production bytes and manifest
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin.py --bootstrap
+          python tools/cobblemon-model-review/validate_professional_skin_manifest.py \
+            docs/cobblemon-skin-review-manifests/0448_lucario.json \
+            --skip-reference-validator
+      - name: Commit deterministic generated candidate
+        run: |
+          set -euo pipefail
+          paths=(
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json
+            docs/cobblemon-skin-review-manifests/0448_lucario.json
+          )
+          git add -- "${paths[@]}"
+          if git diff --cached --quiet; then
+            echo 'Generated candidate already matches branch.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'skins: generate Lucario Resonance Ronin candidate'
+          git push origin HEAD:${GITHUB_REF_NAME}
