@@ -4,7 +4,7 @@ Status: ARTISTIC FAIL
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-Lucario remains the active one-model artistic slice. V5 failed internal visual QA. V6 failed the matched-camera silhouette floor at 0.0108 versus 0.0400. V7 cleared the technical floor, but its exact Blockbench PNGs were visually rejected because the lower blue panels read as oversized shorts and the outer cape fragmented into detached-looking tiles. V8 is the current production candidate and remains unapproved until its exact current Blockbench evidence is reviewed.
+Lucario remains the active one-model artistic slice. V5 failed internal visual QA. V6 failed the matched-camera silhouette floor at 0.0108 versus 0.0400. V7 cleared the technical floor but its exact Blockbench PNGs were visually rejected because the lower blue panels read as oversized shorts and the outer cape fragmented into detached-looking tiles. V8 removed those lower panels and cleaned the front read, but its matched-camera pixel difference was only 0.0725 against the unchanged 0.0800 technical floor. V9 is the current production candidate and remains ARTISTIC FAIL until its exact current Blockbench evidence is opened and judged.
 
 ## Authority boundary
 
@@ -24,26 +24,26 @@ Poser SHA-256 `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`
 Base resolver SHA-256 `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`.
 Model license SHA-256 `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`.
 
-The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with three complete custom-geometry Lucario references across two external projects. All are STUDY_ONLY. Only general techniques such as overlapping drape, contour distribution, shell hierarchy and animation-safe parenting are used.
+The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with three complete custom-geometry Lucario references across two external projects. Ruins Style Lucario, Space Style Lucario and Covert Style Lucario are all STUDY_ONLY. Only general techniques such as overlapping drape, contour distribution, shell hierarchy, material breakup and animation-safe parenting are used. Their exact outfits, silhouettes, markings, palettes, motifs and geometry are not donor assets.
 
-## V8 design
+## V9 design
 
-Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v8.py`.
+Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v9.py`.
 
-V8 removes every thigh-covering coat/skirt panel and discards the segmented outer crescent from V7. Its signature system is one deeply overlapping shoulder-to-side drape: a torso-contact shoulder root feeds four paper-thin panels that overlap strongly, progressively narrow and terminate in one pointed lower contour. The front uses only a diagonal sash and slim waist obi. Arms, shins and tail retain minimal articulation-safe accents.
+V9 keeps V8's open biological front but materially enlarges the signature system without lowering any gate. One shoulder-contact root feeds a seven-stage paper-thin haori sweep. The connected panels overlap deeply, rotate progressively outward and backward, widen through the middle silhouette and then taper to one terminal point. A small upper fold gives the shoulder transition depth. The front remains open around Lucario's biological chest spike and uses a diagonal lapel/sash rather than a torso box. Thin articulation-safe vambraces, greaves and tail clasp stay subordinate.
 
-The builder reconstructs the exact official 87-bone Lucario prefix and appends 8 `ouros_*` cosmetic bones. Current production counts, hashes and attachment limits are authoritative in `docs/cobblemon-skin-review-manifests/0448_lucario.json`.
+The builder reconstructs the exact official 87-bone Lucario prefix and appends 8 `ouros_*` cosmetic bones. Current V9 production is 95 bones and 19 cosmetic cubes. Production model SHA-256 is `a1c341414230084b823e6c9864680b71064b106b6c4089963fb365993c5e83bd`. The authoritative hashes and attachment limits remain in `docs/cobblemon-skin-review-manifests/0448_lucario.json`.
 
 ## Texture and material contract
 
-Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay uses twelve verified alpha-zero texels with distinct shadow, mid and facing-plane values for indigo cloth, lacquer, metal, antique gold and aura cyan. Biological UVs are unchanged.
+Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay SHA-256 is `9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee`. It uses verified alpha-zero texels with distinct shadow, mid and facing-plane values for indigo cloth, lacquer, metal, antique gold and aura cyan. Biological UVs are unchanged.
 
 ## Runtime and forms
 
-The resolver keeps the official `cobblemon:lucario` poser and routes the same V8 presentation cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
+The resolver keeps the official `cobblemon:lucario` poser and routes the same V9 presentation cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
 
 ## Evidence contract
 
 Blockbench 5.1.6 is mandatory with matched official camera. Review states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at t=0.35. No walking PNG is fabricated because this path uses procedural locomotion rather than a dedicated Bedrock walking clip.
 
-Green CI is engineering evidence only. Current status remains ARTISTIC FAIL until the exact V8 PNG set is opened and judged. If internal QA succeeds, the maximum pre-owner state is OWNER REVIEW REQUIRED. Only explicit owner approval of the exact head/evidence set can approve the art.
+The visual floor remains `minimumPixelDifferenceRatio: 0.08` and `minimumSilhouetteDeltaRatio: 0.04`. It may reject trivial transformation but cannot grant artistic approval. Green CI is engineering evidence only. If internal QA eventually succeeds, the maximum pre-owner state is OWNER REVIEW REQUIRED. Only explicit owner approval of the exact head/evidence set can approve the art.
