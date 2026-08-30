@@ -94,10 +94,14 @@ jobs:
               nv=copy.deepcopy(v); nv['aspects']=['ouros_abyssal_bastion']+list(nv.get('aspects',[])); nv['model']='cobblemon:ouros_abyssal_bastion_tyranitar.geo'; nv.setdefault('layers',[]).append({'name':'ouros_abyssal_bastion','texture':'cobblemon:textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png','translucent':True}); out['variations'].append(nv)
           rp=Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0248_tyranitar/90_ouros_abyssal_bastion.json'); rp.parent.mkdir(parents=True,exist_ok=True); rp.write_text(json.dumps(out,separators=(',',':'))+'\n')
           assert len(out['variations'])==2
-          for v in out['variations']:
-              assert v['poser']=='cobblemon:tyranitar' and v['model']=='cobblemon:ouros_abyssal_bastion_tyranitar.geo' and v['layers'][-1]['name']=='ouros_abyssal_bastion'
+          assert out['variations'][0].get('poser')=='cobblemon:tyranitar'
+          for source,derived in zip(src['variations'],out['variations']):
+              assert derived['model']=='cobblemon:ouros_abyssal_bastion_tyranitar.geo' and derived['layers'][-1]['name']=='ouros_abyssal_bastion'
+              assert derived.get('poser')==source.get('poser')
+              for key in ('texture','layers'):
+                  if key=='texture': assert derived.get(key)==source.get(key)
           a=json.loads(Path('.official-source/tyranitar.animation.json').read_text())['animations']; assert list(a)==['animation.tyranitar.ground_idle','animation.tyranitar.blink','animation.tyranitar.mouth_open','animation.tyranitar.cry']
-          print('validated 61 official bones + 8 cosmetic bones; cubes',meta['cosmeticCubeCount'],'palette',meta['palettePixels'])
+          print('validated 61 official bones + 8 cosmetic bones; cubes',meta['cosmeticCubeCount'],'palette',meta['palettePixels'],'resolver inheritance preserved')
           PY
       - name: Preserve license evidence
         run: |
