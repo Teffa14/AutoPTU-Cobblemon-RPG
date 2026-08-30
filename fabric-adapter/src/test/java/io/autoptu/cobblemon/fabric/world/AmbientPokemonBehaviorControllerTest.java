@@ -17,6 +17,7 @@ final class AmbientPokemonBehaviorControllerTest {
         assertEquals(AmbientPokemonBehaviorController.State.WATCHING, controller.update(12.0D, true));
         assertEquals(AmbientPokemonBehaviorController.State.ALARMED, controller.update(6.0D, true));
         assertEquals(AmbientPokemonBehaviorController.State.RECOVERING, controller.update(18.0D, true));
+        assertEquals(AmbientPokemonBehaviorController.State.RECOVERING, controller.update(18.0D, true));
         assertEquals(AmbientPokemonBehaviorController.State.CALM, controller.update(18.0D, true));
     }
 
