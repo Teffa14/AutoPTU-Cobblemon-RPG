@@ -1,0 +1,11 @@
+{
+  "concept": "Storm Courier v4 full transformation",
+  "variant": "shiny",
+  "officialTextureBaselineSha256": "f84a96d936d8f2b4566db8a7bdbe6c6c1d72c75065b19201730739d618ee65df",
+  "derivedTexture": "ouros_storm_courier_shiny.png",
+  "derivedTextureSha256": "50b5d8719d88896c1d711ab727fcee10a544268d8f3bf1fde1321162d72bcea8",
+  "bodyTexelRework": "Reworks visible official Pikachu body texels into a coherent cool stormcloth/conductive-field palette while preserving face definition, original UV mapping and transparency footprint.",
+  "paletteIntent": "Deep navy and blue-grey stormcloth, charcoal conductors, weathered copper/brass hardware, controlled cyan electric accents.",
+  "materialIntent": "The body and attached equipment must read as one weatherproof storm-runner suit and expedition power system rather than unchanged fur plus isolated accessories.",
+  "allowAlphaSemanticsChange": false
+}
