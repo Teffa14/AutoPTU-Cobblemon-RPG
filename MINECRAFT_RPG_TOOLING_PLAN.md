@@ -194,7 +194,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-101 | LIVE | `/autoptu quests` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`; lists only accepted canonical quest entries enriched from the server-authored catalogue. |
 | CMD-102 | LIVE | `/autoptu quest <id>` — PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8`; resolves authored metadata only for a quest already present in the authenticated Trainer's journal and fails closed otherwise. |
 | CMD-103 | LIVE | `/autoptu quest track <id>` — PR #260 / implementation head `d2d554d67c418881280df02f7ed848bc53b23220`; persists one already-accepted server-authored quest as the authenticated Trainer's tracked quest through revision-CAS journal state. Unknown/unaccepted IDs fail closed and repeat tracking is idempotent. |
-| CMD-104 | TODO | `/autoptu travel` |
+| CMD-104 | LIVE | `/autoptu travel` — PR #346 / merge `619a426131e4485a22a9da4bfb3690018a71a14f`; authenticated read-only server-authored destination catalogue with current lodestone readiness evaluated through `CanonicalFastTravelService`. The client supplies no destination identity, coordinates, unlock/progression truth or travel outcome. |
 | CMD-105 | TODO | `/autoptu travel <destination>` |
 | CMD-106 | TODO | `/autoptu interact` debug/fallback for the targeted registered world interaction |
 
