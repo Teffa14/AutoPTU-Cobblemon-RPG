@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "30a3d63e55f5ac5918d9f0a718f556cdfee63a22376caed1cb84e2b6672fd03c",
+    "modelSha256": "8cd714fdd905aca664a3f4140bf9da8b25a508bd4b4d0f2e2fd66d518c638647",
     "productionBoneCount": 100,
     "cosmeticBoneCount": 13,
-    "cosmeticCubeCount": 31,
+    "cosmeticCubeCount": 28,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -148,13 +148,13 @@
       "Use overlapping shells, contour transitions and dedicated equipment material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Continuous cowl/collar/shoulder/back/hip mantle arc with the official chest spike and face left open",
-      "One shoulder-rooted four-stage crescent sweep whose overlapping facets taper and rotate progressively instead of forming a slab or repeated bars",
-      "Asymmetric hip knot with split tapered ribbons preserving negative space around Lucario's biological tail"
+      "Continuous cowl/collar/shoulder/back/hip mantle arc leaving Lucario's face and chest spike open",
+      "One two-stage shoulder-rooted ceremonial ribbon whose long thin facets overlap, taper sharply and turn in compound rotation rather than forming a stepped plate fan",
+      "Asymmetric hip knot with two short unequal ribbon responses and negative space around the biological tail"
     ],
-    "macroFormPlan": "V15b preserves V14c's narrow mantle architecture but replaces V15's undersized separated pennons with one connected visual crescent. Four thin overlapping shoulder facets expand outward only after a substantial shoulder contact mass, progressively narrowing and rotating to create a curved silhouette. The opposite hip resolves the same diagonal with three shorter split ribbons. No threshold changes and no biological edits.",
+    "macroFormPlan": "V15c preserves V14c's narrow mantle architecture and removes V15b's four-stage stepped crescent after direct Blockbench QA. The signature contour is now one shoulder-rooted ribbon gesture built from only two long, thin, strongly rotated overlapping facets, with an unequal two-ribbon hip response. The design spends silhouette on curvature and directional flow rather than repeated slabs. No threshold changes and no biological edits.",
     "paintPlan": "Keep exact official biological normal/shiny bytes. Use the accessory material ramp with dark occlusion faces, lighter facing/top planes, antique-gold seam accents and aura-cyan terminal edges only on the authored cloth/equipment system.",
-    "gameplayReadGoal": "At 160 px the first read should be a single ceremonial crescent sweeping from Lucario's left shoulder around the back into the opposite hip. The outer edge must remain legible as tapered cloth motion with visible negative space, while the face, ears, aura sensors, chest spike, hands, feet and biological tail remain unmistakably Lucario.",
+    "gameplayReadGoal": "At 160 px the first read should be a single asymmetric ceremonial sweep, with one narrow ribbon rising/back from the left shoulder and a much shorter response at the opposite hip. The silhouette should read as cloth motion rather than armor plates while Lucario's ears, aura sensors, chest spike, hands, feet and biological tail remain unmistakable.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -162,7 +162,7 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "Exact V15 head 0bf6e61c00fc01f7d22a55e3ca123534e283725f passed reference, source, builder, bone, attachment and rendering stages but failed the unchanged matched-camera silhouette floor at 0.0303 < 0.0400. V15b materially reauthors the signature contour rather than lowering the floor; owner approval remains absent."
+    "iterationNote": "Exact V15b head a814ee180d5ee272d1ec3bf09e0ab7e79f061901 passed the unchanged technical floors at pixelDifferenceRatio=0.11852 and silhouetteDeltaRatio=0.053315, but direct inspection of its Blockbench PNGs remained ARTISTIC FAIL because the shoulder crescent read as a staircase of rectangular plates. V15c removes that cadence rather than adding volume or relaxing thresholds; owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
