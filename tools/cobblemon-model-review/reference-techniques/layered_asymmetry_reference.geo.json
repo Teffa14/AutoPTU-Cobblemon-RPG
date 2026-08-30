@@ -1,0 +1,41 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.ouros_reference_layered_asymmetry",
+        "texture_width": 128,
+        "texture_height": 128,
+        "visible_bounds_width": 4.5,
+        "visible_bounds_height": 5.0,
+        "visible_bounds_offset": [0, 1.8, 0]
+      },
+      "bones": [
+        {"name": "root", "pivot": [0, 0, 0]},
+        {"name": "reference_body", "parent": "root", "pivot": [0, 12, 0], "cubes": [
+          {"origin": [-4, 6, -2], "size": [8, 12, 4], "uv": [0, 0]},
+          {"origin": [-3.5, 18, -2], "size": [7, 7, 4], "uv": [0, 20]}
+        ]},
+        {"name": "mantle_core", "parent": "reference_body", "pivot": [0, 16, 0], "cubes": [
+          {"origin": [-5.5, 14.0, -3.0], "size": [11, 2.2, 6], "uv": [48, 48], "rotation": [4, 0, 0], "pivot": [0, 15, 0]},
+          {"origin": [-4.8, 12.2, -2.8], "size": [9.6, 2.0, 5.6], "uv": [48, 58], "rotation": [-6, 0, 0], "pivot": [0, 13.2, 0]}
+        ]},
+        {"name": "mantle_left_layers", "parent": "reference_body", "pivot": [-3.5, 14, 0], "cubes": [
+          {"origin": [-7.8, 12.0, -2.5], "size": [3.6, 2.2, 5.0], "uv": [72, 48], "rotation": [0, 0, -22], "pivot": [-4.6, 13.0, 0]},
+          {"origin": [-8.3, 9.8, -2.0], "size": [3.3, 2.0, 4.0], "uv": [72, 58], "rotation": [0, 0, -34], "pivot": [-5.3, 11.0, 0]},
+          {"origin": [-8.0, 7.8, -1.4], "size": [2.7, 1.8, 2.8], "uv": [72, 66], "rotation": [0, 0, -44], "pivot": [-5.6, 9.0, 0]}
+        ]},
+        {"name": "relic_fin_right", "parent": "reference_body", "pivot": [4, 14, 0], "cubes": [
+          {"origin": [4.4, 15.0, -1.4], "size": [2.0, 8.0, 2.8], "uv": [88, 48], "rotation": [0, 0, 18], "pivot": [4.5, 16, 0]},
+          {"origin": [5.9, 17.5, -1.2], "size": [1.8, 6.0, 2.4], "uv": [96, 48], "rotation": [0, 0, 30], "pivot": [5.8, 18.3, 0]},
+          {"origin": [7.2, 20.0, -1.0], "size": [1.5, 4.2, 2.0], "uv": [104, 48], "rotation": [0, 0, 42], "pivot": [7.0, 20.5, 0]},
+          {"origin": [8.0, 22.3, -0.8], "size": [1.2, 2.6, 1.6], "uv": [112, 48], "rotation": [0, 0, 54], "pivot": [7.8, 22.5, 0]}
+        ]},
+        {"name": "split_skirt", "parent": "reference_body", "pivot": [0, 8, 0], "cubes": [
+          {"origin": [-4.0, 4.0, -2.3], "size": [3.5, 5.0, 4.6], "uv": [88, 64], "rotation": [0, 0, -9], "pivot": [-1.7, 8.0, 0]},
+          {"origin": [0.5, 4.2, -2.3], "size": [3.5, 4.8, 4.6], "uv": [104, 64], "rotation": [0, 0, 11], "pivot": [1.7, 8.0, 0]}
+        ]}
+      ]
+    }
+  ]
+}
