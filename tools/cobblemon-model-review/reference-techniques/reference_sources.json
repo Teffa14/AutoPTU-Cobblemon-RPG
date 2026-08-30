@@ -1,0 +1,63 @@
+{
+  "format": "ouros.cobblemon-technique-reference-sources.v1",
+  "policy": "Third-party assets are study-only unless an explicit redistribution license permits inclusion. Ouros production assets must be original and official Cobblemon remains the anatomy/UV source of truth.",
+  "sources": [
+    {
+      "name": "Cobbleverse Resource Pack",
+      "source": "https://github.com/ALERder/cobbleverse-resourcepack",
+      "licenseStatus": "NO_EXPLICIT_LICENSE_FOUND_IN_REPOSITORY_ROOT",
+      "assetInclusion": "FORBIDDEN_WITHOUT_PERMISSION",
+      "permittedStudy": [
+        "bone grouping",
+        "attachment strategy",
+        "geometry density",
+        "contour and wrap",
+        "taper and overlap",
+        "negative space",
+        "generic painted depth/material hierarchy"
+      ]
+    },
+    {
+      "name": "Cobblemon Delta",
+      "source": "https://modrinth.com/modpack/cobblemondelta",
+      "licenseStatus": "ALL_RIGHTS_RESERVED",
+      "assetInclusion": "FORBIDDEN",
+      "permittedStudy": [
+        "high-level geometry organization",
+        "surface hierarchy",
+        "texture depth",
+        "material readability",
+        "large-to-small detail distribution",
+        "gameplay-scale readability"
+      ]
+    },
+    {
+      "name": "Official Cobblemon",
+      "source": "https://modrinth.com/mod/cobblemon",
+      "licenseStatus": "USE_EXACT_PROJECT-PINNED_LICENSE/PROVENANCE_PER_ASSET",
+      "assetInclusion": "AUTHORITATIVE_BASELINE_ONLY",
+      "permittedStudy": [
+        "official anatomy",
+        "bones and hierarchy",
+        "UV layout",
+        "forms",
+        "poser/resolver behavior",
+        "official textures and animations"
+      ]
+    }
+  ],
+  "internalExamples": [
+    {
+      "model": "contour_wrap_reference.geo.json",
+      "texture": "contour_wrap_reference.png",
+      "origin": "ORIGINAL_OUROS_NEUTRAL_REFERENCE",
+      "purpose": "contour/wrap/taper/overlap and painted depth"
+    },
+    {
+      "model": "layered_asymmetry_reference.geo.json",
+      "texture": "layered_asymmetry_reference.png",
+      "origin": "ORIGINAL_OUROS_NEUTRAL_REFERENCE",
+      "purpose": "layering/asymmetry/negative-space/full-body distribution"
+    }
+  ]
+}
