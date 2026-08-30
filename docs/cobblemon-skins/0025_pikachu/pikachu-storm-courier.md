@@ -1,96 +1,115 @@
-# Pikachu — Storm Courier (Cobblemon 1.7.3 epic v3)
+# Pikachu — Storm Courier
+
+Art status: FULL-TRANSFORMATION OVERHAUL IN PROGRESS under issue #308.
+
+The previous 98-bone epic-v3 pass remains a technically validated historical baseline. It is no longer considered artistically complete because its first read remains too close to "Pikachu plus goggles, straps, backpack and small field hardware". Do not use v3 as the visual quality bar for new skins.
 
 ## Source of truth
 
-Storm Courier is derived from the exact Pikachu geometry distributed in the official Cobblemon 1.7.3 Fabric JAR (`Cobblemon-fabric-1.7.3+1.21.1.jar`, Modrinth version id `kF7CvxTo`). It is not derived from a mirror, an old model, screenshots or an Ouros reconstruction.
+Storm Courier is derived from the exact Pikachu geometry distributed in the official Cobblemon 1.7.3 Fabric JAR (`Cobblemon-fabric-1.7.3+1.21.1.jar`, Modrinth version id `kF7CvxTo`). It is not derived from a mirror, old model, screenshot, fork or Ouros anatomy reconstruction.
 
 Pinned official hashes:
 
 - male `pikachu_male.geo.json`: `f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83`
 - female `pikachu_female.geo.json`: `d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318`
-- base texture `pikachu.png`: `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
+- official base texture `pikachu.png`: `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
 - official `pikachu.animation.json`: `d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384`
 
-Both official gender models contain 90 bones. The derived models preserve all 90 original bones exactly at the JSON-object level and in the same order, including cubes, pivots, parents, rotations, locators and UV definitions. Male and female are derived independently so the official female tail remains intact.
+Both official sex models contain 90 bones. Every accepted Storm Courier model must preserve all 90 original bones exactly at JSON-object level and in original order, including cubes, pivots, parents, rotations, locators and UV definitions. Male and female are always derived independently so the official female tail remains intact.
 
-## Epic v3 cosmetic geometry
+## Historical epic-v3 baseline
 
-Epic v3 intentionally abandons the earlier four-piece limitation. The skin must read as a major variant at gameplay distance while keeping Pikachu's anatomy untouched.
+The existing production pass appends eight Ouros bones to each independent official model, producing 98 bones total:
 
-Exactly eight Ouros bones are appended. No original Cobblemon bone is rewritten:
+- `ouros_storm_goggles` parented to `head_angle`
+- `ouros_storm_cowl` parented to `head_angle`
+- `ouros_storm_mantle` parented to `torso2`
+- `ouros_storm_harness` parented to `torso2`
+- `ouros_storm_pack` parented to `torso2`
+- `ouros_storm_coils` parented to `torso2`
+- `ouros_storm_tail_clamp` parented to `tail2`
+- `ouros_storm_tail_vanes` parented to `tail2`
 
-- `ouros_storm_goggles` → parent `head_angle`
-- `ouros_storm_cowl` → parent `head_angle`
-- `ouros_storm_mantle` → parent `torso2`
-- `ouros_storm_harness` → parent `torso2`
-- `ouros_storm_pack` → parent `torso2`
-- `ouros_storm_coils` → parent `torso2`
-- `ouros_storm_tail_clamp` → parent `tail2`
-- `ouros_storm_tail_vanes` → parent `tail2`
+That pass was useful for proving exact anatomy preservation, sex-specific derivation, resolver behavior, official animation attachment and real Blockbench CI. It is not the target art direction anymore.
 
-The result is 98 bones total: the same 90 official Pikachu bones plus eight attached cosmetic groups.
+## Why v3 failed the new visual bar
 
-### Storm visor
+The old implementation optimized individual accessory objects instead of the character-wide read. The base Pikachu color/material identity remained dominant and most added surfaces were separated into many small cuboids. At gameplay scale the player still read Pikachu first and then a collection of accessories.
 
-The goggles are now a heavy storm visor rather than simple eyewear. Large translucent lenses, charcoal frames, copper bridge and brows, brass lightning accents, leather/navy retention and an asymmetric weather lens create a strong face signature. The original eyes, muzzle and forehead geometry remain untouched underneath.
+The full-transformation standard reverses that priority. The first read must be the storm-runner fantasy while Pikachu remains anatomically intact underneath.
 
-### Open storm cowl
+## Full-transformation v4 direction
 
-The cowl is built around the back and sides of the official head. A rear shell, side rails, crown wings and lower jawline guards create a more aggressive silhouette while leaving the face and ears open. It frames Pikachu rather than replacing its head.
+V4 must be designed as one coherent storm-courier system, not as a larger version of the same accessory list.
 
-### Shoulder mantle
+The three dominant signature structures are:
 
-The mantle adds layered navy/copper/brass pauldrons beyond the torso silhouette and two split rear storm tabs. This is the primary silhouette push in side and three-quarter views. The official arms remain separate and continue to animate through their original bones.
+1. an integrated storm visor + aerodynamic cowl that reads as one head assembly while leaving Pikachu's face, ears and muzzle identifiable;
+2. a connected mantle/shoulder shell + torso storm suit that creates a large continuous upper-body mass rather than separate shoulder cubes and painted straps;
+3. an expedition power-frame that combines the rear pack, storm core, field conductors and tail grounding system into one visually connected machine.
 
-### Heavy storm harness
+Secondary pieces such as buckles, route cases, storm vials, small fins and charms are permitted only after those three structures work at gameplay scale.
 
-The chest harness keeps crossed straps but increases their physical depth and visual hierarchy. The central element is now a large brass/glass storm core rather than a small clasp. Shoulder locks connect the harness visually to the mantle, with utility pouches remaining secondary.
+### Silhouette target
 
-### Expedition pack
+The three-quarter silhouette must change immediately. The head should have a recognizable cowl/visor profile. The shoulders should form a broad but motion-safe storm mantle. The rear power-frame should create a strong asymmetric dorsal read. The tail conductor should visually continue the machine rather than look like isolated clamps placed on the tail.
 
-The pack is larger and more deliberate while remaining bounded around the official torso. It includes a reinforced canvas body, navy lower section, leather flap, rolled stormcloth, twin retention straps, rear lightning sigil, storm vial and folded route case. The asymmetry is intentional and should remain readable in hero three-quarter views.
+Large silhouette changes are allowed. The official ears, head, limbs, torso and tail remain present and untouched below the cosmetic shell.
 
-### Twin storm-field pylons
+### Full-surface material target
 
-Two field-coil pylons rise behind the shoulders from the pack area. Each uses charcoal structure, copper/brass rings and a translucent storm cell near the top. These pylons are the strongest new silhouette element and are meant to make Storm Courier recognizable instantly from a distance without altering Pikachu's ears or head.
+V4 may use a complete derived Pikachu texture based on the exact official `pikachu.png` and exact official UV layout.
 
-### Tail grounding system
+The official 128×64 dimensions and UV mapping remain unchanged. CI pins the immutable official texture SHA-256 and records the new derived texture SHA-256.
 
-The grounding clamp is heavier than the premium pass and remains fitted to `tail2`. A second `ouros_storm_tail_vanes` group adds segmented conductor plates and side fins along the official tail plane. The tail itself remains the exact Cobblemon tail geometry underneath.
+The intended material language is a storm-proof field suit rather than unchanged yellow fur plus accessory colors. The texture pass should deliberately unify exposed body regions and equipment with a limited palette such as insulated stormcloth, dark conductive panels, weathered copper/brass hardware and controlled electric accent surfaces. The exact palette must be decided from the real Blockbench review, not copied from third-party skins.
 
-## Texture contract
+Recoloring must preserve species identity and face readability. It is a supporting system, not a substitute for the large geometry transformation.
 
-The resolver keeps Cobblemon's base/shiny and emissive texture references. Ouros supplies only `ouros_storm_courier_accessories.png`, a transparent 128×64 overlay containing the eight material swatches used by the added geometry.
+Required v4 texture metadata:
 
-Those eight swatches occupy `x=0..7, y=63`. CI verifies against the exact official model that these texels are outside the UV footprint of all original Pikachu cubes, so the overlay does not repaint Pikachu's body.
+- `officialTextureBaselineSha256`
+- `derivedTexture`
+- `derivedTextureSha256`
+- `bodyTexelRework`
+- `paletteIntent`
+- `materialIntent`
+- accessory-overlay path and UV reservation if a separate atlas is still used for added geometry
 
-## Animation and presentation
+## Animation and attachment
 
-The original `cobblemon:pikachu` poser remains authoritative for presentation. All eight accessory bones inherit transforms from official animated parents; there is no replacement Ouros body rig.
+The official `cobblemon:pikachu` poser remains presentation authority. No alternate body rig is introduced.
 
-Blockbench review imports the official `pikachu.animation.json` through Blockbench's Bedrock animation codec. Acceptance previews use official `ground_idle`, `battle_idle` and `ground_walk` states. No project-authored renderer is accepted as visual evidence.
+Blockbench review imports the official `pikachu.animation.json` through the Bedrock animation codec. Acceptance uses official `ground_idle`, `battle_idle` and `ground_walk` states at recorded times. Cosmetic pieces must inherit from official animated parents and remain attached through those states.
 
-## Acceptance criteria for epic v3
+## Blockbench acceptance
 
-Epic v3 is accepted only if all of the following are true:
+The exact production model and textures must be loaded in pinned Blockbench. The official Pikachu reference and Storm Courier must use the same camera, projection, scale, pose and animation frame. Independent auto-fit is not accepted for official-vs-skin comparison.
 
-- all 90 original bones remain JSON-equivalent and in original order;
-- exactly eight expected `ouros_*` bones are appended;
-- male and female models remain independently derived;
-- front, left, right and back Blockbench review shows no accidental anatomical replacement;
-- hero three-quarter view reads materially more aggressively than the previous premium pass;
-- the cowl, mantle and pylons remain attached in official `ground_idle`, `battle_idle` and `ground_walk` frames;
-- no severe clipping or detached geometry appears in those accepted frames;
-- Playable Test Build and Integration Core CI pass.
+Minimum accepted evidence for v4:
 
-The previous 94-bone premium evidence remains historical evidence only. The epic-v3 branch must generate and commit a new 98-bone Blockbench evidence set before merge.
+- official reference three-quarter
+- Storm Courier hero three-quarter
+- battle-ready three-quarter using official `battle_idle`
+- walking three-quarter using official `ground_walk`
+- front/left/right/back structural views
+- male/female comparison sufficient to prove the official female-tail difference remains intact
+- gameplay-scale 128–192 px readability image derived from the real Blockbench render
+
+The v4 review must explicitly reject the asset if the thumbnail reads as ordinary Pikachu with accessories, if the signature structures collapse into noise, if the added geometry obscures species identity, or if major equipment detaches/clips severely in the official animations.
 
 ## Validation
 
-`tools/cobblemon-model-review/validate_original_model.py` rejects any drift in the 90 official bones. `tools/cobblemon-model-review/build_storm_courier.py` deterministically derives both production gender models from the pinned official JAR inputs.
+`tools/cobblemon-model-review/validate_original_model.py` remains the anatomy gate. It must continue rejecting any drift in the 90 official bones.
 
-Visual acceptance uses pinned Blockbench 5.1.6 with the exact production geometry, official texture and Ouros overlay. Review includes the untouched official Pikachu reference plus matched-camera Storm Courier views. Front/left/right/back evidence is used for structural inspection; three-quarter hero, battle-ready and walking evidence is used for presentation review.
+Full-surface texture derivation is validated separately. The texture validator must verify exact dimensions, immutable official baseline hash, expected derived hash and an explicit record of body-texel changes. Full-body recolor is legal; silent UV remapping is not.
+
+Playable Test Build and Integration Core CI remain mandatory after the reviewed v4 assets are actually committed. A green technical pipeline cannot override a failed artistic review.
+
+## Provenance and license
+
+The official Cobblemon JAR and applicable license remain the only source for the base model/texture/animation assets. Third-party server skins, Pokemon Unite designs, fan packs and mod skins may be studied only for high-level composition/ambition and may not contribute copied geometry, UVs, textures, logos or distinctive protected motifs.
 
 ## Authority boundary
 
-This asset is presentation-only. It does not use or alter Cobblemon battle-state authority, participants, legality, HP/status, tactical positions, combatant selection, damage or RNG. Ouros/AutoPTU remains authoritative for tactical battle facts.
+Storm Courier is presentation-only. It does not use or alter Cobblemon battle-state authority, participants, legality, HP/status, tactical positions, combatant selection, damage or RNG. Ouros/AutoPTU remains authoritative for tactical battle facts.
