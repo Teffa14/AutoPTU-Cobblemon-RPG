@@ -1,0 +1,34 @@
+name: Cobblemon Skin Reference Gate
+
+on:
+  pull_request:
+    paths:
+      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/**'
+      - 'src/main/resources/data/autoptu/cobblemon/skins/**'
+      - 'docs/cobblemon-skins/**'
+      - 'docs/cobblemon-skin-reference-dossiers/**'
+      - 'tools/cobblemon-model-review/validate_species_reference_dossier.py'
+      - 'tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py'
+      - '.github/workflows/cobblemon-skin-reference-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  same-species-reference-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate reference dossiers before production skin changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_changed_skin_reference_dossiers.py \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA"
