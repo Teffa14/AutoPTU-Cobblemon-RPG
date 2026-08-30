@@ -103,12 +103,12 @@ public final class FabricFastTravelRuntime {
         }
         ServerWorld destinationWorld = player.getServer().getOverworld();
         if (destinationWorld == null) return false;
-        BlockPos destination = destinationWorld.getSpawnPos();
+        BlockPos destinationPos = destinationWorld.getSpawnPos();
         player.teleport(
                 destinationWorld,
-                destination.getX() + 0.5D,
-                destination.getY() + 0.1D,
-                destination.getZ() + 0.5D,
+                destinationPos.getX() + 0.5D,
+                destinationPos.getY() + 0.1D,
+                destinationPos.getZ() + 0.5D,
                 player.getYaw(),
                 player.getPitch()
         );
