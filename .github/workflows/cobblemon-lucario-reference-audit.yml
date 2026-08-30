@@ -1,0 +1,83 @@
+name: Lucario External Skin Reference Audit
+
+on:
+  push:
+    branches:
+      - 'art/lucario-reference-gate-audit'
+    paths:
+      - '.github/workflows/cobblemon-lucario-reference-audit.yml'
+      - 'tools/cobblemon-model-review/audit_reference_package.py'
+      - 'docs/cobblemon-skin-reference-dossiers/0448_lucario.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  USER_AGENT: 'Ouros-AutoPTU-Cobblemon-RPG/lucario-reference-audit'
+
+jobs:
+  inspect-public-reference-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile auditor
+        run: python -m py_compile tools/cobblemon-model-review/audit_reference_package.py
+      - name: Download public reference packages from their primary Modrinth files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .reference-audit/packages .reference-audit/reports
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A "$USER_AGENT" \
+            'https://cdn.modrinth.com/data/uWyj4p7w/versions/ZakKcKn2/Lucario_Overhaul_v1.2.zip' \
+            -o .reference-audit/packages/lucario-overhaul-1.2.zip
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A "$USER_AGENT" \
+            'https://cdn.modrinth.com/data/LizLsGI4/versions/GmEDUt5z/StylesUponStyles.v.1.5.zip' \
+            -o .reference-audit/packages/styles-upon-styles-1.5.zip
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A "$USER_AGENT" \
+            'https://cdn.modrinth.com/data/GFTKLMrj/versions/c9J7iOYZ/Failskins4.21%20for%20Cobblemon%201.7.zip' \
+            -o .reference-audit/packages/failskins-4.21.zip
+          sha256sum .reference-audit/packages/*
+      - name: Hash and inventory actual Lucario model texture animation and resolver assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/audit_reference_package.py \
+            .reference-audit/packages/lucario-overhaul-1.2.zip \
+            --species lucario --project 'Lucario Overhaul' --version '1.2 / ZakKcKn2' \
+            --source-url 'https://modrinth.com/datapack/lucario-overhaul/version/ZakKcKn2' \
+            --output .reference-audit/reports/lucario-overhaul.json
+          python tools/cobblemon-model-review/audit_reference_package.py \
+            .reference-audit/packages/styles-upon-styles-1.5.zip \
+            --species lucario --project 'Styles Upon Styles' --version '1.5 / GmEDUt5z' \
+            --source-url 'https://modrinth.com/datapack/styles-upon-styles/version/1.5' \
+            --output .reference-audit/reports/styles-upon-styles.json
+          python tools/cobblemon-model-review/audit_reference_package.py \
+            .reference-audit/packages/failskins-4.21.zip \
+            --species lucario --project 'Cobblemon FailSkins' --version '4.21 / c9J7iOYZ' \
+            --source-url 'https://modrinth.com/datapack/cobblemon-failskins/version/c9J7iOYZ' \
+            --output .reference-audit/reports/failskins.json
+      - name: Require real model and texture evidence in every audited package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path('.reference-audit/reports').glob('*.json')):
+              data=json.loads(path.read_text())
+              assert data['modelCount'] > 0, f'{path}: no Lucario MODEL found'
+              assert data['textureCount'] > 0, f'{path}: no Lucario TEXTURE found'
+              print(path, 'models=',data['modelCount'],'textures=',data['textureCount'],'animations=',data['animationCount'])
+          PY
+      - name: Upload metadata-only audit reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lucario-reference-package-audit
+          path: .reference-audit/reports
+          if-no-files-found: error
+          retention-days: 14
