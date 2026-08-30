@@ -4,7 +4,9 @@ Status: ARTISTIC FAIL
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-Lucario remains the active one-model artistic slice. V5 failed internal visual QA. V6 failed the matched-camera silhouette floor. V7 cleared the floor but its lower panels read as oversized shorts and its cape fragmented into detached-looking tiles. V8 became too visually close to base, with pixelDifferenceRatio 0.0725 below the unchanged 0.0800 floor. V9 cleared both technical floors at pixelDifferenceRatio 0.113329 and silhouetteDeltaRatio 0.044911, but direct inspection rejected it artistically because the signature haori read as a lateral chain of rectangular plates and the front still read as Lucario plus pieces. V10 rendered correctly in Blockbench but failed the unchanged silhouette floor at silhouetteDeltaRatio 0.0350 versus the required 0.0400. V11 is the current production candidate and remains ARTISTIC FAIL until its exact current Blockbench evidence is generated and inspected.
+Lucario remains the active one-model artistic slice. The owner-wide rejection remains authoritative. No ChatGPT, CI, validator or Blockbench metric may approve this art; the maximum pre-owner state is OWNER REVIEW REQUIRED after exact-head evidence is generated and inspected.
+
+The previous exact V15 head `0bf6e61c00fc01f7d22a55e3ca123534e283725f` passed the hard reference gate, official-source verification, deterministic builder reproduction, original-bone equality, attachment and Blockbench capture, but failed the unchanged matched-camera silhouette floor at `silhouetteDeltaRatio=0.0303` versus the required `0.0400`. V15b materially reauthors the signature contour rather than lowering that threshold.
 
 ## Authority boundary
 
@@ -24,26 +26,26 @@ Poser SHA-256 `7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`
 Base resolver SHA-256 `a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`.
 Model license SHA-256 `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`.
 
-The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with three complete custom-geometry Lucario references across two external projects. Ruins Style Lucario, Space Style Lucario and Covert Style Lucario are all STUDY_ONLY. Only generic techniques are carried forward; their geometry, UVs, textures, palettes, outfits, motifs and distinctive silhouettes are not donor assets.
+The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` is REFERENCE READY with three COMPLETE custom-geometry Lucario references across two external projects: Ruins Style Lucario, Space Style Lucario and Covert Style Lucario. All remain STUDY_ONLY. Only construction techniques are carried forward; geometry, UVs, textures, palettes, outfits, motifs and distinctive silhouettes are not donor assets.
 
-## V11 design
+## Current V15b design
 
-Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v11.py`.
+Deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v15.py`.
 
-V11 responds to V10's measured silhouette failure without relaxing any threshold. The primary read is one shoulder-rooted resonance crest built from broad overlapping rotated surfaces that change scale and angle, connected into a rear mantle that narrows through the torso and splits into unequal tails with centre negative space. The front remains sparse: open-face cowl, diagonal lapel and obi, with Lucario's face and biological chest spike unobstructed. It does not introduce a skirt, shorts, cage, portal frame, repeated bar system or alternate body rig.
+The materialized V15b model SHA-256 is `30a3d63e55f5ac5918d9f0a718f556cdfee63a22376caed1cb84e2b6672fd03c`. It contains the exact ordered 87-bone official Lucario prefix plus 13 `ouros_*` cosmetic bones, for 100 total bones and 31 cosmetic cubes.
 
-The builder reconstructs the exact official 87-bone Lucario prefix and appends 9 `ouros_*` cosmetic bones. Current materialized V11 production is 96 bones and 21 cosmetic cubes. Production model SHA-256 is `5e998aef0facc95fc155282943c6212d0fdcbdf9bfbd6e7c55a82cd60d71fd4a`.
+The main authored read is a continuous cowl/collar/shoulder/back/hip mantle arc. A four-stage shoulder-rooted crescent expands from a real shoulder contact mass, then progressively narrows, rotates and recedes. The opposite hip resolves the diagonal with shorter split ribbons and explicit negative space around the biological tail. The face, aura sensors and chest spike remain open. No alternate body rig, rectangular cage, shrine frame, broad portal silhouette or threshold relaxation is introduced.
 
 ## Texture and material contract
 
-Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay SHA-256 is `9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee`, using verified alpha-zero texels for authored cloth/equipment material breakup. Biological UVs are unchanged.
+Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay SHA-256 is `9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee`. Biological UVs are unchanged. The accessory material ramp uses dark occlusion faces, lighter facing planes, antique-gold accents and aura-cyan terminal edges on verified free texels.
 
 ## Runtime and forms
 
-The resolver keeps the official `cobblemon:lucario` poser and routes the same V11 presentation cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
+The production resolver SHA-256 is `6a8e2d47ea0fab34cb6bf5955609049f1cc3b8d744ad6c8155333a36eb7be0ba`. It keeps the official `cobblemon:lucario` poser and routes the same cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
 
 ## Evidence contract
 
-Blockbench 5.1.6 is mandatory with matched official camera. Review states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at t=0.35. No walking PNG is fabricated because this path uses procedural locomotion rather than a dedicated Bedrock walking clip.
+Blockbench 5.1.6 is mandatory, AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`, with matched official camera. Review states are `animation.lucario.ground_idle` and `animation.lucario.battle_idle` at t=0.35. No walking PNG is fabricated because this official path uses procedural locomotion rather than a dedicated Bedrock walking clip.
 
-The visual floor remains `minimumPixelDifferenceRatio: 0.08` and `minimumSilhouetteDeltaRatio: 0.04`. It can reject trivial transformation but cannot grant artistic approval. Green CI is engineering evidence only. If internal QA succeeds, the maximum pre-owner state is OWNER REVIEW REQUIRED. Only explicit owner approval of the exact head/evidence set can approve the art.
+The visual floor remains `minimumPixelDifferenceRatio: 0.08` and `minimumSilhouetteDeltaRatio: 0.04`. These values are technical minimums only and cannot grant artistic approval. The current human-head review must regenerate exact production evidence after the materializer commit and remains ARTISTIC FAIL until those PNGs are actually inspected.
