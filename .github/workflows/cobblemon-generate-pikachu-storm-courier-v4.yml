@@ -1,0 +1,132 @@
+name: Generate Pikachu Storm Courier v4
+
+on:
+  push:
+    branches: ['art/pikachu-storm-courier-v4']
+    paths:
+      - '.github/workflows/cobblemon-generate-pikachu-storm-courier-v4.yml'
+      - 'tools/cobblemon-model-review/build_storm_courier_pikachu_v4.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_VERSION: '1.7.3'
+  MINECRAFT_VERSION: '1.21.1'
+  COBBLEMON_FILENAME: 'Cobblemon-fabric-1.7.3+1.21.1.jar'
+  COBBLEMON_JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+  COBBLEMON_JAR_SHA512: '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+  OFFICIAL_MALE_SHA256: 'f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83'
+  OFFICIAL_FEMALE_SHA256: 'd49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318'
+  OFFICIAL_NORMAL_SHA256: 'df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Verify latest stable compatible release and exact JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .storm/official .storm/output
+          curl -fsSL -A 'Ouros-Storm-Courier-v4' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .storm/version.json
+          python - <<'PY' > .storm/env
+          import json,os,shlex
+          d=json.load(open('.storm/version.json'))
+          assert d['id']==os.environ['COBBLEMON_VERSION_ID'] and d['version_number']==os.environ['COBBLEMON_VERSION']
+          assert os.environ['MINECRAFT_VERSION'] in d['game_versions'] and 'fabric' in d['loaders']
+          p=next(f for f in d['files'] if f.get('primary'))
+          assert p['filename']==os.environ['COBBLEMON_FILENAME']
+          assert p['hashes']['sha512']==os.environ['COBBLEMON_JAR_SHA512']
+          print('PROJECT='+shlex.quote(d['project_id'])); print('URL='+shlex.quote(p['url']))
+          PY
+          source .storm/env
+          curl -fsSL -A 'Ouros-Storm-Courier-v4' "https://api.modrinth.com/v2/project/${PROJECT}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D" -o .storm/compatible.json
+          python - <<'PY'
+          import json,os
+          stable=[v for v in json.load(open('.storm/compatible.json')) if v.get('version_type')=='release']
+          latest=max(stable,key=lambda v:v['date_published'])
+          assert latest['id']==os.environ['COBBLEMON_VERSION_ID'], f"new stable compatible release: {latest['id']} {latest['version_number']}"
+          PY
+          curl -fsSL "$URL" -o .storm/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" .storm/cobblemon.jar | sha256sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" .storm/cobblemon.jar | sha512sum --check --strict
+      - name: Extract and hash exact official Pikachu assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,os,zipfile
+          from pathlib import Path
+          sources=[
+           ('assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json','pikachu_male.geo.json','OFFICIAL_MALE_SHA256'),
+           ('assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json','pikachu_female.geo.json','OFFICIAL_FEMALE_SHA256'),
+           ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png','pikachu.png','OFFICIAL_NORMAL_SHA256'),
+           ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu_shiny.png','pikachu_shiny.png',None),
+           ('assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json','pikachu.animation.json',None),
+           ('assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json','pikachu.poser.json',None),
+           ('assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/pikachu.json','pikachu.resolver.json',None),
+          ]
+          with zipfile.ZipFile('.storm/cobblemon.jar') as z:
+           names=set(z.namelist())
+           for member,target,env in sources:
+            assert member in names, member
+            payload=z.read(member); actual=hashlib.sha256(payload).hexdigest()
+            if env: assert actual==os.environ[env],(member,actual,os.environ[env])
+            Path('.storm/official',target).write_bytes(payload)
+            print(target,actual)
+          PY
+      - name: Build male and female independently from official files
+        run: |
+          python tools/cobblemon-model-review/build_storm_courier_pikachu_v4.py \
+            --male-model .storm/official/pikachu_male.geo.json \
+            --female-model .storm/official/pikachu_female.geo.json \
+            --texture .storm/official/pikachu.png \
+            --shiny .storm/official/pikachu_shiny.png \
+            --output-root .storm/output
+      - name: Verify original bone objects and order remain exact
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for sex in ('male','female'):
+           base=json.load(open(f'.storm/official/pikachu_{sex}.geo.json'))['minecraft:geometry'][0]['bones']
+           out=json.load(open(f'.storm/output/ouros_storm_courier_v4_pikachu_{sex}.geo.json'))['minecraft:geometry'][0]['bones']
+           assert len(base)==90,(sex,len(base))
+           assert out[:len(base)]==base
+           assert [b['name'] for b in out[:len(base)]]==[b['name'] for b in base]
+           extra=out[len(base):]
+           assert extra and all(b['name'].startswith('ouros_') for b in extra)
+           print(sex,'official',len(base),'cosmetic',len(extra),'total',len(out))
+          PY
+      - name: Install generated production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          m='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu'
+          t='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu'
+          mkdir -p "$m" "$t"
+          cp .storm/output/ouros_storm_courier_v4_pikachu_male.geo.json "$m/"
+          cp .storm/output/ouros_storm_courier_v4_pikachu_female.geo.json "$m/"
+          cp .storm/output/ouros_storm_courier_v4_pikachu.png "$t/"
+          cp .storm/output/ouros_storm_courier_v4_pikachu_shiny.png "$t/"
+      - name: Commit generated assets for subsequent Blockbench review
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_v4_pikachu_*.geo.json \
+                  fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_v4_pikachu*.png
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'skins: generate Storm Courier v4 production assets'
+          git push origin HEAD:${GITHUB_REF_NAME}
