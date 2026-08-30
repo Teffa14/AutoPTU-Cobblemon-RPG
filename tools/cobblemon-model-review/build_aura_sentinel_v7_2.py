@@ -2,10 +2,10 @@
 """Aura Sentinel V7.2 — tapered aura-mantle rebuild.
 
 Presentation only. The exact official Cobblemon Lucario geometry remains intact.
-This pass intentionally rejects the V7/V7.1 box-armour language.  It builds one
+This pass intentionally rejects the V7/V7.1 box-armour language. It builds one
 primary asymmetric mantle/sash system from thin overlapping rotated planes, then
 uses small motion-parented accents to carry the same diagonal rhythm through the
-head, arms and legs.  No third-party geometry, texture, UV, palette layout,
+head, arms and legs. No third-party geometry, texture, UV, palette layout,
 motif, costume or silhouette is copied; only generic techniques recorded in the
 validated same-species dossier are applied.
 """
@@ -31,15 +31,12 @@ def crown():
 
 
 def mantle():
-    # One continuous shoulder -> back -> hip sweep.  Plate length and angle taper
-    # toward the free end so it reads as cloth/energy architecture, not a cage.
     return {"name":"ouros_aura_mantle","parent":"torso3","pivot":[-4.8,29.2,1.6],"cubes":[
         c([-8.4,28.2,-2.6],[8.0,1.25,5.3],"indigo",pivot=[-4.4,28.8,0.0],rotation=[5,-8,-20]),
         c([-10.6,26.4,-1.8],[8.2,1.15,4.5],"cobalt",pivot=[-6.5,27.0,0.4],rotation=[8,-10,-31]),
         c([-11.8,23.9,-0.9],[7.5,1.05,3.8],"amethyst",pivot=[-8.0,24.5,1.0],rotation=[10,-12,-42]),
         c([-11.9,21.2,-0.1],[6.4,0.95,3.15],"indigo",pivot=[-8.7,21.7,1.45],rotation=[12,-14,-52]),
         c([-10.8,18.8,0.55],[5.2,0.82,2.55],"cobalt",pivot=[-8.2,19.2,1.8],rotation=[14,-16,-60]),
-        # bright inner seam breaks the mass and keeps a readable negative-space edge
         c([-7.9,28.45,-2.9],[6.7,0.34,0.28],"aura",pivot=[-4.55,28.62,-2.75],rotation=[4,-8,-20]),
         c([-9.85,26.55,-2.05],[6.4,0.30,0.26],"gold",pivot=[-6.65,26.70,-1.92],rotation=[6,-10,-31]),
         c([-11.0,24.05,-1.15],[5.6,0.28,0.24],"silver",pivot=[-8.2,24.20,-1.03],rotation=[8,-12,-42]),
@@ -47,7 +44,6 @@ def mantle():
 
 
 def chest_sash():
-    # Open V around the official chest spike.  The center remains empty.
     return {"name":"ouros_aura_chest_sash","parent":"torso3","pivot":[0,27.2,-3.5],"cubes":[
         c([-5.0,29.0,-4.25],[5.2,0.72,0.46],"indigo",pivot=[-2.4,29.35,-4.02],rotation=[0,0,-28]),
         c([-3.45,25.0,-4.28],[4.4,0.68,0.44],"cobalt",pivot=[-1.25,25.34,-4.06],rotation=[0,0,-55]),
@@ -57,7 +53,6 @@ def chest_sash():
 
 
 def back_crest():
-    # Compact fins grow out of the mantle root instead of forming a freestanding frame.
     return {"name":"ouros_aura_back_crest","parent":"torso3","pivot":[-4.5,30.0,3.0],"cubes":[
         c([-7.2,29.1,2.7],[4.8,0.78,2.0],"void",pivot=[-4.8,29.5,3.7],rotation=[-9,0,-24]),
         c([-9.1,30.8,2.9],[4.4,0.68,1.65],"indigo",pivot=[-6.9,31.1,3.7],rotation=[-12,0,-39]),
@@ -91,7 +86,7 @@ def trailing_ribbon():
     return {"name":"ouros_aura_trailing_ribbon","parent":"torso","pivot":[-2.0,18.0,3.1],"cubes":[
         c([-4.7,15.0,3.0],[4.8,0.72,1.05],"amethyst",pivot=[-2.3,15.35,3.52],rotation=[-10,0,-20]),
         c([-5.0,11.9,3.2],[4.1,0.62,0.92],"cobalt",pivot=[-2.95,12.2,3.66],rotation=[-12,0,-31]),
-        c([-4.5,9.1,3.35],[3.3,0.50,0.78],"aura",pivot=[-2.85,9.35,3.74],rotation=[-14,0,-43]),
+        c([-4.65,10.8,3.28],[3.6,0.62,0.82],"aura",pivot=[-2.85,11.11,3.69],rotation=[-13,0,-39]),
     ]}
 
 
