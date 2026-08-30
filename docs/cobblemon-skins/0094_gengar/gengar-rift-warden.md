@@ -1,6 +1,6 @@
 # 0094 Gengar — Rift Warden V2
 
-Status: ART ACCEPTED; FINAL PR GATES PENDING
+Status: FULL TRANSFORMATION ACCEPTED
 
 Rift Warden V2 is a presentation-only Ouros cosmetic rebuilt from the exact Gengar model distributed in the current repository-compatible official Cobblemon release. It does not implement or consume Cobblemon battle-state authority.
 
@@ -97,7 +97,7 @@ Equipment palette: void black, obsidian, violet, magenta, translucent rift purpl
 
 ## Official presentation variants
 
-The production resolver retains all official presentation branches needed by the historical Gengar resolver contract:
+The production resolver retains all official presentation branches needed by the Gengar resolver contract:
 
 - normal: official `gengar.png` plus official normal emissive layer plus Ouros accessory overlay
 - shiny: official `gengar_shiny.png` plus official shiny emissive layer plus Ouros accessory overlay
@@ -111,7 +111,7 @@ Primary viewer: Blockbench 5.1.6.
 
 Pinned Blockbench SHA-256: `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
 
-Current matched-camera review:
+Pre-PR matched-camera artistic review:
 
 - workflow: `Rift Warden V2 Current Official Model Review`
 - run: `33304154999`
@@ -154,9 +154,22 @@ The first glance changes materially from official Gengar. The large gate/cowl an
 
 Front view keeps Gengar's eyes and grin unobstructed while the portal crown and lateral armor establish the warden fantasy. Rear view reads as a fortress/reliquary assembly with substantial depth. Left/right views show intentionally different mass because of the relic wing rather than duplicated symmetry. At 160 px the large portal silhouette and dark-violet/silver/rift equipment hierarchy remain readable.
 
-The `air_fly` capture keeps the macro architecture coherent without catastrophic detachment. The structural attachment validator also passes all nine cosmetic groups with the normal strict thresholds (`anchor-gap 1.50`, `piece-gap 1.00`).
+The `air_fly` capture keeps the macro architecture coherent without catastrophic detachment. The structural attachment validator passes all nine cosmetic groups with the normal strict thresholds (`anchor-gap 1.50`, `piece-gap 1.00`).
 
-Artistic decision: `ACCEPTED` for this exact V2 production asset. This acceptance is asset-specific and does not bypass final PR-level build/integration checks.
+Artistic decision: `FULL TRANSFORMATION ACCEPTED` for this exact V2 production asset.
+
+## PR #327 gate result
+
+PR #327 was opened only after the artistic review above passed. On human PR head `c692fce6f03849df79900af1133c1aa60261bef0` the exact same production model/overlay passed:
+
+- Rift Warden V2 Current Official Model Review — PASS, run `33304387700`
+- Cobblemon Official Model Review — PASS, run `33304387699`
+- Playable Test Build — PASS, run `33304387662`
+- Integration Core CI — PASS, run `33304387650`
+
+Integration Core includes authority tests and two production Fabric + Cobblemon dedicated-server boots.
+
+This final documentation-only head must not modify the reviewed production model or overlay. Normal PR checks must remain green before merge.
 
 ## Production files
 
