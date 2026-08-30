@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalWorldEventObjectService;
 import io.autoptu.cobblemon.authority.CanonicalWorldInteractionService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -68,7 +69,20 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 return ActionResult.SUCCESS;
             }
             if (object.kind() == CanonicalWorldInteractionService.Kind.SHRINE) {
-                serverPlayer.sendMessage(Text.literal("The Ouros shrine recognizes your Trainer profile."), false);
+                var eventService = new CanonicalWorldEventObjectService(
+                        FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
+                        FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(serverPlayer.getServer())
+                );
+                var event = eventService.activateShrine(playerId, object.objectId());
+                if (!event.allowed()) {
+                    serverPlayer.sendMessage(Text.literal("Ouros shrine denied: " + event.detail()), true);
+                    return ActionResult.FAIL;
+                }
+                if (event.newlyActivated()) {
+                    serverPlayer.sendMessage(Text.literal("The Ouros shrine awakens. Its world state is now persistent."), false);
+                } else {
+                    serverPlayer.sendMessage(Text.literal("The Ouros shrine is already awake."), false);
+                }
                 return ActionResult.SUCCESS;
             }
 
