@@ -1,8 +1,9 @@
 # 0448 Lucario — Aura Sentinel
 
-Status: USER REJECTED — REWORK REQUIRED; REFERENCE READY (ACTIVE SLICE)
+Status: ARTISTIC FAIL
 Sale eligibility: NOT ELIGIBLE.
 
+Professional V2 candidate: deterministic current-baseline build with 7 Ouros groups and a single connected asymmetric mantle/open-cuirass hierarchy. Historical visual claims below are provenance only and do not describe this candidate.
 This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
 
 
