@@ -12,6 +12,8 @@ on:
 permissions:
   contents: write
 
+# The generated-asset commit is intentionally followed by a human-authored PR
+# synchronization commit so normal pull_request checks review committed bytes.
 jobs:
   materialize:
     if: ${{ !contains(github.event.head_commit.message || '', '[materialized]') }}
