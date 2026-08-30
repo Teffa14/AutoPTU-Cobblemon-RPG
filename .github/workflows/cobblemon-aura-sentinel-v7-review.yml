@@ -90,17 +90,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          capture() {
-            model="$1"; texture="$2"; anim="$3"; t="$4"; out="$5"; port="$6"; profile_in="$7"; profile_out="$8"
-            rm -rf "$out" ".review/user-$port"; mkdir -p "$out" ".review/user-$port"
-            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.review/squashfs-root" .review/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$PWD/.review/user-$port" "$model" >".review/blockbench-$port.log" 2>&1 &
-            pid=$!
-            for i in $(seq 1 90); do curl --fail --silent "http://127.0.0.1:$port/json/version" >/dev/null 2>&1 && break; kill -0 "$pid" 2>/dev/null || { cat ".review/blockbench-$port.log"; return 1; }; sleep 1; done
+          cleanup() {
+            pid="${1:-}"
+            if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi
+            pkill -f "$PWD/.review/squashfs-root/blockbench" 2>/dev/null || true
+            pkill -f "$PWD/.review/squashfs-root/AppRun" 2>/dev/null || true
+            sleep 2
+          }
+          capture_once() {
+            model="$1"; texture="$2"; anim="$3"; t="$4"; out="$5"; port="$6"; profile_in="$7"; profile_out="$8"; attempt="$9"
+            userdata="$PWD/.review/user-${port}-${attempt}"; log="$PWD/.review/blockbench-${port}-${attempt}.log"
+            rm -rf "$out" "$userdata"; mkdir -p "$out" "$userdata"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.review/squashfs-root" .review/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$userdata" "$model" >"$log" 2>&1 &
+            pid=$!; ready=0
+            for _ in $(seq 1 90); do
+              if curl --fail --silent "http://127.0.0.1:$port/json/version" >/dev/null 2>&1; then ready=1; break; fi
+              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; cleanup "$pid"; return 1; fi
+              sleep 1
+            done
+            if [ "$ready" -ne 1 ]; then cat "$log"; cleanup "$pid"; return 1; fi
             args=(--endpoint "http://127.0.0.1:$port" --texture "$texture" --animation "$PWD/.review/official/lucario.animation.json" --animation-name "$anim" --animation-time "$t" --gameplay-resolution 160 --output-dir "$out")
             [ -n "$profile_in" ] && args+=(--camera-profile-in "$profile_in")
             [ -n "$profile_out" ] && args+=(--camera-profile-out "$profile_out")
-            node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}"
-            kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true
+            if ! node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}"; then cat "$log"; cleanup "$pid"; return 1; fi
+            cleanup "$pid"
+          }
+          capture() {
+            for attempt in 1 2 3; do
+              if capture_once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$attempt"; then return 0; fi
+            done
+            return 1
           }
           official="$PWD/.review/official/lucario.geo.json"
           candidate="$PWD/fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json"
@@ -118,7 +137,7 @@ jobs:
           cp .review/battle-render/three_quarter_gameplay_160.png .review/output/battle_ready_gameplay_160.png
           sha256sum .review/output/*.png | sort > .review/output/png-sha256.txt
           python - <<'PY'
-          import json,hashlib
+          import json
           from pathlib import Path
           m=json.load(open('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json'))['minecraft:geometry'][0]
           extra=m['bones'][87:]
