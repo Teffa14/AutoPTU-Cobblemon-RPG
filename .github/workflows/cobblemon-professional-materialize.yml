@@ -78,8 +78,8 @@ jobs:
           MANIFEST: ${{ steps.active.outputs.manifest }}
         run: |
           set -euo pipefail
-          rm -rf .professional-materialized
-          mkdir -p .professional-materialized/files
+          rm -rf professional-materialized
+          mkdir -p professional-materialized/files
           python - <<'PY'
           import json,os,shutil
           from pathlib import Path
@@ -87,20 +87,20 @@ jobs:
           m=json.load(manifest.open(encoding='utf-8'))
           paths=[manifest,*map(Path,m['builder']['outputs'])]
           index=[]
-          root=Path('.professional-materialized/files')
+          root=Path('professional-materialized/files')
           for src in paths:
               if not src.is_file(): raise SystemExit(f'missing materialized output: {src}')
               dst=root/src
               dst.parent.mkdir(parents=True,exist_ok=True)
               shutil.copy2(src,dst)
               index.append(str(src))
-          Path('.professional-materialized/index.json').write_text(json.dumps({'headSha':os.environ.get('GITHUB_SHA'),'files':index},indent=2)+'\n',encoding='utf-8')
+          Path('professional-materialized/index.json').write_text(json.dumps({'headSha':os.environ.get('GITHUB_SHA'),'files':index},indent=2)+'\n',encoding='utf-8')
           PY
 
       - name: Upload materialized candidate bytes
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cobblemon-professional-materialized-${{ github.event.pull_request.head.sha }}
-          path: .professional-materialized
+          path: professional-materialized
           if-no-files-found: error
           retention-days: 7
