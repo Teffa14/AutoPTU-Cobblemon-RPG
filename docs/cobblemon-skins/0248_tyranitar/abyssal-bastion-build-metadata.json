@@ -1,0 +1,57 @@
+{
+  "format": "ouros.cobblemon-skin-build.v1",
+  "species": "cobblemon:tyranitar",
+  "concept": "Abyssal Bastion",
+  "originalBoneCount": 61,
+  "derivedBoneCount": 69,
+  "cosmeticBones": [
+    "ouros_bastion_crown",
+    "ouros_bastion_gorget_core",
+    "ouros_bastion_pauldron_left",
+    "ouros_bastion_pauldron_right",
+    "ouros_bastion_dorsal_rampart",
+    "ouros_bastion_gauntlet_left",
+    "ouros_bastion_gauntlet_right",
+    "ouros_bastion_tail_bulwark"
+  ],
+  "cosmeticCubeCount": 60,
+  "palettePixels": {
+    "basalt": [
+      0,
+      255
+    ],
+    "obsidian": [
+      1,
+      255
+    ],
+    "iron": [
+      2,
+      255
+    ],
+    "gold": [
+      3,
+      255
+    ],
+    "magma": [
+      4,
+      255
+    ],
+    "amber": [
+      5,
+      255
+    ],
+    "sand": [
+      6,
+      255
+    ],
+    "void": [
+      7,
+      255
+    ]
+  },
+  "textureSize": [
+    256,
+    256
+  ],
+  "artPass": "v1-epic-silhouette"
+}
