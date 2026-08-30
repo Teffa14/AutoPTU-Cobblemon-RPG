@@ -4,7 +4,7 @@ Status: ARTISTIC FAIL
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-Lucario remains the active one-model artistic slice. V5 failed internal visual QA. V6 failed the matched-camera silhouette floor. V7 cleared the floor but its lower panels read as oversized shorts and its cape fragmented into detached-looking tiles. V8 became too visually close to base, with pixelDifferenceRatio 0.0725 below the unchanged 0.0800 floor. V9 cleared both technical floors at pixelDifferenceRatio 0.113329 and silhouetteDeltaRatio 0.044911, but direct inspection rejected it artistically because the signature haori read as a lateral chain of rectangular plates and the front still read as Lucario plus pieces. V10 is the current production candidate and remains ARTISTIC FAIL until its exact current Blockbench evidence is opened and judged.
+Lucario remains the active one-model artistic slice. V5 failed internal visual QA. V6 failed the matched-camera silhouette floor. V7 cleared the floor but its lower panels read as oversized shorts and its cape fragmented into detached-looking tiles. V8 became too visually close to base, with pixelDifferenceRatio 0.0725 below the unchanged 0.0800 floor. V9 cleared both technical floors at pixelDifferenceRatio 0.113329 and silhouetteDeltaRatio 0.044911, but direct inspection rejected it artistically because the signature haori read as a lateral chain of rectangular plates and the front still read as Lucario plus pieces. V10 rendered correctly in Blockbench but failed the unchanged silhouette floor at silhouetteDeltaRatio 0.0350 versus the required 0.0400. V11 is the current production candidate and remains ARTISTIC FAIL until its exact current Blockbench evidence is generated and inspected.
 
 ## Authority boundary
 
@@ -26,21 +26,21 @@ Model license SHA-256 `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df
 
 The mandatory same-species dossier `docs/cobblemon-skin-reference-dossiers/0448_lucario.json` remains REFERENCE READY with three complete custom-geometry Lucario references across two external projects. Ruins Style Lucario, Space Style Lucario and Covert Style Lucario are all STUDY_ONLY. Only generic techniques are carried forward; their geometry, UVs, textures, palettes, outfits, motifs and distinctive silhouettes are not donor assets.
 
-## V10 design
+## V11 design
 
-Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v10.py`.
+Current deterministic builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v11.py`.
 
-V10 removes V9's lateral tile-chain composition. The dominant mass sits behind Lucario: one broad shoulder yoke overlaps two continuous back planes, then splits into two long asymmetrical tails with deliberate negative space between them. The head adds a compact open-face cowl that leaves muzzle, eyes, ears and aura sensors exposed. The front keeps only a diagonal lapel and narrow obi; there is no chest box, skirt, shorts, cage, portal frame or armor shell.
+V11 responds to V10's measured silhouette failure without relaxing any threshold. The primary read is one shoulder-rooted resonance crest built from broad overlapping rotated surfaces that change scale and angle, connected into a rear mantle that narrows through the torso and splits into unequal tails with centre negative space. The front remains sparse: open-face cowl, diagonal lapel and obi, with Lucario's face and biological chest spike unobstructed. It does not introduce a skirt, shorts, cage, portal frame, repeated bar system or alternate body rig.
 
-The builder reconstructs the exact official 87-bone Lucario prefix and appends 8 `ouros_*` cosmetic bones. Current V10 production is 95 bones and 20 cosmetic cubes. Production model SHA-256 is `df7d5f547a17e973f1ee751cb72f28df32f643ed0a603fae810c315306929ac2`.
+The builder reconstructs the exact official 87-bone Lucario prefix and appends 9 `ouros_*` cosmetic bones. Current materialized V11 production is 96 bones and 21 cosmetic cubes. Production model SHA-256 is `5e998aef0facc95fc155282943c6212d0fdcbdf9bfbd6e7c55a82cd60d71fd4a`.
 
 ## Texture and material contract
 
-Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay SHA-256 remains `9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee`, using verified alpha-zero texels for authored cloth/equipment material breakup. Biological UVs are unchanged.
+Normal and shiny biological textures remain byte-identical to official; `bodyTexelRework: NONE`. The accessory overlay SHA-256 is `9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee`, using verified alpha-zero texels for authored cloth/equipment material breakup. Biological UVs are unchanged.
 
 ## Runtime and forms
 
-The resolver keeps the official `cobblemon:lucario` poser and routes the same V10 presentation cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
+The resolver keeps the official `cobblemon:lucario` poser and routes the same V11 presentation cosmetics over exact normal and shiny official biology. No male/female geometry split exists on this official resolver path. Mega Lucario is outside the slice.
 
 ## Evidence contract
 
