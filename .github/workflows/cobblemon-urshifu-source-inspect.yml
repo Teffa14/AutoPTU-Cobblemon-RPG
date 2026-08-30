@@ -1,0 +1,161 @@
+name: Inspect Official Urshifu Presentation Source
+
+on:
+  push:
+    branches:
+      - 'art/urshifu-cobra-dojo-v1'
+    paths:
+      - '.github/workflows/cobblemon-urshifu-source-inspect.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_VERSION: '1.7.3'
+  MINECRAFT_VERSION: '1.21.1'
+  COBBLEMON_FILENAME: 'Cobblemon-fabric-1.7.3+1.21.1.jar'
+  COBBLEMON_JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+  COBBLEMON_JAR_SHA512: '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image metadata dependency
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
+      - name: Download exact official Cobblemon release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .urshifu-inspect
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/urshifu-source-inspect' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
+            -o .urshifu-inspect/version.json
+          python - <<'PY' > .urshifu-inspect/download.env
+          import json, shlex
+          data=json.load(open('.urshifu-inspect/version.json', encoding='utf-8'))
+          assert data['id']=='kF7CvxTo'
+          assert data['version_number']=='1.7.3'
+          assert '1.21.1' in data['game_versions'] and 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          assert primary['hashes']['sha512']==__import__('os').environ['COBBLEMON_JAR_SHA512']
+          print('URL='+shlex.quote(primary['url']))
+          PY
+          source .urshifu-inspect/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .urshifu-inspect/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" '.urshifu-inspect/cobblemon.jar' | sha256sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" '.urshifu-inspect/cobblemon.jar' | sha512sum --check --strict
+
+      - name: Inspect every official Urshifu presentation asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, io, json, os, zipfile
+          from pathlib import Path
+          from PIL import Image
+
+          root=Path('.urshifu-inspect')
+          jar_path=root/'cobblemon.jar'
+          version=json.loads((root/'version.json').read_text(encoding='utf-8'))
+          primary=next(f for f in version['files'] if f.get('primary'))
+
+          def sha(payload):
+              return hashlib.sha256(payload).hexdigest()
+
+          report={
+              'format':'ouros.cobblemon-official-species-inspection.v1',
+              'species':'cobblemon:urshifu',
+              'nationalDex':892,
+              'minecraftVersion':os.environ['MINECRAFT_VERSION'],
+              'cobblemonVersion':os.environ['COBBLEMON_VERSION'],
+              'modrinthVersionId':os.environ['COBBLEMON_VERSION_ID'],
+              'filename':os.environ['COBBLEMON_FILENAME'],
+              'jarSha256':hashlib.sha256(jar_path.read_bytes()).hexdigest(),
+              'jarSha512':hashlib.sha512(jar_path.read_bytes()).hexdigest(),
+              'modrinthSha512':primary['hashes']['sha512'],
+              'license':'MPL-2.0',
+              'entries':[],
+              'models':{},
+              'jsonAssets':{},
+              'textures':{},
+          }
+
+          with zipfile.ZipFile(jar_path) as z:
+              names=z.namelist()
+              candidates=[n for n in names if 'urshifu' in n.lower()]
+              if not candidates:
+                  raise SystemExit('Official Cobblemon JAR contains no Urshifu entries')
+              for name in sorted(candidates):
+                  payload=z.read(name)
+                  item={'path':name,'sha256':sha(payload),'size':len(payload)}
+                  report['entries'].append(item)
+                  if name.endswith('.geo.json'):
+                      data=json.loads(payload)
+                      geometries=data.get('minecraft:geometry',[])
+                      if len(geometries)!=1:
+                          raise SystemExit(f'{name}: expected one geometry')
+                      geom=geometries[0]
+                      bones=geom.get('bones',[])
+                      report['models'][name]={
+                          'sha256':sha(payload),
+                          'identifier':geom.get('description',{}).get('identifier'),
+                          'description':geom.get('description',{}),
+                          'boneCount':len(bones),
+                          'bones':[{
+                              'index':i,
+                              'name':b.get('name'),
+                              'parent':b.get('parent'),
+                              'pivot':b.get('pivot'),
+                              'rotation':b.get('rotation'),
+                              'cubeCount':len(b.get('cubes',[])),
+                              'locatorNames':list((b.get('locators') or {}).keys()) if isinstance(b.get('locators'),dict) else [],
+                          } for i,b in enumerate(bones)],
+                      }
+                  elif name.endswith('.json'):
+                      try:
+                          data=json.loads(payload)
+                      except Exception:
+                          continue
+                      summary={'sha256':sha(payload),'json':data}
+                      if isinstance(data,dict) and isinstance(data.get('animations'),dict):
+                          summary['animationNames']=list(data['animations'].keys())
+                      report['jsonAssets'][name]=summary
+                  elif name.lower().endswith('.png'):
+                      image=Image.open(io.BytesIO(payload)).convert('RGBA')
+                      report['textures'][name]={
+                          'sha256':sha(payload),
+                          'width':image.width,
+                          'height':image.height,
+                          'alphaZeroPixels':sum(1 for p in image.getdata() if p[3]==0),
+                          'alphaNonzeroPixels':sum(1 for p in image.getdata() if p[3]!=0),
+                      }
+
+          (root/'urshifu-source-report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+          print(json.dumps({
+              'entryCount':len(report['entries']),
+              'models':{k:{'sha256':v['sha256'],'identifier':v['identifier'],'boneCount':v['boneCount']} for k,v in report['models'].items()},
+              'jsonPaths':list(report['jsonAssets']),
+              'textures':report['textures'],
+          },indent=2))
+          PY
+
+      - name: Upload authoritative inspection report
+        uses: actions/upload-artifact@v4
+        with:
+          name: urshifu-official-source-inspection
+          path: .urshifu-inspect/urshifu-source-report.json
+          if-no-files-found: error
+          retention-days: 14
