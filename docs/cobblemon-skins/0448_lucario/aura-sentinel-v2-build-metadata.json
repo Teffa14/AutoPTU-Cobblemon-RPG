@@ -13,39 +13,18 @@
     "ouros_aura_relic_fin"
   ],
   "cosmeticCubeCount": 87,
+  "candidateContract": "refined-87-cube-human-reviewed",
+  "artisticAcceptance": "FULL_TRANSFORMATION_ACCEPTED",
+  "acceptedBlockbenchRun": 33285682959,
   "palettePixels": {
-    "void": [
-      80,
-      63
-    ],
-    "indigo": [
-      81,
-      63
-    ],
-    "cobalt": [
-      82,
-      63
-    ],
-    "silver": [
-      83,
-      63
-    ],
-    "gold": [
-      84,
-      63
-    ],
-    "ivory": [
-      85,
-      63
-    ],
-    "aura": [
-      86,
-      63
-    ],
-    "amethyst": [
-      87,
-      63
-    ]
+    "void": [80, 63],
+    "indigo": [81, 63],
+    "cobalt": [82, 63],
+    "silver": [83, 63],
+    "gold": [84, 63],
+    "ivory": [85, 63],
+    "aura": [86, 63],
+    "amethyst": [87, 63]
   },
   "normalTextureSha256": "1cbb1ca7fe260d01a4e0ca7a2f0a28ea424475f856267caf19d0b4276ed19752",
   "shinyTextureSha256": "7d391c01daba8634a4cfd84cc17f1f37385afe473ed1ff578d989c66fa5cb725",
