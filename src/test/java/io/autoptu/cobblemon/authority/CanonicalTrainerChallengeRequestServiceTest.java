@@ -19,6 +19,13 @@ class CanonicalTrainerChallengeRequestServiceTest {
     }
 
     @Test
+    void defaultCatalogueOwnsCedarGymRegistrationChallenge() {
+        var challenge = CanonicalTrainerChallengeCatalogue.DEFAULT.challenge("cedar-gym-trial-registration").orElseThrow();
+        assertEquals("cedar-league-desk", challenge.npcId());
+        assertEquals("Cedar Gym Trial", challenge.displayName());
+    }
+
+    @Test
     void rejectsChallengeRequestedFromDifferentNpcBeforeReadingPlayerState() {
         CanonicalStateRepository players = playerId -> { throw new AssertionError("player repository should not be read"); };
         VersionedCanonicalPlayerEncounterProfileRepository parties = unusedPartyRepository();

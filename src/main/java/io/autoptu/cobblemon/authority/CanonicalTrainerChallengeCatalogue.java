@@ -14,6 +14,12 @@ public final class CanonicalTrainerChallengeCatalogue {
                     "cedar-ranger",
                     "Cedar Ranger Field Spar",
                     "Challenge Cedar Ranger to a field spar. AutoPTU must authorize and resolve any battle that follows."
+            ),
+            new Challenge(
+                    "cedar-gym-trial-registration",
+                    "cedar-league-desk",
+                    "Cedar Gym Trial",
+                    "Register for the Cedar Gym trial. AutoPTU must authorize the opponent, battle start and every battle outcome."
             )
     ));
 
