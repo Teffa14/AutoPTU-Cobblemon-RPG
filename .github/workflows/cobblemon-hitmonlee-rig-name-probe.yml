@@ -1,0 +1,31 @@
+name: Hitmonlee Official Rig Name Probe
+on:
+  push:
+    branches: ['art/hitmonlee-cobra-dojo-v5-hood']
+    paths: ['.github/workflows/cobblemon-hitmonlee-rig-name-probe.yml']
+permissions:
+  contents: read
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read exact official Hitmonlee bone names
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o version.json
+          python - <<'PY' > env
+          import json,shlex
+          d=json.load(open('version.json')); p=next(f for f in d['files'] if f.get('primary')); print('URL='+shlex.quote(p['url']))
+          PY
+          source env; curl -fsSL "$URL" -o cobblemon.jar
+          printf '%s  %s\n' "$JAR_SHA256" cobblemon.jar | sha256sum -c -
+          python - <<'PY'
+          import json,zipfile
+          with zipfile.ZipFile('cobblemon.jar') as z:
+            d=json.loads(z.read('assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/hitmonlee.geo.json'))
+          for i,b in enumerate(d['minecraft:geometry'][0]['bones']): print(i,b.get('name'),'parent=',b.get('parent'),'pivot=',b.get('pivot'))
+          PY
