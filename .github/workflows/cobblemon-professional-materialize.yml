@@ -1,0 +1,106 @@
+name: Cobblemon Professional Candidate Materializer
+
+on:
+  pull_request:
+    paths:
+      - 'tools/cobblemon-model-review/**'
+      - 'docs/cobblemon-skin-review-manifests/**'
+      - 'docs/cobblemon-skin-registry.json'
+      - '.github/workflows/cobblemon-professional-materialize.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  materialize-active-professional-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Resolve active professional manifest
+        id: active
+        run: |
+          set -euo pipefail
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          reg=json.load(open('docs/cobblemon-skin-registry.json',encoding='utf-8'))
+          active=reg['activeSlice']
+          entry=next((e for e in reg['entries'] if e['slug']==active),None)
+          if not entry or entry.get('lifecycle')!='PROFESSIONAL_CANDIDATE' or not entry.get('manifest'):
+              raise SystemExit(f'active slice is not a materializable professional candidate: {active}')
+          print(f"manifest={entry['manifest']}")
+          PY
+
+      - name: Validate hard same-species reference gate
+        env:
+          MANIFEST: ${{ steps.active.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          dossier="$(python - <<'PY'
+          import json,os
+          print(json.load(open(os.environ['MANIFEST'],encoding='utf-8'))['referenceDossier'])
+          PY
+          )"
+          species="$(python - <<'PY'
+          import json,os
+          print(json.load(open(os.environ['MANIFEST'],encoding='utf-8'))['species'])
+          PY
+          )"
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py "$dossier" --expected-species "$species"
+
+      - name: Materialize declared builder outputs and bootstrap hashes
+        id: build
+        env:
+          MANIFEST: ${{ steps.active.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          m=json.load(open(os.environ['MANIFEST'],encoding='utf-8'))
+          cmd=list(m['builder']['command'])
+          if '--bootstrap' not in cmd:
+              cmd.append('--bootstrap')
+          print('materializing:', ' '.join(cmd))
+          subprocess.run(cmd,check=True)
+          PY
+          python tools/cobblemon-model-review/validate_professional_skin_manifest.py "$MANIFEST"
+
+      - name: Stage materialized outputs
+        env:
+          MANIFEST: ${{ steps.active.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          rm -rf .professional-materialized
+          mkdir -p .professional-materialized/files
+          python - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          manifest=Path(os.environ['MANIFEST'])
+          m=json.load(manifest.open(encoding='utf-8'))
+          paths=[manifest,*map(Path,m['builder']['outputs'])]
+          index=[]
+          root=Path('.professional-materialized/files')
+          for src in paths:
+              if not src.is_file(): raise SystemExit(f'missing materialized output: {src}')
+              dst=root/src
+              dst.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(src,dst)
+              index.append(str(src))
+          Path('.professional-materialized/index.json').write_text(json.dumps({'headSha':os.environ.get('GITHUB_SHA'),'files':index},indent=2)+'\n',encoding='utf-8')
+          PY
+
+      - name: Upload materialized candidate bytes
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cobblemon-professional-materialized-${{ github.event.pull_request.head.sha }}
+          path: .professional-materialized
+          if-no-files-found: error
+          retention-days: 7
