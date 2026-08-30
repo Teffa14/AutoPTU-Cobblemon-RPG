@@ -1,22 +1,27 @@
 {
-  "format": "ouros.cobblemon-skin-build.v1",
+  "format": "ouros.rift-warden-v2-current-build.v1",
   "species": "cobblemon:gengar",
-  "concept": "Rift Warden",
+  "concept": "Rift Warden V2",
   "sourceGeometryIdentifier": "geometry.gengar",
   "derivedGeometryIdentifier": "geometry.ouros_rift_warden_gengar",
   "originalBoneCount": 78,
-  "derivedBoneCount": 86,
+  "derivedBoneCount": 87,
   "cosmeticBones": [
-    "ouros_rift_halo",
-    "ouros_rift_collar",
-    "ouros_rift_shroud_left",
-    "ouros_rift_shroud_right",
-    "ouros_rift_back_pylons",
+    "ouros_rift_cowl",
+    "ouros_rift_mantle",
+    "ouros_rift_gate",
+    "ouros_rift_relic_wing",
+    "ouros_rift_lower_shroud",
+    "ouros_rift_armguard_left",
+    "ouros_rift_armguard_right",
     "ouros_rift_wrist_left",
-    "ouros_rift_wrist_right",
-    "ouros_rift_shadow_mantle"
+    "ouros_rift_wrist_right"
   ],
-  "cosmeticCubeCount": 44,
+  "cosmeticCubeCount": 75,
+  "textureSize": [
+    128,
+    128
+  ],
   "palettePixels": {
     "void": [
       0,
@@ -51,9 +56,14 @@
       127
     ]
   },
-  "textureSize": [
-    128,
-    128
-  ],
-  "artDirection": "broken rift halo, asymmetric spectral shoulder shrouds, twin back pylons, warded wrists and split shadow mantle; official face, mouth, ears, limbs and tail remain unobstructed"
+  "officialTextureBaselineSha256": "7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65",
+  "productionBodyTexture": "cobblemon:textures/pokemon/0094_gengar/gengar.png",
+  "productionBodyTextureSha256": "7aba3220a0007d5ac3f36bc51611e485a3bedf330319fa474b907fc5b3f77b65",
+  "officialShinyTextureSha256": "1a0821422f8bfbe43a02132c658e48213e6adedbc1b5854f125683951deaeb21",
+  "bodyTexelRework": "NONE",
+  "paletteIntent": "void/obsidian armor masses with violet, silver, rift-cyan-magenta spectral insets and sparse ember fracture accents",
+  "materialIntent": "thick matte portal-stone/armor shells, metallic ward edges and translucent spectral seams on added geometry only",
+  "accessoryOverlay": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0094_gengar/ouros_rift_warden_accessories.png",
+  "accessoryOverlaySha256": "cd5d2b5e8eb31478ef0a4429bc5b7db13eb6561dac7176fc90e0b9f8eca15725",
+  "artDirection": "deep open-face cowl, connected fortress mantle, thick dorsal rift gate, dominant asymmetric relic wing, lower split shroud and integrated arm/wrist guards; official face, eyes, grin, ears, limbs and tail remain intact"
 }
