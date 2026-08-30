@@ -34,9 +34,11 @@ V23 passed source, anatomy, attachment and derived-texture validation, but exact
 
 V24 keeps the independently derived paint and replaces the hidden wrap with one diagonal shoulder-to-back aura mantle. Two intersecting root shells launch three heavily overlapping narrowing sweep facets; four descending facets continue the same gesture toward the hip and split around tail/legs. A single narrow chest edge connects the gesture without covering the official chest spike. The intent is one continuous silhouette, not a crown, waistcoat, backpack, frame or scattered armor kit.
 
+The first V24 materialization exposed one real attachment defect in the upper sweep tip (`bodyGap=2.6`, `nearestSiblingGap=2.95`). The attachment thresholds were not relaxed. The tip was pulled inward and widened until it overlapped its predecessor, then the candidate was deterministically rematerialized.
+
 Canonical V24 builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v24.py`.
 
-Materialized production model SHA-256 `7a6545eb63fa5b5d442c55ba4311a4df257bd5ad2f3ce064603e2eaad3aadd24`. It preserves the exact ordered 87 official bones and appends four `ouros_*` presentation groups, 91 bones total, with 10 cosmetic cubes.
+Attachment-fixed production model SHA-256 `2f32f54aa6bee14b6ee7da310728b02f57d01222a8d40c910f4cd77af0e01cfc`. It preserves the exact ordered 87 official bones and appends four `ouros_*` presentation groups, 91 bones total, with 10 cosmetic cubes.
 
 ## V24 textures
 
