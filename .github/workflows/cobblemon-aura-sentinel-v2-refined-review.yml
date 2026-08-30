@@ -1,4 +1,4 @@
-name: Aura Sentinel V3 Current Official Model Review
+name: Aura Sentinel V4 Current Official Model Review
 
 on:
   push:
@@ -35,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: aura-sentinel-v3-current-review-${{ github.event_name }}-${{ github.ref }}
+  group: aura-sentinel-v4-current-review-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .review/official .review/renders .review/output
-          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros/aura-v3-current-review' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .review/version.json
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros/aura-v4-current-review' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .review/version.json
           python - <<'PY' > .review/download.env
           import json,shlex
           data=json.load(open('.review/version.json'))
@@ -137,9 +137,9 @@ jobs:
           import json
           from pathlib import Path
           model=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json').read_text())['minecraft:geometry'][0]
-          assert len(model['bones'])==95
-          assert sum(len(b.get('cubes',[])) for b in model['bones'][87:])==101
-          expected=['ouros_aura_helm_system','ouros_aura_mantle_shell','ouros_aura_breastplate','ouros_aura_shrine_frame','ouros_aura_left_armguard','ouros_aura_right_armguard','ouros_aura_waistcoat','ouros_aura_relic_fin']
+          assert len(model['bones'])==97
+          assert sum(len(b.get('cubes',[])) for b in model['bones'][87:])==87
+          expected=['ouros_aura_helm_system','ouros_aura_mantle_shell','ouros_aura_breastplate','ouros_aura_shrine_frame','ouros_aura_left_armguard','ouros_aura_right_armguard','ouros_aura_waistcoat','ouros_aura_relic_fin','ouros_aura_left_greave','ouros_aura_right_greave']
           assert [b['name'] for b in model['bones'][87:]]==expected
           PY
 
@@ -231,11 +231,11 @@ jobs:
           metas={tag:json.loads(Path(f'.review/renders/{tag}/blockbench-metadata.json').read_text()) for tag in ('official','hero','battle','shiny')}
           assert metas['official']['modelInfo']['boneCount']==87
           for tag in ('hero','battle','shiny'):
-              assert metas[tag]['modelInfo']['boneCount']==95
+              assert metas[tag]['modelInfo']['boneCount']==97
               assert metas[tag]['cameraContract']=='matched to official reference camera profile'
           texture_root=Path('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario')
           report={
-            'format':'ouros.cobblemon-full-transformation-review.v2',
+            'format':'ouros.cobblemon-full-transformation-review.v3',
             'viewer':'Blockbench 5.1.6',
             'cobblemonVersion':'1.7.3',
             'minecraftTarget':'1.21.1',
@@ -248,9 +248,9 @@ jobs:
             'accessoryOverlaySha256':hashlib.sha256((texture_root/'ouros_aura_sentinel_accessories.png').read_bytes()).hexdigest(),
             'bodyTexelRework':'NONE',
             'originalBones':87,
-            'derivedBones':95,
-            'cosmeticBones':8,
-            'cosmeticCubes':101,
+            'derivedBones':97,
+            'cosmeticBones':10,
+            'cosmeticCubes':87,
             'gameplayResolution':160,
             'animations':{
               'hero':{'name':'animation.lucario.ground_idle','time':0.35},
@@ -268,7 +268,7 @@ jobs:
       - name: Upload current evidence
         uses: actions/upload-artifact@v4
         with:
-          name: aura-sentinel-v3-current-blockbench-review
+          name: aura-sentinel-v4-current-blockbench-review
           path: .review/output
           if-no-files-found: error
           retention-days: 14
