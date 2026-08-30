@@ -34,6 +34,8 @@ def expected_output_hashes(data: dict) -> dict[str, str]:
     result = {production["modelPath"]: production["modelSha256"]}
     for texture in production["textures"]:
         result[texture["path"]] = texture["sha256"]
+    for asset in production["runtimeAssets"]:
+        result[asset["path"]] = asset["sha256"]
     return result
 
 

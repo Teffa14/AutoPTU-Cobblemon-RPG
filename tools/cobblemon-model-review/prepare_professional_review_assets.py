@@ -15,6 +15,7 @@ import json
 import subprocess
 import sys
 import urllib.request
+import urllib.parse
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -87,10 +88,15 @@ def main() -> None:
     production = data["production"]
 
     version_id = official["modrinthVersionId"]
+    project_id = official["modrinthProjectId"]
     version_bytes = request_bytes(f"https://api.modrinth.com/v2/version/{version_id}")
     version = json.loads(version_bytes.decode("utf-8"))
     if version.get("id") != version_id:
         raise SystemExit("Modrinth version id mismatch")
+    if version.get("project_id") != project_id:
+        raise SystemExit("pinned Modrinth version does not belong to the declared Cobblemon project")
+    if version.get("version_type") != official["releaseChannel"]:
+        raise SystemExit("pinned Modrinth version is not on the declared stable release channel")
     if version.get("version_number") != official["version"]:
         raise SystemExit(
             f"Cobblemon version drift: manifest={official['version']} Modrinth={version.get('version_number')}"
@@ -99,6 +105,32 @@ def main() -> None:
         raise SystemExit("declared Minecraft version is not listed by pinned Modrinth release")
     if official["loader"] not in version.get("loaders", []):
         raise SystemExit("declared loader is not listed by pinned Modrinth release")
+
+    query = urllib.parse.urlencode(
+        {
+            "loaders": json.dumps([official["loader"]]),
+            "game_versions": json.dumps([official["minecraftVersion"]]),
+        }
+    )
+    compatible_bytes = request_bytes(
+        f"https://api.modrinth.com/v2/project/{project_id}/version?{query}"
+    )
+    compatible = json.loads(compatible_bytes.decode("utf-8"))
+    stable = [
+        item
+        for item in compatible
+        if item.get("version_type") == "release" and item.get("status") == "listed"
+    ]
+    if not stable:
+        raise SystemExit("Modrinth returned no listed stable compatible Cobblemon release")
+    latest = max(stable, key=lambda item: item.get("date_published", ""))
+    if official.get("enforceLatestCompatibleStable") is not True:
+        raise SystemExit("professional review requires enforceLatestCompatibleStable=true")
+    if latest.get("id") != version_id:
+        raise SystemExit(
+            "pinned Cobblemon version is not the latest listed stable compatible release: "
+            f"manifest={version_id} latest={latest.get('id')} ({latest.get('version_number')})"
+        )
     files = version.get("files", [])
     primary = next((entry for entry in files if entry.get("primary")), None)
     if not isinstance(primary, dict):
@@ -120,6 +152,7 @@ def main() -> None:
         raise SystemExit("Modrinth primary-file SHA-512 does not match downloaded JAR")
 
     (workdir / "version.json").write_bytes(version_bytes)
+    (workdir / "compatible-versions.json").write_bytes(compatible_bytes)
     (workdir / "cobblemon.jar.sha256").write_text(jar_sha256 + "\n", encoding="utf-8")
 
     model_out = official_dir / "official.geo.json"
@@ -134,6 +167,19 @@ def main() -> None:
             texture_out,
             official["referenceTexture"]["sha256"],
         )
+        auxiliary_runtime = []
+        for index, asset in enumerate(official["auxiliaryAssets"]):
+            suffix = Path(asset["path"]).suffix or ".asset"
+            destination = official_dir / "auxiliary" / f"{index:02d}_{asset['role'].lower()}{suffix}"
+            extract_checked(zf, asset["path"], destination, asset["sha256"])
+            auxiliary_runtime.append(
+                {
+                    "role": asset["role"],
+                    "jarPath": asset["path"],
+                    "sha256": asset["sha256"],
+                    "extractedPath": str(destination),
+                }
+            )
 
     candidate_model = repo_path(root, production["modelPath"])
     run(
@@ -214,6 +260,7 @@ def main() -> None:
         "officialModel": str(model_out),
         "officialAnimation": str(animation_out),
         "officialTexture": str(texture_out),
+        "officialAuxiliaryAssets": auxiliary_runtime,
         "candidateModel": str(candidate_model),
         "candidateTexture": str(composed_path),
         "blockbench": blockbench,

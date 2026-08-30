@@ -21,11 +21,14 @@ jobs:
   professional-blockbench-review:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      MANIFEST_PATH: ${{ inputs.manifest_path }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
@@ -41,21 +44,31 @@ jobs:
       - name: Validate professional manifest
         run: |
           set -euo pipefail
+          python - <<'PY'
+          import os,re
+          from pathlib import Path
+          raw=os.environ['MANIFEST_PATH']
+          if not re.fullmatch(r'docs/cobblemon-skin-review-manifests/\d{4}_[a-z0-9_]+\.json',raw):
+              raise SystemExit(f'unsafe or non-canonical manifest path: {raw!r}')
+          path=Path(raw)
+          if not path.is_file():
+              raise SystemExit(f'manifest does not exist: {raw}')
+          PY
           python tools/cobblemon-model-review/validate_professional_skin_manifest.py \
-            "${{ inputs.manifest_path }}"
+            "$MANIFEST_PATH"
 
       - name: Reproduce exact committed production assets
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/run_manifest_builder.py \
-            "${{ inputs.manifest_path }}"
+            "$MANIFEST_PATH"
 
       - name: Download and validate exact official Cobblemon assets
         run: |
           set -euo pipefail
           rm -rf .professional-review
           python tools/cobblemon-model-review/prepare_professional_review_assets.py \
-            "${{ inputs.manifest_path }}" \
+            "$MANIFEST_PATH" \
             --workdir .professional-review
 
       - name: Read validated runtime contract
@@ -199,12 +212,12 @@ jobs:
         run: |
           set -euo pipefail
           python tools/cobblemon-model-review/validate_blockbench_evidence.py \
-            --manifest "${{ inputs.manifest_path }}" \
+            --manifest "$MANIFEST_PATH" \
             --output-dir "$OUTPUT_DIR" \
             --head-sha "${{ github.sha }}"
 
       - name: Upload exact professional review artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ steps.runtime.outputs.artifact_name }}
           path: ${{ steps.runtime.outputs.output_dir }}

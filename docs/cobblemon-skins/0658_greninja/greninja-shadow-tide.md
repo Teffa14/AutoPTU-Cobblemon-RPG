@@ -1,6 +1,10 @@
 # 0658 Greninja — Shadow Tide
 
-Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 ## Official source
 
@@ -22,15 +26,15 @@ Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
 
 The normal official model has 78 bones and the Ash geometry has 81. Each derivative is built independently from its corresponding official file. Shadow Tide appends the same eight cosmetic groups to each, producing 86 normal bones and 89 Ash bones. All original bones remain JSON-equivalent and in the same original order.
 
-The cosmetic groups are `ouros_shadow_tide_cowl`, `ouros_shadow_tide_gorget`, asymmetric left/right pauldrons, left/right bracers, `ouros_shadow_tide_back_frame` and `ouros_shadow_tide_split_mantle`. The accepted v2 contains 60 cosmetic cubes. No original head, tongue, crest, torso, arm, hand, leg, foot or Ash-specific shuriken bone is rewritten.
+The cosmetic groups are `ouros_shadow_tide_cowl`, `ouros_shadow_tide_gorget`, asymmetric left/right pauldrons, left/right bracers, `ouros_shadow_tide_back_frame` and `ouros_shadow_tide_split_mantle`. The historical v2 contains 60 cosmetic cubes. No original head, tongue, crest, torso, arm, hand, leg, foot or Ash-specific shuriken bone is rewritten.
 
 ## Epic visual design
 
 Shadow Tide is a water-executioner / shadow-shinobi field variant. The first Blockbench pass was rejected despite passing structural CI because the three-quarter silhouette still read too close to standard Greninja and the rear frame looked like crossed straps.
 
-The accepted v2 deliberately concentrates visual hierarchy into three signature reads: an open broken-crescent cowl around the head, a heavy asymmetric shoulder/gorget assembly with a cyan tide core, and an oversized asymmetric executioner tide-glaive mounted behind the torso. The second pass also enlarges the split rear mantle and adds side pennants so the lower silhouette has more mass without replacing Greninja's legs.
+The historical v2 deliberately concentrates visual hierarchy into three signature reads: an open broken-crescent cowl around the head, a heavy asymmetric shoulder/gorget assembly with a cyan tide core, and an oversized asymmetric executioner tide-glaive mounted behind the torso. The second pass also enlarges the split rear mantle and adds side pennants so the lower silhouette has more mass without replacing Greninja's legs.
 
-Direct review of the real Blockbench renders accepted v2. The face and tongue remain dominant, while the executioner blade is clearly visible from rear and three-quarter angles. Battle idle keeps the shoulder armor and glaive attached during the crouched pose. Ground walk keeps the cowl, bracers and mantle with their official parents without severe clipping or world-fixed pieces.
+Historical review of the real Blockbench renders recorded v2 as technically reviewable. The face and tongue remain dominant, while the executioner blade is clearly visible from rear and three-quarter angles. Battle idle keeps the shoulder armor and glaive attached during the crouched pose. Ground walk keeps the cowl, bracers and mantle with their official parents without severe clipping or world-fixed pieces.
 
 ## UV contract
 
@@ -50,7 +54,7 @@ Matched normal-form evidence uses `animation.greninja.ground_idle` at 0.35 for t
 
 Evidence is stored under `test-evidence/visual/cobblemon-skins/0658_greninja/shadow-tide-real-poses/` with provenance metadata and PNG hashes.
 
-PR #303 merged the accepted v2. On its final head, Cobblemon Official Model Review, Playable Test Build and Integration Core CI all completed successfully, alongside the real Blockbench evidence workflow. This closes the prior documentation-only “repository-wide PR gates pending” status.
+PR #303 merged the historical v2 before the owner's rejection and current professional contract. On its final head, Cobblemon Official Model Review, Playable Test Build and Integration Core CI completed successfully, alongside the real Blockbench evidence workflow. Those results remain technical history only.
 
 ## Authority boundary
 

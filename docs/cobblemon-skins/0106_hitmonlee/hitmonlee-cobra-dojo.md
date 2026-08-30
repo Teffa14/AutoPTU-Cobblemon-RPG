@@ -1,6 +1,10 @@
 # 0106 Hitmonlee — Cobra Dojo Striker
 
-Status: `FULL TRANSFORMATION ACCEPTED` for the reviewed v1 asset. Repository integration CI must still pass before merge.
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 Cobra Dojo Striker is an original Ouros presentation-only Hitmonlee variant built from the exact official Cobblemon 1.7.3 Hitmonlee presentation source. Its visual direction is an elite black-and-gold martial-arts kick specialist. It does not include third-party logos, wordmarks, text, or copied costume insignia.
 
@@ -53,7 +57,7 @@ Ten original transparent texels at row 63, verified unused by the official geome
 
 ## Blockbench acceptance
 
-The accepted evidence comes from Blockbench 5.1.6 AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
+The historical evidence came from Blockbench 5.1.6 AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`.
 
 Workflow run `33289138725` loaded the exact production model and asserted 43 Blockbench bones before capturing the candidate. The official reference asserted 30 bones. Official reference and candidate use the same Blockbench camera profile.
 

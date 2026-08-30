@@ -1,0 +1,63 @@
+name: Cobblemon Professional Changed-Skin Review
+
+on:
+  pull_request:
+    paths:
+      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/**'
+      - 'fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/**'
+      - 'docs/cobblemon-skin-review-manifests/**'
+      - 'docs/cobblemon-skin-registry.json'
+      - 'tools/cobblemon-model-review/**'
+      - '.github/workflows/cobblemon-professional-blockbench-review.yml'
+      - '.github/workflows/cobblemon-professional-review-changed.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      manifests: ${{ steps.changed.outputs.manifests }}
+      count: ${{ steps.changed.outputs.count }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - id: changed
+        name: Discover changed professional manifests
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          manifests="$(python tools/cobblemon-model-review/list_changed_professional_manifests.py \
+            --base "$BASE_SHA" --head "$HEAD_SHA")"
+          count="$(MANIFESTS="$manifests" python -c 'import json,os; print(len(json.loads(os.environ["MANIFESTS"])))')"
+          echo "manifests=$manifests" >> "$GITHUB_OUTPUT"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+  no-professional-skin:
+    needs: discover
+    if: needs.discover.outputs.count == '0'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'No professional candidate changed; heavy Blockbench review is not applicable.'
+
+  review:
+    needs: discover
+    if: needs.discover.outputs.count != '0'
+    strategy:
+      fail-fast: false
+      matrix:
+        manifest: ${{ fromJSON(needs.discover.outputs.manifests) }}
+    uses: ./.github/workflows/cobblemon-professional-blockbench-review.yml
+    with:
+      manifest_path: ${{ matrix.manifest }}

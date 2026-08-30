@@ -1,6 +1,10 @@
 # 0006 Charizard — Solar Legion
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED.
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 ## Official source
 
@@ -34,7 +38,7 @@ The appended groups are:
 - `ouros_solar_tail_brazier`, parent `tail5`;
 - `ouros_solar_legion_mantle`, parent `torso`.
 
-The accepted pass contains 55 cosmetic cubes. Charizard's head, muzzle, eyes, horns, neck, torso, arms, hands, legs, wings, tail chain and flame geometry remain the official Cobblemon model.
+The historical pass contains 55 cosmetic cubes. Charizard's head, muzzle, eyes, horns, neck, torso, arms, hands, legs, wings, tail chain and flame geometry remain the official Cobblemon model.
 
 ## Epic visual design
 
@@ -42,11 +46,11 @@ Solar Legion is a ceremonial aerial legion commander rather than a recolor or sm
 
 A split crimson/ash mantle adds mass behind the torso. The tail brazier frames the original flame root with a brass/obsidian cage and angled fins while leaving the official flame planes visible and authoritative. The palette separates obsidian armor, brass hardware, ivory ceremonial trim, crimson cloth, gold/sun plates, translucent glass, ash cloth and ember accents.
 
-Direct review of the real Blockbench output accepted the first modeled pass. The official-vs-skin three-quarter comparison changes the silhouette immediately while keeping Charizard unmistakable. Battle stance opens the wings without detaching the shoulder or wing-root equipment. Ground walk keeps the mantle, crown and tail assembly attached. `air_fly` is a dedicated motion-safety check for the wing standards and confirms they follow their official wing parents rather than remaining world-fixed.
+A historical review of the real Blockbench output recorded the first modeled pass as technically reviewable. The official-vs-skin three-quarter comparison changes the silhouette immediately while keeping Charizard unmistakable. Battle stance opens the wings without detaching the shoulder or wing-root equipment. Ground walk keeps the mantle, crown and tail assembly attached. `air_fly` is a dedicated motion-safety check for the wing standards and confirms they follow their official wing parents rather than remaining world-fixed.
 
 ## UV contract
 
-The official geometry uses a 256×128 texture. The builder derives the occupied UV footprint from the exact JAR model and dynamically selects unused texels. The accepted build reserves only `(0..7, 127)` for its eight material swatches. Generation CI proves those pixels are disjoint from every original cube UV and that every non-transparent pixel in `ouros_solar_legion_accessories.png` belongs to that reservation set. The base Charizard texture is not repainted.
+The official geometry uses a 256×128 texture. The historical builder derived the occupied UV footprint from the exact JAR model and dynamically selected unused texels. That build reserves only `(0..7, 127)` for its eight material swatches. Historical generation CI proved those pixels were disjoint from every original cube UV and that every non-transparent pixel in `ouros_solar_legion_accessories.png` belonged to that reservation set. The base Charizard texture is not repainted.
 
 ## Resolver and official variants
 
@@ -66,7 +70,7 @@ Matched-camera evidence records:
 - walking: `animation.charizard.ground_walk` at 0.25, 138 bones;
 - flight: `animation.charizard.air_fly` at 0.25, 138 bones.
 
-The accepted files are under `test-evidence/visual/cobblemon-skins/0006_charizard/solar-legion-real-poses/` and include the matched official reference, hero, battle-ready, walking, air-fly, front, left, right and back PNGs plus provenance metadata and hashes.
+The historical files are under `test-evidence/visual/cobblemon-skins/0006_charizard/solar-legion-real-poses/` and include the matched official reference, hero, battle-ready, walking, air-fly, front, left, right and back PNGs plus provenance metadata and hashes.
 
 ## Repository-wide validation
 

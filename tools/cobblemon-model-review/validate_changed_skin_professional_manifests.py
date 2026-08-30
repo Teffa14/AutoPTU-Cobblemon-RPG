@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -11,6 +12,7 @@ from pathlib import Path
 
 PRODUCTION_PATTERNS = (
     re.compile(r"^fabric-adapter/src/main/resources/assets/(?:autoptu|cobblemon)/bedrock/pokemon/models/(?P<slug>\d{4}_[^/]+)/"),
+    re.compile(r"^fabric-adapter/src/main/resources/assets/(?:autoptu|cobblemon)/bedrock/pokemon/resolvers/(?P<slug>\d{4}_[^/]+)/"),
     re.compile(r"^fabric-adapter/src/main/resources/assets/autoptu/bedrock/pokemon/textures/(?P<slug>\d{4}_[^/]+)/"),
     re.compile(r"^fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/(?P<slug>\d{4}_[^/]+)/"),
     re.compile(r"^src/main/resources/data/autoptu/cobblemon/skins/(?P<slug>\d{4}_[^/]+)/"),
@@ -18,6 +20,8 @@ PRODUCTION_PATTERNS = (
 MANIFEST_PATTERN = re.compile(
     r"^docs/cobblemon-skin-review-manifests/(?P<slug>\d{4}_[^/]+)\.json$"
 )
+REGISTRY_PATH = "docs/cobblemon-skin-registry.json"
+PROFESSIONAL_LIFECYCLES = {"PROFESSIONAL_CANDIDATE", "OWNER_APPROVED_RELEASE"}
 
 
 def changed_files(base: str, head: str) -> list[str]:
@@ -28,6 +32,18 @@ def changed_files(base: str, head: str) -> list[str]:
         text=True,
     )
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def registry_entries_at(revision: str) -> dict[str, dict]:
+    result = subprocess.run(
+        ["git", "show", f"{revision}:{REGISTRY_PATH}"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode:
+        return {}
+    payload = json.loads(result.stdout)
+    return {entry["slug"]: entry for entry in payload.get("entries", [])}
 
 
 def main() -> None:
@@ -51,6 +67,18 @@ def main() -> None:
                 production_slugs.add(match.group("slug"))
                 break
 
+    registry_validator = Path(__file__).with_name("validate_skin_registry.py")
+    registry_result = subprocess.run(
+        [sys.executable, str(registry_validator)],
+        text=True,
+    )
+    if registry_result.returncode:
+        raise SystemExit("PROFESSIONAL SKIN GATE: registry validation failed")
+
+    registry = json.loads(Path(REGISTRY_PATH).read_text(encoding="utf-8"))
+    entries = {entry["slug"]: entry for entry in registry["entries"]}
+    base_entries = registry_entries_at(args.base)
+
     validator = Path(__file__).with_name("validate_professional_skin_manifest.py")
     if not validator.is_file():
         raise SystemExit(f"missing validator: {validator}")
@@ -58,9 +86,30 @@ def main() -> None:
     failures = 0
     to_validate = changed_manifest_slugs | production_slugs
     for slug in sorted(to_validate):
-        manifest = Path("docs/cobblemon-skin-review-manifests") / f"{slug}.json"
+        entry = entries.get(slug)
+        if entry is None:
+            print(f"PROFESSIONAL SKIN GATE FAIL: {slug} is not present in {REGISTRY_PATH}")
+            failures += 1
+            continue
+        lifecycle = entry["lifecycle"]
+        manifest_raw = entry.get("manifest")
         if slug in production_slugs:
-            manifest_raw = manifest.as_posix()
+            if lifecycle not in PROFESSIONAL_LIFECYCLES:
+                print(
+                    f"PROFESSIONAL SKIN GATE FAIL: production asset {slug} is locked as {lifecycle}. "
+                    "Complete the three-reference gate, add a valid professional manifest, and promote "
+                    "the registry entry before changing production bytes."
+                )
+                failures += 1
+                continue
+            base_lifecycle = base_entries.get(slug, {}).get("lifecycle")
+            if base_lifecycle not in PROFESSIONAL_LIFECYCLES and REGISTRY_PATH not in changed:
+                print(
+                    f"PROFESSIONAL SKIN GATE FAIL: production changed for {slug}, but its base lifecycle "
+                    f"was {base_lifecycle or 'UNREGISTERED'} and {REGISTRY_PATH} was not updated in the same PR."
+                )
+                failures += 1
+                continue
             if manifest_raw not in changed:
                 print(
                     f"PROFESSIONAL SKIN GATE FAIL: production changed for {slug}, but {manifest_raw} "
@@ -68,6 +117,18 @@ def main() -> None:
                 )
                 failures += 1
                 continue
+        if lifecycle not in PROFESSIONAL_LIFECYCLES:
+            print(
+                f"PROFESSIONAL SKIN GATE FAIL: a professional manifest changed for locked skin "
+                f"{slug} ({lifecycle}); promote it through {REGISTRY_PATH} in the same PR"
+            )
+            failures += 1
+            continue
+        if not isinstance(manifest_raw, str):
+            print(f"PROFESSIONAL SKIN GATE FAIL: registry has no manifest for {slug}")
+            failures += 1
+            continue
+        manifest = Path(manifest_raw)
         if not manifest.is_file():
             print(f"PROFESSIONAL SKIN GATE FAIL: missing manifest for {slug}: {manifest}")
             failures += 1

@@ -1,6 +1,10 @@
 # 0778 Mimikyu — Eclipse Herald
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Status: USER REJECTED — REWORK REQUIRED
+Sale eligibility: NOT ELIGIBLE.
+
+This document is retained only as technical/provenance history. Any historical acceptance language below is superseded: the owner rejected the current art, no professional manifest certifies it, and its production assets are locked until the registry gates are satisfied.
+
 
 ## Official source
 
@@ -20,7 +24,7 @@ Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
 
 The official geometry contains 48 bones. Eclipse Herald keeps all 48 complete and in the exact official order. Existing cubes, pivots, rotations, locators, hierarchy, UVs and names are untouched. The derived geometry changes only its identifier and appends eight cosmetic `ouros_*` bones, producing 56 bones total.
 
-The appended bones are `ouros_eclipse_halo`, `ouros_eclipse_cowl`, `ouros_eclipse_mantle`, `ouros_eclipse_pennant_left`, `ouros_eclipse_pennant_right`, `ouros_eclipse_tail_reliquary`, `ouros_eclipse_hand_charm_right`, and `ouros_eclipse_hand_charm_left`. The accepted second artistic pass contains 42 cosmetic cubes.
+The appended bones are `ouros_eclipse_halo`, `ouros_eclipse_cowl`, `ouros_eclipse_mantle`, `ouros_eclipse_pennant_left`, `ouros_eclipse_pennant_right`, `ouros_eclipse_tail_reliquary`, `ouros_eclipse_hand_charm_right`, and `ouros_eclipse_hand_charm_left`. The historical second pass contains 42 cosmetic cubes.
 
 Mimikyu's original fake face, ears, flower, cloth body, tail chain and ghost hands remain original Cobblemon geometry. The cosmetics attach to `torso_top`, `head`, `tail1`, `hand_right3` and `hand_left3` so official animation transforms remain authoritative for presentation.
 
@@ -50,7 +54,7 @@ Matched-camera evidence uses:
 
 No manual battle-ready pose is fabricated. The evidence metadata records whether a distinct official Bedrock battle clip exists and leaves battle-ready absent when it does not.
 
-The accepted files are under `test-evidence/visual/cobblemon-skins/0778_mimikyu/eclipse-herald-real-poses/` and include official reference, hero, action, walking, front, left, right and back views.
+The historical files are under `test-evidence/visual/cobblemon-skins/0778_mimikyu/eclipse-herald-real-poses/` and include official reference, hero, action, walking, front, left, right and back views.
 
 ## Repository-wide validation
 

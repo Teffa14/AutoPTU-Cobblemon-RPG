@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.professional-fixture/
+.professional-review/
+.bb/
+.pose/
+.reference-audit/
