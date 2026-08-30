@@ -86,7 +86,7 @@ jobs:
               'femaleModel': ('assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json', 'pikachu_female.geo.json'),
               'animation': ('assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json', 'pikachu.animation.json'),
               'poser': ('assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json', 'pikachu.poser.json'),
-              'resolver': ('assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/pikachu.json', 'pikachu.resolver.json'),
+              'resolver': ('assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json', 'pikachu.resolver.json'),
               'normalTexture': ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png', 'pikachu.png'),
               'shinyTexture': ('assets/cobblemon/textures/pokemon/0025_pikachu/pikachu_shiny.png', 'pikachu_shiny.png'),
               'license': ('LICENSE', 'LICENSE'),
