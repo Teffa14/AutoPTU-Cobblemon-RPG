@@ -1,5 +1,6 @@
 {
   "format": "ouros.cobblemon-blockbench-pose-evidence.v1",
+  "artPass": "v2-epic-fortress-silhouette",
   "viewer": "Blockbench 5.1.6",
   "modelSource": "official Cobblemon 1.7.3 Fabric JAR, Modrinth kF7CvxTo",
   "officialModelSha256": "541ac55dd56e5d8f0caeea3d5947ba3ab32437978e1d676ad335ffaef79c93a9",
@@ -16,15 +17,15 @@
       "time": 0.25
     }
   },
-  "walkingEvidence": "omitted: official 1.7.3 Tyranitar animation JSON has no walking clip; locomotion is code-backed/procedural",
-  "battleEvidence": "omitted: official 1.7.3 Tyranitar animation JSON has no battle/battle_idle clip",
+  "walkingEvidence": "omitted because official animation JSON has no walking clip; locomotion is code-backed/procedural",
+  "battleEvidence": "omitted because official animation JSON has no battle/battle_idle clip",
   "files": {
     "official_reference_three_quarter.png": "e8c0d26584efc555917596b30c016bd36af4582f336088d4e9a6dff74fe86ff4",
-    "hero_three_quarter.png": "84d3fb8534db45af0c637d0d55cbdcb2bfb279a6cb764c825dcd15ac46f70b30",
-    "cry_three_quarter.png": "f7b767e7468ea161c20b5559fbb82c6a736b684a497878cdc2b8e5994c4ff9c7",
-    "hero_front.png": "781fc49f8cec5290b2a871a09098daa520b9958efa76fee2d29805e0d570ecae",
-    "hero_left.png": "50cb05b9343decfa4f86f8a5145c3487ed101e4bcecab9c1bf2c681d153064a4",
-    "hero_right.png": "4f5b4651b87887ad901bc95562531446a18faccbf20a25a58bca07351bb3a2fb",
-    "hero_back.png": "49bba339152954c809b591a0174acde71a1e261265565c52cf8498d4909aa18b"
+    "hero_three_quarter.png": "7c5e74e1a2a9b53957e097833445e7a5ceaae9ee160e35419a52bc3791d3fcc4",
+    "cry_three_quarter.png": "f9045ba117acd105bfe67f67029166ae4679722bec6f12112c9a263386295fd2",
+    "hero_front.png": "2050e340ffec29efa594f30244c632568b885e64e20e606a6137e11eef5018f4",
+    "hero_left.png": "d4d85fcebcd6eed44f8618e68b0bd6ed024570d4c527309f083e2cc5bf40058d",
+    "hero_right.png": "a597e7bbc74eb592a97d4f0caf3f2c0def0659106a733feb723fa77e47ba3377",
+    "hero_back.png": "f2db475216f602d099b224d3334d3ae2bb259d419ce2e67e68d93721ba5a3f5f"
   }
 }
