@@ -17,6 +17,9 @@ on:
 permissions:
   contents: read
 
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+
 jobs:
   inspect-reference:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .external
+          mkdir -p .external .official
           curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
             -A 'Ouros-AutoPTU-Cobblemon-RPG/reference-inspector' \
             'https://api.modrinth.com/v2/version/TTqHf0wu' \
@@ -57,13 +60,40 @@ jobs:
           printf '%s  %s\n' "$SHA1" '.external/poke-costume-3.1.1.zip' | sha1sum --check --strict
           sha256sum .external/poke-costume-3.1.1.zip | tee .external/package-sha256.txt
 
+      - name: Download exact official Cobblemon Gengar baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-AutoPTU-Cobblemon-RPG/reference-inspector' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" \
+            -o .official/version.json
+          python - <<'PY' > .official/download.env
+          import json, shlex
+          data=json.load(open('.official/version.json',encoding='utf-8'))
+          assert data['id']=='kF7CvxTo' and data['version_number']=='1.7.3'
+          assert data['game_versions']==['1.21.1'] and 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(primary['url']))
+          print('SHA512='+shlex.quote(primary['hashes']['sha512']))
+          PY
+          source .official/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" '.official/cobblemon.jar' | sha512sum --check --strict
+          unzip -p .official/cobblemon.jar \
+            'assets/cobblemon/bedrock/pokemon/models/0094_gengar/gengar.geo.json' \
+            > .official/gengar.geo.json
+          test "$(sha256sum .official/gengar.geo.json | awk '{print $1}')" = \
+            '57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38'
+
       - name: Record package contents
         shell: bash
         run: |
           set -euo pipefail
           unzip -Z1 .external/poke-costume-3.1.1.zip | sort | tee .external/package-files.txt
 
-      - name: Inspect real Gengar model and texture files
+      - name: Inspect real Gengar model texture animation poser and resolver
         shell: bash
         run: |
           set -o pipefail
@@ -72,8 +102,35 @@ jobs:
             --species gengar \
             --alias overtime \
             --alias 0094 \
+            --official-model .official/gengar.geo.json \
             --output .external/overtime-gengar-inspection.json \
             | tee .external/overtime-gengar-inspection.log
+
+      - name: Assert real custom geometry evidence exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          report=json.load(open('.external/overtime-gengar-inspection.json',encoding='utf-8'))
+          c=report['structuralStudy']['modelComparison']
+          assert c['officialBoneCount']==78
+          assert c['externalBoneCount']>c['officialBoneCount']
+          assert c['addedBoneCount']>=3
+          assert {'necktie','glasses','bag'} <= set(c['addedBoneNames'])
+          assert report['modelFiles'] and report['textureFiles']
+          assert report['animationFiles'] and report['poserFiles'] and report['resolverFiles']
+          print('custom added bones',c['addedBoneNames'])
+          for bone in c['addedBoneSummaries']:
+              print('custom bone summary',bone)
+          for path,summary in report['structuralStudy'].get('animations',{}).items():
+              print('animation structure',path,summary)
+          for path,summary in report['structuralStudy'].get('posers',{}).items():
+              print('poser structure',path,summary)
+          for path,summary in report['structuralStudy'].get('resolvers',{}).items():
+              print('resolver structure',path,summary)
+          print('package license entries',report['packageLicenseEntries'])
+          PY
 
       - name: Upload hash-only inspection evidence
         if: always()
