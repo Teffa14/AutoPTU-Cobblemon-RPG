@@ -7,6 +7,11 @@ on:
     paths:
       - '.github/workflows/cobblemon-gengar-overtime-reference-inspection.yml'
       - 'tools/cobblemon-model-review/inspect_external_skin_package.py'
+  pull_request:
+    paths:
+      - '.github/workflows/cobblemon-gengar-overtime-reference-inspection.yml'
+      - 'tools/cobblemon-model-review/inspect_external_skin_package.py'
+      - 'docs/cobblemon-skin-reference-dossiers/0094_gengar.json'
   workflow_dispatch:
 
 permissions:
