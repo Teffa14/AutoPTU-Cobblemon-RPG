@@ -35,6 +35,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class CedarMeadowRuntime {
     private static final String WILD_ZONE_ID = "cedar_meadow";
     private static final String WILD_CONTEXT_ID = "visible_roaming_wild";
+    private static final AmbientPokemonBehaviorController.Profile AMBIENT_PROFILE =
+            new AmbientPokemonBehaviorController.Profile(14.0D, 7.0D, 80, 100);
     private static final List<Instance> INSTANCES = new CopyOnWriteArrayList<>();
 
     private CedarMeadowRuntime() {}
@@ -137,8 +139,8 @@ public final class CedarMeadowRuntime {
         private final CedarMeadowBuilder.BuildResult layout;
         private final PokemonEntity lookout;
         private final List<PokemonEntity> feeders;
-        private final CedarMeadowBehavior behavior = new CedarMeadowBehavior();
-        private CedarMeadowBehavior.State priorState = CedarMeadowBehavior.State.CALM;
+        private final AmbientPokemonBehaviorController behavior = new AmbientPokemonBehaviorController(AMBIENT_PROFILE);
+        private AmbientPokemonBehaviorController.State priorState = AmbientPokemonBehaviorController.State.CALM;
         private int tickCounter;
 
         private Instance(ServerWorld world, CedarMeadowBuilder.BuildResult layout, PokemonEntity lookout, List<PokemonEntity> feeders) {
@@ -165,7 +167,7 @@ public final class CedarMeadowRuntime {
             );
             ServerPlayerEntity nearest = closestPlayer instanceof ServerPlayerEntity serverPlayer ? serverPlayer : null;
             double distance = nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(nearest.squaredDistanceTo(lookout));
-            CedarMeadowBehavior.State state = behavior.update(distance, nearest != null);
+            AmbientPokemonBehaviorController.State state = behavior.update(distance, nearest != null);
 
             switch (state) {
                 case CALM -> calm();
@@ -215,7 +217,7 @@ public final class CedarMeadowRuntime {
             feeders.forEach(entity -> entity.getNavigation().stop());
         }
 
-        private void announce(ServerPlayerEntity player, CedarMeadowBehavior.State state) {
+        private void announce(ServerPlayerEntity player, AmbientPokemonBehaviorController.State state) {
             Text message = switch (state) {
                 case WATCHING -> Text.literal("The lookout stops scanning the meadow and watches your approach.");
                 case ALARMED -> Text.literal("The feeding group abandons the open ground and heads for cover.");
