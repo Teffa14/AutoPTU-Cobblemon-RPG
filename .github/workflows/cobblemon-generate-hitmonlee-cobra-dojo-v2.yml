@@ -1,0 +1,156 @@
+name: Generate Hitmonlee Cobra Dojo V2 Production Assets
+
+on:
+  push:
+    branches:
+      - 'art/hitmonlee-cobra-dojo-v2-redesign'
+    paths:
+      - '.github/workflows/cobblemon-generate-hitmonlee-cobra-dojo-v2.yml'
+      - 'tools/cobblemon-model-review/build_cobra_dojo_hitmonlee_v2.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+  COBBLEMON_VERSION: '1.7.3'
+  MINECRAFT_VERSION: '1.21.1'
+  COBBLEMON_FILENAME: 'Cobblemon-fabric-1.7.3+1.21.1.jar'
+  COBBLEMON_JAR_SHA256: 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3'
+  COBBLEMON_JAR_SHA512: '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e'
+  OFFICIAL_MODEL_SHA256: 'f92b067c781f9210dec305860bdb09141efad5c238396ac7988c4bbbed82840d'
+  OFFICIAL_NORMAL_SHA256: 'cbf05271a594e788e7173fd3e34ee32b35488781dd97b7e100455fe57d919574'
+  OFFICIAL_SHINY_SHA256: 'a677824d9be92b46ff6359ce58118e67fce1078632908cfc0ac80816e7c1c065'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install builder dependency
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
+      - name: Verify latest compatible stable and extract exact official inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .generate/official .generate/output
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-Hitmonlee-Cobra-Dojo-v2' \
+            "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .generate/version.json
+          python - <<'PY' > .generate/download.env
+          import json, os, shlex
+          data=json.load(open('.generate/version.json',encoding='utf-8'))
+          assert data['id']==os.environ['COBBLEMON_VERSION_ID']
+          assert data['version_number']==os.environ['COBBLEMON_VERSION']
+          assert os.environ['MINECRAFT_VERSION'] in data['game_versions'] and 'fabric' in data['loaders']
+          primary=next(f for f in data['files'] if f.get('primary'))
+          assert primary['filename']==os.environ['COBBLEMON_FILENAME']
+          assert primary['hashes']['sha512']==os.environ['COBBLEMON_JAR_SHA512']
+          print('PROJECT_ID='+shlex.quote(data['project_id']))
+          print('JAR_URL='+shlex.quote(primary['url']))
+          PY
+          source .generate/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors \
+            -A 'Ouros-Hitmonlee-Cobra-Dojo-v2' \
+            "https://api.modrinth.com/v2/project/${PROJECT_ID}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D" -o .generate/compatible.json
+          python - <<'PY'
+          import json, os
+          stable=[v for v in json.load(open('.generate/compatible.json',encoding='utf-8')) if v.get('version_type')=='release']
+          latest=max(stable,key=lambda v:v['date_published'])
+          assert latest['id']==os.environ['COBBLEMON_VERSION_ID'],(latest['id'],latest['version_number'])
+          print('latest stable compatible:',latest['id'],latest['version_number'])
+          PY
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$JAR_URL" -o .generate/cobblemon.jar
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA256" '.generate/cobblemon.jar' | sha256sum --check --strict
+          printf '%s  %s\n' "$COBBLEMON_JAR_SHA512" '.generate/cobblemon.jar' | sha512sum --check --strict
+          python - <<'PY'
+          import hashlib, os, zipfile
+          from pathlib import Path
+          sources=[
+            ('assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/hitmonlee.geo.json','hitmonlee.geo.json','OFFICIAL_MODEL_SHA256'),
+            ('assets/cobblemon/textures/pokemon/0106_hitmonlee/hitmonlee.png','hitmonlee.png','OFFICIAL_NORMAL_SHA256'),
+            ('assets/cobblemon/textures/pokemon/0106_hitmonlee/hitmonlee_shiny.png','hitmonlee_shiny.png','OFFICIAL_SHINY_SHA256'),
+          ]
+          with zipfile.ZipFile('.generate/cobblemon.jar') as jar:
+            for member,target,key in sources:
+              payload=jar.read(member)
+              actual=hashlib.sha256(payload).hexdigest()
+              assert actual==os.environ[key],(member,actual,os.environ[key])
+              Path('.generate/official',target).write_bytes(payload)
+          PY
+
+      - name: Build and validate v2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/build_cobra_dojo_hitmonlee_v2.py \
+            --model .generate/official/hitmonlee.geo.json \
+            --normal .generate/official/hitmonlee.png \
+            --shiny .generate/official/hitmonlee_shiny.png \
+            --output-root .generate/output | tee .generate/build.log
+          python tools/cobblemon-model-review/validate_original_model.py \
+            --official .generate/official/hitmonlee.geo.json \
+            --candidate .generate/output/ouros_cobra_dojo_hitmonlee.geo.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          report=json.loads(Path('.generate/output/build-report.json').read_text())
+          assert report['originalBones']==30
+          assert report['derivedBones']==43
+          assert report['cosmeticBones']==13
+          assert report['cosmeticCubes']==62, report
+          model=json.loads(Path('.generate/output/ouros_cobra_dojo_hitmonlee.geo.json').read_text())
+          bones=model['minecraft:geometry'][0]['bones']
+          assert [b['name'] for b in bones[30:]]==[
+            'ouros_cobra_collar','ouros_cobra_gi','ouros_cobra_belt_sash',
+            'ouros_cobra_left_forearm','ouros_cobra_right_forearm',
+            'ouros_cobra_left_leg2','ouros_cobra_left_leg3','ouros_cobra_left_leg4',
+            'ouros_cobra_right_leg2','ouros_cobra_right_leg3','ouros_cobra_right_leg4',
+            'ouros_cobra_left_foot','ouros_cobra_right_foot']
+          for base_name,derived_name in [('hitmonlee.png','ouros_cobra_dojo_hitmonlee.png'),('hitmonlee_shiny.png','ouros_cobra_dojo_hitmonlee_shiny.png')]:
+            base=Image.open('.generate/official/'+base_name).convert('RGBA')
+            derived=Image.open('.generate/output/'+derived_name).convert('RGBA')
+            assert base.size==derived.size==(64,64)
+            changed=[]
+            for y in range(64):
+              for x in range(64):
+                if base.getpixel((x,y))!=derived.getpixel((x,y)): changed.append((x,y))
+            assert changed==[(x,63) for x in range(8)], changed
+          print(json.dumps(report,indent=2))
+          PY
+
+      - name: Install exact generated production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          model_dir='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee'
+          texture_dir='fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee'
+          cp .generate/output/ouros_cobra_dojo_hitmonlee.geo.json "$model_dir/ouros_cobra_dojo_hitmonlee.geo.json"
+          cp .generate/output/ouros_cobra_dojo_hitmonlee.png "$texture_dir/ouros_cobra_dojo_hitmonlee.png"
+          cp .generate/output/ouros_cobra_dojo_hitmonlee_shiny.png "$texture_dir/ouros_cobra_dojo_hitmonlee_shiny.png"
+
+      - name: Commit generated v2 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.geo.json \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee.png \
+            fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0106_hitmonlee/ouros_cobra_dojo_hitmonlee_shiny.png
+          if git diff --cached --quiet; then
+            echo 'v2 production assets already match builder output.'
+            exit 0
+          fi
+          git commit -m 'skins: generate Hitmonlee Cobra Dojo v2 assets'
+          git push origin HEAD:${GITHUB_REF_NAME}
