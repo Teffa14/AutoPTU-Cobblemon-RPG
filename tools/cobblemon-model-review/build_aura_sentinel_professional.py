@@ -25,91 +25,78 @@ def _find_official_asset(zf, expected: str) -> str:
 impl.find_path_by_hash = _find_official_asset
 
 
-def _professional_v2_cosmetics() -> list[dict]:
-    """Second authored pass: one continuous rear mantle, open chest, quiet limbs."""
+def _professional_v3_cosmetics() -> list[dict]:
+    """Broad-cloak pass: large connected masses, open anatomy and quiet supports."""
     c = impl.cube
     return [
         {
-            "name": "ouros_aura_circlet",
+            "name": "ouros_aura_cowl",
             "parent": "head_angle",
-            "pivot": [0, 38.0, -1.8],
+            "pivot": [-1.5, 37.0, 1.8],
             "cubes": [
-                c([-4.7, 37.0, -3.7], [3.2, 0.8, 0.65], "lacquer", pivot=[-3.1, 37.4, -3.35], rotation=[0, -6, -18]),
-                c([1.5, 37.0, -3.7], [3.2, 0.8, 0.65], "lacquer", pivot=[3.1, 37.4, -3.35], rotation=[0, 6, 18]),
-                c([-4.4, 38.1, -1.4], [1.25, 2.8, 1.8], "gold", pivot=[-3.8, 38.4, -0.5], rotation=[-8, -6, -24]),
+                c([-5.3, 34.8, 1.5], [4.5, 4.6, 2.0], "cloth", pivot=[-3.0, 37.1, 2.5], rotation=[-7, -5, -12]),
+                c([0.6, 35.1, 1.5], [4.0, 4.1, 1.8], "cloth", pivot=[2.6, 37.1, 2.4], rotation=[-7, 5, 10]),
+                c([-4.7, 37.2, -3.4], [3.0, 0.7, 0.55], "gold", pivot=[-3.2, 37.5, -3.1], rotation=[0, -5, -16]),
             ],
         },
         {
-            "name": "ouros_aura_left_pauldron",
+            "name": "ouros_aura_mantle_clasp",
             "parent": "shoulder_right",
-            "pivot": [-3.2, 30.0, -0.3],
+            "pivot": [-4.0, 30.0, 0.0],
             "cubes": [
-                c([-8.6, 28.8, -2.7], [5.8, 2.4, 5.1], "lacquer", pivot=[-5.7, 30.0, -0.15], rotation=[2, -8, -18]),
-                c([-9.4, 27.5, -2.2], [5.1, 1.9, 4.5], "cloth", pivot=[-6.8, 28.5, 0.0], rotation=[5, -12, -31]),
-                c([-8.7, 30.45, -2.85], [4.7, 0.45, 4.6], "gold", pivot=[-6.35, 30.7, -0.55], rotation=[2, -8, -18]),
+                c([-9.2, 28.0, -2.5], [6.6, 3.6, 5.4], "lacquer", pivot=[-5.9, 29.8, 0.2], rotation=[3, -10, -20]),
+                c([-9.8, 26.6, -1.8], [5.9, 2.8, 4.8], "cloth", pivot=[-6.8, 28.0, 0.6], rotation=[6, -13, -32]),
+                c([-8.9, 30.2, -2.7], [4.8, 0.5, 4.5], "gold", pivot=[-6.5, 30.5, -0.4], rotation=[3, -10, -20]),
             ],
         },
         {
-            "name": "ouros_aura_mantle_root",
+            "name": "ouros_aura_sweeping_cloak",
             "parent": "torso3",
-            "pivot": [-3.8, 29.5, 2.7],
+            "pivot": [-4.0, 27.5, 3.2],
             "cubes": [
-                c([-7.2, 27.8, 1.7], [8.6, 2.5, 2.2], "cloth", pivot=[-3.0, 29.0, 2.8], rotation=[-9, -3, -12]),
-                c([-8.0, 25.5, 2.2], [8.2, 2.4, 2.0], "cloth", pivot=[-3.9, 26.7, 3.2], rotation=[-12, -4, -20]),
-                c([-7.6, 23.1, 2.65], [7.4, 2.3, 1.8], "lacquer", pivot=[-3.9, 24.3, 3.55], rotation=[-15, -4, -28]),
-                c([-6.9, 21.0, 2.95], [6.5, 1.9, 1.6], "cloth", pivot=[-3.7, 22.0, 3.75], rotation=[-18, -4, -35]),
+                c([-10.4, 26.2, 2.0], [11.0, 4.2, 1.75], "cloth", pivot=[-4.9, 28.3, 2.9], rotation=[-10, -4, -13]),
+                c([-11.2, 22.6, 2.45], [10.5, 4.1, 1.5], "cloth", pivot=[-5.9, 24.7, 3.2], rotation=[-13, -4, -22]),
+                c([-10.9, 19.0, 2.8], [9.7, 4.0, 1.3], "lacquer", pivot=[-6.0, 21.0, 3.45], rotation=[-16, -4, -31]),
+                c([-10.0, 15.7, 3.05], [8.5, 3.8, 1.1], "cloth", pivot=[-5.7, 17.6, 3.6], rotation=[-19, -4, -40]),
+                c([-8.7, 12.9, 3.25], [7.0, 3.3, 0.95], "cloth", pivot=[-5.2, 14.5, 3.72], rotation=[-22, -4, -49]),
+                c([-7.2, 10.7, 3.4], [5.4, 2.7, 0.8], "gold", pivot=[-4.5, 12.0, 3.8], rotation=[-24, -4, -57]),
             ],
         },
         {
-            "name": "ouros_aura_mantle_fall",
-            "parent": "torso",
-            "pivot": [-3.1, 20.0, 3.5],
-            "cubes": [
-                c([-6.2, 19.0, 2.9], [5.9, 2.0, 1.55], "cloth", pivot=[-3.3, 20.0, 3.65], rotation=[-18, -4, -31]),
-                c([-5.9, 16.8, 3.15], [5.3, 2.0, 1.4], "cloth", pivot=[-3.3, 17.8, 3.85], rotation=[-20, -4, -37]),
-                c([-5.5, 14.6, 3.35], [4.7, 1.9, 1.25], "lacquer", pivot=[-3.2, 15.5, 3.95], rotation=[-22, -4, -43]),
-                c([-4.9, 12.6, 3.5], [4.0, 1.7, 1.1], "cloth", pivot=[-2.9, 13.45, 4.05], rotation=[-24, -4, -49]),
-                c([-4.2, 10.9, 3.65], [3.3, 1.45, 0.95], "gold", pivot=[-2.55, 11.6, 4.1], rotation=[-26, -4, -55]),
-            ],
-        },
-        {
-            "name": "ouros_aura_split_cuirass",
+            "name": "ouros_aura_open_cuirass",
             "parent": "torso3",
-            "pivot": [0, 28.0, -3.8],
+            "pivot": [0, 27.8, -3.8],
             "cubes": [
-                c([-4.6, 28.1, -4.45], [4.9, 1.65, 0.62], "lacquer", pivot=[-2.2, 28.9, -4.14], rotation=[0, -2, -31]),
-                c([0.0, 28.0, -4.42], [4.5, 1.55, 0.60], "cloth", pivot=[2.25, 28.8, -4.12], rotation=[0, 2, 29]),
-                c([-3.6, 25.5, -4.48], [3.9, 1.45, 0.58], "cloth", pivot=[-1.65, 26.2, -4.18], rotation=[0, -2, -42]),
-                c([0.0, 25.6, -4.46], [3.6, 1.35, 0.56], "lacquer", pivot=[1.8, 26.25, -4.18], rotation=[0, 2, 40]),
-                c([-0.85, 27.0, -4.76], [1.7, 1.7, 0.28], "aura", pivot=[0, 27.85, -4.62], rotation=[0, 0, 45]),
+                c([-5.0, 27.1, -4.45], [5.4, 2.5, 0.72], "lacquer", pivot=[-2.3, 28.4, -4.1], rotation=[0, -2, -29]),
+                c([-0.2, 27.0, -4.42], [5.1, 2.4, 0.70], "cloth", pivot=[2.35, 28.2, -4.08], rotation=[0, 2, 27]),
+                c([-0.95, 26.4, -4.76], [1.9, 1.9, 0.30], "aura", pivot=[0, 27.35, -4.6], rotation=[0, 0, 45]),
             ],
         },
         {
             "name": "ouros_aura_left_vambrace",
             "parent": "arm_left2",
-            "pivot": [10.6, 29.5, -0.4],
+            "pivot": [10.8, 29.3, -0.5],
             "cubes": [
-                c([9.1, 28.1, -2.15], [3.8, 1.15, 3.1], "lacquer", pivot=[11.0, 28.7, -0.6], rotation=[-6, 0, -8]),
-                c([10.0, 30.1, -1.95], [2.6, 0.75, 2.4], "gold", pivot=[11.3, 30.5, -0.75], rotation=[-8, 0, -5]),
+                c([9.0, 28.0, -2.2], [4.0, 1.3, 3.2], "lacquer", pivot=[11.0, 28.7, -0.6], rotation=[-7, 0, -8]),
+                c([10.1, 30.0, -2.0], [2.5, 0.7, 2.4], "gold", pivot=[11.35, 30.4, -0.8], rotation=[-9, 0, -5]),
             ],
         },
         {
             "name": "ouros_aura_right_vambrace",
             "parent": "arm_right2",
-            "pivot": [-10.6, 29.5, -0.4],
+            "pivot": [-10.8, 29.3, -0.5],
             "cubes": [
-                c([-12.9, 28.1, -2.15], [3.8, 1.15, 3.1], "lacquer", pivot=[-11.0, 28.7, -0.6], rotation=[-6, 0, 8]),
-                c([-12.6, 30.1, -1.95], [2.6, 0.75, 2.4], "gold", pivot=[-11.3, 30.5, -0.75], rotation=[-8, 0, 5]),
+                c([-13.0, 28.0, -2.2], [4.0, 1.3, 3.2], "lacquer", pivot=[-11.0, 28.7, -0.6], rotation=[-7, 0, 8]),
+                c([-12.6, 30.0, -2.0], [2.5, 0.7, 2.4], "gold", pivot=[-11.35, 30.4, -0.8], rotation=[-9, 0, 5]),
             ],
         },
         {
-            "name": "ouros_aura_waist_tabard",
+            "name": "ouros_aura_waist_sash",
             "parent": "torso",
-            "pivot": [-1.1, 19.4, 2.7],
+            "pivot": [-1.1, 19.0, 2.8],
             "cubes": [
-                c([-5.4, 18.5, 1.7], [8.3, 1.35, 2.35], "lacquer", pivot=[-1.3, 19.2, 2.9], rotation=[-7, 0, -10]),
-                c([-4.9, 15.8, 2.45], [6.5, 1.6, 1.8], "cloth", pivot=[-1.7, 16.6, 3.35], rotation=[-11, 0, -19]),
-                c([-4.1, 13.6, 2.95], [5.0, 1.35, 1.5], "gold", pivot=[-1.6, 14.3, 3.7], rotation=[-14, 0, -27]),
+                c([-5.5, 18.0, 1.7], [8.5, 1.55, 2.5], "lacquer", pivot=[-1.3, 18.8, 2.9], rotation=[-8, 0, -11]),
+                c([-5.0, 15.0, 2.5], [6.8, 2.2, 1.8], "cloth", pivot=[-1.6, 16.1, 3.4], rotation=[-12, 0, -22]),
             ],
         },
         {
@@ -117,7 +104,7 @@ def _professional_v2_cosmetics() -> list[dict]:
             "parent": "leg_left4",
             "pivot": [3.4, 4.0, -1.2],
             "cubes": [
-                c([1.25, 0.1, -2.05], [4.25, 1.25, 2.65], "lacquer", pivot=[3.4, 0.8, -0.7], rotation=[-8, 0, -7]),
+                c([1.2, 0.1, -2.1], [4.3, 1.35, 2.7], "lacquer", pivot=[3.4, 0.8, -0.75], rotation=[-8, 0, -7]),
                 c([1.8, 4.4, -2.1], [3.2, 0.85, 2.2], "gold", pivot=[3.4, 4.8, -1.0], rotation=[-11, 0, -4]),
             ],
         },
@@ -126,14 +113,14 @@ def _professional_v2_cosmetics() -> list[dict]:
             "parent": "leg_right4",
             "pivot": [-3.4, 4.0, -1.2],
             "cubes": [
-                c([-5.5, 0.1, -2.05], [4.25, 1.25, 2.65], "lacquer", pivot=[-3.4, 0.8, -0.7], rotation=[-8, 0, 7]),
+                c([-5.5, 0.1, -2.1], [4.3, 1.35, 2.7], "lacquer", pivot=[-3.4, 0.8, -0.75], rotation=[-8, 0, 7]),
                 c([-5.0, 4.4, -2.1], [3.2, 0.85, 2.2], "gold", pivot=[-3.4, 4.8, -1.0], rotation=[-11, 0, 4]),
             ],
         },
     ]
 
 
-impl.cosmetics = _professional_v2_cosmetics
+impl.cosmetics = _professional_v3_cosmetics
 
 if __name__ == "__main__":
     impl.main()
