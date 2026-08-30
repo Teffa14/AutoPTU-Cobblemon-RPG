@@ -159,7 +159,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | ID | Status | Command/service |
 |---|---|---|
 | CMD-040 | LIVE | `/autoptu healparty` — PR #198 |
-| CMD-041 | LIVE | `/autoptu care status` — PR #335; authenticated server-side projection of persisted canonical party HP, statuses, injuries and revisions. Recovery eligibility/effects remain outside Minecraft until an authoritative PTU recovery contract exists. |
+| CMD-041 | LIVE | `/autoptu care status` — PR #335 / merge `60fef69343c24b3bdf1fd011f5a2e22f8f72d37c`; authenticated server-side projection of persisted canonical party HP, statuses, injuries and revisions. Recovery eligibility/effects remain outside Minecraft until an authoritative PTU recovery contract exists. |
 | CMD-042 | TODO | `/autoptu rest` |
 
 ## Bag, items and equipment
