@@ -1,0 +1,44 @@
+{
+  "format": "ouros.cobblemon-official-source-manifest.v1",
+  "minecraftVersion": "1.21.1",
+  "cobblemonVersion": "1.7.3",
+  "modrinthVersionId": "kF7CvxTo",
+  "filename": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+  "jarSha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
+  "jarSha512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+  "license": "MPL-2.0",
+  "files": {
+    "maleModel": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_male.geo.json",
+      "sha256": "f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83"
+    },
+    "femaleModel": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/models/0025_pikachu/pikachu_female.geo.json",
+      "sha256": "d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318"
+    },
+    "animation": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/animations/0025_pikachu/pikachu.animation.json",
+      "sha256": "d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384"
+    },
+    "poser": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/posers/0025_pikachu/pikachu.json",
+      "sha256": "42391fef5a270007874aacdd6d47a64e9e8533e3d6f8f3f99b08997e624851a7"
+    },
+    "resolver": {
+      "jarPath": "assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/0_pikachu_base.json",
+      "sha256": "5786e850520491426addd8da9f6f5301b8e7cffa5adcdbee5711c20fc965a396"
+    },
+    "normalTexture": {
+      "jarPath": "assets/cobblemon/textures/pokemon/0025_pikachu/pikachu.png",
+      "sha256": "df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e"
+    },
+    "shinyTexture": {
+      "jarPath": "assets/cobblemon/textures/pokemon/0025_pikachu/pikachu_shiny.png",
+      "sha256": "f84a96d936d8f2b4566db8a7bdbe6c6c1d72c75065b19201730739d618ee65df"
+    },
+    "license": {
+      "jarPath": "LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+    }
+  }
+}

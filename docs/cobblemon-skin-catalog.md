@@ -1,162 +1,156 @@
 # Cobblemon Skin Catalog
 
-This catalog records Ouros-authored visual Pokemon variants.
+This catalog records Ouros-authored visual Pokemon variants and their current technical and artistic acceptance state.
 
-## Mandatory model-source rule
+The authoritative art contract is `docs/cobblemon-skin-art-direction.md`. Issue #308 supersedes the previous assumption that a technically valid accessory-only pass can be called artistically complete.
 
-For any Pokemon that already exists in Cobblemon, Ouros MUST begin from the exact original model distributed by the latest stable Cobblemon release used by this project. Do not rebuild anatomy. Do not substitute an older mirror. Do not approximate the model with generic cubes.
+## Production source target
 
-Current production target:
+Current repository target:
+
 - Minecraft Java Edition 1.21.1
-- Cobblemon 1.7.3
-- source of truth: the released Cobblemon 1.7.3 Fabric JAR published on Modrinth, version id `kF7CvxTo`
+- Cobblemon 1.7.3 Fabric
+- official Modrinth version id `kF7CvxTo`
+- official file `Cobblemon-fabric-1.7.3+1.21.1.jar`
 
-A skin implementation may only change or append deliberate cosmetic geometry. Every original bone, cube, pivot, locator, hierarchy relationship and animation-facing name must remain unchanged unless a design explicitly requires a local modification and that exception is documented.
+The compatible stable release must be checked again before every skin slice. At adoption of the full-transformation standard on 2026-08-30, the official Modrinth 1.21.1/Fabric listing still resolves to Cobblemon 1.7.3.
 
-## Visual validation rule
+For a Pokemon that already exists in Cobblemon, Ouros MUST begin from the exact original model distributed by the pinned official release. Do not rebuild anatomy, substitute a mirror, copy a fork, use screenshots as geometry or approximate the Pokemon with replacement cubes.
 
-The old in-repo Python software renderer is rejected as acceptance evidence.
+All original bones must remain JSON-equivalent and in the same order unless an explicit documented exception is approved. Geometry identifiers may change. New cosmetic bones must be `ouros_*`. Male, female and official forms must be derived independently from their corresponding official files.
 
-New assets must be validated through an independent Minecraft model viewer. Blockbench is the primary review viewer because it supports Minecraft Bedrock Entity geometry, bone rotations, per-face UV, model animations and MoLang. The CI review path must load the generated `.geo.json` in Blockbench rather than reimplementing Bedrock transforms in project code.
+## Presentation-only authority boundary
 
-A preview is evidence only when:
-- the exact production `.geo.json` is loaded;
-- the exact release texture is applied;
-- any accessory texture used in production is applied;
-- the model imports without geometry errors;
-- the original species anatomy remains the unmodified release model;
-- screenshots come from the external viewer, not from concept art or a project-authored geometry renderer.
+This workflow never gives battle-state authority to Cobblemon or Minecraft. Cobblemon/Minecraft may provide models, textures, animations and rendering/presentation hooks. AutoPTU/Ouros decides combatants, legality, HP/status, tactical positions, RNG, damage and results.
 
-## Epic-skin visual standard
+## Visual acceptance — FULL TRANSFORMATION OR REJECTED
 
-Functional cosmetics are not enough. Ouros skins should read as premium variants immediately at gameplay distance.
+Technical validity is necessary but does not make a good skin.
 
-A strong skin may push the silhouette aggressively with clothing, armor, equipment, mantles, collars, packs, fins, conductors, ornaments and other attached geometry, provided the original Pokemon anatomy remains intact underneath. The goal is not to hide the species; the goal is to make the variant unmistakable.
+A skin fails artistic review when it still reads as the base Pokemon with small blocks attached to the head, arms or back. The required result is a complete visual transformation at gameplay distance while the official biological model remains intact underneath.
 
-Epic skins should prioritize:
-- a strong three-quarter silhouette;
-- one clear visual fantasy or class identity;
-- layered materials and visible depth rather than thin painted straps;
-- meaningful asymmetry;
-- large signature pieces supported by smaller hardware details;
-- front, side and rear readability;
-- motion-safe attachment to official animated parents;
-- visual hierarchy: signature silhouette first, secondary equipment second, micro-detail last.
+The design must establish one strong fantasy, a strong three-quarter silhouette, one to three dominant signature pieces, large connected masses, coherent palette/material treatment, real layering, readable asymmetry where useful, and front/side/rear coherence. Small hardware detail comes only after the large read works.
 
-Do not reject a cosmetic merely because it changes the outer silhouette. Reject it when it rewrites anatomy, obscures species identity, detaches during official animations, creates severe clipping, or becomes visually incoherent.
+Large external silhouette pushes are allowed and often desirable. Armor, mantles, cowls, coats, pauldrons, packs, banners, field equipment, fins, conductors, coils and ornaments may substantially change the outer outline provided the Pokemon remains clearly identifiable and the original anatomy is untouched below them.
+
+A simple recolor is never a completed skin. Conversely, refusing to recolor the body when the concept requires it is also a failure mode.
+
+## Full-surface texture contract
+
+The old default of preserving every occupied body pixel and painting only a handful of unused texels is retired as an artistic requirement. That constraint systematically produced "base Pokemon + accessory cuboids".
+
+A premium skin may use a full derived texture from the exact official texture. It must keep the exact official dimensions and UV layout, pin the immutable official texture SHA-256, record the derived texture SHA-256, preserve required transparency/form semantics and document the intentional body-texel rework, palette and material plan.
+
+New/re-audited metadata must include:
+
+- `officialTextureBaselineSha256`
+- `derivedTexture`
+- `derivedTextureSha256`
+- `bodyTexelRework`
+- `paletteIntent`
+- `materialIntent`
+- overlay path and UV reservation when a separate accessory overlay is also used
+
+The original model UVs are never remapped to make recoloring easier. Added geometry can use validated overlay/atlas space as appropriate.
+
+## Blockbench and gameplay-scale gate
+
+The old in-repo Python software renderer is rejected as acceptance evidence. Blockbench remains the primary independent viewer.
+
+The review must load the exact production `.geo.json`, official baseline texture, derived texture/overlay and official animations through the Bedrock workflow. Official reference and skin must use the same camera, projection, scale, pose and animation frame. Independent auto-fit is not accepted as a matched comparison because it can hide silhouette-scale differences.
+
+When official equivalents exist, evidence includes `official_reference_three_quarter`, `hero_three_quarter`, `battle_ready_three_quarter`, `walking_three_quarter` and structural front/left/right/back views. Never fabricate a battle or locomotion pose when Cobblemon does not provide an equivalent animation.
+
+Every accepted skin also needs a real Blockbench gameplay-scale readability sample with the Pokemon approximately 128–192 px tall. Reject the skin if the concept disappears at that size, if signature pieces collapse into noise, or if the first read becomes the untouched base Pokemon again.
+
+## Status meanings after issue #308
+
+`TECHNICALLY VALID` means official-source provenance, anatomy preservation and the recorded integration/build gates were satisfied for that historical pass.
+
+`ART RE-AUDIT REQUIRED` means the historical pass was accepted under the older accessory-first visual standard and is not an approved artistic reference under the full-transformation standard.
+
+`FULL TRANSFORMATION ACCEPTED` may only be assigned after real Blockbench review, matched-camera evidence, gameplay-scale review, coherent full-surface material treatment where appropriate, and all required CI/build gates pass on the actual reviewed assets.
+
+Previous labels such as `EPIC ACCEPTED` are historical only and do not override this standard.
+
+## Legacy audit queue
+
+| Pokemon | Concept | Technical baseline | Current art status | Next action |
+| --- | --- | --- | --- | --- |
+| Pikachu | Storm Courier | 98-bone male/female pass validated under prior workflow | OVERHAUL IN PROGRESS | First reference implementation for full-surface transformation |
+| Lucario | Aura Sentinel | 95-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess silhouette, body material treatment and gameplay-scale read |
+| Gengar | Rift Warden | 86-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess connected masses and full-body visual integration |
+| Mimikyu | Eclipse Herald | 56-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess costume coverage and material hierarchy |
+| Charizard | Solar Legion | 138-bone pass previously validated | ART RE-AUDIT REQUIRED | Reassess large connected armor forms and body palette integration |
+| Greninja | Shadow Tide | normal/Ash independent source models previously validated | ART RE-AUDIT REQUIRED | Reassess full-costume read and gameplay silhouette |
+| Absol | Omen Regent | 81-bone v2 Blockbench baseline | ART RE-AUDIT REQUIRED | Finish repository gates only after new artistic pass is accepted |
+| Tyranitar | Abyssal Bastion | 69-bone v2 pass previously validated | ART RE-AUDIT REQUIRED | Reassess fortress concept as integrated transformation rather than attached cubes |
 
 ## 0025 Pikachu — Storm Courier
 
-Status: EPIC V3 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Storm Courier is the first mandatory overhaul under issue #308 because it demonstrates the old failure mode most clearly.
 
-Storm Courier is built on the exact official Cobblemon 1.7.3 Pikachu male and female models. The obsolete 22-bone implementation is rejected and is not used as a template.
+Pinned Cobblemon 1.7.3 official inputs:
 
-Official source pinned by CI:
-- male geometry SHA-256: `f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83`
-- female geometry SHA-256: `d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318`
-- base texture SHA-256: `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
-- official animation SHA-256: `d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384`
-- original bones per gender model: `90`
-- epic-v3 derived bones per gender model: `98`
+- male `pikachu_male.geo.json` SHA-256 `f8ea21f6821d49e8a358f05d43562312a0e018e883f1354aa1445d2a0b432c83`
+- female `pikachu_female.geo.json` SHA-256 `d49ba9bce368fed677832685f57a0ca3e7a00a6014639f1e79dbb0b749ed4318`
+- official `pikachu.png` SHA-256 `df0b0b2029e0cb51ace2fd7d65ce94fc6a7bf1a4681722bf20aa22edd2cc3c8e`
+- official `pikachu.animation.json` SHA-256 `d9ca00604978f295ad312d358a06f2655c725b30ac3da73c3637ae160c543384`
+- original bones per sex model: 90
+- historical epic-v3 derived bones per sex model: 98
 
-The generator preserves all 90 official bones exactly and appends eight cosmetic bones. Male and female models are derived independently so the official female tail remains intact.
+Male and female remain independent derivations. The official female tail difference must remain intact.
 
-Epic v3 deliberately pushes the skin much harder than the earlier functional premium pass. Its signature silhouette is built from:
-- a heavier storm visor/goggle assembly;
-- an open-faced storm cowl with crown wings and jawline guards;
-- layered shoulder mantle/pauldrons plus split rear storm tabs;
-- a heavy crossed harness with an oversized storm-core chest unit;
-- a larger expedition pack with bedroll, route case, storm vial and rear lightning sigil;
-- twin storm-field pylons rising behind the shoulders;
-- a reinforced tail grounding clamp;
-- segmented tail conductor vanes.
+The previous v3 equipment set — visor, cowl, mantle, harness, pack, pylons and tail hardware — is retained only as a technical starting point. The overhaul is not accepted by merely making those cubes larger. The new pass must visually unify head, torso, equipment and tail through a deliberate storm-runner material system, stronger connected garment/armor masses, dominant power equipment and body-surface recolor/retexturing derived from the exact official UV layout.
 
-These pieces are equipment around Pikachu. They do not replace head, torso, limbs, ears, muzzle, eyes or tail anatomy.
+The target first read is a complete fantasy storm courier. "Pikachu wearing goggles and a backpack" is an explicit rejection condition.
 
-The resolver reuses `cobblemon:pikachu`, Cobblemon base/shiny textures and Cobblemon emissive layers. Ouros contributes only a transparent 128×64 accessory layer. The accessory palette occupies eight reserved texels on row `y=63`; CI verifies that those texels are outside the UV footprint of every original cube.
-
-Visual acceptance uses pinned Blockbench 5.1.6. Structural comparison uses matched-camera official vs Storm Courier front/left/right/back views for male and female models. Presentation review imports the official Pikachu animations through Blockbench's Bedrock codec and records official-reference, hero, battle-ready and walking evidence. The final epic-v3 review accepted the stronger three-quarter silhouette and confirmed that the equipment remains attached through the tested official idle, battle and walking frames without severe visual detachment.
-
-Production files:
-- `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_male.geo.json`
-- `assets/cobblemon/bedrock/pokemon/models/0025_pikachu/ouros_storm_courier_pikachu_female.geo.json`
-- `assets/cobblemon/bedrock/pokemon/resolvers/0025_pikachu/90_ouros_storm_courier.json`
-- `assets/cobblemon/textures/pokemon/0025_pikachu/ouros_storm_courier_accessories.png`
-- `data/cobblemon/species_features/ouros_storm_courier.json`
-- `data/cobblemon/species_feature_assignments/ouros_pikachu_cosmetics.json`
-
-Detailed provenance and design notes: `docs/cobblemon-skins/0025_pikachu/pikachu-storm-courier.md`.
+Detailed source and historical notes remain in `docs/cobblemon-skins/0025_pikachu/pikachu-storm-courier.md`.
 
 ## 0448 Lucario — Aura Sentinel
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Technical baseline provenance remains recorded in the species document. The historical pass preserved all 87 official bones and appended eight `ouros_*` groups for 95 total. Its previous Blockbench/build acceptance remains useful engineering evidence, but its artistic status is now `ART RE-AUDIT REQUIRED`.
 
-Aura Sentinel is derived from the single normal Lucario geometry distributed in the exact official Cobblemon 1.7.3 Fabric JAR. CI pins the source model (`ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9`), animation (`ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563`), poser (`7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d`), resolver (`a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81`) and normal/shiny textures (`98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a` / `b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d`).
-
-All 87 original Lucario bones remain JSON-equivalent and in order. Eight `ouros_*` cosmetic bones bring the derived model to 95 bones: crown, asymmetric left/right pauldrons, open aura-core frame, rear aura frame, two bracers and split waist mantle. The design leaves the official face, ears, aura sensors, central chest spike, limbs and tail intact.
-
-The first real Blockbench 5.1.6 review accepted the visual direction: a ceremonial armored aura sentinel with stronger shoulder/head/waist hierarchy, visible asymmetry and a clear battle silhouette. Hero and battle-ready use official `ground_idle` and `battle_idle` Bedrock animations. Four-view structural evidence is also recorded. The official walking poser is procedural (`q.biped_walk` + `q.bimanual_swing` + `ground_idle`), so no fake walking clip is generated by the evidence pipeline.
-
-The resolver reuses `cobblemon:lucario`, supports the official normal and shiny textures and adds only the transparent Aura Sentinel accessory overlay. UV palette texels are dynamically selected from positions proven unused by the original 128×64 geometry. No new emissive or particle runtime is claimed.
-
-Detailed provenance, license preservation, geometry contract and review notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
+Detailed notes: `docs/cobblemon-skins/0448_lucario/lucario-aura-sentinel.md`.
 
 ## 0094 Gengar — Rift Warden
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Technical baseline provenance remains recorded in the species document. The historical pass preserved all 78 official bones and appended eight `ouros_*` groups for 86 total. Official normal, shiny and Pokemopolis resolver branches were preserved. Artistic status is now `ART RE-AUDIT REQUIRED`.
 
-Rift Warden is derived from the single official Gengar geometry in the Cobblemon 1.7.3 Fabric JAR. CI pins model `57449f9653a403a783efdffa3195eb6948aceb855411f4e77caaa9c29175ad38`, animation `68a8bf920086c6dc368a8ffb5c449aedb314aab03a2df7bdde10bd61ea0cdb9f`, resolver `aeecefe6571d99bc9ab38a3b22af5e34769b346ed9858335292c82209ee95afc` and the exact normal, shiny, emissive and Pokemopolis textures.
-
-All 78 official Gengar bones remain JSON-equivalent and in order. Eight `ouros_*` cosmetic bones bring the production model to 86 bones with 44 cosmetic cubes. The signature silhouette uses a broken planar rift halo, asymmetric shoulder shrouds, rear collar guards, twin dimensional pylons, warded wrists and a split shadow mantle. Eyes, mouth states, tongue, ears, limbs, feet and tail remain the original model.
-
-The resolver preserves all three official presentation branches: normal, shiny and `color-green`/Pokemopolis. Official emissive layers remain in the normal and shiny branches. The Ouros overlay occupies only eight proven UV-free texels on the 128×128 texture and does not repaint the body.
-
-Real Blockbench 5.1.6 review accepted the silhouette after direct visual inspection. Matched-camera official vs skin evidence shows a strong front and three-quarter change without masking Gengar's eyes or grin. Official `ground_idle`, `air_idle` and `air_fly` clips keep the attached equipment coherent. The detached center halo fragment is intentional rift imagery and stays stable through the tested frames. The official animation JSON contains no battle or walking clip, so the pipeline does not fabricate either; `air_fly` is used as the locomotion evidence. Playable Fabric, Cobblemon Official Model Review and Integration Core all completed successfully on PR #298 before merge eligibility.
-
-Detailed provenance, license, geometry and QA notes: `docs/cobblemon-skins/0094_gengar/gengar-rift-warden.md`.
+Detailed notes: `docs/cobblemon-skins/0094_gengar/gengar-rift-warden.md`.
 
 ## 0778 Mimikyu — Eclipse Herald
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+The historical pass preserved all 48 official bones and appended eight cosmetic groups for 56 total. Its previous Blockbench/build evidence remains a technical baseline. Artistic status is now `ART RE-AUDIT REQUIRED`.
 
-Eclipse Herald is derived from the exact official Cobblemon 1.7.3 Mimikyu geometry. All 48 original bones remain JSON-equivalent and in order; eight `ouros_*` cosmetic groups bring the derived model to 56 bones with 42 cosmetic cubes. Its signature read is a broken lateral eclipse relic, asymmetric ritual mantle, unequal rear standards, tail reliquary and hand charms. The 64×64 overlay occupies only eight texels proven unused by the original geometry.
-
-Real Blockbench 5.1.6 review uses the official `ground_idle`, `physical` and `ground_walk` clips and matched-camera official-vs-skin evidence. Playable Fabric, Cobblemon Official Model Review and Integration Core completed successfully before PR #299 merged. Detailed provenance and QA: `docs/cobblemon-skins/0778_mimikyu/mimikyu-eclipse-herald.md`.
+Detailed notes: `docs/cobblemon-skins/0778_mimikyu/mimikyu-eclipse-herald.md`.
 
 ## 0006 Charizard — Solar Legion
 
-Status: EPIC ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+The historical pass preserved all 130 official bones and appended eight cosmetic groups for 138 total while retaining the official normal/shiny/flame presentation branches. Its previous CI evidence remains a technical baseline. Artistic status is now `ART RE-AUDIT REQUIRED`.
 
-Solar Legion is built from the exact official Charizard model in Cobblemon 1.7.3 / Minecraft 1.21.1, Modrinth `kF7CvxTo`. CI pins the official model (`b0e4a255876ef0cda88d0f61c9773bdcb7aee852cde929da49cda0da817bcadb`), animation (`f16a510fec4fb00d8669ba07bee40e4ee80fb41e7cf4d798597a97da33d3880b`), poser (`89bfe55055fea4d7f0c0398e13060cc6fb724988028c50e2d341dd6b94c8ec8e`) and resolver (`fa46e648441b555d33bea16be49ab1abd0e1a5ac68958427b5ac914341b51711`).
-
-All 130 official bones remain JSON-equivalent and in order. Eight attached `ouros_*` groups produce 138 bones and 55 cosmetic cubes: open solar crown, gorget/chest core, asymmetric pauldrons, unequal wing-root standards, a tail brazier around the original flame root and a split legion mantle. The overlay uses only `(0..7,127)` on the official 256×128 texture, proven UV-free by generation CI.
-
-The resolver keeps the official `cobblemon:charizard` poser, normal/shiny bodies, separate normal/shiny animated flame frames and `alpha_eyes` presentation branch. Real Blockbench 5.1.6 evidence covers matched official reference, hero, battle idle, ground walk, flight and four-view structure. Direct artistic review accepted the silhouette and confirmed motion-safe attachment through `battle_idle`, `ground_walk` and `air_fly`. PR #302 completed Cobblemon Official Model Review, Playable Test Build and Integration Core CI successfully; Integration Core booted the production Fabric + Cobblemon dedicated server twice. Detailed provenance and QA: `docs/cobblemon-skins/0006_charizard/charizard-solar-legion.md`.
+Detailed notes: `docs/cobblemon-skins/0006_charizard/charizard-solar-legion.md`.
 
 ## 0658 Greninja — Shadow Tide
 
-Status: EPIC V2 ACCEPTED — BLOCKBENCH + PLAYABLE/CORE VALIDATED
+Normal Greninja and Ash-Greninja remain independently derived from their official source geometries. The technical baseline keeps the battle-state boundary: no Ash/Battle Bond combat authority is invented by this cosmetic workflow. Artistic status is now `ART RE-AUDIT REQUIRED`.
 
-Shadow Tide is derived independently from the exact normal Greninja (78 bones) and Ash-Greninja (81 bones) geometries distributed in Cobblemon 1.7.3. Eight cosmetic groups produce 86 and 89 bones respectively, with 60 cosmetic cubes in the accepted v2. All original bones remain JSON-equivalent and in order.
-
-The first structurally valid pass was rejected after direct Blockbench review because its three-quarter silhouette remained too close to standard Greninja. V2 adds a dominant asymmetric executioner tide-glaive, heavier split mantle, open crescent cowl, tide-core gorget, asymmetric pauldrons and bracers. Normal hero, battle idle and ground walk remain motion-safe in real Blockbench 5.1.6 evidence. The overlay occupies only `(0..7,63)`, proven free in both official geometry UV layouts.
-
-The official base resolver exposes only normal and shiny presentation variations; Battle Bond is a separate official species feature and Greninja uses a code-backed model class. This cosmetic preserves the official resolver scope and does not invent Ash/Battle Bond battle-state routing. A separately derived Ash model is retained for anatomy/form parity and diagnostic visual evidence.
-
-PR #303 merged this accepted pass after Cobblemon Official Model Review, Playable Test Build and Integration Core CI completed successfully. Detailed provenance, source hashes, form handling and visual QA: `docs/cobblemon-skins/0658_greninja/greninja-shadow-tide.md`.
+Detailed notes: `docs/cobblemon-skins/0658_greninja/greninja-shadow-tide.md`.
 
 ## 0359 Absol — Omen Regent
 
-Status: EPIC V2 ACCEPTED IN BLOCKBENCH — repository-wide PR gates pending
+The historical v2 preserved all 73 official bones and appended eight cosmetic groups for 81 total. Its real Blockbench evidence remains useful technical history, but repository-wide completion must not be used to bypass the new artistic gate. Artistic status is `ART RE-AUDIT REQUIRED`.
 
-Omen Regent derives from the single 73-bone Absol geometry in the exact official Cobblemon 1.7.3 Fabric JAR. CI pins the official model (`ed8b82b60caaeb0ee8b97597b5bd194a52d52d671da7bbc0eb35aa8dd864d462`), animation (`3e706148f3159fb60b51acd8221d4a1292306a8a780ab4b69a874eb72700ece4`), poser (`d47d56606e412b794261ee3b8220d80b93da576f030f40e5b28eebe7ad8f06be`), resolver (`41048e936f18c108331a0d739388fef686a8f01be72cbf70e4a146603aa3e832`) and normal/shiny textures.
+Detailed notes: `docs/cobblemon-skins/0359_absol/absol-omen-regent.md`.
 
-All 73 original bones remain JSON-equivalent and in order. Eight cosmetic groups bring the derived model to 81 bones. The first structural pass was rejected after real Blockbench review because the silhouette remained too close to plain Absol. V2 expands the asymmetric pauldrons and split mantle, turns the rear hardware into a dominant broken eclipse frame and adds a large diagonal relic while leaving the biological horn, face, fur, quadruped anatomy and tail intact.
+## 0248 Tyranitar — Abyssal Bastion
 
-Real Blockbench 5.1.6 matched-camera review accepted V2 and also validated the official `cry` clip. The official poser implements walking through procedural `q.quadruped_walk` and exposes no battle pose/`battle_idle` Bedrock clip, so the evidence pipeline explicitly omits fabricated walking and battle renders. The resolver preserves the official normal and shiny branches and adds only the `ouros_omen_regent` aspect plus transparent accessory layer.
+The historical v2 preserved all 61 official bones and appended eight cosmetic groups for 69 total. Its previous official-model, Blockbench, Playable Test Build and Integration Core results remain engineering evidence only. Artistic status is `ART RE-AUDIT REQUIRED` until the fortress fantasy is reworked as a coherent large-scale transformation and passes gameplay-scale review.
 
-Detailed provenance, source hashes, UV reservation and artistic QA: `docs/cobblemon-skins/0359_absol/absol-omen-regent.md`.
+Detailed notes: `docs/cobblemon-skins/0248_tyranitar/tyranitar-abyssal-bastion.md`.
 
-## Authority boundary
+## Required final report for every future slice
 
-All skin/model work is presentation-only. Cobblemon/Minecraft model, animation and rendering systems may be reused. Cobblemon battle state, participants, legality, HP/status, positions and combat authority remain outside this workflow; Ouros/AutoPTU remain authoritative for tactical battle facts.
+Report the Pokemon/concept, official release and hashes, original bones preserved, cosmetic bones/cubes, signature pieces, derived texture/overlay details, official animations used, links to Blockbench official/hero/battle/walk/four-view/gameplay-scale evidence, concrete artistic evaluation, validators/tests/build/CI, PR/merge state, sex/form differences and the next slice.
+
+If a claim was not validated against the official JAR or real Blockbench evidence, do not report it as completed.
