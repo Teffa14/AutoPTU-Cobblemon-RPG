@@ -1,10 +1,10 @@
 # 0448 Lucario — Aura Sentinel: Resonance Ronin
 
-Status: ARTISTIC FAIL pending exact-head V22 Blockbench QA.
+Status: ARTISTIC FAIL pending synchronized exact-head V22 Blockbench evidence.
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-Lucario remains the active one-model slice. Owner rejection remains authoritative. Tooling can prove technical validity but cannot grant artistic approval.
+Lucario remains the active one-model slice. Owner rejection remains authoritative. Tooling can prove technical validity but cannot grant artistic approval. The branch was safely fast-forwarded to GitHub's merge commit containing current `main` `6bcdda6fc255ebf632d8e487c62b48c452422c05`; no force-push was used.
 
 ## Authority boundary
 
@@ -52,4 +52,4 @@ No male/female geometry split exists on this official resolver path. Mega Lucari
 
 Blockbench 5.1.6, AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`, matched camera. Hero uses `animation.lucario.ground_idle`; battle uses `animation.lucario.battle_idle`, both at t=0.35. No walking render is fabricated because the official Lucario locomotion path is procedural rather than a dedicated Bedrock walking clip.
 
-Technical floors remain unchanged: pixel difference 0.08 and silhouette delta 0.04. This human commit binds the V22 production bytes to a fresh exact-head Blockbench run. Owner approval remains absent.
+The pre-sync V22 exact-head evidence on identical production bytes reached `silhouetteDeltaRatio=0.0298`, below the unchanged 0.0400 floor. Direct PNG QA also rejected the candidate: the biological thigh regions still read as large blocky blue masses, the rear mantle remains too rectangular, and the 3/4 silhouette does not yet deliver a premium integrated transformation. The synchronized head must regenerate the same evidence contract before closure. Owner approval remains absent.
