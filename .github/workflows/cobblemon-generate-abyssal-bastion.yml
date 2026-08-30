@@ -1,0 +1,116 @@
+name: Generate Abyssal Bastion From Official Cobblemon
+on:
+  push:
+    branches: ['feat/tyranitar-abyssal-bastion']
+    paths:
+      - '.github/workflows/cobblemon-generate-abyssal-bastion.yml'
+      - 'tools/cobblemon-model-review/build_abyssal_bastion_tyranitar.py'
+      - 'tools/cobblemon-model-review/validate_original_model.py'
+      - 'fabric-adapter/src/main/resources/data/cobblemon/species_features/ouros_abyssal_bastion.json'
+      - 'fabric-adapter/src/main/resources/data/cobblemon/species_feature_assignments/ouros_tyranitar_cosmetics.json'
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency:
+  group: generate-abyssal-bastion-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  COBBLEMON_VERSION_ID: kF7CvxTo
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Download exact official Cobblemon source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .official-source
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors -A 'Ouros-Tyranitar-Abyssal-Bastion' "https://api.modrinth.com/v2/version/${COBBLEMON_VERSION_ID}" -o .official-source/version.json
+          python - <<'PY' > .official-source/download.env
+          import json,shlex
+          d=json.load(open('.official-source/version.json')); assert d['id']=='kF7CvxTo' and d['version_number']=='1.7.3' and d['game_versions']==['1.21.1'] and 'fabric' in d['loaders']
+          p=next(f for f in d['files'] if f.get('primary')); assert p['filename']=='Cobblemon-fabric-1.7.3+1.21.1.jar'
+          print('URL='+shlex.quote(p['url'])); print('SHA512='+shlex.quote(p['hashes']['sha512']))
+          PY
+          source .official-source/download.env
+          curl --fail --silent --show-error --location --retry 4 --retry-all-errors "$URL" -o .official-source/cobblemon.jar
+          printf '%s  %s\n' "$SHA512" .official-source/cobblemon.jar | sha512sum --check --strict
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/tyranitar.geo.json' > .official-source/tyranitar.geo.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/animations/0248_tyranitar/tyranitar.animation.json' > .official-source/tyranitar.animation.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/bedrock/pokemon/resolvers/0248_tyranitar/0_tyranitar_base.json' > .official-source/tyranitar.resolver.json
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0248_tyranitar/tyranitar.png' > .official-source/tyranitar.png
+          unzip -p .official-source/cobblemon.jar 'assets/cobblemon/textures/pokemon/0248_tyranitar/tyranitar_shiny.png' > .official-source/tyranitar_shiny.png
+          test "$(sha256sum .official-source/tyranitar.geo.json|awk '{print $1}')" = 541ac55dd56e5d8f0caeea3d5947ba3ab32437978e1d676ad335ffaef79c93a9
+          test "$(sha256sum .official-source/tyranitar.animation.json|awk '{print $1}')" = c86725c386fd3d77b5892bd6ee0b4b425d7a5be9025c89a1737e5aeb60d92800
+          test "$(sha256sum .official-source/tyranitar.resolver.json|awk '{print $1}')" = 8c62ec6145817c6183e841367d697189c22c2455ec0a8d8840ed7549330ee569
+          test "$(sha256sum .official-source/tyranitar.png|awk '{print $1}')" = ef017d459e84edcca93203f04e7d86da4cc4d0446e42cb061e66a43c96fcc122
+          test "$(sha256sum .official-source/tyranitar_shiny.png|awk '{print $1}')" = c111a7211b0cfd010bc8f3c76177377ed101d216d9120ac54e79ec59f24cdeca
+      - name: Extract applicable license evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          import zipfile, pathlib, hashlib, json
+          z=zipfile.ZipFile('.official-source/cobblemon.jar')
+          candidates=[n for n in z.namelist() if n.lower().split('/')[-1] in {'license','license.txt','license.md'}]
+          preferred=next((n for n in candidates if '/' not in n.strip('/')), candidates[0] if candidates else None)
+          out=pathlib.Path('.official-source/model-license.txt')
+          if preferred:
+              out.write_bytes(z.read(preferred))
+              print('license path',preferred,'sha256',hashlib.sha256(out.read_bytes()).hexdigest())
+          else:
+              out.write_text('No standalone license file was found in the official JAR; preserve upstream Cobblemon distribution terms and provenance.\n')
+          pathlib.Path('.official-source/license-meta.json').write_text(json.dumps({'jarLicensePath':preferred,'sha256':hashlib.sha256(out.read_bytes()).hexdigest()},indent=2)+'\n')
+          PY
+      - name: Generate production cosmetic assets
+        run: |
+          python tools/cobblemon-model-review/build_abyssal_bastion_tyranitar.py --official .official-source/tyranitar.geo.json --model-out fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json --overlay-out fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png --metadata-out docs/cobblemon-skins/0248_tyranitar/abyssal-bastion-build-metadata.json
+      - name: Generate resolver and validate exact contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          model='fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json'
+          python tools/cobblemon-model-review/validate_original_model.py --official .official-source/tyranitar.geo.json --candidate "$model"
+          PYTHONPATH=tools/cobblemon-model-review python - <<'PY'
+          import json,copy
+          from pathlib import Path
+          from PIL import Image
+          import build_abyssal_bastion_tyranitar as b
+          o=json.loads(Path('.official-source/tyranitar.geo.json').read_text())['minecraft:geometry'][0]
+          m=json.loads(Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json').read_text())['minecraft:geometry'][0]
+          meta=json.loads(Path('docs/cobblemon-skins/0248_tyranitar/abyssal-bastion-build-metadata.json').read_text())
+          expected=['ouros_bastion_crown','ouros_bastion_gorget_core','ouros_bastion_pauldron_left','ouros_bastion_pauldron_right','ouros_bastion_dorsal_rampart','ouros_bastion_gauntlet_left','ouros_bastion_gauntlet_right','ouros_bastion_tail_bulwark']
+          assert len(o['bones'])==61 and len(m['bones'])==69 and [x['name'] for x in m['bones'][61:]]==expected
+          assert meta['originalBoneCount']==61 and meta['derivedBoneCount']==69 and meta['cosmeticCubeCount']>=55
+          reserved={tuple(v) for v in meta['palettePixels'].values()}; assert reserved.isdisjoint(b.mark_uv_usage(o))
+          im=Image.open('fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png').convert('RGBA'); assert im.size==(256,256)
+          assert {(x,y) for y in range(im.height) for x in range(im.width) if im.getpixel((x,y))[3]}==reserved
+          src=json.loads(Path('.official-source/tyranitar.resolver.json').read_text()); out={'species':src['species'],'order':90,'variations':[]}
+          for v in src['variations']:
+              nv=copy.deepcopy(v); nv['aspects']=['ouros_abyssal_bastion']+list(nv.get('aspects',[])); nv['model']='cobblemon:ouros_abyssal_bastion_tyranitar.geo'; nv.setdefault('layers',[]).append({'name':'ouros_abyssal_bastion','texture':'cobblemon:textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png','translucent':True}); out['variations'].append(nv)
+          rp=Path('fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0248_tyranitar/90_ouros_abyssal_bastion.json'); rp.parent.mkdir(parents=True,exist_ok=True); rp.write_text(json.dumps(out,separators=(',',':'))+'\n')
+          assert len(out['variations'])==2
+          for v in out['variations']:
+              assert v['poser']=='cobblemon:tyranitar' and v['model']=='cobblemon:ouros_abyssal_bastion_tyranitar.geo' and v['layers'][-1]['name']=='ouros_abyssal_bastion'
+          a=json.loads(Path('.official-source/tyranitar.animation.json').read_text())['animations']; assert list(a)==['animation.tyranitar.ground_idle','animation.tyranitar.blink','animation.tyranitar.mouth_open','animation.tyranitar.cry']
+          print('validated 61 official bones + 8 cosmetic bones; cubes',meta['cosmeticCubeCount'],'palette',meta['palettePixels'])
+          PY
+      - name: Preserve license evidence
+        run: |
+          mkdir -p docs/cobblemon-skins/0248_tyranitar
+          cp .official-source/model-license.txt docs/cobblemon-skins/0248_tyranitar/official-license.txt
+          cp .official-source/license-meta.json docs/cobblemon-skins/0248_tyranitar/official-license-metadata.json
+      - name: Commit generated production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]; git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0248_tyranitar/ouros_abyssal_bastion_tyranitar.geo.json fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0248_tyranitar/90_ouros_abyssal_bastion.json fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0248_tyranitar/ouros_abyssal_bastion_accessories.png docs/cobblemon-skins/0248_tyranitar/abyssal-bastion-build-metadata.json docs/cobblemon-skins/0248_tyranitar/official-license.txt docs/cobblemon-skins/0248_tyranitar/official-license-metadata.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'RPG: generate Abyssal Bastion from official Tyranitar'
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
