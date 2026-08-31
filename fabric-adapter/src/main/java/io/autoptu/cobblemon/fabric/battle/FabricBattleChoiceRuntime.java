@@ -1,34 +1,44 @@
 package io.autoptu.cobblemon.fabric.battle;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
 import io.autoptu.cobblemon.battlecore.BattleAuthoritativeChoiceExecutor;
 import io.autoptu.cobblemon.battlecore.BattleAuthoritativeLegalChoiceSource;
 import io.autoptu.cobblemon.battlecore.BattleChoiceMenuService;
+import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoice;
+import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoiceSet;
+import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
+import io.autoptu.cobblemon.battlecore.BattleGridTransform;
+import io.autoptu.cobblemon.battlecore.WorldBlockCoordinate;
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.entity.boss.ServerBossBar;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Minecraft-visible battle action menu and read-only spectating HUD backed only by AutoPTU-Java
- * legal choices.
+ * Minecraft-visible battle action menu, authoritative target overlay and read-only spectating HUD.
  *
- * Normal battle-start wiring owns participant bind/unbind. The client never supplies trusted battle
- * scope, target legality or action data. Participants can select only a stable key from a fresh
- * authoritative set. Spectators can request only a server-generated opaque spectate ID and never
- * receive a participant binding.
+ * The overlay never calculates targeting or movement. It renders only destinations/target anchors
+ * already present in a fresh AutoPTU-Java legal-choice set and maps those grid coordinates through
+ * the server-owned canonical encounter arena. Cobblemon state is not consulted for legality.
  */
 public final class FabricBattleChoiceRuntime {
     private static final Map<UUID, SessionBinding> ACTIVE = new ConcurrentHashMap<>();
@@ -36,6 +46,7 @@ public final class FabricBattleChoiceRuntime {
     private static final Map<UUID, ServerBossBar> HUDS = new ConcurrentHashMap<>();
     private static final Map<UUID, ServerBossBar> SPECTATOR_HUDS = new ConcurrentHashMap<>();
     private static volatile BattleChoiceMenuService menuService;
+    private static volatile BattleAuthoritativeLegalChoiceSource legalChoiceSource;
     private static int hudTick;
 
     private FabricBattleChoiceRuntime() {}
@@ -66,6 +77,7 @@ public final class FabricBattleChoiceRuntime {
             BattleAuthoritativeLegalChoiceSource legalChoiceSource,
             BattleAuthoritativeChoiceExecutor executor
     ) {
+        FabricBattleChoiceRuntime.legalChoiceSource = Objects.requireNonNull(legalChoiceSource, "legalChoiceSource");
         menuService = new BattleChoiceMenuService(legalChoiceSource, executor);
     }
 
@@ -132,13 +144,6 @@ public final class FabricBattleChoiceRuntime {
         return status(binding);
     }
 
-    /**
-     * Returns the current server-owned Minecraft battle projection for a participant.
-     *
-     * This projection deliberately exposes only binding identity plus the count obtained from a
-     * fresh authoritative legal-choice query. It does not infer turn ownership, phase, HP,
-     * combatants, winner, faint state or any other PTU fact.
-     */
     public static BattleStatusView status(UUID playerUuid) {
         Objects.requireNonNull(playerUuid, "playerUuid");
         SessionBinding binding = ACTIVE.get(playerUuid);
@@ -188,10 +193,64 @@ public final class FabricBattleChoiceRuntime {
             try {
                 List<BattleChoiceMenuService.Entry> choices = service.choices(binding.reservationId(), binding.actorId());
                 hud.setName(Text.literal(hudTitle(binding.actorId(), choices.size())));
+                renderAuthoritativeTargetOverlay(player, binding);
             } catch (RuntimeException unavailable) {
                 hud.setName(Text.literal("AutoPTU • authoritative choices unavailable"));
             }
         }
+    }
+
+    private static void renderAuthoritativeTargetOverlay(ServerPlayerEntity player, SessionBinding binding) {
+        BattleAuthoritativeLegalChoiceSource source = legalChoiceSource;
+        MinecraftServer server = player.getServer();
+        if (source == null || server == null) return;
+
+        BattleCoreLegalChoiceSet set = source.legalChoices(binding.reservationId(), binding.actorId());
+        if (!set.reservationId().equals(binding.reservationId()) || !set.actorId().equals(binding.actorId())) {
+            throw new IllegalStateException("authoritative legal choice source returned a different battle scope");
+        }
+
+        String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        CanonicalPlayerEncounterProfile profile = FabricCanonicalPlayerStoreRuntime
+                .requireEncounterProfileRepository(server)
+                .findProfile(canonicalPlayerId)
+                .orElse(null);
+        if (profile == null || !profile.playerId().equals(canonicalPlayerId)) return;
+
+        BattleGridTransform transform = BattleGridTransform.from(profile.arena());
+        ServerWorld world = player.getServerWorld();
+        String worldDimension = world.getRegistryKey().getValue().toString();
+        if (!transform.origin().dimensionId().equals(worldDimension)) return;
+
+        for (BattleGridCoordinate anchor : authoritativeTargetAnchors(set)) {
+            WorldBlockCoordinate worldTarget = transform.toWorld(anchor);
+            world.spawnParticles(
+                    ParticleTypes.END_ROD,
+                    worldTarget.x() + 0.5D,
+                    worldTarget.y() + 0.15D,
+                    worldTarget.z() + 0.5D,
+                    5,
+                    0.32D,
+                    0.03D,
+                    0.32D,
+                    0.0D
+            );
+        }
+    }
+
+    static Set<BattleGridCoordinate> authoritativeTargetAnchors(BattleCoreLegalChoiceSet set) {
+        Objects.requireNonNull(set, "set");
+        LinkedHashSet<BattleGridCoordinate> anchors = new LinkedHashSet<>();
+        for (BattleCoreLegalChoice choice : set.choices()) {
+            if (choice instanceof BattleCoreLegalChoice.Shift shift) {
+                anchors.add(shift.destination());
+            } else if (choice instanceof BattleCoreLegalChoice.Move move
+                    && (move.targetMode() == io.autoptu.cobblemon.battlecore.BattleClientActionRequest.Target.Mode.TILE
+                    || move.targetMode() == io.autoptu.cobblemon.battlecore.BattleClientActionRequest.Target.Mode.COMBATANT)) {
+                anchors.add(move.targetAnchor());
+            }
+        }
+        return Set.copyOf(anchors);
     }
 
     private static void refreshSpectatorHud(MinecraftServer server) {
