@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Owner Reference Replica — Blue/White Maid Lucario V34",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V35",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "410bdd289ee1013f84289d64c1da404f47290318239c2df04b271aabdac33a58",
+    "modelSha256": "1df8ec9115dce1789b96ec5bc79e486b24f9ff23f77a7b841c95622b97a301ff",
     "productionBoneCount": 98,
     "cosmeticBoneCount": 11,
-    "cosmeticCubeCount": 46,
+    "cosmeticCubeCount": 48,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -68,7 +68,7 @@
         "sha256": "ce03782e5dcfa05556dd91d8ee219354103a289d5ca218ab51caaa04e897879a",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v34-reference-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v35-reference-derived-normal.json"
       },
       {
         "role": "OVERLAY",
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v34-reference-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v34-reference-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v35-reference-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v35-reference-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -156,11 +156,11 @@
     "signaturePieces": [
       "Irregular folded cool-white cap with low blue band and dominant left ribbon stack",
       "White fitted bodice/sleeves with blue cuffs, charcoal gloves and silver/blue clasp",
-      "Deep uninterrupted two-stage white apron front with blue restricted to side/back under-skirt"
+      "Broad hip-wrapping white apron with overlapping front shells and white side wraps; blue confined to rear under-skirt"
     ],
-    "macroFormPlan": "V34 preserves the V33 head/upper-body read but replaces all front apron segmentation with two deep overlapping white masses placed substantially in front of blue skirt/body geometry, eliminating visible blue wedges by construction.",
-    "paintPlan": "Normal/shiny remain independent exact-official derivations; biological blue stays deep navy/teal and accessory material remains cool white/grey, royal/periwinkle blue and charcoal.",
-    "gameplayReadGoal": "At 160 px the front apron must read as one long solid white mass like the supplied owner reference, with blue only at side/back.",
+    "macroFormPlan": "V35 fixes V34 placard read by moving the apron closer to the body, overlapping upper/lower white front masses, and adding white side-wrap shells so the garment envelopes the hips in three dimensions.",
+    "paintPlan": "Normal/shiny remain independent exact-official derivations with deep navy/teal biology and dedicated cool-white/grey, royal/periwinkle-blue and charcoal accessory material.",
+    "gameplayReadGoal": "At 160 px read one broad white apron/skirt wrapping the body, not a floating rectangle, while retaining the supplied cap, white upper body and dark lower-body identity.",
     "antiPatternsToReject": [
       "Detached placard apron",
       "Square cosmetic boots",
@@ -169,18 +169,18 @@
       "Any change to official biological bones or battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V33 exact-head visual QA still showed blue wedges interrupting the apron. V34 fixes front-depth ordering and apron continuity directly; owner approval remains absent."
+    "iterationNote": "V34 exact-head evidence removed blue holes but direct comparison showed a detached rectangular apron placard. V35 restores hip wrap/depth without reintroducing blue front gaps; owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves exact official 87-bone anatomy plus V34 costume and independent normal paint."
+        "coverage": "Default preserves exact official 87-bone anatomy plus V35 costume and independent normal paint."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses identical V34 costume geometry and independent official-shiny derivation."
+        "coverage": "Shiny uses identical V35 costume geometry and independent official-shiny derivation."
       },
       {
         "name": "sex/forms",
