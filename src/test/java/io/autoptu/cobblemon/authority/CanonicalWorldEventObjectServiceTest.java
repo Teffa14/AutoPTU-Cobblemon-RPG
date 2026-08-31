@@ -41,6 +41,21 @@ final class CanonicalWorldEventObjectServiceTest {
     }
 
     @Test
+    void durableSnapshotListsPersistedObjectsForRestartReconciliation() {
+        var repository = new FileCanonicalWorldEventObjectRepository(tempDir);
+        var first = repository.findOrCreate("minecraft:overworld:10:64:10", CanonicalWorldEventObjectService.SHRINE_EVENT_KEY);
+        repository.activate(first.objectId(), first.eventKey(), first.revision());
+        repository.findOrCreate("minecraft:overworld:20:64:20", "ouros_other_event");
+
+        var reopened = new FileCanonicalWorldEventObjectRepository(tempDir).findAll();
+        assertEquals(2, reopened.size());
+        assertEquals("minecraft:overworld:10:64:10", reopened.get(0).objectId());
+        assertEquals(FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED, reopened.get(0).phase());
+        assertEquals("minecraft:overworld:20:64:20", reopened.get(1).objectId());
+        assertEquals(FileCanonicalWorldEventObjectRepository.Phase.DORMANT, reopened.get(1).phase());
+    }
+
+    @Test
     void rejectsMissingTrainerWithoutCreatingEventState() {
         var players = new FileVersionedCanonicalStateRepository(tempDir);
         var events = new FileCanonicalWorldEventObjectRepository(tempDir);
