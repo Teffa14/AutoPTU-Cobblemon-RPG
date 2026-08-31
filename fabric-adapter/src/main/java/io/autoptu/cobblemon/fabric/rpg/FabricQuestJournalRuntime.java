@@ -3,6 +3,8 @@ package io.autoptu.cobblemon.fabric.rpg;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestJournalQueryService;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
 import io.autoptu.cobblemon.authority.CanonicalQuestTrackingService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -54,6 +56,8 @@ public final class FabricQuestJournalRuntime {
         try {
             var quest = query(player).inspectQuest(canonicalPlayerId(player), questId);
             for (String line : formatQuestLines(quest)) player.sendMessage(Text.literal(line), false);
+            var objectiveProgress = objectiveService(player).inspectQuest(canonicalPlayerId(player), questId);
+            for (String line : formatObjectiveLines(objectiveProgress)) player.sendMessage(Text.literal(line), false);
             return 1;
         } catch (IllegalArgumentException error) {
             source.sendError(Text.literal(error.getMessage()));
@@ -102,6 +106,14 @@ public final class FabricQuestJournalRuntime {
         );
     }
 
+    private static CanonicalQuestObjectiveService objectiveService(ServerPlayerEntity player) {
+        return new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(player.getServer())
+        );
+    }
+
     private static String canonicalPlayerId(ServerPlayerEntity player) {
         return FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
     }
@@ -129,5 +141,16 @@ public final class FabricQuestJournalRuntime {
                 "Objective: " + quest.objectiveText(),
                 "Accepted revision: " + quest.acceptedRevision()
         );
+    }
+
+    static List<String> formatObjectiveLines(CanonicalQuestObjectiveService.QuestProgress progress) {
+        if (progress.objectives().isEmpty()) return List.of("Objective progress: no server-authored objective events configured.");
+        List<String> lines = new ArrayList<>();
+        lines.add("Objective progress: " + progress.completedCount() + "/" + progress.totalCount()
+                + (progress.complete() ? " COMPLETE" : ""));
+        for (var objective : progress.objectives()) {
+            lines.add((objective.completed() ? "[DONE] " : "[ ] ") + objective.objective().description());
+        }
+        return List.copyOf(lines);
     }
 }
