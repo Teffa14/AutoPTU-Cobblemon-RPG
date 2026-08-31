@@ -2,12 +2,14 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalWorldEventObjectService;
 import io.autoptu.cobblemon.authority.CanonicalWorldInteractionService;
+import io.autoptu.cobblemon.authority.FileCanonicalWorldEventObjectRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -26,6 +28,7 @@ import java.util.Optional;
  */
 public final class FabricCanonicalWorldInteractionRuntime {
     private static final double MAX_DISTANCE_SQUARED = 25.0D;
+    private static final int ACTIVATED_SHRINE_CHARGES = 4;
     private static final CanonicalWorldInteractionService SERVICE =
             new CanonicalWorldInteractionService(MAX_DISTANCE_SQUARED);
 
@@ -78,6 +81,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
                     serverPlayer.sendMessage(Text.literal("Ouros shrine denied: " + event.detail()), true);
                     return ActionResult.FAIL;
                 }
+                projectShrineState(world, object.anchor(), event.state());
                 if (event.newlyActivated()) {
                     serverPlayer.sendMessage(Text.literal("The Ouros shrine awakens. Its world state is now persistent."), false);
                 } else {
@@ -89,6 +93,22 @@ public final class FabricCanonicalWorldInteractionRuntime {
             // Chest, switch and door behavior remains Minecraft-native after server authorization.
             return ActionResult.PASS;
         });
+    }
+
+    static void projectShrineState(
+            World world,
+            BlockPos anchor,
+            FileCanonicalWorldEventObjectRepository.State canonicalState
+    ) {
+        if (canonicalState == null || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED) return;
+        BlockState current = world.getBlockState(anchor);
+        if (!current.isOf(Blocks.RESPAWN_ANCHOR)) return;
+        if (current.get(RespawnAnchorBlock.CHARGES) == ACTIVATED_SHRINE_CHARGES) return;
+        world.setBlockState(
+                anchor,
+                current.with(RespawnAnchorBlock.CHARGES, ACTIVATED_SHRINE_CHARGES),
+                Block.NOTIFY_ALL
+        );
     }
 
     static Optional<AuthoredObject> authoredObject(World world, BlockPos clicked) {
