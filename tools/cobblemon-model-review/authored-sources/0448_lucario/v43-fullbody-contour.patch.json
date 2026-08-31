@@ -86,7 +86,7 @@
   ],
   "sliceMetrics": {
     "cosmeticBoneCount": 9,
-    "cosmeticCubeCount": 37,
+    "cosmeticCubeCount": 34,
     "dominantSystems": ["asymmetric_cowl", "diagonal_left_mantle", "fitted_torso_wrap", "split_front_coat", "asymmetric_rear_tails", "tapered_cuffs", "lower_leg_wraps"],
     "signaturePieces": ["left-swept cowl-to-mantle diagonal", "split coat with persistent central negative space", "asymmetric rear tails continuing into lower-leg wraps"],
     "nextRequiredStep": "Materialize only as a pre-production preview against the exact official 87-bone Lucario baseline. Capture matched-camera Blockbench front/left/right/back/three-quarter/gameplay views and inspect official idle/battle animation contact. Keep ARTISTIC FAIL unless visual QA passes every internal art criterion; even then maximum state is OWNER REVIEW REQUIRED."
