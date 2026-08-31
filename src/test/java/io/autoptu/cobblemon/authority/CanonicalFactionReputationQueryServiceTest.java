@@ -64,7 +64,7 @@ class CanonicalFactionReputationQueryServiceTest {
         assertEquals(true, repository.replaceIfRevision(replacement, current.revision()));
         assertEquals(5, repository.findOrCreate("trainer:alpha", "cedar_rangers").reputation());
         assertEquals(false, repository.replaceIfRevision(
-                new FileCanonicalFactionReputationRepository.ReputationState("trainer:alpha", "cedar_rangers", 10, 2L),
+                new FileCanonicalFactionReputationRepository.ReputationState("trainer:alpha", "cedar_rangers", 10, 1L),
                 0L));
     }
 }
