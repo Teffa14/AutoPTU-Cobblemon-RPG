@@ -26,8 +26,10 @@ import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepositor
 import io.autoptu.cobblemon.authority.FileFieldCampSetupAttemptRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
 import io.autoptu.cobblemon.authority.FileWorldTaskCraftAttemptRepository;
+import io.autoptu.cobblemon.fabric.battle.FileWorldEncounterTriggerRequestRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedCanonicalWildEncounterBlueprintRegistry;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedWildEncounterCorrelationRegistry;
+import io.autoptu.cobblemon.fabric.world.VisibleWildPokemonEncounterRuntime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
@@ -61,6 +63,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileWorldTaskCraftAttemptRepository craftAttempts,
             FileCraftIngredientDepositHandoffRepository craftDepositHandoffs,
             FileFieldCampSetupAttemptRepository fieldCampAttempts,
+            FileWorldEncounterTriggerRequestRepository activeEncounterSessions,
             WorldScopedCanonicalWildEncounterBlueprintRegistry wildEncounterBlueprints,
             WorldScopedWildEncounterCorrelationRegistry wildEncounterCorrelations
     ) {}
@@ -96,6 +99,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileWorldTaskCraftAttemptRepository requireCraftAttemptRepository(MinecraftServer server) { return requireStores(server).craftAttempts(); }
     public static FileCraftIngredientDepositHandoffRepository requireCraftDepositHandoffRepository(MinecraftServer server) { return requireStores(server).craftDepositHandoffs(); }
     public static FileFieldCampSetupAttemptRepository requireFieldCampSetupAttemptRepository(MinecraftServer server) { return requireStores(server).fieldCampAttempts(); }
+    public static FileWorldEncounterTriggerRequestRepository requireActiveEncounterSessionRepository(MinecraftServer server) { return requireStores(server).activeEncounterSessions(); }
     public static WorldScopedCanonicalWildEncounterBlueprintRegistry requireWildEncounterBlueprintRegistry(MinecraftServer server) { return requireStores(server).wildEncounterBlueprints(); }
     public static WorldScopedWildEncounterCorrelationRegistry requireWildEncounterCorrelationRegistry(MinecraftServer server) { return requireStores(server).wildEncounterCorrelations(); }
 
@@ -136,15 +140,17 @@ public final class FabricCanonicalPlayerStoreRuntime {
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
         FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
         FileCanonicalShopSaleRepository shopSales = new FileCanonicalShopSaleRepository(root);
+        FileWorldEncounterTriggerRequestRepository activeEncounterSessions = new FileWorldEncounterTriggerRequestRepository(root);
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root), encounterProfiles, pokemon, pokemonStorage, pokemonTransfers,
                 assets, itemStorage, itemStorageTransfers, wallets, questJournals, questObjectives, locationDiscoveries, worldEventObjects, npcRelationships,
                 shopStock, shopPurchases, shopSales, new FileWorldTaskCraftAttemptRepository(root), new FileCraftIngredientDepositHandoffRepository(root),
-                new FileFieldCampSetupAttemptRepository(root), new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
+                new FileFieldCampSetupAttemptRepository(root), activeEncounterSessions, new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
                 new WorldScopedWildEncounterCorrelationRegistry());
         synchronized (STORES) {
             if (STORES.putIfAbsent(server, stores) != null) throw new IllegalStateException("canonical stores already initialized for server");
         }
+        VisibleWildPokemonEncounterRuntime.bindRequestRepository(activeEncounterSessions);
         new CanonicalShopPurchaseService(CanonicalShopCatalogue.DEFAULT, wallets, shopStock, assets, shopPurchases).recoverPending();
         new CanonicalShopSaleService(CanonicalShopSellCatalogue.DEFAULT, wallets, assets, shopSales).recoverPending();
         new CanonicalPokemonStorageTransferService(encounterProfiles, pokemonStorage, pokemon, pokemonTransfers).recoverPending();
@@ -152,6 +158,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     }
 
     private static void stop(MinecraftServer server) {
+        VisibleWildPokemonEncounterRuntime.resetRequestRepository();
         synchronized (STORES) { STORES.remove(server); }
     }
 }

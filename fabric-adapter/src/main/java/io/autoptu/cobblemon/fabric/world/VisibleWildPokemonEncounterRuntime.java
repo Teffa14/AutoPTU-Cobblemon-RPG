@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -10,6 +11,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,12 +65,24 @@ public final class VisibleWildPokemonEncounterRuntime {
 
             if (decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED) {
                 serverPlayer.sendMessage(Text.literal("You approach the wild Pokemon."), true);
+            } else {
+                serverPlayer.sendMessage(Text.literal("Your pending wild encounter is still reserved."), true);
             }
 
             // Consume registered wild-actor interaction so Cobblemon gameplay logic cannot become
             // encounter or battle authority for this actor.
             return ActionResult.SUCCESS;
         });
+    }
+
+    /** Binds the long-lived encounter facade to the current server world's durable session store. */
+    public static void bindRequestRepository(WorldEncounterTriggerRequestRepository repository) {
+        REQUESTS.useRepository(Objects.requireNonNull(repository, "repository"));
+    }
+
+    /** Releases the stopped world's repository without carrying requests into another world. */
+    public static void resetRequestRepository() {
+        REQUESTS.resetRepository();
     }
 
     public static void bind(

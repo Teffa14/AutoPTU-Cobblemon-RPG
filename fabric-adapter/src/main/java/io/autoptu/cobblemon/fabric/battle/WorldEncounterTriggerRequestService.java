@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.battle;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -28,8 +29,28 @@ public final class WorldEncounterTriggerRequestService {
 
     public record Decision(Outcome outcome, Request request) {}
 
-    private final Map<String, Request> pendingByPlayerId = new LinkedHashMap<>();
+    private WorldEncounterTriggerRequestRepository repository;
     private long sequence;
+
+    public WorldEncounterTriggerRequestService() {
+        this(new InMemoryRepository());
+    }
+
+    public WorldEncounterTriggerRequestService(WorldEncounterTriggerRequestRepository repository) {
+        this.repository = Objects.requireNonNull(repository, "repository");
+    }
+
+    /**
+     * Rebinds this long-lived server facade to the repository for the current world save.
+     * This is intended for Minecraft server lifecycle wiring before players can create requests.
+     */
+    public synchronized void useRepository(WorldEncounterTriggerRequestRepository repository) {
+        this.repository = Objects.requireNonNull(repository, "repository");
+    }
+
+    public synchronized void resetRepository() {
+        this.repository = new InMemoryRepository();
+    }
 
     /**
      * Legacy/server fallback for callers that do not already own a visible encounter identity.
@@ -102,8 +123,8 @@ public final class WorldEncounterTriggerRequestService {
             int blockZ,
             long serverTick
     ) {
-        Request existing = pendingByPlayerId.get(canonicalPlayerId);
-        if (existing != null) return new Decision(Outcome.ALREADY_PENDING, existing);
+        Optional<Request> existing = repository.findPending(canonicalPlayerId);
+        if (existing.isPresent()) return new Decision(Outcome.ALREADY_PENDING, existing.get());
 
         Request created = new Request(
                 canonicalEncounterId,
@@ -117,23 +138,50 @@ public final class WorldEncounterTriggerRequestService {
                 blockZ,
                 serverTick
         );
-        pendingByPlayerId.put(canonicalPlayerId, created);
+        if (!repository.saveIfAbsent(created)) {
+            Request raced = repository.findPending(canonicalPlayerId)
+                    .orElseThrow(() -> new IllegalStateException("active encounter request disappeared during create"));
+            return new Decision(Outcome.ALREADY_PENDING, raced);
+        }
         return new Decision(Outcome.CREATED, created);
     }
 
     public synchronized Optional<Request> pendingForPlayer(String canonicalPlayerId) {
         if (canonicalPlayerId == null || canonicalPlayerId.isBlank()) return Optional.empty();
-        return Optional.ofNullable(pendingByPlayerId.get(canonicalPlayerId.strip()));
+        return repository.findPending(canonicalPlayerId.strip());
     }
 
     public synchronized boolean clearForPlayer(String canonicalPlayerId) {
         return canonicalPlayerId != null
                 && !canonicalPlayerId.isBlank()
-                && pendingByPlayerId.remove(canonicalPlayerId.strip()) != null;
+                && repository.clear(canonicalPlayerId.strip());
     }
 
     private static String requireId(String value, String field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
         return value.strip();
+    }
+
+    private static final class InMemoryRepository implements WorldEncounterTriggerRequestRepository {
+        private final Map<String, Request> pendingByPlayerId = new LinkedHashMap<>();
+
+        @Override
+        public Optional<Request> findPending(String canonicalPlayerId) {
+            if (canonicalPlayerId == null || canonicalPlayerId.isBlank()) return Optional.empty();
+            return Optional.ofNullable(pendingByPlayerId.get(canonicalPlayerId.strip()));
+        }
+
+        @Override
+        public boolean saveIfAbsent(Request request) {
+            Objects.requireNonNull(request, "request");
+            return pendingByPlayerId.putIfAbsent(request.canonicalPlayerId(), request) == null;
+        }
+
+        @Override
+        public boolean clear(String canonicalPlayerId) {
+            return canonicalPlayerId != null
+                    && !canonicalPlayerId.isBlank()
+                    && pendingByPlayerId.remove(canonicalPlayerId.strip()) != null;
+        }
     }
 }
