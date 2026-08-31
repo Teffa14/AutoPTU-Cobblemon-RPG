@@ -293,8 +293,8 @@ These should become the normal gameplay path.
 |---|---|---|
 | RPG-001 | LIVE/PARTIAL | Server-owned NPC identity and dialogue-state framework. PR #257 / implementation head `0d62ec169c122749b5360e4c7fd6a1435c16a725` adds a validated canonical NPC dialogue catalogue, one-way physical entity binding and server-authored option resolution. Conditional/persistent dialogue state remains follow-up work. |
 | RPG-002 | LIVE | Quest journal persistence. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` adds owner-scoped world-save persistence with revision-CAS acceptance, atomic replacement, idempotent repeats and dedicated-server restart verification. PR #259 / implementation head `40b4a2de256b5822d044a91f4c44cb8a92924bd8` adds an owner-scoped read-only projection that resolves persisted IDs against server-authored quest metadata. PR #260 / implementation head `d2d554d67c418881280df02f7ed848bc53b23220` adds one durable tracked-quest pointer with schema-v1 journal compatibility, revision-CAS switching and idempotent repeat selection. Objective processing and rewards remain RPG-003/RPG-004. |
-| RPG-003 | TODO | Quest objective event processing. |
-| RPG-004 | TODO | Idempotent quest reward commit. |
+| RPG-003 | LIVE/PARTIAL | Quest objective event processing — PR #380 / merge `69d752d06941cf49250e34f6385df90110515789` persists owner-scoped objective progress from server-observed Cedar Meadow events and exposes it in the quest journal. Additional authored objective event types remain follow-up work. |
+| RPG-004 | LIVE/PARTIAL | Idempotent quest reward commit — PR #381 / merge `0fee2332ab31bd87ace2627d0594bcc9e3dc45ca` lets a completed Cedar Field Notes quest claim its server-authored 240-credit stipend through the physical Cedar Ranger exactly once, including restart-safe replay. Item/XP and multi-store reward bundles remain follow-up work. |
 | RPG-005 | TODO | Trainer XP/level/progression persistence. |
 | RPG-006 | TODO | Pokémon XP/progression/evolution-choice persistence shell. |
 | RPG-007 | BLOCKED | PTU level-up/evolution/move-learning legality until upstream contract exists. |
@@ -340,8 +340,8 @@ These should become the normal gameplay path.
 | SVC-008 | TODO | `canManageParty(player, mutation)` |
 | SVC-009 | TODO | `canManageStorage(player, mutation)` |
 | SVC-010 | LIVE/PARTIAL | `canAcceptQuest(player, quest)` — PR #258 validates that the quest is server-authored, is offered by the revalidated canonical NPC and is not trusted from client metadata. Conditional story/prerequisite eligibility remains future quest-state work. |
-| SVC-011 | TODO | `canAdvanceQuest(player, event)` |
-| SVC-012 | TODO | `canClaimReward(player, source)` |
+| SVC-011 | LIVE/PARTIAL | `canAdvanceQuest(player, event)` — PR #380 / merge `69d752d06941cf49250e34f6385df90110515789` advances only accepted server-authored objectives from known server-observed event keys. Broader quest event/prerequisite policy remains follow-up work. |
+| SVC-012 | LIVE/PARTIAL | `canClaimReward(player, source)` — PR #381 / merge `0fee2332ab31bd87ace2627d0594bcc9e3dc45ca` verifies accepted quest plus durable objective completion and resolves reward amount/currency/source from the server-authored catalogue before using the canonical idempotent wallet receipt. Non-currency and multi-store rewards remain follow-up work. |
 | SVC-013 | LIVE/PARTIAL | Item reservation/commit/rollback infrastructure exists. PR #229 adds schema-compatible consumed-but-retained reservations so multi-item craft recovery cannot expose partially consumed stacks before the durable transaction commit; expand to complete RPG inventory use. |
 | SVC-014 | LIVE/PARTIAL | Encounter reservation infrastructure exists; wire it to normal world encounters. |
 | SVC-015 | LIVE/PARTIAL | Battle outcome commit infrastructure exists. PR #310 / merge `cc7f4409662ca5580c038d3200ff4e398a11dbdc` adds a crash-recoverable group commit over the complete frozen Pokémon roster plus trusted item consumptions, with durable PREPARED/COMMITTED state and idempotent replay. Normal battle-loop invocation remains blocked on the authoritative final-state handoff. |
