@@ -1,0 +1,85 @@
+{
+  "format": "ouros.blockbench-authored-cosmetic-patch.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "concept": "Aura Sentinel V49 — contoured shoulder-to-hip shell, displaced aura arc and asymmetric lower wrap",
+  "artStatus": "ARTISTIC FAIL",
+  "reviewState": "BLOCKBENCH_REVIEW_PENDING",
+  "previewStem": "lucario_v49_preview",
+  "authoringIntent": "Direct response to V48 Blockbench rejection. Remove the paired frontal plate read and replace it with a side-biased shell that crosses shoulder, flank and hip using changing depth and angle. Move the rear signature farther outside the biological outline and lower it so its negative space survives against Lucario's head, dreadlocks and tail. Continue the same material through one asymmetric lower wrap instead of detached tabs. Preserve the exact official Lucario body unchanged underneath.",
+  "officialBaseline": {
+    "cobblemonVersion": "1.7.3",
+    "minecraftVersion": "1.21.1",
+    "loader": "fabric",
+    "modrinthVersionId": "kF7CvxTo",
+    "modelPath": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json",
+    "modelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
+    "officialBoneCount": 87
+  },
+  "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0448_lucario.json",
+  "referenceCarryForward": [
+    "Ruins Style: use progressive rotations and parent-safe segmentation so multiple thin forms read as one cloth-like contour. Do not copy its costume silhouette, segmented head cloth, ring motif, palette or markings.",
+    "Space Style: distribute one material language across torso and lower body while preserving biological landmarks and limb articulation. Do not copy its suit, helmet, visor, panel layout, palette or markings.",
+    "Covert Style: connect head, shoulder and torso masses while leaving deliberate openings around anatomy. Do not copy its hood/cloak profile, garment layout, palette, markings or UV design."
+  ],
+  "designRules": {
+    "inheritRejectedCosmeticGeometry": false,
+    "thinFlexibleFormsPreferred": true,
+    "dominantRectangularApronFaceAllowed": false,
+    "stackedCapSlabsAllowed": false,
+    "lowerBodyContinuationRequired": true,
+    "centralNegativeSpaceRequired": true,
+    "requiredViewsBeforeProduction": ["front", "left", "right", "back", "three_quarter", "gameplay_160"]
+  },
+  "bones": [
+    {
+      "name": "ouros_v49_shoulder_flank_shell",
+      "parent": "torso3",
+      "pivot": [-1.4, 27.2, -0.1],
+      "cubes": [
+        {"origin": [-6.6, 30.4, -2.8], "size": [5.8, 0.34, 4.5], "pivot": [-3.5, 31.2, -0.3], "rotation": [-17, -18, -34], "uv": [80, 63]},
+        {"origin": [-6.1, 26.9, -3.6], "size": [6.4, 0.38, 5.0], "pivot": [-3.0, 28.8, -0.7], "rotation": [-9, -12, -24], "uv": [81, 63]},
+        {"origin": [-5.8, 22.8, -3.9], "size": [6.8, 0.42, 5.4], "pivot": [-2.7, 25.0, -0.8], "rotation": [1, -8, -14], "uv": [82, 63]},
+        {"origin": [-5.2, 18.6, -3.3], "size": [6.2, 0.46, 5.1], "pivot": [-2.4, 21.6, -0.5], "rotation": [9, -4, -5], "uv": [83, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v49_open_aura_arc",
+      "parent": "torso3",
+      "pivot": [0.0, 25.8, 8.2],
+      "cubes": [
+        {"origin": [-10.8, 18.8, 8.1], "size": [5.6, 0.30, 3.1], "pivot": [-6.6, 23.0, 8.5], "rotation": [-5, 10, -58], "uv": [84, 63]},
+        {"origin": [-9.2, 27.2, 8.3], "size": [5.0, 0.26, 2.8], "pivot": [-5.4, 28.5, 8.6], "rotation": [-6, 6, -33], "uv": [85, 63]},
+        {"origin": [4.3, 28.4, 8.4], "size": [5.4, 0.24, 2.7], "pivot": [5.3, 28.7, 8.6], "rotation": [-6, -8, 35], "uv": [86, 63]},
+        {"origin": [6.0, 20.4, 8.0], "size": [5.0, 0.28, 3.0], "pivot": [6.4, 23.7, 8.4], "rotation": [-4, -11, 56], "uv": [87, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v49_asymmetric_lower_wrap",
+      "parent": "torso",
+      "pivot": [-1.0, 15.2, -2.7],
+      "cubes": [
+        {"origin": [-5.4, 13.6, -3.8], "size": [5.3, 0.36, 4.2], "pivot": [-3.0, 15.5, -2.8], "rotation": [13, -8, 23], "uv": [80, 62]},
+        {"origin": [-4.4, 9.9, -3.4], "size": [4.6, 0.32, 4.0], "pivot": [-2.5, 12.4, -2.6], "rotation": [17, -5, 16], "uv": [81, 62]},
+        {"origin": [-3.0, 6.8, -2.9], "size": [3.8, 0.28, 3.6], "pivot": [-1.8, 9.5, -2.3], "rotation": [21, -2, 9], "uv": [82, 62]}
+      ]
+    },
+    {
+      "name": "ouros_v49_head_counterfold",
+      "parent": "head_angle",
+      "pivot": [2.2, 37.0, -0.2],
+      "cubes": [
+        {"origin": [1.0, 34.2, -3.1], "size": [4.2, 0.30, 4.0], "pivot": [2.9, 36.0, -0.7], "rotation": [-12, 14, 21], "uv": [83, 62]},
+        {"origin": [2.2, 31.8, -2.7], "size": [3.5, 0.24, 3.5], "pivot": [3.4, 33.9, -0.5], "rotation": [-7, 12, 13], "uv": [84, 62]},
+        {"origin": [3.1, 29.6, -2.3], "size": [2.8, 0.20, 3.1], "pivot": [4.0, 31.8, -0.3], "rotation": [-4, 9, 7], "uv": [85, 62]}
+      ]
+    }
+  ],
+  "sliceMetrics": {
+    "cosmeticBoneCount": 4,
+    "cosmeticCubeCount": 14,
+    "dominantSystems": ["contoured_shoulder_to_hip_shell", "displaced_open_aura_arc", "asymmetric_lower_wrap"],
+    "signaturePieces": ["single left-biased shoulder-to-flank shell built from changing rotations instead of paired frontal plates", "four-part rear aura arc displaced lower and farther back to preserve a large open center", "one tapered lower wrap continuing the same diagonal flow rather than isolated leg tabs"],
+    "nextRequiredStep": "Materialize only as a temporary preview against the exact official 87-bone Lucario baseline; capture matched-camera Blockbench ground_idle and battle_idle plus structural/gameplay views; inspect the PNGs; remain ARTISTIC FAIL unless every internal visual criterion passes. Maximum state without explicit owner approval is OWNER REVIEW REQUIRED."
+  }
+}
