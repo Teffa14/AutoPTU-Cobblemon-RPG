@@ -5,41 +5,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Server-authored Gym/League registration catalogue. Registration is RPG state, not battle legality. */
+/** Server-authored registration metadata layered over canonical Trainer challenge identities. */
 public final class CanonicalLeagueChallengeCatalogue {
     public static final CanonicalLeagueChallengeCatalogue DEFAULT = new CanonicalLeagueChallengeCatalogue(List.of(
-            new Challenge("cedar-gym-entry", Kind.GYM, "Cedar Gym Entry", "Register for the Cedar Gym challenge circuit."),
-            new Challenge("ouros-league-open", Kind.LEAGUE, "Ouros League Open", "Register for the Ouros League open circuit.")
+            new RegistrationDefinition("cedar-gym-trial-registration", Kind.GYM)
     ));
 
-    private final Map<String, Challenge> challenges;
+    private final Map<String, RegistrationDefinition> registrations;
 
-    public CanonicalLeagueChallengeCatalogue(List<Challenge> authoredChallenges) {
-        LinkedHashMap<String, Challenge> copy = new LinkedHashMap<>();
-        for (Challenge challenge : authoredChallenges == null ? List.<Challenge>of() : authoredChallenges) {
-            Challenge previous = copy.put(challenge.challengeId(), challenge);
-            if (previous != null) throw new IllegalArgumentException("duplicate league challenge id " + challenge.challengeId());
+    public CanonicalLeagueChallengeCatalogue(List<RegistrationDefinition> authoredRegistrations) {
+        LinkedHashMap<String, RegistrationDefinition> copy = new LinkedHashMap<>();
+        for (RegistrationDefinition registration : authoredRegistrations == null ? List.<RegistrationDefinition>of() : authoredRegistrations) {
+            RegistrationDefinition previous = copy.put(registration.challengeId(), registration);
+            if (previous != null) throw new IllegalArgumentException("duplicate league registration challenge id " + registration.challengeId());
         }
-        challenges = Map.copyOf(copy);
+        registrations = Map.copyOf(copy);
     }
 
-    public Optional<Challenge> challenge(String challengeId) {
+    public Optional<RegistrationDefinition> registration(String challengeId) {
         if (challengeId == null || challengeId.isBlank()) return Optional.empty();
-        return Optional.ofNullable(challenges.get(challengeId.strip()));
+        return Optional.ofNullable(registrations.get(challengeId.strip()));
     }
 
-    public List<Challenge> challenges() {
-        return List.copyOf(challenges.values());
+    public List<RegistrationDefinition> registrations() {
+        return List.copyOf(registrations.values());
     }
 
     public enum Kind { GYM, LEAGUE }
 
-    public record Challenge(String challengeId, Kind kind, String displayName, String description) {
-        public Challenge {
+    public record RegistrationDefinition(String challengeId, Kind kind) {
+        public RegistrationDefinition {
             challengeId = requireText(challengeId, "challengeId");
             if (kind == null) throw new IllegalArgumentException("kind is required");
-            displayName = requireText(displayName, "displayName");
-            description = requireText(description, "description");
         }
     }
 
