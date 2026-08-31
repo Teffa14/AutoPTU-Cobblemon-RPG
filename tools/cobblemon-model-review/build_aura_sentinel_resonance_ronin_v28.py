@@ -16,16 +16,14 @@ def shell(origin,size,uv,*,pivot,rotation,light=82,dark=89):
     return mcube(origin,size,uv,light=light,dark=dark,pivot=pivot,rotation=rotation)
 
 def cosmetic_bones():
-    # V28 keeps V27's clean rear/head and replaces scattered strap-like traces with one
-    # authored shoulder-to-upper-torso arc. Three overlapping, differently rotated
-    # facets form a tapered crescent that breaks silhouette on only one side; an inner
-    # counter-facet roots the arc into the torso while preserving negative space around
-    # the chest spike. A small opposite hip echo carries the diagonal without becoming
-    # a second dominant system.
+    # V28b keeps V27's clean rear/head and replaces scattered strap-like traces with one
+    # authored shoulder-to-upper-torso arc. The three arc facets now overlap physically;
+    # the distal facet was pulled inward/upward after the unchanged attachment validator
+    # correctly rejected V28's 1.58 sibling gap. No threshold is relaxed.
     arc=v1.bone('ouros_v28_resonance_arc','arm_left',[4.0,29.0,-0.8],[
         shell((3.6,28.7,-3.0),(4.8,0.72,1.18),84,pivot=(4.2,29.5,-1.8),rotation=(9,-16,-34),light=89,dark=79),
-        shell((5.8,27.0,-2.7),(5.3,0.62,1.08),84,pivot=(5.4,28.6,-1.7),rotation=(13,-23,-48),light=87,dark=78),
-        shell((7.6,24.9,-2.3),(4.6,0.52,0.96),83,pivot=(6.7,26.9,-1.5),rotation=(17,-29,-58),light=85,dark=77)
+        shell((5.1,27.2,-2.72),(5.1,0.64,1.08),84,pivot=(5.2,28.7,-1.7),rotation=(12,-21,-45),light=87,dark=78),
+        shell((6.0,25.7,-2.48),(4.7,0.56,1.00),83,pivot=(5.9,27.4,-1.58),rotation=(15,-24,-54),light=85,dark=77)
     ])
     root=v1.bone('ouros_v28_arc_root','torso3',[1.2,29.2,-1.2],[
         shell((0.1,27.5,-2.7),(4.7,0.54,1.04),82,pivot=(1.6,29.0,-1.8),rotation=(6,-8,22),light=84,dark=90),
@@ -44,9 +42,6 @@ def paint_pixel(r:int,g:int,b:int,a:int,x:int,y:int,*,shiny:bool):
     red=r>105 and r>g*1.35 and r>b*1.35
     if cream or white or red: return r,g,b,a
     blue=b>r*1.18 and b>g*1.06 and sat>22
-    # V28 keeps the body-wide material identity from V27 but uses broader local value
-    # fields and fewer checker-like transitions. A narrow directional glint repeats the
-    # shoulder arc direction without painting a literal motif.
     if blue:
         field=((x//12)+(y//14))%3
         glint=11 if ((x+2*y)%31 in (0,1)) else 0
@@ -70,7 +65,7 @@ def paint_pixel(r:int,g:int,b:int,a:int,x:int,y:int,*,shiny:bool):
 
 def post_patch():
     data=json.loads(v1.MANIFEST.read_text(encoding='utf-8'))
-    data['concept']='Aura Sentinel — Resonance Ronin V28'
+    data['concept']='Aura Sentinel — Resonance Ronin V28b'
     data['artStatus']='ARTISTIC FAIL'
     data['ownerApproval']={'required':True,'approved':False,'approvedHeadSha':None,'evidenceSetSha256':None,'approvalRecord':None}
     p=data['production']
@@ -91,12 +86,12 @@ def post_patch():
         'Torso-root counter-facet that preserves chest-spike negative space',
         'Small opposite hip echo carrying the diagonal through the body without a second bulky system'
     ]
-    q['macroFormPlan']='V28 preserves V27 clean head/back/tail and deletes the scattered collar-rib-limb traces. One three-facet tapered shoulder arc provides the only dominant silhouette break, rooted by two smaller torso facets around the chest spike. A single hip echo continues the diagonal rhythm. No mantle, backpack, cage, repeated fins or orthogonal armor stack is allowed.'
+    q['macroFormPlan']='V28b preserves the clean head/back/tail and deletes scattered collar-rib-limb traces. One three-facet tapered shoulder arc provides the dominant silhouette break, with physically overlapping facets rooted by two smaller torso planes around the chest spike. A single hip echo continues the diagonal rhythm. No mantle, backpack, cage, repeated fins or orthogonal armor stack is allowed.'
     q['paintPlan']='Normal and shiny remain independently derived from exact 1.7.3 baselines. Broader cobalt value fields, indigo occlusion and sparse directional glints support the shoulder arc without drawing literal costume markings. Cream spikes, whites, eyes, dimensions, UV layout and alpha semantics stay protected.'
-    q['gameplayReadGoal']='At 160 px read one premium asymmetric shoulder crescent plus a coherent cobalt/indigo material treatment. The silhouette break must exceed the unchanged 0.04 floor through useful contour, not oversized slabs.'
-    q['iterationNote']='V27 solved rear clutter but failed silhouette at 0.0036 because all added forms hugged the official outline and read as straps. V28 removes those traces and spends the geometry budget on one anatomy-connected, overlapping, tapered shoulder/upper-torso signature system with deliberate negative space.'
-    data['variantCoverage']['variants'][0]['coverage']='Default preserves the exact official 87-bone Lucario geometry and uses a validated V28 normal texture independently derived from the exact official 1.7.3 baseline.'
-    data['variantCoverage']['variants'][1]['coverage']='Shiny uses the same V28 cosmetic geometry and overlay plus an independently derived V28 texture from the exact official shiny 1.7.3 baseline.'
+    q['gameplayReadGoal']='At 160 px read one premium asymmetric shoulder crescent plus coherent cobalt/indigo material treatment. The silhouette break must exceed the unchanged 0.04 floor through useful contour, not oversized slabs.'
+    q['iterationNote']='V28 reached deterministic production but the unchanged attachment gate rejected distal arc cube 2 (bodyGap 3.28, nearestSiblingGap 1.58). V28b moves the second and third facets inward and upward to create real overlap while preserving taper and the intended asymmetric silhouette. Thresholds remain unchanged.'
+    data['variantCoverage']['variants'][0]['coverage']='Default preserves the exact official 87-bone Lucario geometry and uses a validated V28b normal texture independently derived from the exact official 1.7.3 baseline.'
+    data['variantCoverage']['variants'][1]['coverage']='Shiny uses the same V28b cosmetic geometry and overlay plus an independently derived V28b texture from the exact official shiny 1.7.3 baseline.'
     v1.MANIFEST.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
 def main():
