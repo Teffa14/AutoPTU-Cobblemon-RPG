@@ -55,6 +55,10 @@ public final class FabricSemanticBattlePlayback {
             throw new IllegalArgumentException("playback reservation must match authoritative snapshot");
         }
 
+        // Preserve the exact semantic envelopes that crossed the authoritative boundary before any
+        // Minecraft-specific projection. The trace is evidence only and never becomes battle truth.
+        FabricSemanticBattleTrace.record(playback);
+
         BattlePresentationEntityBindings bindings = BattlePresentationEntityBindings.bind(
                 snapshot, Objects.requireNonNull(presentationEntityIdsByCombatant, "presentationEntityIdsByCombatant"));
         BattlePresentationBatch presentation = presentationProjector.project(playback);
@@ -69,5 +73,6 @@ public final class FabricSemanticBattlePlayback {
 
     public void releaseReservation(String reservationId) {
         handles.releaseReservation(reservationId);
+        FabricSemanticBattleTrace.release(reservationId);
     }
 }
