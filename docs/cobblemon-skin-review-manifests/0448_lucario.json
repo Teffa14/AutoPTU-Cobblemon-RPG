@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "6a66398f64d3cce4e5adf696a534a390116d19fd66cd430c3b04f02557b3e397",
+    "modelSha256": "e7041f36246ed985df8503c511dba08fdfea1d61f54b182328e952d4ae0bbdeb",
     "productionBoneCount": 98,
     "cosmeticBoneCount": 11,
-    "cosmeticCubeCount": 44,
+    "cosmeticCubeCount": 49,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -181,7 +181,7 @@
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses identical V40 costume geometry and independent official-shiny derivation."
+        "coverage": "Shiny uses identical V40 costume geometry and an independent official-shiny derivation."
       },
       {
         "name": "sex/forms",
