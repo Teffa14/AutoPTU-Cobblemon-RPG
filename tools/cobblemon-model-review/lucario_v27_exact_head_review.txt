@@ -1,0 +1,1 @@
+Request exact-head review after deterministic V27 materialization commit 95dccd8ac5f0a62150a0262931c3296595f8ecef. Run all professional gates and Blockbench evidence against the new human head produced by this commit. Artistic acceptance remains owner-only.

@@ -1,0 +1,3 @@
+Lucario Resonance Ronin V28b exact-head review trigger.
+
+V28 failed the unchanged attachment gate because the distal shoulder-arc facet was physically isolated. V28b pulls that facet inward/upward and overlaps it with the preceding facet; no attachment or visual threshold was relaxed. The hard same-species reference gate passed again before deterministic materialization. Review the exact production bytes on this human head with the pinned official Cobblemon source and Blockbench 5.1.6. Tooling cannot grant artistic approval.
