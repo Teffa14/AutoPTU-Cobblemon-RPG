@@ -5,10 +5,10 @@
   "officialTextureBaseline": "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
   "officialTextureBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
   "derivedTexture": "ouros_aura_sentinel.png",
-  "derivedTextureSha256": "f01a69be3cdbf04264379ba81667663b51548117066cfb2310ac90f10186b5fb",
-  "bodyTexelRework": "OWNER_REFERENCE_MATERIAL_MATCH_V29C",
-  "paletteIntent": "Match supplied skin with deeper navy/teal biological blue and charcoal dark biology; costume remains explicit cool white, gray, royal blue and black overlay.",
-  "materialIntent": "Discrete local value blocks/highlights; lower-body biological silhouette is preserved instead of replaced by cosmetic boot boxes.",
+  "derivedTextureSha256": "3581c05a895951cf7547571a738edf7e5bb322292cb0420ddbce8e7c21b4ecd8",
+  "bodyTexelRework": "OWNER_REFERENCE_MATERIAL_MATCH_V29D",
+  "paletteIntent": "Deep navy/teal biological blue and charcoal dark biology match the supplied render while cool white/gray/royal-blue/black costume remains explicit in the overlay.",
+  "materialIntent": "Local value variation only; official lower-leg and foot silhouette remains biological.",
   "repaintRegions": [
     "existing blue biological texels",
     "existing dark biological texels"
