@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Owner Reference Replica — Blue/White Maid Lucario V39",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V40",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -68,7 +68,7 @@
         "sha256": "a7b4f287929c8bbad12dbe75f33e7398e50ae88e60d06e2ef1b6a307cfed9e31",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v39-reference-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v40-reference-derived-normal.json"
       },
       {
         "role": "OVERLAY",
@@ -92,10 +92,10 @@
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_lucario_owner_reference_v31.py",
+    "scriptPath": "tools/cobblemon-model-review/build_lucario_owner_reference_v40.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_lucario_owner_reference_v31.py"
+      "tools/cobblemon-model-review/build_lucario_owner_reference_v40.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v39-reference-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v39-reference-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v40-reference-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v40-reference-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -154,34 +154,34 @@
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Fully enclosed irregular folded white cap with dominant camera-facing left blue ribbon",
-      "Long narrow white torso and sleeves with periwinkle cuffs, oversized charcoal gloves and silver clasp",
-      "Tapered white apron: narrow upper yoke flowing into two broad overlapping lower halves with white hip wraps; blue only behind/outside"
+      "Low folded white cap built from asymmetric angled cloth lobes around the ears",
+      "Long white bodice/sleeves with periwinkle cuffs, charcoal gloves and silver clasp",
+      "Apron composed from nested diagonal overlapping panels that widen continuously from waist to hem"
     ],
-    "macroFormPlan": "V39 replaces V38 vertical placard geometry with the target silhouette: thin waist, narrow apron yoke, two large overlapping lower bell halves rotated outward, and two white side wraps. No small apron tiles and no center gap.",
+    "macroFormPlan": "V40 removes V39 stacked cap levels and the single-board apron read. Cap volume is split into angled overlapping lobes; apron volume is split into three widening cloth tiers per side plus hip wraps, all overlapping along a continuous waist-to-hem path.",
     "paintPlan": "Normal/shiny derive independently from exact official 1.7.3 baselines. Ear UVs remain charcoal, cream landmarks cool grey/white, and tail UVs are near-charcoal dark teal so the tail cannot dominate the costume.",
-    "gameplayReadGoal": "At 160 px the lower half must read as a widening white skirt/apron attached directly to a narrow waist, matching the owner reference rather than a flat board.",
+    "gameplayReadGoal": "At 160 px the costume must read as one widening cloth garment with a low folded cap, without a dominant rectangular plate or horizontal cap tower.",
     "antiPatternsToReject": [
-      "Vertical rectangular apron placard",
-      "Blue or black waist gap",
-      "Blue center triangles",
-      "Fragmented apron tiles",
+      "Stacked horizontal cap slabs",
+      "Single rectangular apron face",
+      "Visible blue/black center gap",
+      "Detached skirt panels",
       "Bright tail dominance",
       "Any change to official biological bones or battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V38 exact Blockbench evidence was opened and rejected because its apron remained rectangular. V39 changes the waist-to-hem silhouette itself. Owner approval remains absent."
+    "iterationNote": "V39 exact Blockbench evidence passed technical checks but failed internal art QA for board-like apron and stacked cap. V40 materially reworks both macro-forms; owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves exact official 87-bone anatomy plus V39 owner-reference costume and independent normal paint."
+        "coverage": "Default preserves exact official 87-bone anatomy plus V40 cloth-contour costume and independent normal paint."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses identical V39 costume geometry and independent official-shiny derivation."
+        "coverage": "Shiny uses identical V40 costume geometry and independent official-shiny derivation."
       },
       {
         "name": "sex/forms",
