@@ -3,13 +3,26 @@
 
 This is not a production builder and it does not claim Blockbench authorship. It
 removes every historical Ouros cosmetic bone, preserves the first 87 official
-Lucario bones byte-semantically as parsed JSON, appends the V41 scene-seed bones,
-and emits a temporary professional-style manifest used only by CI to obtain real
-matched-camera Blockbench evidence.
+Lucario bones JSON-equivalently, appends V41 preview geometry, and emits a
+professional-style manifest used only to obtain real matched-camera Blockbench
+evidence.
 
-The preview materializer supports both Bedrock cubes and explicit indexed
-`poly_mesh` geometry. Poly meshes remain experimental until Blockbench evidence
-and Cobblemon runtime checks prove that the current target renders them safely.
+The preview supports three presentation primitives:
+- ordinary Bedrock cubes;
+- zero-thickness Bedrock planes whose visible contour is cut by an alpha sprite;
+- explicit indexed ``poly_mesh`` only as a compatibility experiment.
+
+The alpha-plane path is deliberately different from the rejected box-stacking
+workflow: geometry supplies a small number of animation-parented cloth surfaces,
+while a deterministic accessory atlas supplies tapered/scalloped/irregular edge
+shape. Sprite atlas regions are allocated only inside pixels that are transparent
+in the exact official-derived body texture, so cosmetic masks do not repaint the
+biological Lucario surface.
+
+The 2026-08-31 Blockbench 5.1.6 experiment showed that a materialized poly_mesh
+could survive structural validation yet be silently omitted by the Bedrock codec.
+Therefore poly_mesh remains non-production until an external viewer/runtime test
+proves otherwise.
 
 Presentation only. AutoPTU/Ouros remains authoritative for battle facts.
 """
@@ -19,9 +32,9 @@ import argparse
 import hashlib
 import json
 import math
-import struct
-import zlib
 from pathlib import Path
+
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools/cobblemon-model-review/v41/lucario_v41_scene_seed.json"
@@ -40,44 +53,142 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def png_chunk(kind: bytes, payload: bytes) -> bytes:
-    return (
-        struct.pack(">I", len(payload))
-        + kind
-        + payload
-        + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
+def parse_sprite_masks(raw: object, palette_slots: set[int]) -> dict[str, dict]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise SystemExit("spriteMasks must be an object")
+    parsed: dict[str, dict] = {}
+    for name, spec in raw.items():
+        if not isinstance(name, str) or not name:
+            raise SystemExit("spriteMasks contains an invalid name")
+        if not isinstance(spec, dict):
+            raise SystemExit(f"spriteMasks.{name}: expected object")
+        rows = spec.get("pixels")
+        legend = spec.get("legend")
+        if not isinstance(rows, list) or not rows or any(not isinstance(row, str) for row in rows):
+            raise SystemExit(f"spriteMasks.{name}.pixels must be non-empty string rows")
+        width = len(rows[0])
+        if width < 2 or any(len(row) != width for row in rows):
+            raise SystemExit(f"spriteMasks.{name}: rows must have one width >= 2")
+        if len(rows) < 2:
+            raise SystemExit(f"spriteMasks.{name}: sprite height must be >= 2")
+        if not isinstance(legend, dict) or not legend:
+            raise SystemExit(f"spriteMasks.{name}.legend must be non-empty")
+        parsed_legend: dict[str, int] = {}
+        for char, slot in legend.items():
+            if not isinstance(char, str) or len(char) != 1 or char == ".":
+                raise SystemExit(f"spriteMasks.{name}: legend keys must be one non-dot character")
+            if not isinstance(slot, int) or slot not in palette_slots:
+                raise SystemExit(f"spriteMasks.{name}: legend slot {slot!r} is not declared in palette")
+            parsed_legend[char] = slot
+        unknown = {char for row in rows for char in row if char != "." and char not in parsed_legend}
+        if unknown:
+            raise SystemExit(f"spriteMasks.{name}: unknown sprite characters {sorted(unknown)!r}")
+        parsed[name] = {
+            "pixels": rows,
+            "legend": parsed_legend,
+            "width": width,
+            "height": len(rows),
+        }
+    return parsed
+
+
+def allocate_sprite_regions(
+    base_texture: Path,
+    sprites: dict[str, dict],
+    reserved: set[tuple[int, int]],
+) -> dict[str, dict[str, int]]:
+    if not sprites:
+        return {}
+    image = Image.open(base_texture).convert("RGBA")
+    width, height = image.size
+    alpha = image.getchannel("A")
+    occupied = set(reserved)
+    placements: dict[str, dict[str, int]] = {}
+
+    # Larger masks allocate first. Ties remain deterministic by name.
+    ordered = sorted(
+        sprites.items(),
+        key=lambda item: (-(item[1]["width"] * item[1]["height"]), item[0]),
     )
+    for name, spec in ordered:
+        sw, sh = spec["width"], spec["height"]
+        found: tuple[int, int] | None = None
+        # Prefer lower atlas rows because the official model leaves substantial
+        # transparent accessory-safe space there; all candidates are still
+        # verified pixel-by-pixel against baseline alpha.
+        for y in range(height - sh, -1, -1):
+            for x in range(0, width - sw + 1):
+                coords = [(x + dx, y + dy) for dy in range(sh) for dx in range(sw)]
+                if any(coord in occupied for coord in coords):
+                    continue
+                if any(alpha.getpixel(coord) != 0 for coord in coords):
+                    continue
+                found = (x, y)
+                occupied.update(coords)
+                break
+            if found is not None:
+                break
+        if found is None:
+            raise SystemExit(
+                f"spriteMasks.{name}: no {sw}x{sh} fully transparent atlas region exists in {base_texture}"
+            )
+        placements[name] = {"x": found[0], "y": found[1], "width": sw, "height": sh}
+    return placements
 
 
-def write_palette_overlay(path: Path, palette: dict[str, list[int]]) -> None:
-    width, height = 128, 64
-    pixels = bytearray(width * height * 4)
+def write_accessory_overlay(
+    path: Path,
+    palette: dict[str, list[int]],
+    sprites: dict[str, dict],
+    placements: dict[str, dict[str, int]],
+) -> None:
+    width, height = Image.open(BODY).size
+    image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    pixels = image.load()
+
+    # Existing 1px palette slots remain available for ordinary solid cosmetic faces.
     for raw_slot, rgba in palette.items():
         slot = int(raw_slot)
         if not 0 <= slot < width:
             raise SystemExit(f"palette slot out of range: {slot}")
         if not isinstance(rgba, list) or len(rgba) != 4 or any(not isinstance(v, int) or not 0 <= v <= 255 for v in rgba):
             raise SystemExit(f"invalid RGBA palette value for slot {slot}: {rgba!r}")
-        offset = ((height - 1) * width + slot) * 4
-        pixels[offset:offset + 4] = bytes(rgba)
+        pixels[slot, height - 1] = tuple(rgba)
 
-    raw = bytearray()
-    stride = width * 4
-    for y in range(height):
-        raw.append(0)
-        raw.extend(pixels[y * stride:(y + 1) * stride])
+    for name, spec in sprites.items():
+        rect = placements[name]
+        for dy, row in enumerate(spec["pixels"]):
+            for dx, char in enumerate(row):
+                if char == ".":
+                    continue
+                rgba = palette[str(spec["legend"][char])]
+                pixels[rect["x"] + dx, rect["y"] + dy] = tuple(rgba)
+
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(
-        b"\x89PNG\r\n\x1a\n"
-        + png_chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0))
-        + png_chunk(b"IDAT", zlib.compress(bytes(raw), 9))
-        + png_chunk(b"IEND", b"")
-    )
+    image.save(path, format="PNG", optimize=True)
 
 
-def uv(slot: int) -> dict:
+def solid_uv(slot: int) -> dict:
     face = {"uv": [slot, 63], "uv_size": [1, 1]}
     return {name: dict(face) for name in ("north", "east", "south", "west", "up", "down")}
+
+
+def sprite_uv(rect: dict[str, int], size: list[float], where: str) -> dict:
+    zeros = [axis for axis, value in enumerate(size) if abs(float(value)) <= 1e-9]
+    if len(zeros) != 1:
+        raise SystemExit(f"{where}: uvSprite requires exactly one zero-size plane axis")
+    face = {
+        "uv": [rect["x"], rect["y"]],
+        "uv_size": [rect["width"], rect["height"]],
+    }
+    axis = zeros[0]
+    if axis == 0:
+        return {"east": dict(face), "west": dict(face)}
+    if axis == 1:
+        return {"up": dict(face), "down": dict(face)}
+    return {"north": dict(face), "south": dict(face)}
 
 
 def face_normal(positions: list[list[float]], vertices: list[int], where: str) -> list[float]:
@@ -106,10 +217,7 @@ def build_poly_mesh(raw: dict, palette_slots: set[int], name: str) -> dict:
     for index, position in enumerate(positions_raw):
         if not isinstance(position, list) or len(position) != 3:
             raise SystemExit(f"{name}.polyMesh.positions[{index}]: expected 3 numbers")
-        try:
-            positions.append([float(value) for value in position])
-        except (TypeError, ValueError) as exc:
-            raise SystemExit(f"{name}.polyMesh.positions[{index}]: non-numeric position") from exc
+        positions.append([float(value) for value in position])
     if not isinstance(faces, list) or not faces:
         raise SystemExit(f"{name}.polyMesh: faces must be non-empty")
 
@@ -132,14 +240,12 @@ def build_poly_mesh(raw: dict, palette_slots: set[int], name: str) -> dict:
             raise SystemExit(f"{where}: invalid or duplicate vertex index")
         if not isinstance(slot, int) or slot not in palette_slots:
             raise SystemExit(f"{where}: uvSlot {slot!r} is not declared in palette")
-
         normal = face_normal(positions, vertices, where)
         normal_index = len(normals)
         normals.append(normal)
         uv_index = len(uvs)
         uvs.append([slot + 0.5, 63.5])
         polys.append([[vertex, normal_index, uv_index] for vertex in vertices])
-
         if double_sided:
             reverse_normal_index = len(normals)
             normals.append([-value for value in normal])
@@ -154,7 +260,11 @@ def build_poly_mesh(raw: dict, palette_slots: set[int], name: str) -> dict:
     }
 
 
-def build_bone(raw: dict, palette_slots: set[int]) -> dict:
+def build_bone(
+    raw: dict,
+    palette_slots: set[int],
+    sprite_placements: dict[str, dict[str, int]],
+) -> dict:
     name = raw.get("name")
     parent = raw.get("parent")
     pivot = raw.get("pivot")
@@ -169,7 +279,7 @@ def build_bone(raw: dict, palette_slots: set[int]) -> dict:
     if not isinstance(elements, list):
         raise SystemExit(f"{name}: elements must be a list")
     if not elements and mesh_raw is None:
-        raise SystemExit(f"{name}: requires cubes and/or polyMesh")
+        raise SystemExit(f"{name}: requires cubes/planes and/or polyMesh")
 
     cubes = []
     for index, element in enumerate(elements):
@@ -177,13 +287,30 @@ def build_bone(raw: dict, palette_slots: set[int]) -> dict:
         origin = element.get("origin")
         size = element.get("size")
         slot = element.get("uvSlot")
+        sprite_name = element.get("uvSprite")
         if not isinstance(origin, list) or len(origin) != 3:
             raise SystemExit(f"{where}: origin must contain 3 numbers")
-        if not isinstance(size, list) or len(size) != 3 or any(float(v) <= 0 for v in size):
-            raise SystemExit(f"{where}: size must contain 3 positive numbers")
-        if not isinstance(slot, int) or slot not in palette_slots:
-            raise SystemExit(f"{where}: uvSlot {slot!r} is not declared in palette")
-        cube = {"origin": origin, "size": size, "uv": uv(slot)}
+        if not isinstance(size, list) or len(size) != 3:
+            raise SystemExit(f"{where}: size must contain 3 numbers")
+        numeric_size = [float(v) for v in size]
+        if any(v < 0 for v in numeric_size) or all(v <= 1e-9 for v in numeric_size):
+            raise SystemExit(f"{where}: size values must be non-negative and not all zero")
+        zero_axes = sum(1 for v in numeric_size if abs(v) <= 1e-9)
+        if zero_axes > 1:
+            raise SystemExit(f"{where}: only one zero-size axis is allowed for a Bedrock plane")
+
+        if sprite_name is not None:
+            if slot is not None:
+                raise SystemExit(f"{where}: use uvSlot or uvSprite, not both")
+            if not isinstance(sprite_name, str) or sprite_name not in sprite_placements:
+                raise SystemExit(f"{where}: unknown uvSprite {sprite_name!r}")
+            cube_uv = sprite_uv(sprite_placements[sprite_name], numeric_size, where)
+        else:
+            if not isinstance(slot, int) or slot not in palette_slots:
+                raise SystemExit(f"{where}: uvSlot {slot!r} is not declared in palette")
+            cube_uv = solid_uv(slot)
+
+        cube = {"origin": origin, "size": size, "uv": cube_uv}
         element_pivot = element.get("pivot")
         rotation = element.get("rotation")
         if element_pivot is not None:
@@ -224,12 +351,19 @@ def load_base() -> tuple[dict, list[dict], int]:
     return payload, official, len(historical)
 
 
-def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, cube_count: int, mesh_count: int) -> None:
+def write_manifest(
+    path: Path,
+    candidate: Path,
+    overlay: Path,
+    bone_count: int,
+    cube_count: int,
+    mesh_count: int,
+) -> None:
     data = {
         "format": "ouros.cobblemon-professional-skin-review.v1",
         "species": "lucario",
         "nationalDex": 448,
-        "concept": "Blue/White Maid Lucario V41 — cloth-flow preview",
+        "concept": "Blue/White Maid Lucario V41 — alpha-cloth preview",
         "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
         "artStatus": "USER REJECTED — REWORK REQUIRED",
         "ownerApproval": {
@@ -237,7 +371,7 @@ def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, 
             "approved": False,
             "approvedHeadSha": None,
             "evidenceSetSha256": None,
-            "approvalRecord": None
+            "approvalRecord": None,
         },
         "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0448_lucario.json",
         "officialSource": {
@@ -256,15 +390,15 @@ def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, 
             "officialBoneCount": OFFICIAL_BONES,
             "referenceTexture": {
                 "path": "assets/cobblemon/textures/pokemon/0448_lucario/lucario.png",
-                "sha256": OFFICIAL_NORMAL_SHA256
+                "sha256": OFFICIAL_NORMAL_SHA256,
             },
             "animationPath": "assets/cobblemon/bedrock/pokemon/animations/0448_lucario/lucario.animation.json",
             "animationSha256": "ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563",
             "auxiliaryAssets": [
                 {"role": "POSER", "path": "assets/cobblemon/bedrock/pokemon/posers/0448_lucario/lucario.json", "sha256": "7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d"},
                 {"role": "RESOLVER", "path": "assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/0_lucario_base.json", "sha256": "a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81"},
-                {"role": "MODEL_LICENSE", "path": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/license", "sha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"}
-            ]
+                {"role": "MODEL_LICENSE", "path": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/license", "sha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"},
+            ],
         },
         "production": {
             "modelPath": candidate.relative_to(ROOT).as_posix(),
@@ -280,16 +414,16 @@ def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, 
                     "path": BODY.relative_to(ROOT).as_posix(),
                     "sha256": OFFICIAL_NORMAL_SHA256,
                     "derivation": "OFFICIAL_IDENTICAL",
-                    "officialBaselineSha256": OFFICIAL_NORMAL_SHA256
+                    "officialBaselineSha256": OFFICIAL_NORMAL_SHA256,
                 },
                 {
                     "role": "OVERLAY",
                     "path": overlay.relative_to(ROOT).as_posix(),
                     "sha256": sha256(overlay),
-                    "derivation": "ACCESSORY_OVERLAY"
-                }
+                    "derivation": "ACCESSORY_OVERLAY_ALPHA_MASKED",
+                },
             ],
-            "runtimeAssets": []
+            "runtimeAssets": [],
         },
         "blockbench": {
             "version": "5.1.6",
@@ -306,12 +440,12 @@ def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, 
                 "battle_ready_three_quarter.png",
                 "hero_front.png",
                 "hero_back.png",
-                "hero_gameplay_160.png"
+                "hero_gameplay_160.png",
             ],
             "technicalVisualFloor": {
                 "minimumPixelDifferenceRatio": 0.08,
-                "minimumSilhouetteDeltaRatio": 0.04
-            }
+                "minimumSilhouetteDeltaRatio": 0.04,
+            },
         },
         "evidence": {
             "artifactName": "lucario-v41-cloth-flow-blockbench-preview",
@@ -326,9 +460,9 @@ def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, 
                 "hero_gameplay_160.png",
                 "contact_sheet.png",
                 "review-contract.json",
-                "png-sha256.txt"
-            ]
-        }
+                "png-sha256.txt",
+            ],
+        },
     }
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -353,24 +487,35 @@ def main() -> None:
     if not isinstance(palette, dict) or len(palette) < 3:
         raise SystemExit("V41 scene seed palette is missing")
     palette_slots = {int(slot) for slot in palette}
+    sprites = parse_sprite_masks(source.get("spriteMasks"), palette_slots)
+    body_width, body_height = Image.open(BODY).size
+    reserved_palette = {(slot, body_height - 1) for slot in palette_slots if 0 <= slot < body_width}
+    sprite_placements = allocate_sprite_regions(BODY, sprites, reserved_palette)
+
     raw_bones = source.get("bones")
     if not isinstance(raw_bones, list) or not raw_bones:
         raise SystemExit("V41 scene seed has no bones")
-    extras = [build_bone(raw, palette_slots) for raw in raw_bones]
+    extras = [build_bone(raw, palette_slots, sprite_placements) for raw in raw_bones]
     names = [bone["name"] for bone in extras]
     if len(names) != len(set(names)):
         raise SystemExit("V41 scene seed contains duplicate bone names")
 
     payload, official, historical_count = load_base()
     geometry = payload["minecraft:geometry"][0]
-    geometry["description"]["identifier"] = "geometry.ouros_lucario_v41_cloth_flow_preview"
+    geometry["description"]["identifier"] = "geometry.ouros_lucario_v41_alpha_cloth_preview"
     geometry["bones"] = official + extras
 
     candidate = workdir / "lucario_v41_preview.geo.json"
     candidate.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     overlay = workdir / "lucario_v41_accessories.png"
-    write_palette_overlay(overlay, palette)
+    write_accessory_overlay(overlay, palette, sprites, sprite_placements)
     cube_count = sum(len(bone.get("cubes", [])) for bone in extras)
+    plane_count = sum(
+        1
+        for bone in extras
+        for cube in bone.get("cubes", [])
+        if sum(1 for value in cube.get("size", []) if abs(float(value)) <= 1e-9) == 1
+    )
     mesh_count = sum(1 for bone in extras if "poly_mesh" in bone)
     manifest = workdir / "0448_lucario.json"
     write_manifest(manifest, candidate, overlay, len(extras), cube_count, mesh_count)
@@ -383,13 +528,15 @@ def main() -> None:
         "historicalCosmeticBonesRemoved": historical_count,
         "officialBonesPreserved": len(official),
         "v41CosmeticBones": len(extras),
-        "v41CosmeticCubes": cube_count,
+        "v41CosmeticCubesAndPlanes": cube_count,
+        "v41AlphaMaskedPlanes": plane_count,
         "v41CosmeticPolyMeshes": mesh_count,
+        "spritePlacements": sprite_placements,
         "candidateModel": candidate.relative_to(ROOT).as_posix(),
         "candidateModelSha256": sha256(candidate),
         "overlay": overlay.relative_to(ROOT).as_posix(),
         "overlaySha256": sha256(overlay),
-        "manifest": manifest.relative_to(ROOT).as_posix()
+        "manifest": manifest.relative_to(ROOT).as_posix(),
     }
     (workdir / "materialization-report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
