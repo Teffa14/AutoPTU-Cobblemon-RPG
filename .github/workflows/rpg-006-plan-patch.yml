@@ -1,0 +1,49 @@
+name: RPG-006 Canonical Plan Patch
+
+on:
+  push:
+    branches:
+      - chore/rpg-006-plan
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch canonical plan exactly
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          replacements = {
+              "| CMD-027 | LIVE | `/autoptu pokemon nickname <slot> <name>` — PR #329 / implementation head `44b067dbbcec53100751ca87b8249120dfd04949`; authenticated server-side slot and ownership resolution, 1–24 code-point nickname validation, idempotent revision-CAS persistence and atomic world-save storage for RPG-only presentation metadata. No Cobblemon gameplay state or PTU rule is used. |":
+              "| CMD-027 | LIVE | `/autoptu pokemon nickname <slot> <name>` — PR #329 / implementation head `44b067dbbcec53100751ca87b8249120dfd04949`; authenticated server-side slot and ownership resolution, 1–24 code-point nickname validation, idempotent revision-CAS persistence and atomic world-save storage for RPG-only presentation metadata. No Cobblemon gameplay state or PTU rule is used. |\n| CMD-029 | LIVE/PARTIAL | `/autoptu pokemon progression <slot>` — PR #386 / merge `ae2ae59ed82481b425236b79ccad86f1ab34c894`; authenticated read-only projection of canonical level plus durable owner-scoped Pokémon XP, pending evolution-choice ID and progression revision. No XP grant, threshold, evolution or move-learning policy exists locally. |",
+              "| RPG-006 | TODO | Pokémon XP/progression/evolution-choice persistence shell. |":
+              "| RPG-006 | LIVE/PARTIAL | Pokémon XP/progression/evolution-choice persistence shell — PR #386 / merge `ae2ae59ed82481b425236b79ccad86f1ab34c894` adds owner-scoped atomic world-save persistence, revision CAS and authenticated active-party reads. XP grants, thresholds, evolution application and move-learning remain blocked on explicit authority contracts under RPG-007. |",
+              "| SVC-039 | LIVE/PARTIAL | `inspectTrainerProgression(player)` — PR #384 / merge `c00b3d884b41575e2d4314ffd27e9978859ce40d`; reads only owner-scoped durable Trainer level, XP and revision through `CanonicalTrainerProgressionQueryService`. Mutation/grant policy remains intentionally absent. |":
+              "| SVC-039 | LIVE/PARTIAL | `inspectTrainerProgression(player)` — PR #384 / merge `c00b3d884b41575e2d4314ffd27e9978859ce40d`; reads only owner-scoped durable Trainer level, XP and revision through `CanonicalTrainerProgressionQueryService`. Mutation/grant policy remains intentionally absent. |\n| SVC-040 | LIVE/PARTIAL | `inspectPokemonProgression(player, pokemon)` — PR #386 / merge `ae2ae59ed82481b425236b79ccad86f1ab34c894`; re-resolves canonical Pokémon ownership before reading or first-provisioning durable XP/evolution-choice progression state. It performs no progression mutation or PTU legality. |",
+              "| TODO | Pokémon XP/progression/evolution choices. |":
+              "| LIVE/PARTIAL | Pokémon XP/progression/evolution choices — PR #386 / merge `ae2ae59ed82481b425236b79ccad86f1ab34c894`; owner-scoped world-save state persists explicit Pokémon XP, pending evolution-choice identity and revision atomically while canonical level remains sourced from the canonical Pokémon aggregate. Grant/threshold/evolution/move-learning policy remains follow-up authority work. |",
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, found {count}: {old[:100]}')
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+      - name: Remove one-shot workflow and commit plan
+        run: |
+          rm .github/workflows/rpg-006-plan-patch.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/rpg-006-plan-patch.yml
+          git commit -m "docs: record RPG-006 shipped status"
+          git push origin HEAD:chore/rpg-006-plan
