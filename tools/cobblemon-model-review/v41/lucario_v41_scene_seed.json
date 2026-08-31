@@ -15,8 +15,10 @@
     "macroRules": [
       "No stacked horizontal cap slabs.",
       "No single rectangular apron board.",
+      "No paired rectangular apron shields.",
       "No rigid folding-fan silhouette across the whole front.",
-      "Use two overlapping primary apron sheets, then recover silhouette through side drape and rear tails.",
+      "Build front cloth as overlapping upper, mid and lower tiers whose outer contour widens toward an irregular hem.",
+      "Recover additional silhouette through side drape and rear tails rather than frontal bulk.",
       "Each neighboring cloth panel changes direction, overlap, depth or hem height.",
       "Keep both ears and the face visually open.",
       "Carry white/periwinkle cloth through head, torso, sleeves, hips, front and rear.",
@@ -27,7 +29,7 @@
       "Whole-body costume continuity and anatomy-following shells from the inspected Space Style technique study.",
       "Connected head/torso garment hierarchy and animation-parented overlays from the inspected Covert Style technique study."
     ],
-    "iterationNote": "Run 4 exact Blockbench evidence reached silhouetteDeltaRatio 0.0318 but still read as a frontal fan and loose head ribbons. This pass removes the six-panel fan, rebuilds the front into two dominant overlapping sheets with a narrow yoke, extends side/rear cloth for silhouette, and turns the head treatment into a low wrap-around bonnet."
+    "iterationNote": "Run 5 exact Blockbench evidence reached pixelDifferenceRatio 0.1904 and silhouetteDeltaRatio 0.0314. The two-piece front remained board-like and the bonnet remained visually weak. This pass replaces both large front sheets with three overlapping cloth tiers per side, creates a broken hem rather than one straight rectangle, and strengthens the low bonnet with visible sloped crown lobes and a split front rim while preserving ear clearance."
   },
   "palette": {
     "80": [28, 31, 40, 255],
@@ -47,14 +49,14 @@
       "parent": "head_angle",
       "pivot": [0, 39.0, -0.2],
       "elements": [
-        {"origin": [-4.48, 39.02, -2.54], "size": [4.34, 0.22, 4.08], "pivot": [-1.82, 39.30, -0.50], "rotation": [8, -8, 13], "uvSlot": 87},
-        {"origin": [0.14, 39.00, -2.50], "size": [4.34, 0.22, 4.04], "pivot": [1.82, 39.28, -0.48], "rotation": [8, 8, -12], "uvSlot": 86},
-        {"origin": [-3.58, 38.34, 1.22], "size": [7.16, 0.72, 0.22], "pivot": [0, 38.78, 1.34], "rotation": [-7, 0, 0], "uvSlot": 85},
-        {"origin": [-3.84, 38.42, -3.56], "size": [3.70, 0.66, 0.22], "pivot": [-1.82, 38.82, -3.42], "rotation": [-2, -3, 10], "uvSlot": 86},
-        {"origin": [0.14, 38.40, -3.54], "size": [3.70, 0.66, 0.22], "pivot": [1.82, 38.80, -3.40], "rotation": [-2, 3, -9], "uvSlot": 87},
-        {"origin": [-5.08, 37.72, -1.74], "size": [1.30, 2.52, 0.22], "pivot": [-4.30, 39.02, -1.60], "rotation": [0, -18, 28], "uvSlot": 84},
-        {"origin": [3.80, 37.82, -1.70], "size": [1.28, 2.40, 0.22], "pivot": [4.30, 39.02, -1.58], "rotation": [0, 18, -26], "uvSlot": 85},
-        {"origin": [-5.46, 39.26, -1.10], "size": [0.92, 2.56, 0.20], "pivot": [-4.66, 39.72, -1.00], "rotation": [-3, -12, 36], "uvSlot": 83}
+        {"origin": [-4.70, 39.02, -2.86], "size": [4.42, 0.46, 4.18], "pivot": [-1.92, 39.38, -0.72], "rotation": [9, -8, 15], "uvSlot": 87},
+        {"origin": [0.28, 38.98, -2.82], "size": [4.42, 0.46, 4.14], "pivot": [1.92, 39.36, -0.70], "rotation": [9, 8, -14], "uvSlot": 86},
+        {"origin": [-3.66, 38.20, 1.10], "size": [7.32, 0.82, 0.34], "pivot": [0, 38.72, 1.28], "rotation": [-7, 0, 0], "uvSlot": 85},
+        {"origin": [-4.30, 38.20, -4.72], "size": [3.34, 0.56, 0.34], "pivot": [-2.08, 38.56, -4.52], "rotation": [-2, -4, 11], "uvSlot": 86},
+        {"origin": [0.96, 38.18, -4.70], "size": [3.34, 0.56, 0.34], "pivot": [2.08, 38.54, -4.50], "rotation": [-2, 4, -10], "uvSlot": 87},
+        {"origin": [-5.22, 37.54, -2.14], "size": [1.36, 2.70, 0.28], "pivot": [-4.36, 38.96, -1.96], "rotation": [0, -19, 29], "uvSlot": 84},
+        {"origin": [3.86, 37.64, -2.08], "size": [1.36, 2.58, 0.28], "pivot": [4.36, 38.96, -1.92], "rotation": [0, 19, -27], "uvSlot": 85},
+        {"origin": [-5.64, 39.18, -1.30], "size": [1.02, 2.62, 0.22], "pivot": [-4.74, 39.68, -1.18], "rotation": [-3, -12, 37], "uvSlot": 83}
       ]
     },
     {
@@ -95,20 +97,22 @@
       ]
     },
     {
-      "name": "ouros_v41_apron_fan",
+      "name": "ouros_v41_apron_wrap",
       "parent": "torso",
       "pivot": [0, 17.5, -2.7],
       "elements": [
-        {"origin": [-4.72, 10.10, -5.28], "size": [4.92, 7.34, 0.22], "pivot": [-1.66, 17.12, -5.10], "rotation": [6, -5, -9], "uvSlot": 87},
-        {"origin": [-0.30, 9.72, -5.30], "size": [4.78, 7.72, 0.22], "pivot": [1.66, 17.12, -5.10], "rotation": [6, 5, 8], "uvSlot": 86},
-        {"origin": [-3.82, 15.06, -5.08], "size": [3.62, 2.42, 0.22], "pivot": [-1.46, 17.02, -4.92], "rotation": [4, -3, -13], "uvSlot": 85},
-        {"origin": [-0.20, 14.88, -5.08], "size": [3.42, 2.60, 0.22], "pivot": [1.42, 17.02, -4.92], "rotation": [4, 3, 12], "uvSlot": 85},
-        {"origin": [-7.76, 10.52, -4.86], "size": [3.18, 6.86, 0.20], "pivot": [-5.26, 16.78, -3.42], "rotation": [4, -27, -25], "uvSlot": 84},
-        {"origin": [4.58, 10.76, -4.82], "size": [3.12, 6.62, 0.20], "pivot": [5.26, 16.78, -3.42], "rotation": [4, 27, 23], "uvSlot": 83},
-        {"origin": [-6.16, 11.54, -4.56], "size": [0.24, 5.72, 6.36], "pivot": [-5.92, 16.70, -1.34], "rotation": [0, -16, -5], "uvSlot": 84},
-        {"origin": [5.92, 11.54, -4.56], "size": [0.24, 5.72, 6.36], "pivot": [5.92, 16.70, -1.34], "rotation": [0, 16, 5], "uvSlot": 84},
-        {"origin": [-5.48, 9.66, 1.66], "size": [4.88, 7.74, 0.20], "pivot": [-2.62, 17.06, 1.78], "rotation": [-6, 0, 12], "uvSlot": 82},
-        {"origin": [0.36, 10.24, 1.66], "size": [4.78, 7.16, 0.20], "pivot": [2.58, 17.06, 1.78], "rotation": [-6, 0, -10], "uvSlot": 83}
+        {"origin": [-3.82, 15.18, -5.06], "size": [3.64, 2.48, 0.22], "pivot": [-1.42, 17.18, -4.90], "rotation": [5, -3, -13], "uvSlot": 85},
+        {"origin": [-0.18, 14.96, -5.08], "size": [3.44, 2.70, 0.22], "pivot": [1.42, 17.18, -4.90], "rotation": [5, 3, 12], "uvSlot": 85},
+        {"origin": [-4.62, 12.02, -5.24], "size": [4.32, 4.16, 0.22], "pivot": [-1.62, 16.00, -5.06], "rotation": [6, -5, -15], "uvSlot": 87},
+        {"origin": [-0.24, 11.72, -5.26], "size": [4.18, 4.44, 0.22], "pivot": [1.62, 15.94, -5.08], "rotation": [6, 5, 14], "uvSlot": 86},
+        {"origin": [-5.32, 9.20, -5.40], "size": [4.82, 3.72, 0.22], "pivot": [-1.90, 12.34, -5.20], "rotation": [7, -6, -9], "uvSlot": 86},
+        {"origin": [0.12, 8.82, -5.42], "size": [4.70, 4.02, 0.22], "pivot": [1.88, 12.28, -5.22], "rotation": [7, 6, 8], "uvSlot": 87},
+        {"origin": [-7.86, 10.36, -4.88], "size": [3.26, 7.02, 0.20], "pivot": [-5.28, 16.76, -3.44], "rotation": [4, -28, -26], "uvSlot": 84},
+        {"origin": [4.62, 10.64, -4.84], "size": [3.18, 6.74, 0.20], "pivot": [5.28, 16.76, -3.44], "rotation": [4, 28, 24], "uvSlot": 83},
+        {"origin": [-6.18, 11.38, -4.56], "size": [0.24, 5.88, 6.44], "pivot": [-5.94, 16.70, -1.30], "rotation": [0, -16, -5], "uvSlot": 84},
+        {"origin": [5.94, 11.38, -4.56], "size": [0.24, 5.88, 6.44], "pivot": [5.94, 16.70, -1.30], "rotation": [0, 16, 5], "uvSlot": 84},
+        {"origin": [-5.58, 9.40, 1.68], "size": [4.98, 8.00, 0.20], "pivot": [-2.66, 17.06, 1.80], "rotation": [-6, 0, 12], "uvSlot": 82},
+        {"origin": [0.38, 9.98, 1.68], "size": [4.86, 7.42, 0.20], "pivot": [2.62, 17.06, 1.80], "rotation": [-6, 0, -10], "uvSlot": 83}
       ]
     },
     {
