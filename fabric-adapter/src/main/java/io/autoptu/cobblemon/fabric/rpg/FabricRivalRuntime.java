@@ -20,6 +20,7 @@ public final class FabricRivalRuntime {
     private FabricRivalRuntime() {}
 
     public static void register() {
+        FabricTrainerRecordRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("rival")
