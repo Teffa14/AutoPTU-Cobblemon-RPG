@@ -9,30 +9,35 @@ final class CanonicalFastTravelServiceTest {
     private final CanonicalFastTravelService service = new CanonicalFastTravelService(25.0D);
 
     @Test
-    void allowsOnlyObservedNearbyServerAuthoredTravel() {
+    void allowsOnlyObservedNearbyServerAuthoredUnlockedTravel() {
         var allowed = service.canTravel(new CanonicalFastTravelService.Request(
                 "player:test", true, "minecraft:overworld:1:64:1", true, 4.0D,
-                "overworld_spawn", true, true));
+                "overworld_spawn", true, true, true));
         assertTrue(allowed.allowed());
 
         var missingSource = service.canTravel(new CanonicalFastTravelService.Request(
                 "player:test", true, "minecraft:overworld:1:64:1", false, 4.0D,
-                "overworld_spawn", true, true));
+                "overworld_spawn", true, true, true));
         assertFalse(missingSource.allowed());
 
         var clientInventedDestination = service.canTravel(new CanonicalFastTravelService.Request(
                 "player:test", true, "minecraft:overworld:1:64:1", true, 4.0D,
-                "client_coords", false, true));
+                "client_coords", false, true, true));
         assertFalse(clientInventedDestination.allowed());
+
+        var lockedDestination = service.canTravel(new CanonicalFastTravelService.Request(
+                "player:test", true, "minecraft:overworld:1:64:1", true, 4.0D,
+                "overworld_spawn", true, false, true));
+        assertFalse(lockedDestination.allowed());
     }
 
     @Test
     void rejectsMissingTrainerRangeAndUnavailableDestination() {
         assertFalse(service.canTravel(new CanonicalFastTravelService.Request(
-                "player:test", false, "source", true, 1.0D, "spawn", true, true)).allowed());
+                "player:test", false, "source", true, 1.0D, "spawn", true, true, true)).allowed());
         assertFalse(service.canTravel(new CanonicalFastTravelService.Request(
-                "player:test", true, "source", true, 26.0D, "spawn", true, true)).allowed());
+                "player:test", true, "source", true, 26.0D, "spawn", true, true, true)).allowed());
         assertFalse(service.canTravel(new CanonicalFastTravelService.Request(
-                "player:test", true, "source", true, 1.0D, "spawn", true, false)).allowed());
+                "player:test", true, "source", true, 1.0D, "spawn", true, true, false)).allowed());
     }
 }
