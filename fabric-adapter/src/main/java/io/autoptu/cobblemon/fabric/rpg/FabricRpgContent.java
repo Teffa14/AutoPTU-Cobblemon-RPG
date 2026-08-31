@@ -18,6 +18,7 @@ public final class FabricRpgContent {
     public static final Identifier CRAFTING_WORKSTATION_ID = Identifier.of(MOD_ID, "crafting_workstation");
     public static final Identifier FIELD_CAMP_ID = Identifier.of(MOD_ID, "field_camp");
     public static final Identifier GYM_LEAGUE_REGISTRATION_DESK_ID = Identifier.of(MOD_ID, "gym_league_registration_desk");
+    public static final Identifier CEDAR_BADGE_GATE_ID = Identifier.of(MOD_ID, "cedar_badge_gate");
 
     /**
      * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
@@ -74,6 +75,18 @@ public final class FabricRpgContent {
     );
     public static final Item GYM_LEAGUE_REGISTRATION_DESK_ITEM = new BlockItem(GYM_LEAGUE_REGISTRATION_DESK, new Item.Settings());
 
+    /**
+     * Explicit Ouros progression gate identity. Whether a Trainer may cross it is resolved from
+     * durable server-owned Trainer records; Minecraft inventory, advancements and client state are
+     * never progression authority.
+     */
+    public static final Block CEDAR_BADGE_GATE = new Block(
+            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+                    .strength(4.0F)
+                    .nonOpaque()
+    );
+    public static final Item CEDAR_BADGE_GATE_ITEM = new BlockItem(CEDAR_BADGE_GATE, new Item.Settings());
+
     private static boolean registered;
 
     private FabricRpgContent() {}
@@ -92,6 +105,8 @@ public final class FabricRpgContent {
         Registry.register(Registries.ITEM, FIELD_CAMP_ID, FIELD_CAMP_ITEM);
         Registry.register(Registries.BLOCK, GYM_LEAGUE_REGISTRATION_DESK_ID, GYM_LEAGUE_REGISTRATION_DESK);
         Registry.register(Registries.ITEM, GYM_LEAGUE_REGISTRATION_DESK_ID, GYM_LEAGUE_REGISTRATION_DESK_ITEM);
+        Registry.register(Registries.BLOCK, CEDAR_BADGE_GATE_ID, CEDAR_BADGE_GATE);
+        Registry.register(Registries.ITEM, CEDAR_BADGE_GATE_ID, CEDAR_BADGE_GATE_ITEM);
         registered = true;
     }
 }
