@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Owner Reference Replica — Blue/White Maid Lucario V29",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V29b",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,7 +53,7 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "54c389a43d5332de8eaa981b7c36ed0a6342199d34e492a1c21ab441c7130b77",
+    "modelSha256": "d5b5881ed3b1a684e28a7591a58538c7fec7b1c5d215fd23aad999cab2e7a8ab",
     "productionBoneCount": 101,
     "cosmeticBoneCount": 14,
     "cosmeticCubeCount": 48,
@@ -73,7 +73,7 @@
       {
         "role": "OVERLAY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png",
-        "sha256": "9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee",
+        "sha256": "9e1d5af20b96ac6cbde27efc5247f167542d057f6940655524a1d389368b488c",
         "derivation": "ACCESSORY_OVERLAY"
       }
     ],
@@ -154,31 +154,31 @@
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Tall stepped white headpiece with royal-blue band and side ribbon blocks",
-      "White fitted bodice and full animated sleeves with blue cuffs, dark gloves and silver/blue bow clasp",
-      "Wide layered white apron skirt with blue side/back panels and dark stocking/boot lower body"
+      "Tall stepped cool-white headpiece with a royal-blue lower band and blue side ribbon masses",
+      "White fitted bodice and animated white sleeves with blue cuffs, oversized dark gloves and silver/blue bow clasp",
+      "Dominant layered white apron over blue side/back skirt panels with charcoal stocking/boot lower body"
     ],
-    "macroFormPlan": "V29 is a clean-sheet owner-reference replica, not another Resonance Ronin increment. All V28 cosmetic geometry is discarded. Fourteen attachment-rooted costume systems cover the head, neck, torso, both arm chains, waist, skirt, both lower legs and both feet while preserving the exact official Lucario anatomy underneath.",
-    "paintPlan": "Normal and shiny are independently derived from the exact 1.7.3 baselines. Biological blue is shifted toward the reference teal/cobalt blocks and dark biology toward charcoal with discrete value variation. Red eyes, cream spikes, UV layout, dimensions and alpha semantics remain intact. Costume uses a dedicated cool-white/blue/charcoal overlay palette.",
-    "gameplayReadGoal": "At 160 px the model must instantly read as the supplied white-and-blue maid/housekeeper skin: tall headpiece, white sleeves/bodice, broad apron skirt, blue side panels and dark legs/boots.",
+    "macroFormPlan": "V29b keeps the clean-sheet 14-system full-body owner-reference reconstruction and fixes V29's inherited overlay-palette failure. No Resonance Ronin geometry remains. The exact official 87-bone Lucario model is preserved underneath the headpiece, bodice/sleeves, cuffs/gloves, apron/skirt, stockings and boots.",
+    "paintPlan": "Normal and shiny are independently derived from exact 1.7.3 baselines. Biological blue shifts toward the reference teal/cobalt and dark biology toward charcoal. The dedicated overlay now explicitly writes cool white/light gray, royal/deep blue and charcoal/black slots so Blockbench production evidence matches the supplied costume colors.",
+    "gameplayReadGoal": "At 160 px instantly read the supplied white-and-blue maid/housekeeper skin: white tall headpiece, white sleeves and torso, broad white apron, blue skirt sides/trim, and dark lower body.",
     "antiPatternsToReject": [
-      "Returning to Resonance Ronin shoulder arcs, mantles or tiny accessory traces",
-      "Flattening the owner target into a recolor without the headpiece, sleeves and apron silhouette",
-      "Changing official biological bones or using Cobblemon battle-state authority"
+      "Any return of cyan/gold Resonance Ronin palette",
+      "Flattening the target into a recolor without headpiece, sleeves and apron silhouette",
+      "Changing official biological bones or introducing Cobblemon battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "Owner supplied a concrete existing-skin render on 2026-08-30 and explicitly requested a faithful replica. Source image SHA-256: 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419. Only one three-quarter render was supplied, so unseen rear/side micro-details are reconstructed conservatively while visible costume masses/colors are targeted directly. Artistic approval remains owner-only."
+    "iterationNote": "V29 exact Blockbench evidence on head cd893417695ba386cc3a519e4602262774ba33ce proved the full-body geometry path but exposed a palette bug: the inherited writer produced cyan/gold instead of the supplied white/blue costume. V29b explicitly owns the overlay palette and retains the same owner-reference geometry. Source image SHA-256: 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419. Only one three-quarter source view exists, so unseen rear/side micro-details remain conservative reconstructions."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves the exact official 87-bone Lucario geometry and adds the V29 owner-reference costume plus a validated independently-derived normal texture."
+        "coverage": "Default preserves the exact official 87-bone Lucario geometry and adds V29b owner-reference costume geometry plus an independently derived normal texture."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny preserves the same V29 costume geometry and derives body paint independently from the exact official 1.7.3 shiny baseline."
+        "coverage": "Shiny preserves the same V29b costume geometry and derives body paint independently from the exact official 1.7.3 shiny baseline."
       },
       {
         "name": "sex/forms",

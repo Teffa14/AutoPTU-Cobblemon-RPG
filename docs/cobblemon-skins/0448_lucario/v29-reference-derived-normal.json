@@ -7,8 +7,8 @@
   "derivedTexture": "ouros_aura_sentinel.png",
   "derivedTextureSha256": "d62bbe7b8def3af40b9a56716b11ff05040ecbbce43af342d33e7b4dd8224124",
   "bodyTexelRework": "OWNER_REFERENCE_MATERIAL_MATCH",
-  "paletteIntent": "Match the owner-supplied existing skin: teal/cobalt Lucario biology and charcoal dark biology; costume whites/blues/black remain in the accessory overlay.",
-  "materialIntent": "Discrete block-value ramps and local highlights/occlusion; not a flat palette swap. The visible costume geometry carries the dominant transformation.",
+  "paletteIntent": "Match the supplied existing skin: teal/cobalt Lucario biology plus charcoal dark biology; cool white, gray, royal blue and black costume are authored in the accessory overlay.",
+  "materialIntent": "Discrete block-value ramps with local highlights/occlusion; not a flat hue shift. Costume geometry carries the dominant transformation.",
   "repaintRegions": [
     "existing blue biological texels",
     "existing dark biological texels"
