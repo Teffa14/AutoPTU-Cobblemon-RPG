@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Aura Sentinel — Resonance Ronin V28",
+  "concept": "Aura Sentinel — Resonance Ronin V28b",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,7 +53,7 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "119ba3288ea04f2dafddf7b07619c10387658f4bb1c8559a3af54df0d57d886b",
+    "modelSha256": "4d574454fdee91fc75a5ef01c02755293538e94d0834e3dc9b556510670a186b",
     "productionBoneCount": 90,
     "cosmeticBoneCount": 3,
     "cosmeticCubeCount": 6,
@@ -158,9 +158,9 @@
       "Torso-root counter-facet that preserves chest-spike negative space",
       "Small opposite hip echo carrying the diagonal through the body without a second bulky system"
     ],
-    "macroFormPlan": "V28 preserves V27 clean head/back/tail and deletes the scattered collar-rib-limb traces. One three-facet tapered shoulder arc provides the only dominant silhouette break, rooted by two smaller torso facets around the chest spike. A single hip echo continues the diagonal rhythm. No mantle, backpack, cage, repeated fins or orthogonal armor stack is allowed.",
+    "macroFormPlan": "V28b preserves the clean head/back/tail and deletes scattered collar-rib-limb traces. One three-facet tapered shoulder arc provides the dominant silhouette break, with physically overlapping facets rooted by two smaller torso planes around the chest spike. A single hip echo continues the diagonal rhythm. No mantle, backpack, cage, repeated fins or orthogonal armor stack is allowed.",
     "paintPlan": "Normal and shiny remain independently derived from exact 1.7.3 baselines. Broader cobalt value fields, indigo occlusion and sparse directional glints support the shoulder arc without drawing literal costume markings. Cream spikes, whites, eyes, dimensions, UV layout and alpha semantics stay protected.",
-    "gameplayReadGoal": "At 160 px read one premium asymmetric shoulder crescent plus a coherent cobalt/indigo material treatment. The silhouette break must exceed the unchanged 0.04 floor through useful contour, not oversized slabs.",
+    "gameplayReadGoal": "At 160 px read one premium asymmetric shoulder crescent plus coherent cobalt/indigo material treatment. The silhouette break must exceed the unchanged 0.04 floor through useful contour, not oversized slabs.",
     "antiPatternsToReject": [
       "Pokemon base plus scattered accessories",
       "Rectangular cage, shrine frame or portal silhouette",
@@ -168,18 +168,18 @@
       "Flat recolor used as a substitute for authored geometry"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V27 solved rear clutter but failed silhouette at 0.0036 because all added forms hugged the official outline and read as straps. V28 removes those traces and spends the geometry budget on one anatomy-connected, overlapping, tapered shoulder/upper-torso signature system with deliberate negative space."
+    "iterationNote": "V28 reached deterministic production but the unchanged attachment gate rejected distal arc cube 2 (bodyGap 3.28, nearestSiblingGap 1.58). V28b moves the second and third facets inward and upward to create real overlap while preserving taper and the intended asymmetric silhouette. Thresholds remain unchanged."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves the exact official 87-bone Lucario geometry and uses a validated V28 normal texture independently derived from the exact official 1.7.3 baseline."
+        "coverage": "Default preserves the exact official 87-bone Lucario geometry and uses a validated V28b normal texture independently derived from the exact official 1.7.3 baseline."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses the same V28 cosmetic geometry and overlay plus an independently derived V28 texture from the exact official shiny 1.7.3 baseline."
+        "coverage": "Shiny uses the same V28b cosmetic geometry and overlay plus an independently derived V28b texture from the exact official shiny 1.7.3 baseline."
       },
       {
         "name": "sex/forms",
