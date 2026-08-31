@@ -5,6 +5,10 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricNpcDialogueRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -35,6 +39,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class CedarMeadowRuntime {
     private static final String WILD_ZONE_ID = "cedar_meadow";
     private static final String WILD_CONTEXT_ID = "visible_roaming_wild";
+    private static final String LOOKOUT_EVENT = "cedar_meadow:lookout_watching";
+    private static final String FEEDERS_EVENT = "cedar_meadow:feeders_alarmed";
     private static final AmbientPokemonBehaviorController.Profile AMBIENT_PROFILE =
             new AmbientPokemonBehaviorController.Profile(14.0D, 7.0D, 80, 100);
     private static final List<Instance> INSTANCES = new CopyOnWriteArrayList<>();
@@ -53,9 +59,7 @@ public final class CedarMeadowRuntime {
             Iterator<Instance> iterator = INSTANCES.iterator();
             while (iterator.hasNext()) {
                 Instance instance = iterator.next();
-                if (!instance.tick()) {
-                    INSTANCES.remove(instance);
-                }
+                if (!instance.tick()) INSTANCES.remove(instance);
             }
         });
     }
@@ -119,18 +123,30 @@ public final class CedarMeadowRuntime {
     }
 
     private static void bindVisibleWild(PokemonEntity entity) {
-        VisibleWildPokemonEncounterRuntime.bind(
-                entity,
-                "world-wild:" + entity.getUuidAsString(),
-                WILD_ZONE_ID,
-                WILD_CONTEXT_ID
-        );
+        VisibleWildPokemonEncounterRuntime.bind(entity, "world-wild:" + entity.getUuidAsString(), WILD_ZONE_ID, WILD_CONTEXT_ID);
     }
 
     private static void discard(PokemonEntity entity) {
         if (entity != null) {
             VisibleWildPokemonEncounterRuntime.unbind(entity.getUuid());
             if (!entity.isRemoved()) entity.discard();
+        }
+    }
+
+    private static void observeQuestEvent(ServerPlayerEntity player, String eventKey) {
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) return;
+        var service = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(player.getServer())
+        );
+        var result = service.observe(playerId, eventKey);
+        for (var update : result.updates()) {
+            if (!update.newlyCompleted()) continue;
+            var progress = update.questProgress();
+            player.sendMessage(Text.literal("Quest updated: Cedar Field Notes — " + progress.completedCount() + "/" + progress.totalCount()), false);
+            if (progress.complete()) player.sendMessage(Text.literal("Quest objectives complete: return to the Cedar Ranger."), false);
         }
     }
 
@@ -206,16 +222,12 @@ public final class CedarMeadowRuntime {
             if (player != null) lookout.getLookControl().lookAt(player, 40.0F, 40.0F);
             BlockPos shelter = layout.shelter();
             for (PokemonEntity feeder : feeders) {
-                if (!feeder.isRemoved()) {
-                    feeder.getNavigation().startMovingTo(shelter.getX() + 0.5D, shelter.getY(), shelter.getZ() + 0.5D, 1.15D);
-                }
+                if (!feeder.isRemoved()) feeder.getNavigation().startMovingTo(shelter.getX() + 0.5D, shelter.getY(), shelter.getZ() + 0.5D, 1.15D);
             }
             lookout.getNavigation().startMovingTo(shelter.getX() - 1.0D, shelter.getY(), shelter.getZ() - 1.0D, 1.1D);
         }
 
-        private void recover() {
-            feeders.forEach(entity -> entity.getNavigation().stop());
-        }
+        private void recover() { feeders.forEach(entity -> entity.getNavigation().stop()); }
 
         private void announce(ServerPlayerEntity player, AmbientPokemonBehaviorController.State state) {
             Text message = switch (state) {
@@ -225,6 +237,8 @@ public final class CedarMeadowRuntime {
                 case CALM -> Text.literal("After a while, the meadow settles back into its ordinary rhythm.");
             };
             player.sendMessage(message, true);
+            if (state == AmbientPokemonBehaviorController.State.WATCHING) observeQuestEvent(player, LOOKOUT_EVENT);
+            if (state == AmbientPokemonBehaviorController.State.ALARMED) observeQuestEvent(player, FEEDERS_EVENT);
         }
     }
 }
