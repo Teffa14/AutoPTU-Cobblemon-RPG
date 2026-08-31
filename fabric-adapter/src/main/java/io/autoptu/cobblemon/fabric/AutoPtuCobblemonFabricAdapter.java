@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
+import io.autoptu.cobblemon.fabric.battle.FabricBattleCameraRuntime;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleChoiceRuntime;
 import io.autoptu.cobblemon.fabric.demo.PlayableBattleTestRuntime;
 import io.autoptu.cobblemon.fabric.network.FabricBattleActionNetworking;
@@ -100,6 +101,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricFirstJoinOnboardingRuntime.register();
         PlayableBattleTestRuntime.register();
         FabricBattleChoiceRuntime.register();
+        FabricBattleCameraRuntime.register();
         FabricEncounterStatusRuntime.register();
         FabricPartyHealingRuntime.register();
         FabricRestRuntime.register();
