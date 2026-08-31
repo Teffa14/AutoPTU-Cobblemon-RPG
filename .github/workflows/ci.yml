@@ -5,52 +5,11 @@ on:
     branches: [main]
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-      - name: Patch canonical RPG plan bookkeeping
-        if: github.event_name == 'pull_request' && github.head_ref == 'chore/rpg-plan-009-013'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
-          text = path.read_text(encoding='utf-8')
-          replacements = {
-              '| RPG-009 | TODO | Faction reputation. |': '| RPG-009 | LIVE/PARTIAL | Faction reputation — PR #392 / merge `b6fef9d9f90cbc2acc0784b51a5187584614b7b8`; owner-scoped durable reputation exists for server-authored factions and is queryable from authenticated Minecraft state. Reputation mutation sources, thresholds and consequences remain follow-up authored RPG work. |',
-              '| RPG-010 | TODO | Rival identity/history/story flags. |': '| RPG-010 | LIVE/PARTIAL | Rival identity/history/story flags — PR #395 / merge `ffaad008174f8d5e12b483c67ded772384b33594`; owner-scoped rival identity, explicit narrative history and story flags persist durably. Battle wins/losses or other PTU outcomes are never inferred locally. |',
-              '| RPG-011 | TODO | Trainer records: wins/losses/badges/tournaments. |': '| RPG-011 | LIVE/PARTIAL | Trainer records: wins/losses/badges/tournaments — PR #397 / merge `76b3c50b14114d167b66032d2c1ee51c2bfb8dfd`; owner-scoped durable record state and authenticated reads are live. Battle-derived wins/losses and authored badge/tournament producers remain future authoritative sources. |',
-              '| RPG-012 | TODO | World story flags and choice consequences. |': '| RPG-012 | LIVE/PARTIAL | World story flags and choice consequences — PR #399 / merge `65a33ec87a99fd982fa73332dbb215765ba2dd2b`; server-authored choices persist owner-scoped with immutable selection and authored consequence flags through `/autoptu story`. Downstream quest/dialogue/world consequence consumers remain follow-up work. |',
-              '| RPG-013 | TODO | Mail/message system with idempotent rewards. |': '| RPG-013 | LIVE/PARTIAL | Mail/message system with idempotent rewards — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; `/autoptu mail`, `mail read <mailId>` and `mail claim <mailId>` use a server-authored inbox, durable owner-scoped read/claim state and deterministic wallet receipts. The initial `ouros-welcome` message grants exactly 100 Ouros credits once; richer delivery triggers, item/XP rewards and final mailbox UI remain follow-up work. |',
-              '| SVC-041 | LIVE/PARTIAL | `observeNpcContact(player, npcId)` / `inspectNpcRelationship(player, npcId)` — PR #390 / merge `d004632f25392d8a8a5e9162ecb05add1a0f97b2`; physical server-observed contact resolves only authored NPC IDs, establishes met exactly once, and persists neutral reputation plus revision owner-scoped. Reputation gains, thresholds, dialogue consequences and PTU effects are not inferred. |': '| SVC-041 | LIVE/PARTIAL | `observeNpcContact(player, npcId)` / `inspectNpcRelationship(player, npcId)` — PR #390 / merge `d004632f25392d8a8a5e9162ecb05add1a0f97b2`; physical server-observed contact resolves only authored NPC IDs, establishes met exactly once, and persists neutral reputation plus revision owner-scoped. Reputation gains, thresholds, dialogue consequences and PTU effects are not inferred. |\n| SVC-042 | LIVE/PARTIAL | `inspectFactionReputation(player, factionId)` — PR #392 / merge `b6fef9d9f90cbc2acc0784b51a5187584614b7b8`; resolves only server-authored faction IDs and owner-scoped durable reputation. Mutation policy remains absent. |\n| SVC-043 | LIVE/PARTIAL | `inspectRivalState(player, rivalId)` — PR #395 / merge `ffaad008174f8d5e12b483c67ded772384b33594`; resolves only server-authored rivals and durable explicit narrative state without deriving battle outcomes. |\n| SVC-044 | LIVE/PARTIAL | `inspectTrainerRecords(player)` — PR #397 / merge `76b3c50b14114d167b66032d2c1ee51c2bfb8dfd`; reads durable wins/losses/badges/tournaments while leaving every record producer to an explicit server-authoritative source. |\n| SVC-045 | LIVE/PARTIAL | `inspectWorldStory(player)` / `chooseWorldStory(player, node, choice)` — PR #399 / merge `65a33ec87a99fd982fa73332dbb215765ba2dd2b`; resolves authored nodes/choices, commits one immutable choice and persists authored flags through revision CAS. |\n| SVC-046 | LIVE/PARTIAL | `inspectMail(player)` / `readMail(player, mailId)` / `claimMailReward(player, mailId)` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; resolves authored mail/reward truth server-side, persists read/claim state and uses deterministic wallet transaction receipts so retry/restart cannot double-credit. |',
-              '| TODO | Faction/rival social state. |': '| LIVE/PARTIAL | Faction reputation — PR #392 / merge `b6fef9d9f90cbc2acc0784b51a5187584614b7b8`; owner-scoped authored-faction reputation and revision persist atomically. Mutation sources and consequences remain follow-up work. |\n| LIVE/PARTIAL | Rival narrative state — PR #395 / merge `ffaad008174f8d5e12b483c67ded772384b33594`; owner-scoped authored-rival identity, explicit history and story flags persist atomically without inferring battle outcomes. |',
-              '| TODO | Badges/league/tournament records. |': '| LIVE/PARTIAL | Trainer records — PR #397 / merge `76b3c50b14114d167b66032d2c1ee51c2bfb8dfd`; owner-scoped wins/losses/badges/tournaments and revision persist atomically while producers remain explicit server-authoritative sources. |',
-              '| LIVE/PARTIAL | Discovery/world-event flags — PR #366 / merge `aa90ceaf9f2b1129eb1e493ddb51d7e3caf276f5` adds durable owner-scoped authored-location discovery. PR #368 / merge `5d1910dfe25458da26fadfb2230e2b4ac5a5f165` adds atomic revisioned world-scoped authored-object event activation for the Ouros shrine. Additional event object types and richer story flags remain follow-up work. |': '| LIVE/PARTIAL | Discovery/world-event/story flags — PR #366 / merge `aa90ceaf9f2b1129eb1e493ddb51d7e3caf276f5` adds durable owner-scoped authored-location discovery. PR #368 / merge `5d1910dfe25458da26fadfb2230e2b4ac5a5f165` adds atomic revisioned world-scoped authored-object event activation. PR #399 / merge `65a33ec87a99fd982fa73332dbb215765ba2dd2b` adds owner-scoped immutable authored story choices and consequence flags. Additional event/story consequence consumers remain follow-up work. |',
-              '| TODO | Fast-travel unlocks/checkpoints. |': '| LIVE/PARTIAL | Durable RPG mail read/claim state — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; owner-scoped read and reward-claim sets persist atomically, while deterministic canonical wallet receipts recover a crash after currency credit without duplicate grants. |\n| TODO | Fast-travel unlocks/checkpoints. |',
-              '| CMD-106 | LIVE | `/autoptu interact` — PR #355 / merge `aef333308c9b6364ef899f4f9c0631ba31728c7e`; server raycasts the authenticated player\'s current block target, resolves only a server-authored registered Ouros object, revalidates canonical Trainer identity/range through `CanonicalWorldInteractionService`, and accepts no client object ID, position, kind, eligibility or outcome. Terminal/shrine fallbacks return their authored semantic response; chest/switch/door behavior remains Minecraft-native after authorization. |': '| CMD-106 | LIVE | `/autoptu interact` — PR #355 / merge `aef333308c9b6364ef899f4f9c0631ba31728c7e`; server raycasts the authenticated player\'s current block target, resolves only a server-authored registered Ouros object, revalidates canonical Trainer identity/range through `CanonicalWorldInteractionService`, and accepts no client object ID, position, kind, eligibility or outcome. Terminal/shrine fallbacks return their authored semantic response; chest/switch/door behavior remains Minecraft-native after authorization. |\n| CMD-107 | LIVE/PARTIAL | `/autoptu mail` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; authenticated server-authored inbox projection with durable read/reward status. |\n| CMD-108 | LIVE/PARTIAL | `/autoptu mail read <mailId>` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; validates the authored message ID and persists owner-scoped read state through revision CAS. |\n| CMD-109 | LIVE/PARTIAL | `/autoptu mail claim <mailId>` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; resolves the reward entirely server-side and commits it through the canonical wallet exactly once. |',
-          }
-          for old, new in replacements.items():
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'expected exactly one occurrence, found {count}: {old[:100]}')
-              text = text.replace(old, new)
-          path.write_text(text, encoding='utf-8')
-          PY
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add MINECRAFT_RPG_TOOLING_PLAN.md
-          git diff --cached --check
-          git commit -m 'Update RPG plan through mail rewards'
-          git push origin HEAD:${{ github.head_ref }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
