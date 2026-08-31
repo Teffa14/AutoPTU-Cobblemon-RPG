@@ -31,7 +31,7 @@
       "Whole-body costume continuity and anatomy-following shells from the inspected Space Style technique study.",
       "Connected head/torso garment hierarchy and animation-parented overlays from the inspected Covert Style technique study."
     ],
-    "iterationNote": "Manual QA of 948336e68174aa928fb457889d98b37c3fbc8454 showed that thin rectangles still read as rigid strips and the silhouette floor fell to 0.0262. This pass changes authoring technique rather than adding geometry: the bonnet, apron and skirt silhouette are drawn with alpha-masked zero-thickness Bedrock planes. The accessory atlas is allocated only in transparent baseline pixels by the materializer. The prior poly_mesh experiment remains excluded because Blockbench 5.1.6 silently omitted it."
+    "iterationNote": "The first alpha-cloth materialization at ffa0183522c89097f2af1a716f16ff5d0f36eca2 stopped before Blockbench because a second 9x11 skirt mask could not fit inside a fully transparent UV rectangle. This pass keeps the geometry unchanged and repacks the same contour language into masks roughly half the atlas area so every accessory pixel can still be proven to occupy transparent baseline UV space. The prior poly_mesh experiment remains excluded because Blockbench 5.1.6 silently omitted it."
   },
   "palette": {
     "80": [28, 31, 40, 255],
@@ -49,113 +49,94 @@
     "bonnet_top": {
       "legend": {"W": 87, "L": 85},
       "pixels": [
-        "..WWWWW..",
-        ".WWWWWWW.",
-        "WWWWWWWWW",
-        "WWWLLLWWW",
-        ".WWLLLWW.",
-        "..W.W.W.."
+        "..WWW..",
+        ".WWWWW.",
+        "WWLLLWW",
+        ".WLLLW.",
+        "..W.W.."
       ]
     },
     "bonnet_rear": {
       "legend": {"W": 87, "L": 85},
       "pixels": [
-        ".WWWWWWWW.",
-        "WWLLLLLLWW",
-        "WWLLLLLLWW",
-        ".WWLLLLWW.",
-        "..W.W.W..."
+        "WWWWWWW",
+        "WLLLLLW",
+        ".WLLLW.",
+        "..W.W.."
       ]
     },
     "bonnet_side": {
       "legend": {"W": 87, "L": 85},
       "pixels": [
-        "..WW..",
-        ".WWWW.",
-        "WWLLWW",
-        "WWLLWW",
-        ".WLLW.",
-        ".WWWW.",
-        "..WW..",
-        ".W..W."
+        ".WWW.",
+        "WWLWW",
+        "WLLLW",
+        ".WLW.",
+        ".WWW.",
+        ".W.W."
       ]
     },
     "apron_main": {
       "legend": {"W": 87, "L": 85},
       "pixels": [
-        "..WWWW..",
-        ".WWWWWW.",
-        ".WWLLWW.",
-        "WWLLLLWW",
-        "WWLLLLWW",
-        "WWLLLLWW",
-        ".WLLLLW.",
-        ".WWLLWW.",
-        ".WWWWWW.",
-        ".WWWWWW.",
-        "WW.WW.WW",
-        ".W.W.W.."
+        ".WWWW.",
+        "WWLLWW",
+        "WLLLLW",
+        "WLLLLW",
+        ".WLLW.",
+        ".WWWW.",
+        "WW.WW.",
+        ".W..W."
       ]
     },
     "apron_fold": {
       "legend": {"W": 86, "L": 85},
       "pixels": [
-        ".WWW.",
-        "WWWWW",
-        "WWLLW",
-        ".WLLW",
-        ".WLLW",
-        ".WWWW",
-        ".WW.W",
-        ".W.W.",
-        "..W.."
+        ".WW.",
+        "WWWW",
+        "WLLW",
+        ".LLW",
+        ".WWW",
+        ".W.W",
+        "..W."
       ]
     },
     "skirt_left": {
       "legend": {"B": 82, "M": 83},
       "pixels": [
-        "...BBB...",
-        "..BBBBB..",
-        ".BBBBBBB.",
-        "BBBBBBBBB",
-        "BBMMMMBBB",
-        "BMMMMMMBB",
-        "BMMMMMMBB",
-        "BBMMMMBBB",
-        "BBBBBBBB.",
-        "BBBBBB...",
-        "BBB.B...."
+        "..BBB.",
+        ".BBBB.",
+        "BBBBBB",
+        "BMMBBB",
+        "BMMMBB",
+        "BBMMBB",
+        "BBBB..",
+        "BB.B.."
       ]
     },
     "skirt_right": {
       "legend": {"B": 82, "M": 83},
       "pixels": [
-        "...BBB...",
-        "..BBBBB..",
-        ".BBBBBBB.",
-        "BBBBBBBBB",
-        "BBBMMMMBB",
-        "BBMMMMMMB",
-        "BBMMMMMMB",
-        "BBBMMMMBB",
-        ".BBBBBBBB",
-        "...BBBBBB",
-        "....B.BBB"
+        ".BBB..",
+        ".BBBB.",
+        "BBBBBB",
+        "BBBMMB",
+        "BBMMMB",
+        "BBMMBB",
+        "..BBBB",
+        "..B.BB"
       ]
     },
     "side_drape": {
       "legend": {"B": 82, "M": 84},
       "pixels": [
-        "..BB..",
-        ".BBBB.",
-        "BBBBBB",
-        "BBMMBB",
-        "BMMMMB",
-        "BMMMMB",
-        "BBMMBB",
-        "BBBBB.",
-        ".BBB..",
-        "..B..."
+        ".BB.",
+        "BBBB",
+        "BMMB",
+        "BMMB",
+        "BBBB",
+        ".BB.",
+        ".B.."
       ]
     }
   },
