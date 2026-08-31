@@ -19,73 +19,40 @@ public final class FabricRpgContent {
     public static final Identifier FIELD_CAMP_ID = Identifier.of(MOD_ID, "field_camp");
     public static final Identifier GYM_LEAGUE_REGISTRATION_DESK_ID = Identifier.of(MOD_ID, "gym_league_registration_desk");
     public static final Identifier CEDAR_BADGE_GATE_ID = Identifier.of(MOD_ID, "cedar_badge_gate");
+    public static final Identifier OUROS_MAILBOX_ID = Identifier.of(MOD_ID, "ouros_mailbox");
 
-    /**
-     * Distinct authored facility block. Its recipe may consume vanilla/Cobblemon ingredients, but
-     * world identity is this registry ID rather than an accidental arrangement of unrelated blocks.
-     *
-     * Do not copy BedBlock settings here: vanilla bed settings capture BedBlock-only HEAD/FOOT
-     * properties and crash when applied to a plain registered block. Bed-like presentation belongs
-     * in this mod's model/shape resources, not in inherited vanilla bed gameplay state.
-     */
     public static final Block PTU_RECOVERY_BED = new Block(
-            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-                    .strength(1.5F)
-                    .nonOpaque()
-    );
+            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(1.5F).nonOpaque());
     public static final Item PTU_RECOVERY_BED_ITEM = new BlockItem(PTU_RECOVERY_BED, new Item.Settings());
 
-    /** Dedicated Cedar Mart identity. Shop authority remains in canonical server services. */
     public static final Block CEDAR_MART_COUNTER = new Block(
-            AbstractBlock.Settings.copy(Blocks.BARREL)
-                    .strength(2.5F)
-    );
+            AbstractBlock.Settings.copy(Blocks.BARREL).strength(2.5F));
     public static final Item CEDAR_MART_COUNTER_ITEM = new BlockItem(CEDAR_MART_COUNTER, new Item.Settings());
 
-    /** Dedicated item-storage identity. Bag/storage authority remains in canonical server services. */
     public static final Block ITEM_STORAGE_TERMINAL = new Block(
-            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-                    .strength(3.0F)
-    );
+            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(3.0F));
     public static final Item ITEM_STORAGE_TERMINAL_ITEM = new BlockItem(ITEM_STORAGE_TERMINAL, new Item.Settings());
 
-    /** Dedicated crafting identity. Recipe knowledge, materials and craft results remain server authoritative. */
     public static final Block CRAFTING_WORKSTATION = new Block(
-            AbstractBlock.Settings.copy(Blocks.SMITHING_TABLE)
-                    .strength(3.5F)
-    );
+            AbstractBlock.Settings.copy(Blocks.SMITHING_TABLE).strength(3.5F));
     public static final Item CRAFTING_WORKSTATION_ITEM = new BlockItem(CRAFTING_WORKSTATION, new Item.Settings());
 
-    /**
-     * Dedicated field-camp identity. Copy a property-free container block rather than CampfireBlock;
-     * campfire-specific LIT/SIGNAL_FIRE/WATERLOGGED state must not leak into this plain Block.
-     * Durable camp results and quality remain server authoritative.
-     */
     public static final Block FIELD_CAMP = new Block(
-            AbstractBlock.Settings.copy(Blocks.BARREL)
-                    .strength(2.0F)
-                    .nonOpaque()
-    );
+            AbstractBlock.Settings.copy(Blocks.BARREL).strength(2.0F).nonOpaque());
     public static final Item FIELD_CAMP_ITEM = new BlockItem(FIELD_CAMP, new Item.Settings());
 
-    /** Physical Gym/League registration surface. Challenge and battle authority remain server-side. */
     public static final Block GYM_LEAGUE_REGISTRATION_DESK = new Block(
-            AbstractBlock.Settings.copy(Blocks.CARTOGRAPHY_TABLE)
-                    .strength(2.5F)
-    );
+            AbstractBlock.Settings.copy(Blocks.CARTOGRAPHY_TABLE).strength(2.5F));
     public static final Item GYM_LEAGUE_REGISTRATION_DESK_ITEM = new BlockItem(GYM_LEAGUE_REGISTRATION_DESK, new Item.Settings());
 
-    /**
-     * Explicit Ouros progression gate identity. Whether a Trainer may cross it is resolved from
-     * durable server-owned Trainer records; Minecraft inventory, advancements and client state are
-     * never progression authority.
-     */
     public static final Block CEDAR_BADGE_GATE = new Block(
-            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
-                    .strength(4.0F)
-                    .nonOpaque()
-    );
+            AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.0F).nonOpaque());
     public static final Item CEDAR_BADGE_GATE_ITEM = new BlockItem(CEDAR_BADGE_GATE, new Item.Settings());
+
+    /** Physical authored inbox surface. Mail/reward truth remains in CanonicalMailService. */
+    public static final Block OUROS_MAILBOX = new Block(
+            AbstractBlock.Settings.copy(Blocks.COPPER_BLOCK).strength(3.0F));
+    public static final Item OUROS_MAILBOX_ITEM = new BlockItem(OUROS_MAILBOX, new Item.Settings());
 
     private static boolean registered;
 
@@ -107,6 +74,8 @@ public final class FabricRpgContent {
         Registry.register(Registries.ITEM, GYM_LEAGUE_REGISTRATION_DESK_ID, GYM_LEAGUE_REGISTRATION_DESK_ITEM);
         Registry.register(Registries.BLOCK, CEDAR_BADGE_GATE_ID, CEDAR_BADGE_GATE);
         Registry.register(Registries.ITEM, CEDAR_BADGE_GATE_ID, CEDAR_BADGE_GATE_ITEM);
+        Registry.register(Registries.BLOCK, OUROS_MAILBOX_ID, OUROS_MAILBOX);
+        Registry.register(Registries.ITEM, OUROS_MAILBOX_ID, OUROS_MAILBOX_ITEM);
         registered = true;
     }
 }
