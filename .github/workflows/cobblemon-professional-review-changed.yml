@@ -61,3 +61,4 @@ jobs:
     uses: ./.github/workflows/cobblemon-professional-blockbench-review.yml
     with:
       manifest_path: ${{ matrix.manifest }}
+      review_head_sha: ${{ github.event.pull_request.head.sha }}
