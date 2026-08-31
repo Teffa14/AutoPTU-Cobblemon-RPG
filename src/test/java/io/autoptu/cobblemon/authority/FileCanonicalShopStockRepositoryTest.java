@@ -83,6 +83,23 @@ final class FileCanonicalShopStockRepositoryTest {
     }
 
     @Test
+    void staleRestockRevisionDoesNotMutateStockOrRecordReceipt() {
+        FileCanonicalShopStockRepository repository = new FileCanonicalShopStockRepository(temp);
+        repository.getOrCreate("cedar-mart", "basic-bandage", 8);
+        assertTrue(repository.replaceIfRevision("cedar-mart", "basic-bandage", 0, 4));
+
+        var stale = repository.restockToAuthoredLimit("rpg-day:11", "cedar-mart", "basic-bandage", 8, 0);
+        assertEquals(CanonicalShopStockRepository.RestockStatus.STALE_REVISION, stale.status());
+        assertEquals(4, stale.stock().remainingStock());
+        assertEquals(1, stale.stock().revision());
+
+        var applied = repository.restockToAuthoredLimit("rpg-day:11", "cedar-mart", "basic-bandage", 8, 1);
+        assertEquals(CanonicalShopStockRepository.RestockStatus.APPLIED, applied.status());
+        assertEquals(8, applied.stock().remainingStock());
+        assertEquals(2, applied.stock().revision());
+    }
+
+    @Test
     void nextRpgDayRestocksAgainButNeverAboveAuthoredLimit() {
         FileCanonicalShopStockRepository repository = new FileCanonicalShopStockRepository(temp);
         CanonicalShopRestockService service = new CanonicalShopRestockService(CanonicalShopCatalogue.DEFAULT, repository);
