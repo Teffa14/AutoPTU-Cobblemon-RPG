@@ -1,0 +1,44 @@
+name: BUI-015 ADM-022 Plan Patch
+
+on:
+  push:
+    branches:
+      - docs/bui-015-adm-022-plan
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/bui-015-adm-022-plan
+      - name: Patch canonical tooling plan exactly
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old_bui = '| BUI-015 | LIVE/PARTIAL | Semantic battle trace/replay evidence — PR #375 / merge `d352c2ac867f9784da4e96f14c93dd9b02b93833`; the Fabric semantic playback boundary records the exact ordered authoritative event envelopes per reservation, deduplicates overlapping replay batches, fails closed on conflicting history, and bounds active evidence to 256 events. Durable/exportable post-battle retention remains follow-up work; Minecraft derives no PTU legality, damage, status, faint, winner or reward state from this trace. |'
+          new_bui = '| BUI-015 | LIVE/PARTIAL | Semantic battle trace/replay evidence — PR #375 / merge `d352c2ac867f9784da4e96f14c93dd9b02b93833` records the exact ordered authoritative event envelopes per reservation, deduplicates overlapping replay batches, fails closed on conflicting history, and bounds active evidence to 256 events. PR #378 / merge `e261c7e04b24b9bf61b6b2effb8e897cf9e0870f` exposes the active trace in Minecraft through the operator-only evidence command. Durable/exportable post-battle retention remains follow-up work; Minecraft derives no PTU legality, damage, status, faint, winner or reward state from this trace. |'
+          old_adm = '| ADM-022 | TODO | `/autoptu admin evidence battle <battleId>` |'
+          new_adm = '| ADM-022 | LIVE/PARTIAL | `/autoptu admin evidence battle <reservationId>` — PR #378 / merge `e261c7e04b24b9bf61b6b2effb8e897cf9e0870f`; permission-level-2 operators can inspect the last 20 exact semantic events already recorded for an active authoritative reservation. Mapping this surface to the server-generated opaque battle ID and durable/exportable evidence retention remain follow-up work. |'
+          if text.count(old_bui) != 1:
+              raise SystemExit('expected exactly one current BUI-015 row')
+          if text.count(old_adm) != 1:
+              raise SystemExit('expected exactly one ADM-022 TODO row')
+          text = text.replace(old_bui, new_bui).replace(old_adm, new_adm)
+          path.write_text(text)
+          PY
+      - name: Commit plan patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "Teffa14"
+          git config user.email "98290252+Teffa14@users.noreply.github.com"
+          git rm .github/workflows/bui-015-adm-022-plan-patch.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "Document BUI-015 and ADM-022 battle evidence"
+          git push origin HEAD:docs/bui-015-adm-022-plan
