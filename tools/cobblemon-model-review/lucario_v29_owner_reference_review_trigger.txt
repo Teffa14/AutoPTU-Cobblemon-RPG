@@ -1,0 +1,5 @@
+Lucario V29 owner-reference exact-head review trigger.
+
+The owner explicitly replaced the incremental Resonance Ronin direction with a concrete supplied blue/white maid-style Lucario skin image and requested a faithful reconstruction. V29 is a clean-sheet full-body costume built over the exact official 87-bone Cobblemon Lucario prefix. It adds the tall stepped white headpiece, blue cap/ribbon accents, bow/clasp, white bodice and sleeves, blue cuffs, dark gloves, wide white apron/skirt with blue side/back panels, and dark lower legs/boots. Source target image SHA-256: 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419.
+
+Review the exact materialized V29 production bytes on this human head. Do not infer owner approval from technical success; maximum internal state is OWNER REVIEW REQUIRED after direct PNG inspection.
