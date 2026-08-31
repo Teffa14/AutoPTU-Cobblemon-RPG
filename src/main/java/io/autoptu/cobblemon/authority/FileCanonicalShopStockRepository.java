@@ -18,7 +18,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class FileCanonicalShopStockRepository implements CanonicalShopStockRepository {
     private static final int MAGIC = 0x41505353; // APSS
     private static final int LEGACY_SCHEMA_VERSION = 1;
-    private static final int SCHEMA_VERSION = 2;
+    private static final int DEPLETION_RECEIPT_SCHEMA_VERSION = 2;
+    private static final int SCHEMA_VERSION = 3;
     private static final ConcurrentMap<Path, ReentrantLock> LOCKS = new ConcurrentHashMap<>();
 
     private final Path directory;
@@ -41,7 +42,7 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
         Path path = statePath(shop, offer);
         return withLock(path, () -> {
             if (!Files.exists(path)) {
-                StockDocument initial = new StockDocument(new StockState(shop, offer, authoredStockLimit, 0), Map.of());
+                StockDocument initial = new StockDocument(new StockState(shop, offer, authoredStockLimit, 0), Map.of(), Map.of());
                 write(path, initial);
                 return initial.state();
             }
@@ -74,7 +75,7 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
             }
             write(path, new StockDocument(
                     new StockState(shop, offer, remainingStock, expectedRevision + 1),
-                    document.appliedDepletions()));
+                    document.appliedDepletions(), document.appliedRestocks()));
             return true;
         });
     }
@@ -100,7 +101,7 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
         return withLock(path, () -> {
             StockDocument document;
             if (!Files.exists(path)) {
-                document = new StockDocument(new StockState(shop, offer, authoredStockLimit, 0), Map.of());
+                document = new StockDocument(new StockState(shop, offer, authoredStockLimit, 0), Map.of(), Map.of());
                 write(path, document);
             } else {
                 document = read(path);
@@ -130,8 +131,58 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
                     txId, quantity, current.remainingStock(), nextStock, nextRevision);
             LinkedHashMap<String, AppliedDepletion> receipts = new LinkedHashMap<>(document.appliedDepletions());
             receipts.put(txId, receipt);
-            write(path, new StockDocument(updated, receipts));
+            write(path, new StockDocument(updated, receipts, document.appliedRestocks()));
             return new DepletionResult(DepletionStatus.APPLIED, updated, receipt);
+        });
+    }
+
+    @Override
+    public RestockResult restockToAuthoredLimit(
+            String transactionId,
+            String shopId,
+            String offerId,
+            int authoredStockLimit,
+            long expectedRevision
+    ) {
+        String txId = requireId(transactionId, "transactionId");
+        String shop = requireId(shopId, "shopId");
+        String offer = requireId(offerId, "offerId");
+        if (authoredStockLimit <= 0) throw new IllegalArgumentException("authoredStockLimit must be positive");
+        if (expectedRevision < 0 || expectedRevision == Long.MAX_VALUE) {
+            throw new IllegalArgumentException("expectedRevision must allow one revision advance");
+        }
+        Path path = statePath(shop, offer);
+        return withLock(path, () -> {
+            StockDocument document;
+            if (!Files.exists(path)) {
+                document = new StockDocument(new StockState(shop, offer, authoredStockLimit, 0), Map.of(), Map.of());
+                write(path, document);
+            } else {
+                document = read(path);
+            }
+            StockState current = document.state();
+            requireIdentity(shop, offer, current);
+            if (current.remainingStock() > authoredStockLimit) {
+                throw new IllegalStateException("persisted shop stock exceeds authored stock limit");
+            }
+            AppliedRestock existing = document.appliedRestocks().get(txId);
+            if (existing != null) {
+                if (existing.authoredStockLimit() != authoredStockLimit) {
+                    return new RestockResult(RestockStatus.TRANSACTION_CONFLICT, current, existing);
+                }
+                return new RestockResult(RestockStatus.ALREADY_APPLIED, current, existing);
+            }
+            if (current.revision() != expectedRevision) {
+                return new RestockResult(RestockStatus.STALE_REVISION, current, null);
+            }
+            long nextRevision = current.revision() + 1;
+            StockState updated = new StockState(shop, offer, authoredStockLimit, nextRevision);
+            AppliedRestock receipt = new AppliedRestock(
+                    txId, authoredStockLimit, current.remainingStock(), authoredStockLimit, nextRevision);
+            LinkedHashMap<String, AppliedRestock> receipts = new LinkedHashMap<>(document.appliedRestocks());
+            receipts.put(txId, receipt);
+            write(path, new StockDocument(updated, document.appliedDepletions(), receipts));
+            return new RestockResult(RestockStatus.APPLIED, updated, receipt);
         });
     }
 
@@ -147,24 +198,36 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
         try (DataInputStream in = new DataInputStream(Files.newInputStream(path))) {
             if (in.readInt() != MAGIC) throw new IllegalStateException("invalid shop stock file magic");
             int schema = in.readInt();
-            if (schema != LEGACY_SCHEMA_VERSION && schema != SCHEMA_VERSION) {
+            if (schema != LEGACY_SCHEMA_VERSION && schema != DEPLETION_RECEIPT_SCHEMA_VERSION && schema != SCHEMA_VERSION) {
                 throw new IllegalStateException("unsupported shop stock schema");
             }
             StockState state = new StockState(in.readUTF(), in.readUTF(), in.readInt(), in.readLong());
-            LinkedHashMap<String, AppliedDepletion> receipts = new LinkedHashMap<>();
-            if (schema >= 2) {
+            LinkedHashMap<String, AppliedDepletion> depletionReceipts = new LinkedHashMap<>();
+            if (schema >= DEPLETION_RECEIPT_SCHEMA_VERSION) {
                 int count = in.readInt();
                 if (count < 0) throw new IllegalStateException("invalid depletion receipt count");
                 for (int i = 0; i < count; i++) {
                     AppliedDepletion receipt = new AppliedDepletion(
                             in.readUTF(), in.readInt(), in.readInt(), in.readInt(), in.readLong());
-                    if (receipts.put(receipt.transactionId(), receipt) != null) {
+                    if (depletionReceipts.put(receipt.transactionId(), receipt) != null) {
                         throw new IllegalStateException("duplicate depletion transaction id");
                     }
                 }
             }
+            LinkedHashMap<String, AppliedRestock> restockReceipts = new LinkedHashMap<>();
+            if (schema >= SCHEMA_VERSION) {
+                int count = in.readInt();
+                if (count < 0) throw new IllegalStateException("invalid restock receipt count");
+                for (int i = 0; i < count; i++) {
+                    AppliedRestock receipt = new AppliedRestock(
+                            in.readUTF(), in.readInt(), in.readInt(), in.readInt(), in.readLong());
+                    if (restockReceipts.put(receipt.transactionId(), receipt) != null) {
+                        throw new IllegalStateException("duplicate restock transaction id");
+                    }
+                }
+            }
             if (in.read() != -1) throw new IllegalStateException("unexpected trailing shop stock data");
-            return new StockDocument(state, receipts);
+            return new StockDocument(state, depletionReceipts, restockReceipts);
         } catch (IOException error) {
             throw new UncheckedIOException("failed to read shop stock", error);
         }
@@ -186,6 +249,14 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
                 for (AppliedDepletion receipt : document.appliedDepletions().values()) {
                     out.writeUTF(receipt.transactionId());
                     out.writeInt(receipt.quantity());
+                    out.writeInt(receipt.stockBefore());
+                    out.writeInt(receipt.stockAfter());
+                    out.writeLong(receipt.resultingRevision());
+                }
+                out.writeInt(document.appliedRestocks().size());
+                for (AppliedRestock receipt : document.appliedRestocks().values()) {
+                    out.writeUTF(receipt.transactionId());
+                    out.writeInt(receipt.authoredStockLimit());
                     out.writeInt(receipt.stockBefore());
                     out.writeInt(receipt.stockAfter());
                     out.writeLong(receipt.resultingRevision());
@@ -229,11 +300,17 @@ public final class FileCanonicalShopStockRepository implements CanonicalShopStoc
         }
     }
 
-    private record StockDocument(StockState state, Map<String, AppliedDepletion> appliedDepletions) {
+    private record StockDocument(
+            StockState state,
+            Map<String, AppliedDepletion> appliedDepletions,
+            Map<String, AppliedRestock> appliedRestocks
+    ) {
         private StockDocument {
             if (state == null) throw new IllegalArgumentException("state is required");
             if (appliedDepletions == null) throw new IllegalArgumentException("appliedDepletions is required");
+            if (appliedRestocks == null) throw new IllegalArgumentException("appliedRestocks is required");
             appliedDepletions = Map.copyOf(appliedDepletions);
+            appliedRestocks = Map.copyOf(appliedRestocks);
         }
     }
 }
