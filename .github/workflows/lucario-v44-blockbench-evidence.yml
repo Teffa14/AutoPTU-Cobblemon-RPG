@@ -143,7 +143,7 @@ jobs:
           BATTLE: ${{ steps.anim.outputs.battle }}
         run: |
           python - <<'PY'
-          from PIL import Image,ImageOps,ImageDraw
+          from PIL import Image,ImageDraw
           import hashlib,json,os,pathlib
           root=pathlib.Path('.v44-output')
           names=['official_reference_three_quarter.png','hero_three_quarter.png','battle_ready_three_quarter.png','hero_front.png','hero_back.png','hero_gameplay_160.png']
@@ -164,4 +164,5 @@ jobs:
           name: lucario-v44-blockbench-evidence
           path: .v44-output
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 30
