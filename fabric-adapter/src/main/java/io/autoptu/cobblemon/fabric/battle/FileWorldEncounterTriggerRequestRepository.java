@@ -143,7 +143,7 @@ public final class FileWorldEncounterTriggerRequestRepository implements WorldEn
                 try {
                     Files.move(temporary, path, StandardCopyOption.ATOMIC_MOVE);
                 } catch (AtomicMoveNotSupportedException e) {
-                    Files.move(temporary, path);
+                    throw new IllegalStateException("active encounter session store requires atomic file creation", e);
                 }
                 moved = true;
                 forceDirectory(directory);
