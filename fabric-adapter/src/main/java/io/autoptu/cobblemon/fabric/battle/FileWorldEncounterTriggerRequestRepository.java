@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
@@ -53,27 +54,45 @@ public final class FileWorldEncounterTriggerRequestRepository implements WorldEn
     public synchronized boolean saveIfAbsent(WorldEncounterTriggerRequestService.Request request) {
         Objects.requireNonNull(request, "request");
         String owner = requireId(request.canonicalPlayerId(), "canonicalPlayerId");
-        Path path = pathFor(owner);
-        if (Files.exists(path)) {
-            WorldEncounterTriggerRequestService.Request existing = read(path);
-            if (!owner.equals(existing.canonicalPlayerId())) {
-                throw new IllegalStateException("active encounter session owner mismatch");
+        try {
+            Files.createDirectories(directory);
+            try (FileChannel lockChannel = FileChannel.open(
+                    lockPathFor(owner),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE
+            ); FileLock ignored = lockChannel.lock()) {
+                Path path = pathFor(owner);
+                if (Files.exists(path)) {
+                    WorldEncounterTriggerRequestService.Request existing = read(path);
+                    if (!owner.equals(existing.canonicalPlayerId())) {
+                        throw new IllegalStateException("active encounter session owner mismatch");
+                    }
+                    return false;
+                }
+                writeAtomically(path, request);
+                return true;
             }
-            return false;
+        } catch (IOException e) {
+            throw new IllegalStateException("failed to coordinate active encounter session creation", e);
         }
-        writeAtomically(path, request);
-        return true;
     }
 
     @Override
     public synchronized boolean clear(String canonicalPlayerId) {
         String owner = requireId(canonicalPlayerId, "canonicalPlayerId");
-        Path path = pathFor(owner);
-        if (!Files.exists(path)) return false;
         try {
-            Files.delete(path);
-            forceDirectory(directory);
-            return true;
+            Files.createDirectories(directory);
+            try (FileChannel lockChannel = FileChannel.open(
+                    lockPathFor(owner),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE
+            ); FileLock ignored = lockChannel.lock()) {
+                Path path = pathFor(owner);
+                if (!Files.exists(path)) return false;
+                Files.delete(path);
+                forceDirectory(directory);
+                return true;
+            }
         } catch (IOException e) {
             throw new IllegalStateException("failed to clear active encounter session", e);
         }
@@ -157,6 +176,10 @@ public final class FileWorldEncounterTriggerRequestRepository implements WorldEn
 
     private Path pathFor(String canonicalPlayerId) {
         return directory.resolve(sha256(canonicalPlayerId) + ".bin");
+    }
+
+    private Path lockPathFor(String canonicalPlayerId) {
+        return directory.resolve(sha256(canonicalPlayerId) + ".lock");
     }
 
     private static void writeString(DataOutputStream output, String value) throws IOException {
