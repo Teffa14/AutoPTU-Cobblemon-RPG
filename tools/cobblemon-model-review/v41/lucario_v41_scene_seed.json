@@ -1,0 +1,127 @@
+{
+  "format": "ouros.blockbench-scene-seed.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "concept": "Blue/White Maid Lucario V41 — cloth-flow reset",
+  "authoringState": "PREVIEW_SCENE_SEED_NOT_BLOCKBENCH_AUTHORED",
+  "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
+  "officialBaseline": {
+    "cobblemonVersion": "1.7.3",
+    "modelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
+    "officialBoneCount": 87
+  },
+  "designIntent": {
+    "firstRead": "A low folded cloth cap and one continuous flared maid garment, not Lucario plus stacked accessories.",
+    "macroRules": [
+      "No stacked horizontal cap slabs.",
+      "No single rectangular apron board.",
+      "Each neighboring cloth panel changes direction, taper, overlap or depth.",
+      "Keep both ears and the face visually open.",
+      "Carry white/periwinkle cloth through torso, sleeves, hips, front and rear.",
+      "Spend geometry on contour changes, not repeated identical blocks."
+    ],
+    "referenceTechniqueCarryover": [
+      "Two-stage parented drape and edge hierarchy from the inspected Ruins Style technique study.",
+      "Whole-body costume continuity and anatomy-following shells from the inspected Space Style technique study.",
+      "Connected head/torso garment hierarchy and animation-parented overlays from the inspected Covert Style technique study."
+    ]
+  },
+  "palette": {
+    "80": [28, 31, 40, 255],
+    "81": [35, 54, 82, 255],
+    "82": [45, 99, 145, 255],
+    "83": [91, 111, 186, 255],
+    "84": [135, 151, 207, 255],
+    "85": [206, 214, 229, 255],
+    "86": [231, 235, 242, 255],
+    "87": [247, 248, 250, 255],
+    "88": [167, 177, 196, 255],
+    "89": [112, 123, 143, 255]
+  },
+  "bones": [
+    {
+      "name": "ouros_v41_cloth_cap",
+      "parent": "head_angle",
+      "pivot": [0, 39.0, -0.3],
+      "elements": [
+        {"origin": [-4.35, 38.10, -3.05], "size": [4.25, 0.24, 4.85], "pivot": [-2.10, 39.15, -0.35], "rotation": [7, -7, 17], "uvSlot": 87},
+        {"origin": [0.05, 38.02, -3.00], "size": [4.30, 0.24, 4.80], "pivot": [2.05, 39.10, -0.35], "rotation": [8, 8, -15], "uvSlot": 86},
+        {"origin": [-3.70, 39.35, -2.55], "size": [3.55, 0.22, 4.10], "pivot": [-1.75, 40.05, -0.30], "rotation": [5, -9, 26], "uvSlot": 86},
+        {"origin": [0.15, 39.30, -2.48], "size": [3.55, 0.22, 4.05], "pivot": [1.70, 40.00, -0.28], "rotation": [6, 10, -23], "uvSlot": 87},
+        {"origin": [-3.25, 39.02, 1.05], "size": [6.45, 0.20, 2.15], "pivot": [0, 39.20, 1.30], "rotation": [-13, 0, 2], "uvSlot": 85},
+        {"origin": [-5.10, 37.15, -1.72], "size": [1.05, 3.85, 0.24], "pivot": [-4.35, 39.05, -1.58], "rotation": [0, -18, 24], "uvSlot": 85},
+        {"origin": [4.05, 37.35, -1.66], "size": [0.92, 3.45, 0.24], "pivot": [4.40, 39.00, -1.54], "rotation": [0, 17, -20], "uvSlot": 86},
+        {"origin": [-5.55, 39.70, -1.20], "size": [1.25, 3.15, 0.20], "pivot": [-4.65, 40.25, -1.10], "rotation": [-3, -13, 35], "uvSlot": 83},
+        {"origin": [4.25, 39.40, -1.05], "size": [0.82, 2.55, 0.20], "pivot": [4.55, 40.00, -0.98], "rotation": [-2, 12, -28], "uvSlot": 84}
+      ]
+    },
+    {
+      "name": "ouros_v41_bodice_wrap",
+      "parent": "torso3",
+      "pivot": [0, 27.0, -0.4],
+      "elements": [
+        {"origin": [-3.65, 23.20, -4.18], "size": [3.85, 6.55, 0.24], "pivot": [-1.85, 27.10, -4.00], "rotation": [4, -2, -7], "uvSlot": 87},
+        {"origin": [-0.20, 23.20, -4.18], "size": [3.85, 6.55, 0.24], "pivot": [1.85, 27.10, -4.00], "rotation": [4, 2, 7], "uvSlot": 86},
+        {"origin": [-4.18, 23.55, -2.75], "size": [0.26, 5.95, 4.45], "pivot": [-3.95, 27.00, -0.45], "rotation": [0, -10, -3], "uvSlot": 85},
+        {"origin": [3.92, 23.55, -2.75], "size": [0.26, 5.95, 4.45], "pivot": [3.95, 27.00, -0.45], "rotation": [0, 10, 3], "uvSlot": 85},
+        {"origin": [-3.15, 23.70, 1.55], "size": [3.40, 5.90, 0.22], "pivot": [-1.55, 27.10, 1.62], "rotation": [-3, 0, -5], "uvSlot": 85},
+        {"origin": [-0.25, 23.70, 1.55], "size": [3.40, 5.90, 0.22], "pivot": [1.55, 27.10, 1.62], "rotation": [-3, 0, 5], "uvSlot": 86},
+        {"origin": [-3.15, 29.05, -3.62], "size": [2.85, 0.24, 3.70], "pivot": [-1.45, 29.25, -1.55], "rotation": [8, -6, -18], "uvSlot": 83},
+        {"origin": [0.30, 29.05, -3.62], "size": [2.85, 0.24, 3.70], "pivot": [1.45, 29.25, -1.55], "rotation": [8, 6, 18], "uvSlot": 84},
+        {"origin": [-1.05, 26.55, -4.42], "size": [2.10, 2.10, 0.28], "pivot": [0, 27.60, -4.26], "rotation": [0, 0, 45], "uvSlot": 89}
+      ]
+    },
+    {
+      "name": "ouros_v41_sleeve_left",
+      "parent": "arm_left",
+      "pivot": [5.3, 29.7, -0.4],
+      "elements": [
+        {"origin": [2.20, 28.35, -1.75], "size": [4.25, 2.45, 0.24], "pivot": [4.45, 29.60, -1.60], "rotation": [7, -7, -4], "uvSlot": 87},
+        {"origin": [2.25, 28.25, 0.72], "size": [4.20, 2.45, 0.22], "pivot": [4.45, 29.55, 0.82], "rotation": [-7, 7, -4], "uvSlot": 85},
+        {"origin": [6.05, 28.15, -1.88], "size": [2.05, 2.75, 3.00], "pivot": [7.05, 29.55, -0.38], "rotation": [0, 0, -3], "uvSlot": 83},
+        {"origin": [7.72, 28.05, -1.92], "size": [1.05, 2.90, 3.08], "pivot": [8.20, 29.50, -0.38], "rotation": [0, 0, -2], "uvSlot": 80}
+      ]
+    },
+    {
+      "name": "ouros_v41_sleeve_right",
+      "parent": "arm_right",
+      "pivot": [-5.3, 29.7, -0.4],
+      "elements": [
+        {"origin": [-6.45, 28.35, -1.75], "size": [4.25, 2.45, 0.24], "pivot": [-4.45, 29.60, -1.60], "rotation": [7, 7, 4], "uvSlot": 87},
+        {"origin": [-6.45, 28.25, 0.72], "size": [4.20, 2.45, 0.22], "pivot": [-4.45, 29.55, 0.82], "rotation": [-7, -7, 4], "uvSlot": 85},
+        {"origin": [-8.10, 28.15, -1.88], "size": [2.05, 2.75, 3.00], "pivot": [-7.05, 29.55, -0.38], "rotation": [0, 0, 3], "uvSlot": 83},
+        {"origin": [-8.77, 28.05, -1.92], "size": [1.05, 2.90, 3.08], "pivot": [-8.20, 29.50, -0.38], "rotation": [0, 0, 2], "uvSlot": 80}
+      ]
+    },
+    {
+      "name": "ouros_v41_apron_fan",
+      "parent": "torso",
+      "pivot": [0, 17.5, -2.7],
+      "elements": [
+        {"origin": [-6.25, 9.55, -5.05], "size": [3.05, 8.05, 0.24], "pivot": [-4.10, 17.25, -4.90], "rotation": [4, -4, -14], "uvSlot": 85},
+        {"origin": [-4.45, 9.25, -5.16], "size": [3.10, 8.45, 0.24], "pivot": [-2.55, 17.35, -5.00], "rotation": [5, -3, -8], "uvSlot": 86},
+        {"origin": [-2.55, 9.05, -5.26], "size": [2.95, 8.70, 0.24], "pivot": [-0.95, 17.42, -5.08], "rotation": [5, -1, -3], "uvSlot": 87},
+        {"origin": [-0.40, 9.05, -5.26], "size": [2.95, 8.70, 0.24], "pivot": [0.95, 17.42, -5.08], "rotation": [5, 1, 3], "uvSlot": 87},
+        {"origin": [1.35, 9.25, -5.16], "size": [3.10, 8.45, 0.24], "pivot": [2.55, 17.35, -5.00], "rotation": [5, 3, 8], "uvSlot": 86},
+        {"origin": [3.20, 9.55, -5.05], "size": [3.05, 8.05, 0.24], "pivot": [4.10, 17.25, -4.90], "rotation": [4, 4, 14], "uvSlot": 85},
+        {"origin": [-6.72, 10.30, -3.72], "size": [0.24, 6.85, 4.25], "pivot": [-6.20, 16.65, -1.60], "rotation": [0, -17, -8], "uvSlot": 84},
+        {"origin": [6.48, 10.30, -3.72], "size": [0.24, 6.85, 4.25], "pivot": [6.20, 16.65, -1.60], "rotation": [0, 17, 8], "uvSlot": 84},
+        {"origin": [-5.55, 10.25, 2.72], "size": [5.35, 7.25, 0.22], "pivot": [-2.70, 17.15, 2.82], "rotation": [-5, 0, 7], "uvSlot": 83},
+        {"origin": [0.20, 10.55, 2.72], "size": [5.35, 6.95, 0.22], "pivot": [2.70, 17.15, 2.82], "rotation": [-5, 0, -7], "uvSlot": 82},
+        {"origin": [-5.35, 8.98, -5.42], "size": [4.85, 0.28, 0.18], "pivot": [-2.85, 9.15, -5.30], "rotation": [0, 0, -5], "uvSlot": 84},
+        {"origin": [0.50, 8.98, -5.42], "size": [4.85, 0.28, 0.18], "pivot": [2.85, 9.15, -5.30], "rotation": [0, 0, 5], "uvSlot": 83}
+      ]
+    },
+    {
+      "name": "ouros_v41_back_bow",
+      "parent": "torso",
+      "pivot": [0, 18.0, 3.5],
+      "elements": [
+        {"origin": [-5.05, 16.55, 3.28], "size": [4.55, 2.70, 0.22], "pivot": [-1.45, 18.05, 3.38], "rotation": [-4, 0, -22], "uvSlot": 83},
+        {"origin": [0.50, 16.55, 3.28], "size": [4.55, 2.70, 0.22], "pivot": [1.45, 18.05, 3.38], "rotation": [-4, 0, 22], "uvSlot": 84},
+        {"origin": [-2.95, 12.20, 3.35], "size": [2.45, 5.40, 0.20], "pivot": [-1.45, 17.15, 3.45], "rotation": [-3, 0, 10], "uvSlot": 82},
+        {"origin": [0.50, 12.55, 3.35], "size": [2.45, 5.05, 0.20], "pivot": [1.45, 17.15, 3.45], "rotation": [-3, 0, -9], "uvSlot": 83}
+      ]
+    }
+  ]
+}
