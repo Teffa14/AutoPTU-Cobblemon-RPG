@@ -1,7 +1,7 @@
-Lucario V29c owner-reference exact-head review trigger.
+Lucario V29d owner-reference exact-head review trigger.
 
-V29b fixed the white/blue palette but direct comparison to the supplied render still found three visible mismatches: blue-dominant segmented apron, over-tapered headpiece, and square cosmetic boots replacing Lucario-like dark biological feet. V29c uses a broad white apron in front of blue side/back skirt panels, a wider stacked white headpiece, deeper biological navy/teal, and removes lower-leg/boot cosmetic shells while preserving the exact official 87-bone anatomy.
+V29c fixed the blue-dominant apron and restored biological feet, but exact Blockbench evidence showed the white front as a detached flat placard. V29d replaces it with three waist-connected stepped apron volumes, adds the visible blue/lavender headpiece band, preserves blue side/back skirt panels and official dark Lucario legs/feet, and deepens biological navy/teal.
 
 Target image SHA-256: 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419.
 
-Review the exact materialized V29c bytes on this human head. Owner approval is absent; technical success cannot promote art above OWNER REVIEW REQUIRED.
+Review the exact materialized V29d bytes on this human head. Owner approval is absent; technical success cannot promote art above OWNER REVIEW REQUIRED.
