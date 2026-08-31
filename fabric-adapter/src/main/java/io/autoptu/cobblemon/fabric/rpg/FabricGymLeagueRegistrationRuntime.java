@@ -1,7 +1,11 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalLeagueChallengeCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalLeagueRegistrationService;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeRequestService;
+import io.autoptu.cobblemon.authority.FileCanonicalLeagueRegistrationRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalTrainerRecordRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -19,10 +23,13 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/** Physical Gym/League registration surface. It creates only server-owned challenge requests, never battles. */
+import java.nio.file.Path;
+
+/** Physical Gym/League registration surface backed by durable RPG registration state. */
 public final class FabricGymLeagueRegistrationRuntime {
     static final String DESK_PROVIDER_ID = "cedar-league-desk";
     static final String CEDAR_GYM_TRIAL_ID = "cedar-gym-trial-registration";
@@ -71,7 +78,7 @@ public final class FabricGymLeagueRegistrationRuntime {
         private final ServerPlayerEntity player;
         private final BlockPos deskPos;
         private final String playerId;
-        private String statusText = "Select the authored Cedar Gym trial registration.";
+        private String statusText;
 
         RegistrationScreenHandler(int syncId, PlayerInventory inventory, ServerPlayerEntity player, BlockPos deskPos) {
             this(syncId, inventory, player, deskPos, new SimpleInventory(TOP_SLOT_COUNT));
@@ -83,6 +90,10 @@ public final class FabricGymLeagueRegistrationRuntime {
             this.player = player;
             this.deskPos = deskPos.toImmutable();
             this.playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+            this.statusText = registrationService().inspect(playerId).registrations().stream()
+                    .anyMatch(registration -> registration.challengeId().equals(CEDAR_GYM_TRIAL_ID))
+                    ? "Cedar Gym Trial registration is already persisted for this Trainer."
+                    : "Select the authored Cedar Gym trial registration.";
             refresh();
         }
 
@@ -102,19 +113,39 @@ public final class FabricGymLeagueRegistrationRuntime {
                 player.closeHandledScreen();
                 return;
             }
-            var service = new CanonicalTrainerChallengeRequestService(
+
+            var readiness = new CanonicalTrainerChallengeRequestService(
                     CanonicalTrainerChallengeCatalogue.DEFAULT,
                     FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
                     FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer())
-            );
-            var result = service.request(playerId, DESK_PROVIDER_ID, CEDAR_GYM_TRIAL_ID);
-            statusText = result.accepted()
-                    ? "Registration ready: " + result.challenge().displayName() + ". AutoPTU must authorize the battle handoff."
-                    : "Registration unavailable: " + result.detail();
+            ).request(playerId, DESK_PROVIDER_ID, CEDAR_GYM_TRIAL_ID);
+            if (!readiness.accepted()) {
+                statusText = "Registration unavailable: " + readiness.detail();
+                refresh();
+                return;
+            }
+
+            var registration = registrationService().register(playerId, CEDAR_GYM_TRIAL_ID);
+            statusText = registration.newlyRegistered()
+                    ? "Registered: " + registration.challenge().displayName() + ". This persists after reconnect/restart. AutoPTU must authorize the battle handoff."
+                    : "Already registered: " + registration.challenge().displayName() + ". AutoPTU must authorize the battle handoff.";
             refresh();
         }
 
         @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
+
+        private CanonicalLeagueRegistrationService registrationService() {
+            Path root = player.getServer().getSavePath(WorldSavePath.ROOT)
+                    .resolve("autoptu")
+                    .resolve("canonical-state")
+                    .normalize();
+            return new CanonicalLeagueRegistrationService(
+                    CanonicalLeagueChallengeCatalogue.DEFAULT,
+                    CanonicalTrainerChallengeCatalogue.DEFAULT,
+                    FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
+                    new FileCanonicalLeagueRegistrationRepository(root),
+                    new FileCanonicalTrainerRecordRepository(root));
+        }
 
         private void refresh() {
             for (int i = 0; i < TOP_SLOT_COUNT; i++) displayInventory.setStack(i, ItemStack.EMPTY);
