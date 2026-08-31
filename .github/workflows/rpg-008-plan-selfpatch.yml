@@ -1,0 +1,51 @@
+name: RPG-008 exact plan patch
+
+on:
+  push:
+    branches:
+      - chore/rpg-008-plan
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch canonical tooling plan exactly
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          replacements = {
+              '| RPG-008 | TODO | NPC relationships/reputation. |':
+              '| RPG-008 | LIVE/PARTIAL | NPC relationships/reputation — PR #390 / merge `d004632f25392d8a8a5e9162ecb05add1a0f97b2`; first physical interaction with a server-authored canonical NPC records an owner-scoped durable met relationship at neutral reputation 0 through atomic revision-CAS world-save persistence. Reputation mutation sources, thresholds and consequences remain follow-up authored RPG work. |',
+              '| SVC-040 | LIVE/PARTIAL | `inspectPokemonProgression(player, pokemon)` — PR #386 / merge `ae2ae59ed82481b425236b79ccad86f1ab34c894`; re-resolves canonical Pokémon ownership before reading or first-provisioning durable XP/evolution-choice progression state. It performs no progression mutation or PTU legality. |':
+              '| SVC-040 | LIVE/PARTIAL | `inspectPokemonProgression(player, pokemon)` — PR #386 / merge `ae2ae59ed82481b425236b79ccad86f1ab34c894`; re-resolves canonical Pokémon ownership before reading or first-provisioning durable XP/evolution-choice progression state. It performs no progression mutation or PTU legality. |\n| SVC-041 | LIVE/PARTIAL | `observeNpcContact(player, npcId)` / `inspectNpcRelationship(player, npcId)` — PR #390 / merge `d004632f25392d8a8a5e9162ecb05add1a0f97b2`; physical server-observed contact resolves only authored NPC IDs, establishes met exactly once, and persists neutral reputation plus revision owner-scoped. Reputation gains, thresholds, dialogue consequences and PTU effects are not inferred. |',
+              '| TODO | NPC relationships/factions/rivals. |':
+              '| LIVE/PARTIAL | NPC relationships/reputation — PR #390 / merge `d004632f25392d8a8a5e9162ecb05add1a0f97b2`; owner-scoped met/reputation/revision state persists atomically per server-authored NPC. Current production mutation is limited to first physical contact establishing met at neutral reputation 0; faction/rival state and reputation changes remain follow-up work. |\n| TODO | Faction/rival social state. |',
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, got {count}: {old}')
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+          git rm .github/workflows/rpg-008-plan-selfpatch.yml
+          git diff --check
+          git diff -- MINECRAFT_RPG_TOOLING_PLAN.md
+      - name: Commit exact plan update
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m 'docs: record RPG-008 shipped status'
+          git push origin HEAD:chore/rpg-008-plan
