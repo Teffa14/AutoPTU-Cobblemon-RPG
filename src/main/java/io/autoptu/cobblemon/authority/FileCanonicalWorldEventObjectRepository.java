@@ -16,6 +16,8 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 /** Durable world-scoped state for explicitly authored Ouros world-event objects. */
@@ -54,6 +56,19 @@ public final class FileCanonicalWorldEventObjectRepository {
         return Files.exists(path) ? Optional.of(read(path, object)) : Optional.empty();
     }
 
+    /** Returns a stable snapshot of all persisted authored world-event objects for restart reconciliation. */
+    public synchronized List<State> findAll() {
+        try (var paths = Files.list(directory)) {
+            return paths
+                    .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".bin"))
+                    .map(this::readAny)
+                    .sorted(Comparator.comparing(State::objectId))
+                    .toList();
+        } catch (IOException error) {
+            throw new UncheckedIOException("failed to list world event object state", error);
+        }
+    }
+
     public synchronized MutationResult activate(String objectId, String eventKey, long expectedRevision) {
         String object = requireId(objectId, "objectId");
         String event = requireId(eventKey, "eventKey");
@@ -67,11 +82,16 @@ public final class FileCanonicalWorldEventObjectRepository {
     }
 
     private State read(Path path, String expectedObjectId) {
+        State state = readAny(path);
+        if (!state.objectId().equals(expectedObjectId)) throw new IllegalStateException("world event object identity mismatch");
+        return state;
+    }
+
+    private State readAny(Path path) {
         try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(Files.readAllBytes(path)))) {
             if (input.readInt() != MAGIC) throw new IllegalStateException("invalid world event object file magic");
             if (input.readInt() != SCHEMA_VERSION) throw new IllegalStateException("unsupported world event object schema version");
             String objectId = requireId(input.readUTF(), "objectId");
-            if (!objectId.equals(expectedObjectId)) throw new IllegalStateException("world event object identity mismatch");
             String eventKey = requireId(input.readUTF(), "eventKey");
             Phase phase = Phase.valueOf(input.readUTF());
             long revision = input.readLong();

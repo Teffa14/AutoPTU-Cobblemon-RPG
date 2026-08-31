@@ -69,6 +69,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricTrainerPtuActionRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricTrainerSummaryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricTravelCommandRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricWalletRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricWorldEventProjectionRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosBuildManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosGrandPalaceV4ManifestExportRuntime;
@@ -96,6 +97,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricRpgProtectionRuntime.register();
         FabricRpgProtectionRuntimeSmoke.registerIfEnabled();
         FabricCanonicalWorldInteractionRuntime.register();
+        FabricWorldEventProjectionRuntimeSmoke.registerIfEnabled();
         FabricTargetedInteractionCommandRuntime.register();
         FabricFastTravelRuntime.register();
         FabricFastTravelRuntimeSmoke.registerIfEnabled();
