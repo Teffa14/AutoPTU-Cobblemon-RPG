@@ -4,5 +4,6 @@
   "block.autoptu_cobblemon_rpg_fabric_adapter.item_storage_terminal": "Item Storage Terminal",
   "block.autoptu_cobblemon_rpg_fabric_adapter.crafting_workstation": "Crafting Workstation",
   "block.autoptu_cobblemon_rpg_fabric_adapter.field_camp": "Field Camp",
-  "block.autoptu_cobblemon_rpg_fabric_adapter.gym_league_registration_desk": "Gym & League Registration Desk"
+  "block.autoptu_cobblemon_rpg_fabric_adapter.gym_league_registration_desk": "Gym & League Registration Desk",
+  "block.autoptu_cobblemon_rpg_fabric_adapter.cedar_badge_gate": "Cedar League Badge Gate"
 }
