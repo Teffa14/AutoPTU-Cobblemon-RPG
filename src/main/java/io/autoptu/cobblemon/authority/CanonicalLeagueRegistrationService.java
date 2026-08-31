@@ -9,46 +9,54 @@ import java.util.Set;
 public final class CanonicalLeagueRegistrationService {
     private static final int MAX_STALE_RETRIES = 16;
 
-    private final CanonicalLeagueChallengeCatalogue catalogue;
+    private final CanonicalLeagueChallengeCatalogue registrationCatalogue;
+    private final CanonicalTrainerChallengeCatalogue challengeCatalogue;
     private final CanonicalStateRepository players;
     private final FileCanonicalLeagueRegistrationRepository registrations;
     private final FileCanonicalTrainerRecordRepository records;
 
     public CanonicalLeagueRegistrationService(
-            CanonicalLeagueChallengeCatalogue catalogue,
+            CanonicalLeagueChallengeCatalogue registrationCatalogue,
+            CanonicalTrainerChallengeCatalogue challengeCatalogue,
             CanonicalStateRepository players,
             FileCanonicalLeagueRegistrationRepository registrations,
             FileCanonicalTrainerRecordRepository records
     ) {
-        this.catalogue = Objects.requireNonNull(catalogue, "catalogue");
+        this.registrationCatalogue = Objects.requireNonNull(registrationCatalogue, "registrationCatalogue");
+        this.challengeCatalogue = Objects.requireNonNull(challengeCatalogue, "challengeCatalogue");
         this.players = Objects.requireNonNull(players, "players");
         this.registrations = Objects.requireNonNull(registrations, "registrations");
         this.records = Objects.requireNonNull(records, "records");
+        for (var definition : registrationCatalogue.registrations()) {
+            if (challengeCatalogue.challenge(definition.challengeId()).isEmpty()) {
+                throw new IllegalArgumentException("registration references unknown canonical Trainer challenge " + definition.challengeId());
+            }
+        }
     }
 
     public Summary inspect(String authenticatedPlayerId) {
         String playerId = requireTrainer(authenticatedPlayerId);
-        var state = registrations.findOrCreate(playerId);
-        var record = records.findOrCreate(playerId);
-        return project(state, record);
+        return project(registrations.findOrCreate(playerId), records.findOrCreate(playerId));
     }
 
     public RegistrationResult register(String authenticatedPlayerId, String challengeId) {
         String playerId = requireTrainer(authenticatedPlayerId);
-        CanonicalLeagueChallengeCatalogue.Challenge challenge = catalogue.challenge(challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("unknown authored Gym/League challenge"));
+        CanonicalLeagueChallengeCatalogue.RegistrationDefinition definition = registrationCatalogue.registration(challengeId)
+                .orElseThrow(() -> new IllegalArgumentException("unknown authored Gym/League registration"));
+        CanonicalTrainerChallengeCatalogue.Challenge challenge = challengeCatalogue.challenge(definition.challengeId())
+                .orElseThrow(() -> new IllegalStateException("registration references unavailable canonical Trainer challenge"));
 
         for (int retry = 0; retry < MAX_STALE_RETRIES; retry++) {
             var current = registrations.findOrCreate(playerId);
             if (current.challengeIds().contains(challenge.challengeId())) {
-                return new RegistrationResult(false, challenge, project(current, records.findOrCreate(playerId)));
+                return new RegistrationResult(false, definition.kind(), challenge, project(current, records.findOrCreate(playerId)));
             }
             ArrayList<String> ids = new ArrayList<>(current.challengeIds());
             ids.add(challenge.challengeId());
             var replacement = new FileCanonicalLeagueRegistrationRepository.RegistrationState(
                     playerId, ids, current.revision() + 1);
             if (registrations.replaceIfRevision(replacement, current.revision())) {
-                return new RegistrationResult(true, challenge, project(replacement, records.findOrCreate(playerId)));
+                return new RegistrationResult(true, definition.kind(), challenge, project(replacement, records.findOrCreate(playerId)));
             }
         }
         throw new IllegalStateException("Gym/League registration retry exhausted");
@@ -69,11 +77,13 @@ public final class CanonicalLeagueRegistrationService {
             FileCanonicalLeagueRegistrationRepository.RegistrationState state,
             FileCanonicalTrainerRecordRepository.TrainerRecord record
     ) {
-        List<Registration> entries = state.challengeIds().stream()
-                .map(id -> catalogue.challenge(id)
-                        .map(challenge -> new Registration(challenge.challengeId(), challenge.kind(), challenge.displayName()))
-                        .orElseThrow(() -> new IllegalStateException("persisted registration references unknown authored challenge " + id)))
-                .toList();
+        List<Registration> entries = state.challengeIds().stream().map(id -> {
+            CanonicalLeagueChallengeCatalogue.RegistrationDefinition definition = registrationCatalogue.registration(id)
+                    .orElseThrow(() -> new IllegalStateException("persisted registration references unknown authored registration " + id));
+            CanonicalTrainerChallengeCatalogue.Challenge challenge = challengeCatalogue.challenge(id)
+                    .orElseThrow(() -> new IllegalStateException("persisted registration references unknown canonical Trainer challenge " + id));
+            return new Registration(challenge.challengeId(), definition.kind(), challenge.displayName());
+        }).toList();
         return new Summary(
                 state.playerId(),
                 entries,
@@ -104,5 +114,10 @@ public final class CanonicalLeagueRegistrationService {
         }
     }
 
-    public record RegistrationResult(boolean newlyRegistered, CanonicalLeagueChallengeCatalogue.Challenge challenge, Summary summary) { }
+    public record RegistrationResult(
+            boolean newlyRegistered,
+            CanonicalLeagueChallengeCatalogue.Kind kind,
+            CanonicalTrainerChallengeCatalogue.Challenge challenge,
+            Summary summary
+    ) { }
 }
