@@ -49,16 +49,18 @@ if (-not $npx) {
 }
 
 Write-Host "Starting Minecraft Dev MCP on loopback port $MinecraftDevPort..."
-$process = Start-Process \
-    -FilePath $npx.Source \
-    -ArgumentList @(
+$startArgs = @{
+    FilePath = $npx.Source
+    ArgumentList = @(
         "-y",
         "@mcdxai/minecraft-dev-mcp",
         "--http",
         "--host", "127.0.0.1",
         "--port", "$MinecraftDevPort"
-    ) \
-    -PassThru
+    )
+    PassThru = $true
+}
+$process = Start-Process @startArgs
 
 $ready = $false
 for ($attempt = 0; $attempt -lt 30; $attempt++) {
