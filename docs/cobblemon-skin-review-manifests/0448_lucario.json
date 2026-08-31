@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Owner Reference Replica — Blue/White Maid Lucario V33",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V34",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,7 +53,7 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "8dfba03795cd3e524876a9ff37a441f118011847519e6ee541c7bea03e5121b1",
+    "modelSha256": "410bdd289ee1013f84289d64c1da404f47290318239c2df04b271aabdac33a58",
     "productionBoneCount": 98,
     "cosmeticBoneCount": 11,
     "cosmeticCubeCount": 46,
@@ -65,10 +65,10 @@
       {
         "role": "BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
-        "sha256": "359dde044e29ed4b585adc46e5e30e935e664b45278238f9d052c25aa501b3d2",
+        "sha256": "ce03782e5dcfa05556dd91d8ee219354103a289d5ca218ab51caaa04e897879a",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v33-reference-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v34-reference-derived-normal.json"
       },
       {
         "role": "OVERLAY",
@@ -86,7 +86,7 @@
       {
         "role": "SHINY_BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
-        "sha256": "1ee71fb10326bb449e699036724b428ede3c6a74399bcb549c9f299e84f106ec"
+        "sha256": "b98eefba8d75146eabda34c2bc73eb21cc0289ed867a671a02f814fd0960299f"
       }
     ]
   },
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v33-reference-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v33-reference-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v34-reference-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v34-reference-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -156,11 +156,11 @@
     "signaturePieces": [
       "Irregular folded cool-white cap with low blue band and dominant left ribbon stack",
       "White fitted bodice/sleeves with blue cuffs, charcoal gloves and silver/blue clasp",
-      "Long solid white bell/trapezoid apron over subordinate blue side/back skirt with biological Lucario feet exposed"
+      "Deep uninterrupted two-stage white apron front with blue restricted to side/back under-skirt"
     ],
-    "macroFormPlan": "V33 concentrates fidelity work into the supplied reference silhouette: fewer larger offset cap folds, a higher white waist, and three overlapping white apron shells that create one uninterrupted long front mass. Blue skirt geometry moves behind/to the sides.",
-    "paintPlan": "Normal/shiny derive independently from exact official 1.7.3 baselines. Biological blue is further reduced to deep navy/teal so the official tail remains anatomical but visually subordinate to the white costume.",
-    "gameplayReadGoal": "At 160 px read the same first-order masses as the owner image: tall irregular white cap, black/red face, white upper body, long broad white apron, small blue side/back fields, dark gloves and Lucario-shaped dark feet.",
+    "macroFormPlan": "V34 preserves the V33 head/upper-body read but replaces all front apron segmentation with two deep overlapping white masses placed substantially in front of blue skirt/body geometry, eliminating visible blue wedges by construction.",
+    "paintPlan": "Normal/shiny remain independent exact-official derivations; biological blue stays deep navy/teal and accessory material remains cool white/grey, royal/periwinkle blue and charcoal.",
+    "gameplayReadGoal": "At 160 px the front apron must read as one long solid white mass like the supplied owner reference, with blue only at side/back.",
     "antiPatternsToReject": [
       "Detached placard apron",
       "Square cosmetic boots",
@@ -169,18 +169,18 @@
       "Any change to official biological bones or battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V32 exact-head evidence (head 0e574162d5ceeebf79c7da38f60c05b25f104b4a) passed visual floors but direct image comparison still showed a short blue-cut apron and regular cap tower. V33 rebuilds those two dominant masses; owner approval remains absent."
+    "iterationNote": "V33 exact-head visual QA still showed blue wedges interrupting the apron. V34 fixes front-depth ordering and apron continuity directly; owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves exact official 87-bone anatomy plus V33 costume and independent normal paint."
+        "coverage": "Default preserves exact official 87-bone anatomy plus V34 costume and independent normal paint."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses identical V33 costume geometry and independent official-shiny derivation."
+        "coverage": "Shiny uses identical V34 costume geometry and independent official-shiny derivation."
       },
       {
         "name": "sex/forms",
