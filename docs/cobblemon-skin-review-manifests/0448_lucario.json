@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Aura Sentinel — Resonance Ronin V28b",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V29",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "4d574454fdee91fc75a5ef01c02755293538e94d0834e3dc9b556510670a186b",
-    "productionBoneCount": 90,
-    "cosmeticBoneCount": 3,
-    "cosmeticCubeCount": 6,
+    "modelSha256": "54c389a43d5332de8eaa981b7c36ed0a6342199d34e492a1c21ab441c7130b77",
+    "productionBoneCount": 101,
+    "cosmeticBoneCount": 14,
+    "cosmeticCubeCount": 48,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -65,10 +65,10 @@
       {
         "role": "BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
-        "sha256": "adce7950c4215489959b17227c0d650420c24b3a7fdfba254882dcb08575c79f",
+        "sha256": "d62bbe7b8def3af40b9a56716b11ff05040ecbbce43af342d33e7b4dd8224124",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v28-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v29-reference-derived-normal.json"
       },
       {
         "role": "OVERLAY",
@@ -86,16 +86,16 @@
       {
         "role": "SHINY_BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
-        "sha256": "8dd0189f09aa12f4e8201866dad3ccabd8c19fbab05f22c93b79633a2fe45a64"
+        "sha256": "c3b7e26ef6e0503dae30f8664a09d3ccafa9d8fbe918c9564d6e63aefcedc651"
       }
     ]
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v28.py",
+    "scriptPath": "tools/cobblemon-model-review/build_lucario_owner_reference_v29.py",
     "command": [
       "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v28.py"
+      "tools/cobblemon-model-review/build_lucario_owner_reference_v29.py"
     ],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v28-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v28-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v29-reference-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v29-reference-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -154,32 +154,31 @@
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Single asymmetric resonance arc sweeping from left shoulder past the upper torso",
-      "Torso-root counter-facet that preserves chest-spike negative space",
-      "Small opposite hip echo carrying the diagonal through the body without a second bulky system"
+      "Tall stepped white headpiece with royal-blue band and side ribbon blocks",
+      "White fitted bodice and full animated sleeves with blue cuffs, dark gloves and silver/blue bow clasp",
+      "Wide layered white apron skirt with blue side/back panels and dark stocking/boot lower body"
     ],
-    "macroFormPlan": "V28b preserves the clean head/back/tail and deletes scattered collar-rib-limb traces. One three-facet tapered shoulder arc provides the dominant silhouette break, with physically overlapping facets rooted by two smaller torso planes around the chest spike. A single hip echo continues the diagonal rhythm. No mantle, backpack, cage, repeated fins or orthogonal armor stack is allowed.",
-    "paintPlan": "Normal and shiny remain independently derived from exact 1.7.3 baselines. Broader cobalt value fields, indigo occlusion and sparse directional glints support the shoulder arc without drawing literal costume markings. Cream spikes, whites, eyes, dimensions, UV layout and alpha semantics stay protected.",
-    "gameplayReadGoal": "At 160 px read one premium asymmetric shoulder crescent plus coherent cobalt/indigo material treatment. The silhouette break must exceed the unchanged 0.04 floor through useful contour, not oversized slabs.",
+    "macroFormPlan": "V29 is a clean-sheet owner-reference replica, not another Resonance Ronin increment. All V28 cosmetic geometry is discarded. Fourteen attachment-rooted costume systems cover the head, neck, torso, both arm chains, waist, skirt, both lower legs and both feet while preserving the exact official Lucario anatomy underneath.",
+    "paintPlan": "Normal and shiny are independently derived from the exact 1.7.3 baselines. Biological blue is shifted toward the reference teal/cobalt blocks and dark biology toward charcoal with discrete value variation. Red eyes, cream spikes, UV layout, dimensions and alpha semantics remain intact. Costume uses a dedicated cool-white/blue/charcoal overlay palette.",
+    "gameplayReadGoal": "At 160 px the model must instantly read as the supplied white-and-blue maid/housekeeper skin: tall headpiece, white sleeves/bodice, broad apron skirt, blue side panels and dark legs/boots.",
     "antiPatternsToReject": [
-      "Pokemon base plus scattered accessories",
-      "Rectangular cage, shrine frame or portal silhouette",
-      "Detached floating fins or equipment islands",
-      "Flat recolor used as a substitute for authored geometry"
+      "Returning to Resonance Ronin shoulder arcs, mantles or tiny accessory traces",
+      "Flattening the owner target into a recolor without the headpiece, sleeves and apron silhouette",
+      "Changing official biological bones or using Cobblemon battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V28 reached deterministic production but the unchanged attachment gate rejected distal arc cube 2 (bodyGap 3.28, nearestSiblingGap 1.58). V28b moves the second and third facets inward and upward to create real overlap while preserving taper and the intended asymmetric silhouette. Thresholds remain unchanged."
+    "iterationNote": "Owner supplied a concrete existing-skin render on 2026-08-30 and explicitly requested a faithful replica. Source image SHA-256: 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419. Only one three-quarter render was supplied, so unseen rear/side micro-details are reconstructed conservatively while visible costume masses/colors are targeted directly. Artistic approval remains owner-only."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves the exact official 87-bone Lucario geometry and uses a validated V28b normal texture independently derived from the exact official 1.7.3 baseline."
+        "coverage": "Default preserves the exact official 87-bone Lucario geometry and adds the V29 owner-reference costume plus a validated independently-derived normal texture."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses the same V28b cosmetic geometry and overlay plus an independently derived V28b texture from the exact official shiny 1.7.3 baseline."
+        "coverage": "Shiny preserves the same V29 costume geometry and derives body paint independently from the exact official 1.7.3 shiny baseline."
       },
       {
         "name": "sex/forms",
