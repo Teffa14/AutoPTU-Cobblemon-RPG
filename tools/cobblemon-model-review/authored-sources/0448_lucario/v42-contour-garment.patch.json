@@ -1,0 +1,51 @@
+{
+  "format": "ouros.blockbench-authored-cosmetic-patch.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "concept": "Aura Sentinel V42 — swept cowl and split combat-coat",
+  "artStatus": "ARTISTIC FAIL",
+  "reviewState": "BLOCKBENCH_REVIEW_PENDING",
+  "authoringIntent": "Material Lucario-only macro-form rework after V41. Replace the slab-prone cap/apron read with a swept asymmetric head cowl, fitted torso wrap, split front coat, rear tails, and tapered arm cuffs. No rejected V40/V41 cosmetic bytes are inherited.",
+  "officialBaseline": {"cobblemonVersion":"1.7.3","minecraftVersion":"1.21.1","loader":"fabric","modrinthVersionId":"kF7CvxTo","modelPath":"assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json","modelSha256":"ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9","officialBoneCount":87},
+  "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0448_lucario.json",
+  "referenceCarryForward": ["Ruins Style: segmented parented drape and edge hierarchy; do not copy costume silhouette or ring motif.","Space Style: anatomy-following shell distribution across torso and limbs; do not copy suit/helmet construction or panel layout.","Covert Style: coherent head/torso garment mass with arm continuity; do not copy hood/cloak profile, palette, or markings."],
+  "designRules": {"inheritRejectedCosmeticGeometry":false,"thinFlexibleFormsPreferred":true,"dominantRectangularApronFaceAllowed":false,"stackedCapSlabsAllowed":false,"requiredViewsBeforeProduction":["front","left","right","back","three_quarter","gameplay_160"]},
+  "bones": [
+    {"name":"ouros_v42_cowl","parent":"head_angle","pivot":[0,38.5,-0.2],"cubes":[
+      {"origin":[-4.9,38.0,-2.1],"size":[4.7,0.42,3.5],"pivot":[-2.1,38.3,-0.3],"rotation":[-8,-8,-16],"uv":[80,63]},
+      {"origin":[0.0,38.15,-1.9],"size":[4.45,0.38,3.25],"pivot":[2.0,38.4,-0.2],"rotation":[-6,6,10],"uv":[81,63]},
+      {"origin":[-3.7,39.0,0.7],"size":[6.2,0.28,2.0],"pivot":[-0.4,39.2,1.6],"rotation":[-15,0,5],"uv":[82,63]},
+      {"origin":[-5.2,37.7,-4.2],"size":[3.4,0.24,2.2],"pivot":[-3.3,37.9,-3.0],"rotation":[-14,-4,-22],"uv":[83,63]},
+      {"origin":[1.6,37.8,-4.0],"size":[3.0,0.22,2.0],"pivot":[3.0,38.0,-2.9],"rotation":[-11,5,14],"uv":[84,63]},
+      {"origin":[-5.7,37.2,-0.6],"size":[1.2,0.34,2.5],"pivot":[-5.0,37.6,0.5],"rotation":[2,-12,-28],"uv":[85,63]}
+    ]},
+    {"name":"ouros_v42_torso_wrap","parent":"torso3","pivot":[0,27.9,-2.6],"cubes":[
+      {"origin":[-4.3,25.0,-4.22],"size":[3.7,5.4,0.30],"pivot":[-2.2,27.8,-4.0],"rotation":[0,-2,-6],"uv":[80,63]},
+      {"origin":[0.45,25.1,-4.18],"size":[3.55,5.15,0.30],"pivot":[2.1,27.7,-3.98],"rotation":[0,2,5],"uv":[81,63]},
+      {"origin":[-4.65,25.4,-3.45],"size":[0.34,4.45,4.75],"pivot":[-4.4,27.6,-1.1],"rotation":[0,0,-4],"uv":[82,63]},
+      {"origin":[4.12,25.55,-3.35],"size":[0.34,4.2,4.55],"pivot":[4.35,27.6,-1.05],"rotation":[0,0,4],"uv":[83,63]},
+      {"origin":[-3.7,29.7,-4.38],"size":[3.25,0.30,0.30],"pivot":[-2.0,29.8,-4.2],"rotation":[0,0,-12],"uv":[84,63]},
+      {"origin":[0.35,29.55,-4.36],"size":[3.0,0.30,0.30],"pivot":[1.9,29.7,-4.2],"rotation":[0,0,10],"uv":[85,63]},
+      {"origin":[-1.1,26.9,-4.55],"size":[2.2,2.8,0.20],"pivot":[0,28.3,-4.45],"rotation":[0,0,38],"uv":[86,63]}
+    ]},
+    {"name":"ouros_v42_front_coat","parent":"torso","pivot":[0,19.8,-3.45],"cubes":[
+      {"origin":[-5.4,19.0,-4.02],"size":[4.7,0.42,0.48],"pivot":[-2.8,19.4,-3.8],"rotation":[2,0,5],"uv":[80,63]},
+      {"origin":[0.7,18.9,-4.0],"size":[4.35,0.42,0.48],"pivot":[2.8,19.3,-3.78],"rotation":[2,0,-6],"uv":[81,63]},
+      {"origin":[-5.0,12.4,-4.18],"size":[3.25,6.8,0.24],"pivot":[-3.25,18.8,-4.05],"rotation":[1,-2,8],"uv":[82,63]},
+      {"origin":[-3.35,11.4,-4.35],"size":[2.15,7.55,0.22],"pivot":[-2.15,18.7,-4.22],"rotation":[2,0,-5],"uv":[83,63]},
+      {"origin":[1.15,11.9,-4.34],"size":[2.1,7.0,0.22],"pivot":[2.15,18.7,-4.21],"rotation":[2,0,6],"uv":[84,63]},
+      {"origin":[3.0,12.8,-4.14],"size":[2.25,6.15,0.24],"pivot":[4.0,18.7,-4.01],"rotation":[1,2,-9],"uv":[85,63]},
+      {"origin":[-4.8,11.0,-4.48],"size":[2.4,0.28,0.20],"pivot":[-3.55,11.2,-4.36],"rotation":[0,0,13],"uv":[86,63]},
+      {"origin":[2.45,11.45,-4.46],"size":[2.35,0.28,0.20],"pivot":[3.6,11.65,-4.34],"rotation":[0,0,-12],"uv":[87,63]}
+    ]},
+    {"name":"ouros_v42_rear_tails","parent":"torso","pivot":[0,19.0,2.2],"cubes":[
+      {"origin":[-4.8,14.2,2.25],"size":[3.4,5.4,0.24],"pivot":[-2.7,19.0,2.4],"rotation":[-4,5,11],"uv":[80,63]},
+      {"origin":[1.1,13.3,2.35],"size":[3.1,6.15,0.24],"pivot":[2.7,18.9,2.5],"rotation":[-5,-4,-8],"uv":[81,63]},
+      {"origin":[-4.4,12.8,2.2],"size":[2.7,0.26,0.22],"pivot":[-3.0,13.0,2.3],"rotation":[0,0,16],"uv":[82,63]},
+      {"origin":[1.55,11.9,2.28],"size":[2.5,0.26,0.22],"pivot":[2.8,12.1,2.38],"rotation":[0,0,-14],"uv":[83,63]}
+    ]},
+    {"name":"ouros_v42_left_cuff","parent":"arm_left2","pivot":[10.4,29.4,-0.4],"cubes":[{"origin":[8.7,27.8,-2.25],"size":[3.35,3.45,3.65],"inflate":0.05,"pivot":[10.35,29.5,-0.4],"rotation":[0,0,-6],"uv":[80,63]},{"origin":[9.0,27.25,-2.5],"size":[2.75,0.32,4.1],"pivot":[10.4,27.5,-0.4],"rotation":[0,0,-9],"uv":[84,63]}]},
+    {"name":"ouros_v42_right_cuff","parent":"arm_right2","pivot":[-10.4,29.4,-0.4],"cubes":[{"origin":[-12.05,27.8,-2.25],"size":[3.35,3.45,3.65],"inflate":0.05,"pivot":[-10.35,29.5,-0.4],"rotation":[0,0,6],"uv":[81,63]},{"origin":[-11.75,27.25,-2.5],"size":[2.75,0.32,4.1],"pivot":[-10.4,27.5,-0.4],"rotation":[0,0,9],"uv":[85,63]}]}
+  ],
+  "sliceMetrics": {"cosmeticBoneCount":6,"cosmeticCubeCount":29,"dominantSystems":["asymmetric_cowl","torso_wrap","split_front_coat","rear_tails","tapered_cuffs"],"signaturePieces":["left-swept cowl edge","split front coat with central negative space","asymmetric rear tails"],"nextRequiredStep":"Materialize only as a pre-production preview against the exact official 87-bone Lucario baseline, capture matched-camera Blockbench front/left/right/back/three-quarter/gameplay views, inspect clipping in official idle/battle states, then either iterate or remain ARTISTIC FAIL."}
+}
