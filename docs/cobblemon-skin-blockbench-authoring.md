@@ -4,6 +4,8 @@ Effective: 2026-08-31
 
 This document is an authoritative extension of `docs/cobblemon-skin-art-direction.md` and `docs/cobblemon-skin-professional-pipeline.md`. Where older documentation implies that a Python builder should make premium artistic shape decisions, this newer rule wins.
 
+The supported live agent bridge is defined in `docs/cobblemon-skin-mcp-toolchain.md`. Premium authoring should use the pinned Blockbench MCP bridge when a compatible local authoring environment is available.
+
 ## Core rule
 
 Premium Ouros Cobblemon skin geometry is authored visually in Blockbench first.
@@ -16,13 +18,23 @@ A deterministic pipeline remains mandatory. Determinism now means:
 
 It does not mean that an artistically significant form must be generated procedurally from Python literals.
 
+## Live MCP authoring rule
+
+When Blockbench MCP is reachable, the modeling agent should operate the actual Blockbench scene through MCP for geometry, mesh, hierarchy, UV, paint, camera, animation and export operations instead of translating visual decisions into a procedural Python model generator.
+
+The reviewed MCP implementation exposes Blockbench-native project, cube, element, mesh, armature, texture, paint, UV, animation, camera, import/export and history tools. Mesh editing exists but several mesh operations are explicitly experimental upstream, so every novel mesh feature still requires Cobblemon runtime proof before production use.
+
+Minecraft Dev MCP is a companion implementation-inspection tool. Use it to decompile/search Minecraft or a mod, inspect mappings and registry behavior, analyze a mod JAR and validate integration code. It never receives battle authority and it is not the artistic modeling surface.
+
+If the local MCP bridge is unavailable, do not fall back to procedural art generation and claim the candidate is Blockbench-authored. The correct state is `AUTHORING ENVIRONMENT REQUIRED` until a real visual authoring pass occurs.
+
 ## Authoring source of truth
 
 For a professional candidate, the manifest must identify a committed authored source and its SHA-256. Preferred source is the exact Blockbench-editable `.geo.json` used for the candidate when that preserves all required Bedrock semantics. A `.bbmodel` may be used only after the runtime pipeline proves a deterministic, version-pinned export path to the exact production `.geo.json`.
 
 The production model must still be derived from the exact current official Cobblemon model extracted from the pinned stable JAR. All official biological bones remain JSON-equivalent and in original order. Only `ouros_*` geometry may be added.
 
-Manual Blockbench authoring never grants permission to alter official anatomy.
+Manual or MCP-driven Blockbench authoring never grants permission to alter official anatomy.
 
 ## Geometry language
 
@@ -63,7 +75,7 @@ For each dominant signature piece:
 9. Only after the macro-form works, add material breakup and smaller secondary pieces.
 10. Export or save the exact authored source and let deterministic tooling validate/materialize it without redesigning it.
 
-Blockbench evidence is part of the modeling loop, not merely a final screenshot generator.
+When MCP is active, the steps above are performed through the live Blockbench scene. Camera and animation tools are part of the modeling loop, not merely a final screenshot stage.
 
 ## Python builder/materializer boundary
 
@@ -84,7 +96,7 @@ Python must not silently replace or procedurally approximate a rejected authored
 
 ## Blockbench capability experiments
 
-Runtime capabilities such as zero-thickness elements, very thin planes, unusual rotations or `poly_mesh` must be tested in an isolated technical fixture before relying on them in a production skin. An experimental feature is never assumed supported merely because Blockbench can display it.
+Runtime capabilities such as zero-thickness elements, very thin planes, unusual rotations or `poly_mesh` must be tested in an isolated technical fixture before relying on them in a production skin. An experimental feature is never assumed supported merely because Blockbench can display it or an MCP tool can create it.
 
 A capability fixture must prove:
 
