@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
+import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -10,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.Map;
+import java.util.Optional;
 
 /** `/autoptu encounter status` read-only projection of server-owned encounter preparation state. */
 public final class FabricEncounterStatusRuntime {
@@ -45,12 +47,27 @@ public final class FabricEncounterStatusRuntime {
             return 0;
         }
 
+        Optional<WorldEncounterTriggerRequestService.Request> pending = FabricCanonicalPlayerStoreRuntime
+                .requireActiveEncounterSessionRepository(player.getServer())
+                .findPending(playerId);
+
         player.sendMessage(Text.literal("AutoPTU encounter status"), false);
         player.sendMessage(Text.literal("Party: " + formatParty(profile)), false);
         player.sendMessage(Text.literal("Consumables: " + formatConsumables(profile.consumableQuantities())), false);
         player.sendMessage(Text.literal("Arena: " + profile.arena()), false);
+        if (pending.isPresent()) {
+            WorldEncounterTriggerRequestService.Request request = pending.get();
+            player.sendMessage(Text.literal(
+                    "Pending world encounter: " + request.canonicalEncounterId()
+                            + " [" + request.zoneId() + "/" + request.contextId() + "]"
+                            + " @ " + request.dimensionId()
+                            + " " + request.blockX() + "," + request.blockY() + "," + request.blockZ()
+            ), false);
+        } else {
+            player.sendMessage(Text.literal("Pending world encounter: none"), false);
+        }
         player.sendMessage(Text.literal(
-                "Reservation/start readiness: authoritative battle reservation state is not exposed by this read surface"
+                "Battle-start readiness remains unavailable until the authoritative battle boundary accepts this reservation"
         ), false);
         player.sendMessage(Text.literal(
                 "Encounter legality, combatants and outcomes remain server-owned by the canonical battle authority"
