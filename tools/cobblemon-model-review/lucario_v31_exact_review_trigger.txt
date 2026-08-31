@@ -1,0 +1,3 @@
+Lucario owner-reference V31 exact-head review trigger.
+
+Review the materialized V31 production bytes from the current branch with pinned Blockbench 5.1.6 and official Cobblemon 1.7.3 matched-camera evidence. Owner approval remains absent; tooling may not approve art.
