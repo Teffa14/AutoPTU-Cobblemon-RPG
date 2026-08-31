@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Owner Reference Replica — Blue/White Maid Lucario V31",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V32",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "00aa8bf82270dd3bc9474de68045db8d7f8de3a8c662cd70345e06239d78d5d7",
-    "productionBoneCount": 102,
-    "cosmeticBoneCount": 15,
-    "cosmeticCubeCount": 51,
+    "modelSha256": "b773a9bc0a29c141106a470ecacc7ac12e9622e3dfb2c6cc64d5afbb3e2e2f6c",
+    "productionBoneCount": 98,
+    "cosmeticBoneCount": 11,
+    "cosmeticCubeCount": 45,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -65,15 +65,15 @@
       {
         "role": "BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
-        "sha256": "a5bec0d1487e9fb1d73fe96a5fee6733c680a43edec0f18d16ff82cec5ec8973",
+        "sha256": "6fafa7583a562f9ac3ec848c8b627b2a5800bf965287c568fa4dcb5898f39775",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v31-reference-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v32-reference-derived-normal.json"
       },
       {
         "role": "OVERLAY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png",
-        "sha256": "9d8c84b8ef9d3f2d56a4d9c62b19f3d337fd59d9bc56733952f4b79381750a9c",
+        "sha256": "e704543a01031f8d3cef4b6f945b90702d0182c178ea9150ed1c6592aad1c585",
         "derivation": "ACCESSORY_OVERLAY"
       }
     ],
@@ -86,7 +86,7 @@
       {
         "role": "SHINY_BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
-        "sha256": "3a94f0e6cb373ec5a1e830fdb5b4ad08134751a1274ddbc7b598245a60464eec"
+        "sha256": "04f479e0effb6d002237e067ec3efce95a2df8baea2ac7f299bf0f8b11534b05"
       }
     ]
   },
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v31-reference-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v31-reference-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v32-reference-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v32-reference-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -154,13 +154,13 @@
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Tall cool-white stepped headpiece with low blue band and asymmetric blue side ribbon",
-      "White fitted bodice and animated sleeves with blue cuffs, oversized charcoal gloves and silver/blue clasp",
-      "Broad layered white apron over blue side/back skirt with dark lower body"
+      "Irregular stacked cool-white cap with low blue band and dominant left-side ribbon stack",
+      "White fitted bodice/sleeves with blue cuffs, charcoal oversized gloves and silver/blue clasp",
+      "Broad solid white apron front over blue side/back under-skirt; official Lucario-shaped dark legs and feet remain exposed"
     ],
-    "macroFormPlan": "V31 is the owner-reference fidelity architecture and does not reuse Resonance Ronin macroforms.",
-    "paintPlan": "Normal/shiny derive independently from exact official 1.7.3 baselines; accessory overlay uses dedicated cool-white/grey, royal-blue and charcoal swatches.",
-    "gameplayReadGoal": "At 160 px read the supplied white-and-blue owner target immediately.",
+    "macroFormPlan": "V32 removes V31 cosmetic leg/boot shells, replaces the angular apron read with one broad white-dominant front bell/trapezoid, and offsets the cap layers so the headpiece no longer reads as a symmetric tower.",
+    "paintPlan": "Normal/shiny derive independently from exact official 1.7.3 baselines. Biological blue is pushed to deep navy/teal, especially reducing tail dominance; accessory overlay remains dedicated cool white/grey, periwinkle/royal blue and charcoal.",
+    "gameplayReadGoal": "At 160 px match the supplied target first read: irregular tall white headpiece, black/red face, white sleeves/bodice, broad white apron, blue side/back skirt, dark gloves and Lucario-shaped dark legs/feet.",
     "antiPatternsToReject": [
       "Detached placard apron",
       "Square cosmetic boots",
@@ -169,18 +169,18 @@
       "Any change to official biological bones or battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "Owner image SHA-256 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419. V31 is self-contained so active materialization can transition safely."
+    "iterationNote": "V31 exact-head evidence passed technical visual floors but direct comparison to owner image SHA-256 28da2aa76025e2c2e625eb8df60153656d6ea17289cfb2a56da62f9159e3e419 still showed square boot shells, too much blue under-skirt, fragmented apron shapes, regular cap stacking and a bright blue tail. V32 fixes those visible mismatches without changing the official 87-bone anatomy or thresholds."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves exact official 87-bone anatomy plus V31 costume and independent normal paint."
+        "coverage": "Default preserves exact official 87-bone anatomy plus V32 costume and independent normal paint."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses identical V31 costume geometry and independent official-shiny derivation."
+        "coverage": "Shiny uses identical V32 costume geometry and independent official-shiny derivation."
       },
       {
         "name": "sex/forms",
