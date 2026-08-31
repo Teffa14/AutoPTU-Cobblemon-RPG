@@ -282,7 +282,7 @@ These should become the normal gameplay path.
 | BUI-012 | TODO | Winner/loser/result screen. |
 | BUI-013 | TODO | Post-battle result/reward screen. |
 | BUI-014 | LIVE/PARTIAL | Spectator mode — PR #362 / merge `fc5c5f028c7f1c532dcc18a83ec462ad5cd86a1c` adds server-generated opaque battle IDs, authenticated read-only attachment and a spectator HUD/status projection. Full semantic playback fan-out/camera remains follow-up presentation work. |
-| BUI-015 | TODO | Semantic battle trace/replay evidence. |
+| BUI-015 | LIVE/PARTIAL | Semantic battle trace/replay evidence — PR #375 / merge `d352c2ac867f9784da4e96f14c93dd9b02b93833`; the Fabric semantic playback boundary records the exact ordered authoritative event envelopes per reservation, deduplicates overlapping replay batches, fails closed on conflicting history, and bounds active evidence to 256 events. Durable/exportable post-battle retention remains follow-up work; Minecraft derives no PTU legality, damage, status, faint, winner or reward state from this trace. |
 | BUI-016 | TODO | Battle soft-lock detection and safe-checkpoint recovery. |
 
 ---
