@@ -1,0 +1,94 @@
+name: BUI-015 Visible Trace Patch
+
+on:
+  push:
+    branches:
+      - rpg/bui-015-visible-trace
+
+permissions:
+  contents: write
+
+jobs:
+  patch-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/bui-015-visible-trace
+      - name: Add authenticated battle trace command
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/battle/FabricBattleChoiceRuntime.java')
+          text = path.read_text()
+
+          old_import = 'import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;\n'
+          new_import = old_import + 'import io.autoptu.cobblemon.fabric.presentation.FabricSemanticBattleTrace;\n'
+          if text.count(old_import) != 1:
+              raise SystemExit('expected persistence import anchor exactly once')
+          text = text.replace(old_import, new_import)
+
+          old_command = '''                                .then(CommandManager.literal("status")
+                                        .executes(context -> showStatus(context.getSource())))
+                                .then(CommandManager.literal("choices")'''
+          new_command = '''                                .then(CommandManager.literal("status")
+                                        .executes(context -> showStatus(context.getSource())))
+                                .then(CommandManager.literal("trace")
+                                        .executes(context -> showTrace(context.getSource())))
+                                .then(CommandManager.literal("choices")'''
+          if text.count(old_command) != 1:
+              raise SystemExit('expected battle command anchor exactly once')
+          text = text.replace(old_command, new_command)
+
+          method_anchor = '''    private static int spectate(ServerCommandSource source, String battleId) {'''
+          method = '''    private static int showTrace(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.literal("Battle trace must be requested by an authenticated player."));
+            return 0;
+        }
+
+        SessionBinding binding = ACTIVE.get(player.getUuid());
+        boolean spectator = false;
+        if (binding == null) {
+            String spectateId = SPECTATORS.get(player.getUuid());
+            binding = spectateId == null ? null : findBySpectateId(spectateId);
+            spectator = binding != null;
+        }
+        if (binding == null) {
+            source.sendError(Text.literal("No active server-owned AutoPTU battle is available for trace inspection."));
+            return 0;
+        }
+
+        var events = FabricSemanticBattleTrace.snapshot(binding.reservationId());
+        player.sendMessage(Text.literal("AutoPTU semantic battle trace" + (spectator ? " (spectator, read-only)" : "")), false);
+        if (events.isEmpty()) {
+            player.sendMessage(Text.literal("No authoritative semantic events recorded yet."), false);
+            return 1;
+        }
+
+        int start = Math.max(0, events.size() - 12);
+        player.sendMessage(Text.literal("showing " + (events.size() - start) + " of " + events.size() + " authoritative events"), false);
+        for (int index = start; index < events.size(); index++) {
+            var event = events.get(index);
+            player.sendMessage(Text.literal(event.sequence() + " | " + event.kind() + " | " + event.stableKey()), false);
+        }
+        return 1;
+    }
+
+'''
+          if text.count(method_anchor) != 1:
+              raise SystemExit('expected spectate method anchor exactly once')
+          text = text.replace(method_anchor, method + method_anchor)
+          path.write_text(text)
+          PY
+      - name: Commit runtime patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "Teffa14"
+          git config user.email "98290252+Teffa14@users.noreply.github.com"
+          git rm .github/workflows/bui-015-visible-trace-patch.yml
+          git add fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/battle/FabricBattleChoiceRuntime.java
+          git commit -m "BUI-015 expose semantic battle trace in Minecraft"
+          git push origin HEAD:rpg/bui-015-visible-trace
