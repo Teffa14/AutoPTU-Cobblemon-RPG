@@ -1,8 +1,14 @@
 package io.autoptu.cobblemon.fabric.battle;
 
+import io.autoptu.cobblemon.battlecore.BattleClientActionRequest;
+import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoice;
+import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoiceSet;
+import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,6 +50,48 @@ class FabricBattleChoiceRuntimeTest {
     void hudTitleRejectsInvalidPresentationInputs() {
         assertThrows(IllegalArgumentException.class, () -> FabricBattleChoiceRuntime.hudTitle(" ", 1));
         assertThrows(IllegalArgumentException.class, () -> FabricBattleChoiceRuntime.hudTitle("actor", -1));
+    }
+
+    @Test
+    void targetOverlayUsesOnlyAuthoritativeShiftAndTargetAnchors() {
+        BattleGridCoordinate shift = new BattleGridCoordinate(2, 3);
+        BattleGridCoordinate tile = new BattleGridCoordinate(4, 5);
+        BattleGridCoordinate combatant = new BattleGridCoordinate(6, 7);
+        BattleGridCoordinate self = new BattleGridCoordinate(8, 9);
+        BattleGridCoordinate field = new BattleGridCoordinate(10, 11);
+        BattleCoreLegalChoiceSet set = new BattleCoreLegalChoiceSet(
+                "reservation-17",
+                "player-mon-1",
+                List.of(
+                        new BattleCoreLegalChoice.Shift("player-mon-1", shift, "shift"),
+                        new BattleCoreLegalChoice.Move("player-mon-1", "ember", BattleClientActionRequest.Target.Mode.TILE,
+                                null, tile, "STANDARD", "tile"),
+                        new BattleCoreLegalChoice.Move("player-mon-1", "tackle", BattleClientActionRequest.Target.Mode.COMBATANT,
+                                "wild-mon-1", combatant, "STANDARD", "combatant"),
+                        new BattleCoreLegalChoice.Move("player-mon-1", "focus", BattleClientActionRequest.Target.Mode.SELF,
+                                null, self, "STANDARD", "self"),
+                        new BattleCoreLegalChoice.Move("player-mon-1", "weather", BattleClientActionRequest.Target.Mode.FIELD,
+                                null, field, "STANDARD", "field")
+                )
+        );
+
+        assertEquals(Set.of(shift, tile, combatant), FabricBattleChoiceRuntime.authoritativeTargetAnchors(set));
+    }
+
+    @Test
+    void targetOverlayDeduplicatesAnchorsAlreadyChosenByUpstream() {
+        BattleGridCoordinate shared = new BattleGridCoordinate(3, 4);
+        BattleCoreLegalChoiceSet set = new BattleCoreLegalChoiceSet(
+                "reservation-17",
+                "player-mon-1",
+                List.of(
+                        new BattleCoreLegalChoice.Shift("player-mon-1", shared, "shift"),
+                        new BattleCoreLegalChoice.Move("player-mon-1", "ember", BattleClientActionRequest.Target.Mode.TILE,
+                                null, shared, "STANDARD", "tile")
+                )
+        );
+
+        assertEquals(Set.of(shared), FabricBattleChoiceRuntime.authoritativeTargetAnchors(set));
     }
 
     @Test
