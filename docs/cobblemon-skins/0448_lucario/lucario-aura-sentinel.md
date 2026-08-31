@@ -1,10 +1,10 @@
-# 0448 Lucario — Aura Sentinel: Resonance Ronin
+# 0448 Lucario — Blue/White Maid V40
 
 Status: ARTISTIC FAIL until exact-head Blockbench QA proves otherwise.
 Sale eligibility: NOT ELIGIBLE.
 Lifecycle: PROFESSIONAL_CANDIDATE.
 
-Lucario remains the one-model lock. Owner rejection remains authoritative; CI and Blockbench only prove technical facts. Current production is Resonance Ronin V24. The branch has been merged safely with current `main` `91bd303306b80774fc0b3c5336321dd34b0d7df9`; no force-push was used.
+Lucario remains the one-model lock. Owner rejection remains authoritative; CI and Blockbench can prove technical facts only. V40 is the current production candidate. The branch remains a draft PR and is not merged as accepted art.
 
 ## Authority boundary
 
@@ -26,30 +26,28 @@ Model license `fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660`
 
 ## Same-species custom reference gate
 
-The hard gate is OPEN with three COMPLETE Lucario custom-geometry references. Ruins Style Lucario and Space Style Lucario come from Lucario Overhaul 1.2.2; Covert Style Lucario comes from CobblemonMoreCosmetics 1.1.71. All are `STUDY_ONLY`. Only general techniques are retained: parent-safe drape, compound rotations, overlapping shells, continuity through animated regions, concentrated silhouette density and material hierarchy. No third-party geometry, UV, texture, palette, outfit, logo or distinctive motif is reused.
+The hard gate is OPEN with three COMPLETE Lucario custom-geometry references. Ruins Style Lucario and Space Style Lucario come from Lucario Overhaul 1.2.2; Covert Style Lucario comes from CobblemonMoreCosmetics 1.1.71. All remain `STUDY_ONLY`. Only general techniques are retained: animation-parented cloth drape, compound rotations, overlapping shells, continuity through animated regions, silhouette distribution and material hierarchy. No third-party geometry, UV, texture, palette, outfit, logo or distinctive motif is reused.
 
-## V23 rejection and V24 response
+## V40 material rework
 
-V23 passed source, anatomy, attachment and derived-texture validation, but exact Blockbench review measured `silhouetteDeltaRatio=0.0146 < 0.0400`. Direct review showed the body-hugging wrap disappearing behind Lucario at hero and gameplay scale.
+V39 passed the technical pipeline but failed internal visual QA because the cap still read as stacked horizontal slabs and the apron still read as a rigid front board.
 
-V24 keeps the independently derived paint and replaces the hidden wrap with one diagonal shoulder-to-back aura mantle. Two intersecting root shells launch three heavily overlapping narrowing sweep facets; four descending facets continue the same gesture toward the hip and split around tail/legs. A single narrow chest edge connects the gesture without covering the official chest spike. The intent is one continuous silhouette, not a crown, waistcoat, backpack, frame or scattered armor kit.
+V40 keeps every official biological bone JSON-equivalent and ordered. It replaces only Ouros presentation geometry. The cap is rebuilt from angled overlapping cloth lobes around the ears, with asymmetric ribbons. The apron is rebuilt from nested diagonal tiers that widen from the waist to the hem, with overlapping left/right panels, side wraps and a rear under-skirt. The intent is a continuous cloth contour rather than a rectangular plate.
 
-The first V24 materialization exposed one real attachment defect in the upper sweep tip (`bodyGap=2.6`, `nearestSiblingGap=2.95`). The attachment thresholds were not relaxed. The tip was pulled inward and widened until it overlapped its predecessor, then the candidate was deterministically rematerialized.
+Canonical V40 builder: `tools/cobblemon-model-review/build_lucario_owner_reference_v40.py`.
 
-Canonical V24 builder: `tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v24.py`.
+Current deterministic production model SHA-256 `e7041f36246ed985df8503c511dba08fdfea1d61f54b182328e952d4ae0bbdeb`. It preserves the exact ordered 87 official bones and appends 11 `ouros_*` groups, for 98 bones total and 49 cosmetic cubes.
 
-Attachment-fixed production model SHA-256 `2f32f54aa6bee14b6ee7da310728b02f57d01222a8d40c910f4cd77af0e01cfc`. It preserves the exact ordered 87 official bones and appends four `ouros_*` presentation groups, 91 bones total, with 10 cosmetic cubes.
+## V40 textures
 
-## V24 textures
+Normal production texture SHA-256 `a7b4f287929c8bbad12dbe75f33e7398e50ae88e60d06e2ef1b6a307cfed9e31`, derived independently from the exact official normal baseline. Shiny production texture SHA-256 `9f9a544181c6e4a72a966033d7064f96b75a68913a418af9791ef4d67945d268`, derived independently from the official shiny baseline. Dimensions, official UV layout and alpha semantics remain unchanged. Ear UVs are charcoal, cream landmarks use cool grey/white value structure, and tail UVs use near-charcoal dark teal so the biological tail does not dominate the costume.
 
-Normal production texture SHA-256 `5b2c5812a6916bff5eb5fe66827343f98d8ec8fe61a3c4598e8d980550290262`, independently derived from the exact official normal baseline. Shiny production texture SHA-256 `4f5a85766999c27a6b8dcf04ef0770f79b2f79a058ef1457d9c3b5f1d9e6fee5`, independently derived from the exact official shiny baseline. Dimensions, UV layout and alpha semantics remain unchanged. Cream spikes, white landmarks and red eyes remain protected. Blue biology receives restrained cobalt value shaping; dark biology receives indigo occlusion and sparse highlights.
+Accessory overlay SHA-256 `f87ffc6a78c424c368c8cae25b164711c3c74d8282deb78a4a23833fca48686d`. Production resolver SHA-256 `6a8e2d47ea0fab34cb6bf5955609049f1cc3b8d744ad6c8155333a36eb7be0ba`.
 
-Accessory overlay SHA-256 `9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee`. Production resolver SHA-256 `6a8e2d47ea0fab34cb6bf5955609049f1cc3b8d744ad6c8155333a36eb7be0ba`.
-
-No male/female geometry split exists on the official 1.7.3 resolver path. Mega Lucario is outside this cosmetic slice.
+No male/female geometry split exists on the official 1.7.3 resolver path. Mega Lucario remains outside this cosmetic slice.
 
 ## Evidence contract
 
-Blockbench 5.1.6, AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`, matched camera. Hero uses `animation.lucario.ground_idle`; battle uses `animation.lucario.battle_idle`, both at `t=0.35`. No dedicated walking render is fabricated because this Lucario locomotion path is procedural rather than a dedicated Bedrock walking clip.
+Blockbench 5.1.6, AppImage SHA-256 `c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e`, matched camera. Hero uses `animation.lucario.ground_idle`; battle uses `animation.lucario.battle_idle`, both at `t=0.35`. No dedicated walking render is fabricated because this Lucario path has no equivalent dedicated Bedrock walking clip.
 
-V24 remains `ARTISTIC FAIL` until the exact current-head PNG set is generated and inspected. Passing technical floors cannot grant artistic approval; only the owner can approve the exact current evidence set.
+V40 remains `ARTISTIC FAIL` until the exact current-head PNG set is generated and opened for visual inspection. Green source, anatomy, attachment, texture, build or Blockbench gates cannot grant artistic approval. Only the owner can approve the exact current evidence set.
