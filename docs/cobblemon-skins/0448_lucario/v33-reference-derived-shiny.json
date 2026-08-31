@@ -1,0 +1,18 @@
+{
+  "format": "ouros.cobblemon-derived-texture.v1",
+  "species": "lucario",
+  "variant": "shiny",
+  "officialTextureBaseline": "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
+  "officialTextureBaselineSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
+  "derivedTexture": "ouros_aura_sentinel_shiny.png",
+  "derivedTextureSha256": "1ee71fb10326bb449e699036724b428ede3c6a74399bcb549c9f299e84f106ec",
+  "bodyTexelRework": "PAINTED_VALUE_MATERIAL_PASS",
+  "paletteIntent": "Restrained deep-cobalt aura lacquer on existing blue biology and indigo steel depth on existing dark biology; cream spikes, white landmarks and red eyes preserved.",
+  "materialIntent": "Local value ramps, lower-surface painted occlusion and sparse facing highlights; no uniform hue rotation, flood fill, third-party palette, markings or costume motifs.",
+  "repaintRegions": [
+    "existing blue biological texels",
+    "existing dark biological texels"
+  ],
+  "alphaSemantics": "UNCHANGED",
+  "sourceRelease": "Cobblemon 1.7.3 Fabric / Modrinth kF7CvxTo"
+}
