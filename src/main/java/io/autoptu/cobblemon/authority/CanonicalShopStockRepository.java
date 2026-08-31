@@ -15,6 +15,14 @@ public interface CanonicalShopStockRepository {
             long expectedRevision
     );
 
+    RestockResult restockToAuthoredLimit(
+            String transactionId,
+            String shopId,
+            String offerId,
+            int authoredStockLimit,
+            long expectedRevision
+    );
+
     record StockState(String shopId, String offerId, int remainingStock, long revision) {
         public StockState {
             if (shopId == null || shopId.isBlank()) throw new IllegalArgumentException("shopId is required");
@@ -59,6 +67,42 @@ public interface CanonicalShopStockRepository {
 
         public boolean committed() {
             return status == DepletionStatus.APPLIED || status == DepletionStatus.ALREADY_APPLIED;
+        }
+    }
+
+    enum RestockStatus {
+        APPLIED,
+        ALREADY_APPLIED,
+        STALE_REVISION,
+        TRANSACTION_CONFLICT
+    }
+
+    record AppliedRestock(
+            String transactionId,
+            int authoredStockLimit,
+            int stockBefore,
+            int stockAfter,
+            long resultingRevision
+    ) {
+        public AppliedRestock {
+            if (transactionId == null || transactionId.isBlank()) throw new IllegalArgumentException("transactionId is required");
+            if (authoredStockLimit <= 0) throw new IllegalArgumentException("authoredStockLimit must be positive");
+            if (stockBefore < 0 || stockAfter < stockBefore || stockAfter != authoredStockLimit) {
+                throw new IllegalArgumentException("invalid restock transition");
+            }
+            if (resultingRevision <= 0) throw new IllegalArgumentException("resultingRevision must be positive");
+            transactionId = transactionId.trim();
+        }
+    }
+
+    record RestockResult(RestockStatus status, StockState stock, AppliedRestock restock) {
+        public RestockResult {
+            if (status == null) throw new IllegalArgumentException("status is required");
+            if (stock == null) throw new IllegalArgumentException("stock is required");
+        }
+
+        public boolean committed() {
+            return status == RestockStatus.APPLIED || status == RestockStatus.ALREADY_APPLIED;
         }
     }
 }
