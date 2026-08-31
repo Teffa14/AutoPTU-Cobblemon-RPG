@@ -80,32 +80,9 @@ public final class VisibleWildPokemonEncounterRuntime {
         REQUESTS.useRepository(Objects.requireNonNull(repository, "repository"));
     }
 
-    /** Restores an empty in-memory boundary after the owning server lifecycle ends. */
+    /** Releases the stopped world's repository without carrying requests into another world. */
     public static void resetRequestRepository() {
-        REQUESTS.useRepository(new WorldEncounterTriggerRequestRepository() {
-            private WorldEncounterTriggerRequestService.Request pending;
-
-            @Override
-            public synchronized Optional<WorldEncounterTriggerRequestService.Request> findPending(String canonicalPlayerId) {
-                if (canonicalPlayerId == null || canonicalPlayerId.isBlank() || pending == null) return Optional.empty();
-                return pending.canonicalPlayerId().equals(canonicalPlayerId.strip()) ? Optional.of(pending) : Optional.empty();
-            }
-
-            @Override
-            public synchronized boolean saveIfAbsent(WorldEncounterTriggerRequestService.Request request) {
-                if (pending != null) return false;
-                pending = Objects.requireNonNull(request, "request");
-                return true;
-            }
-
-            @Override
-            public synchronized boolean clear(String canonicalPlayerId) {
-                if (pending == null || canonicalPlayerId == null || canonicalPlayerId.isBlank()) return false;
-                if (!pending.canonicalPlayerId().equals(canonicalPlayerId.strip())) return false;
-                pending = null;
-                return true;
-            }
-        });
+        REQUESTS.resetRepository();
     }
 
     public static void bind(
