@@ -15,6 +15,7 @@ public final class FabricNpcRelationshipRuntime {
     private FabricNpcRelationshipRuntime() {}
 
     public static void register() {
+        FabricFactionReputationRuntime.register();
         UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) {
                 return ActionResult.PASS;
