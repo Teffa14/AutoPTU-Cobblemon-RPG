@@ -19,6 +19,7 @@ public final class FabricTrainerRecordRuntime {
 
     public static void register() {
         FabricWorldStoryRuntime.register();
+        FabricTrainerProfileRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("trainer")
