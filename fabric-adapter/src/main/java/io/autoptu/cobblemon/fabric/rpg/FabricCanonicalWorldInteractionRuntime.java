@@ -100,7 +100,11 @@ public final class FabricCanonicalWorldInteractionRuntime {
             BlockPos anchor,
             FileCanonicalWorldEventObjectRepository.State canonicalState
     ) {
-        if (canonicalState == null || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED) return;
+        if (canonicalState == null
+                || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
+                || !CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(canonicalState.eventKey())) {
+            return;
+        }
         BlockState current = world.getBlockState(anchor);
         if (!current.isOf(Blocks.RESPAWN_ANCHOR)) return;
         if (current.get(RespawnAnchorBlock.CHARGES) == ACTIVATED_SHRINE_CHARGES) return;
