@@ -7,6 +7,10 @@ Lucario bones byte-semantically as parsed JSON, appends the V41 scene-seed bones
 and emits a temporary professional-style manifest used only by CI to obtain real
 matched-camera Blockbench evidence.
 
+The preview materializer supports both Bedrock cubes and explicit indexed
+`poly_mesh` geometry. Poly meshes remain experimental until Blockbench evidence
+and Cobblemon runtime checks prove that the current target renders them safely.
+
 Presentation only. AutoPTU/Ouros remains authoritative for battle facts.
 """
 from __future__ import annotations
@@ -14,6 +18,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import struct
 import zlib
 from pathlib import Path
@@ -75,19 +80,96 @@ def uv(slot: int) -> dict:
     return {name: dict(face) for name in ("north", "east", "south", "west", "up", "down")}
 
 
+def face_normal(positions: list[list[float]], vertices: list[int], where: str) -> list[float]:
+    a = positions[vertices[0]]
+    b = positions[vertices[1]]
+    c = positions[vertices[2]]
+    ab = [b[i] - a[i] for i in range(3)]
+    ac = [c[i] - a[i] for i in range(3)]
+    cross = [
+        ab[1] * ac[2] - ab[2] * ac[1],
+        ab[2] * ac[0] - ab[0] * ac[2],
+        ab[0] * ac[1] - ab[1] * ac[0],
+    ]
+    length = math.sqrt(sum(v * v for v in cross))
+    if length <= 1e-8:
+        raise SystemExit(f"{where}: degenerate poly_mesh face")
+    return [round(v / length, 6) for v in cross]
+
+
+def build_poly_mesh(raw: dict, palette_slots: set[int], name: str) -> dict:
+    positions_raw = raw.get("positions")
+    faces = raw.get("faces")
+    if not isinstance(positions_raw, list) or len(positions_raw) < 3:
+        raise SystemExit(f"{name}.polyMesh: positions must contain at least 3 vertices")
+    positions: list[list[float]] = []
+    for index, position in enumerate(positions_raw):
+        if not isinstance(position, list) or len(position) != 3:
+            raise SystemExit(f"{name}.polyMesh.positions[{index}]: expected 3 numbers")
+        try:
+            positions.append([float(value) for value in position])
+        except (TypeError, ValueError) as exc:
+            raise SystemExit(f"{name}.polyMesh.positions[{index}]: non-numeric position") from exc
+    if not isinstance(faces, list) or not faces:
+        raise SystemExit(f"{name}.polyMesh: faces must be non-empty")
+
+    double_sided = raw.get("doubleSided", True)
+    if not isinstance(double_sided, bool):
+        raise SystemExit(f"{name}.polyMesh.doubleSided must be boolean")
+
+    normals: list[list[float]] = []
+    uvs: list[list[float]] = []
+    polys: list[list[list[int]]] = []
+    for face_index, face in enumerate(faces):
+        where = f"{name}.polyMesh.faces[{face_index}]"
+        if not isinstance(face, dict):
+            raise SystemExit(f"{where}: face must be an object")
+        vertices = face.get("vertices")
+        slot = face.get("uvSlot")
+        if not isinstance(vertices, list) or len(vertices) not in (3, 4):
+            raise SystemExit(f"{where}: vertices must contain 3 or 4 indices")
+        if len(set(vertices)) != len(vertices) or any(not isinstance(v, int) or not 0 <= v < len(positions) for v in vertices):
+            raise SystemExit(f"{where}: invalid or duplicate vertex index")
+        if not isinstance(slot, int) or slot not in palette_slots:
+            raise SystemExit(f"{where}: uvSlot {slot!r} is not declared in palette")
+
+        normal = face_normal(positions, vertices, where)
+        normal_index = len(normals)
+        normals.append(normal)
+        uv_index = len(uvs)
+        uvs.append([slot + 0.5, 63.5])
+        polys.append([[vertex, normal_index, uv_index] for vertex in vertices])
+
+        if double_sided:
+            reverse_normal_index = len(normals)
+            normals.append([-value for value in normal])
+            polys.append([[vertex, reverse_normal_index, uv_index] for vertex in reversed(vertices)])
+
+    return {
+        "normalized_uvs": False,
+        "positions": positions,
+        "normals": normals,
+        "uvs": uvs,
+        "polys": polys,
+    }
+
+
 def build_bone(raw: dict, palette_slots: set[int]) -> dict:
     name = raw.get("name")
     parent = raw.get("parent")
     pivot = raw.get("pivot")
-    elements = raw.get("elements")
+    elements = raw.get("elements", [])
+    mesh_raw = raw.get("polyMesh")
     if not isinstance(name, str) or not name.startswith("ouros_v41_"):
         raise SystemExit(f"invalid V41 bone name: {name!r}")
     if not isinstance(parent, str) or not parent:
         raise SystemExit(f"{name}: parent is required")
     if not isinstance(pivot, list) or len(pivot) != 3:
         raise SystemExit(f"{name}: pivot must contain 3 numbers")
-    if not isinstance(elements, list) or not elements:
-        raise SystemExit(f"{name}: elements must be non-empty")
+    if not isinstance(elements, list):
+        raise SystemExit(f"{name}: elements must be a list")
+    if not elements and mesh_raw is None:
+        raise SystemExit(f"{name}: requires cubes and/or polyMesh")
 
     cubes = []
     for index, element in enumerate(elements):
@@ -113,7 +195,15 @@ def build_bone(raw: dict, palette_slots: set[int]) -> dict:
                 raise SystemExit(f"{where}: rotation must contain 3 numbers")
             cube["rotation"] = rotation
         cubes.append(cube)
-    return {"name": name, "parent": parent, "pivot": pivot, "cubes": cubes}
+
+    bone = {"name": name, "parent": parent, "pivot": pivot}
+    if cubes:
+        bone["cubes"] = cubes
+    if mesh_raw is not None:
+        if not isinstance(mesh_raw, dict):
+            raise SystemExit(f"{name}.polyMesh must be an object")
+        bone["poly_mesh"] = build_poly_mesh(mesh_raw, palette_slots, name)
+    return bone
 
 
 def load_base() -> tuple[dict, list[dict], int]:
@@ -134,7 +224,7 @@ def load_base() -> tuple[dict, list[dict], int]:
     return payload, official, len(historical)
 
 
-def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, cube_count: int) -> None:
+def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, cube_count: int, mesh_count: int) -> None:
     data = {
         "format": "ouros.cobblemon-professional-skin-review.v1",
         "species": "lucario",
@@ -182,6 +272,7 @@ def write_manifest(path: Path, candidate: Path, overlay: Path, bone_count: int, 
             "productionBoneCount": OFFICIAL_BONES + bone_count,
             "cosmeticBoneCount": bone_count,
             "cosmeticCubeCount": cube_count,
+            "cosmeticPolyMeshCount": mesh_count,
             "attachmentGate": {"anchorGap": 1.5, "pieceGap": 1.0},
             "textures": [
                 {
@@ -279,9 +370,10 @@ def main() -> None:
     candidate.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     overlay = workdir / "lucario_v41_accessories.png"
     write_palette_overlay(overlay, palette)
-    cube_count = sum(len(bone["cubes"]) for bone in extras)
+    cube_count = sum(len(bone.get("cubes", [])) for bone in extras)
+    mesh_count = sum(1 for bone in extras if "poly_mesh" in bone)
     manifest = workdir / "0448_lucario.json"
-    write_manifest(manifest, candidate, overlay, len(extras), cube_count)
+    write_manifest(manifest, candidate, overlay, len(extras), cube_count, mesh_count)
 
     report = {
         "status": "MATERIALIZED_FOR_BLOCKBENCH_PREVIEW",
@@ -292,6 +384,7 @@ def main() -> None:
         "officialBonesPreserved": len(official),
         "v41CosmeticBones": len(extras),
         "v41CosmeticCubes": cube_count,
+        "v41CosmeticPolyMeshes": mesh_count,
         "candidateModel": candidate.relative_to(ROOT).as_posix(),
         "candidateModelSha256": sha256(candidate),
         "overlay": overlay.relative_to(ROOT).as_posix(),
