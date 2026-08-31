@@ -29,6 +29,7 @@ import io.autoptu.cobblemon.authority.FileWorldTaskCraftAttemptRepository;
 import io.autoptu.cobblemon.fabric.battle.FileWorldEncounterTriggerRequestRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedCanonicalWildEncounterBlueprintRegistry;
 import io.autoptu.cobblemon.fabric.battle.WorldScopedWildEncounterCorrelationRegistry;
+import io.autoptu.cobblemon.fabric.world.VisibleWildPokemonEncounterRuntime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
@@ -149,6 +150,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         synchronized (STORES) {
             if (STORES.putIfAbsent(server, stores) != null) throw new IllegalStateException("canonical stores already initialized for server");
         }
+        VisibleWildPokemonEncounterRuntime.bindRequestRepository(activeEncounterSessions);
         new CanonicalShopPurchaseService(CanonicalShopCatalogue.DEFAULT, wallets, shopStock, assets, shopPurchases).recoverPending();
         new CanonicalShopSaleService(CanonicalShopSellCatalogue.DEFAULT, wallets, assets, shopSales).recoverPending();
         new CanonicalPokemonStorageTransferService(encounterProfiles, pokemonStorage, pokemon, pokemonTransfers).recoverPending();
@@ -156,6 +158,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     }
 
     private static void stop(MinecraftServer server) {
+        VisibleWildPokemonEncounterRuntime.resetRequestRepository();
         synchronized (STORES) { STORES.remove(server); }
     }
 }
