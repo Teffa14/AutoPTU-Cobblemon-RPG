@@ -19,6 +19,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * World-save persistence for one pending visible-world encounter request per canonical player.
@@ -30,12 +32,13 @@ public final class FileWorldEncounterTriggerRequestRepository implements WorldEn
     private static final int MAGIC = 0x41544553; // ATES
     private static final int SCHEMA_VERSION = 1;
     private static final int MAX_STRING_BYTES = 16_384;
+    private static final ConcurrentMap<Path, Object> JVM_OWNER_LOCKS = new ConcurrentHashMap<>();
 
     private final Path directory;
 
     public FileWorldEncounterTriggerRequestRepository(Path canonicalStateRoot) {
         Objects.requireNonNull(canonicalStateRoot, "canonicalStateRoot");
-        this.directory = canonicalStateRoot.resolve("active-encounter-sessions").normalize();
+        this.directory = canonicalStateRoot.resolve("active-encounter-sessions").toAbsolutePath().normalize();
     }
 
     @Override
@@ -51,50 +54,56 @@ public final class FileWorldEncounterTriggerRequestRepository implements WorldEn
     }
 
     @Override
-    public synchronized boolean saveIfAbsent(WorldEncounterTriggerRequestService.Request request) {
+    public boolean saveIfAbsent(WorldEncounterTriggerRequestService.Request request) {
         Objects.requireNonNull(request, "request");
         String owner = requireId(request.canonicalPlayerId(), "canonicalPlayerId");
-        try {
-            Files.createDirectories(directory);
-            try (FileChannel lockChannel = FileChannel.open(
-                    lockPathFor(owner),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE
-            ); FileLock ignored = lockChannel.lock()) {
-                Path path = pathFor(owner);
-                if (Files.exists(path)) {
-                    WorldEncounterTriggerRequestService.Request existing = read(path);
-                    if (!owner.equals(existing.canonicalPlayerId())) {
-                        throw new IllegalStateException("active encounter session owner mismatch");
+        Path ownerLockPath = lockPathFor(owner);
+        synchronized (JVM_OWNER_LOCKS.computeIfAbsent(ownerLockPath, ignored -> new Object())) {
+            try {
+                Files.createDirectories(directory);
+                try (FileChannel lockChannel = FileChannel.open(
+                        ownerLockPath,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE
+                ); FileLock ignored = lockChannel.lock()) {
+                    Path path = pathFor(owner);
+                    if (Files.exists(path)) {
+                        WorldEncounterTriggerRequestService.Request existing = read(path);
+                        if (!owner.equals(existing.canonicalPlayerId())) {
+                            throw new IllegalStateException("active encounter session owner mismatch");
+                        }
+                        return false;
                     }
-                    return false;
+                    writeAtomically(path, request);
+                    return true;
                 }
-                writeAtomically(path, request);
-                return true;
+            } catch (IOException e) {
+                throw new IllegalStateException("failed to coordinate active encounter session creation", e);
             }
-        } catch (IOException e) {
-            throw new IllegalStateException("failed to coordinate active encounter session creation", e);
         }
     }
 
     @Override
-    public synchronized boolean clear(String canonicalPlayerId) {
+    public boolean clear(String canonicalPlayerId) {
         String owner = requireId(canonicalPlayerId, "canonicalPlayerId");
-        try {
-            Files.createDirectories(directory);
-            try (FileChannel lockChannel = FileChannel.open(
-                    lockPathFor(owner),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE
-            ); FileLock ignored = lockChannel.lock()) {
-                Path path = pathFor(owner);
-                if (!Files.exists(path)) return false;
-                Files.delete(path);
-                forceDirectory(directory);
-                return true;
+        Path ownerLockPath = lockPathFor(owner);
+        synchronized (JVM_OWNER_LOCKS.computeIfAbsent(ownerLockPath, ignored -> new Object())) {
+            try {
+                Files.createDirectories(directory);
+                try (FileChannel lockChannel = FileChannel.open(
+                        ownerLockPath,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE
+                ); FileLock ignored = lockChannel.lock()) {
+                    Path path = pathFor(owner);
+                    if (!Files.exists(path)) return false;
+                    Files.delete(path);
+                    forceDirectory(directory);
+                    return true;
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("failed to clear active encounter session", e);
             }
-        } catch (IOException e) {
-            throw new IllegalStateException("failed to clear active encounter session", e);
         }
     }
 
