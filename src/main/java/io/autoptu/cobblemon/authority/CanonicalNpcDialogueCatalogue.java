@@ -15,7 +15,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     "Welcome to Cedar Meadow. The Pokemon here react to how you approach them, so watch the field before you commit.",
                     List.of(
                             new Option("meadow", "What should I watch for?", "The lookout notices movement first. If it raises the alarm, the feeding group will move for cover."),
-                            new Option("field-notes", "Anything I can help with?", "Start a field journal for me. Observe the meadow lookout and feeding group, then come back when future quest objectives are wired.", "cedar-field-notes"),
+                            new Option("field-notes", "Anything I can help with?", "Start a field journal for me. Observe the meadow lookout and feeding group, then come back to collect the field stipend.", "cedar-field-notes"),
                             new Option("facilities", "Where can I prepare?", "Use the healing machine, PC, Mart and crafting stations you find in the world. Their state belongs to your canonical Trainer."),
                             Option.challenge("field-spar", "Challenge Cedar Ranger", "Let's see whether your party is ready for a proper field spar.", "cedar-ranger-field-spar"),
                             new Option("battles", "How do battles work here?", "When a battle starts, AutoPTU decides legal actions and outcomes. The Minecraft world only presents the authoritative result.")
