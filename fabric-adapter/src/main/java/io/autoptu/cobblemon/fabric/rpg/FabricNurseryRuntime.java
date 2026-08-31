@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalNurseryCustodyService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import io.autoptu.cobblemon.fabric.persistence.FabricNurseryStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -97,7 +98,7 @@ public final class FabricNurseryRuntime {
 
     private static CanonicalNurseryCustodyService service(ServerPlayerEntity player) {
         return new CanonicalNurseryCustodyService(
-                FabricCanonicalPlayerStoreRuntime.requireNurseryRepository(player.getServer()),
+                FabricNurseryStoreRuntime.requireRepository(player.getServer()),
                 FabricCanonicalPlayerStoreRuntime.requirePokemonStorageRepository(player.getServer()),
                 FabricCanonicalPlayerStoreRuntime.requirePokemonRepository(player.getServer()));
     }
