@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalTrainerProgressionQueryService;
+import io.autoptu.cobblemon.authority.FileCanonicalTrainerProgressionRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -8,6 +9,9 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.WorldSavePath;
+
+import java.nio.file.Path;
 
 /** Read-only fallback for durable server-owned Trainer progression. */
 public final class FabricTrainerProgressionRuntime {
@@ -33,9 +37,16 @@ public final class FabricTrainerProgressionRuntime {
             return 0;
         }
         var snapshot = new CanonicalTrainerProgressionQueryService(
-                FabricCanonicalPlayerStoreRuntime.requireTrainerProgressionRepository(player.getServer())).inspect(playerId);
+                new FileCanonicalTrainerProgressionRepository(canonicalStateRoot(player))).inspect(playerId);
         player.sendMessage(Text.literal("Trainer progression — Level " + snapshot.trainerLevel()
                 + " — XP " + snapshot.trainerXp() + " — revision " + snapshot.revision()), false);
         return 1;
+    }
+
+    private static Path canonicalStateRoot(ServerPlayerEntity player) {
+        return player.getServer().getSavePath(WorldSavePath.ROOT)
+                .resolve("autoptu")
+                .resolve("canonical-state")
+                .normalize();
     }
 }
