@@ -203,6 +203,8 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-107 | LIVE/PARTIAL | `/autoptu mail` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; authenticated server-authored inbox projection with durable read/reward status. |
 | CMD-108 | LIVE/PARTIAL | `/autoptu mail read <mailId>` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; validates the authored message ID and persists owner-scoped read state through revision CAS. |
 | CMD-109 | LIVE/PARTIAL | `/autoptu mail claim <mailId>` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; resolves the reward entirely server-side and commits it through the canonical wallet exactly once. |
+| CMD-110 | LIVE/PARTIAL | `/autoptu league` — PR #408 / implementation head `fb452f60fb14dddbb146f2df78e5dad79d074c08`; authenticated read surface for durable Gym/League registrations plus already-persisted canonical Trainer record counts. |
+| CMD-111 | LIVE/PARTIAL | `/autoptu league register <challengeId>` — PR #408 / implementation head `fb452f60fb14dddbb146f2df78e5dad79d074c08`; accepts only a server-authored registration ID that resolves to an existing canonical Trainer challenge, then persists owner-scoped registration exactly once. |
 
 ## Encounter and battle fallback
 
@@ -324,11 +326,11 @@ These should become the normal gameplay path.
 | FAC-003 | LIVE | Canonical wallet/currency transactions. PR #245 / implementation head `a1ba9c1d5cddb18f9e05e275536194654f19c03f` establishes durable owner-scoped wallet state, first-read provisioning, revision-CAS persistence and a read-only player projection. PR #246 / implementation head `cf4f1c389bdb814c3067d5266dfda63337aa9bbd` adds server-owned credit/debit commits with balance and idempotency receipt written in one atomic replacement, retry/restart safety, insufficient-funds rejection, immutable transaction identity and schema-v1 wallet migration. Shop offers and rewards remain separate authored services. |
 | FAC-004 | LIVE | Crafting recipe registry. PR #226 adds capability-sensitive task recipes, PR #227 exposes them through the physical workstation, and PR #228 completes the initial server-owned recipe contract with workstation IDs, canonical ingredients, and quality-specific canonical outputs. |
 | FAC-005 | LIVE | Restart-safe craft transaction — PR #229. A durable attempt freezes canonical ingredient reservations and Trainer-derived Ouros quality odds before the roll, persists one outcome before consumption, retains ingredient locks through partial consumption, creates a deterministic canonical output exactly once, and resumes safely after reconnect/restart/retry. |
-| FAC-006 | TODO | Move tutor/relearner service shell. |
+| FAC-006 | BLOCKED | Move tutor/relearner application remains blocked on the authoritative PTU move-learning/evolution mutation contract under RPG-007. Minecraft may present the existing read-only tutor shell, but it must not decide learnability or mutate moves. |
 | FAC-007 | LIVE/PARTIAL | PTU recovery bed service — PR #279. Explicit namespaced block/item plus datapack recipe are live; Minecraft player health and canonical party HP can be restored. Canonical status/injury/wound recovery remains blocked until AutoPTU-Java provides authoritative semantics and mutation contracts. |
-| FAC-008 | TODO | Fast-travel unlock and destination service. |
-| FAC-009 | TODO | Daycare/nursery persistence shell. |
-| FAC-010 | TODO | Gym/league challenge registration and records. |
+| FAC-008 | LIVE/PARTIAL | Fast-travel unlock and destination service — PR #404 / merge `a228f771495063a1108a118e7eeeba162c9471c2`; authored destinations now require durable owner-scoped location discovery before `CanonicalFastTravelService` can authorize teleport. Additional destinations/checkpoint authoring remain follow-up work. |
+| FAC-009 | LIVE/PARTIAL | Daycare/nursery persistence shell — PR #407 / merge `333f23c012d88aa499cfab7d2e5bb60c38a8a693`; boxed canonical Pokemon can enter/release durable Cedar Nursery custody through owner-scoped atomic persistence. Breeding, eggs, XP, evolution, inherited moves and PTU care effects remain absent. |
+| FAC-010 | LIVE/PARTIAL | Gym/league challenge registration and records — PR #408 / implementation head `fb452f60fb14dddbb146f2df78e5dad79d074c08`; authenticated Trainers can persist idempotent registration for the already-authored Cedar Gym Trial and inspect it alongside canonical Trainer records. Registration never starts/resolves a battle or mutates wins/losses/badges/tournaments. |
 
 ---
 
@@ -382,6 +384,7 @@ These should become the normal gameplay path.
 | SVC-044 | LIVE/PARTIAL | `inspectTrainerRecords(player)` — PR #397 / merge `76b3c50b14114d167b66032d2c1ee51c2bfb8dfd`; reads durable wins/losses/badges/tournaments while leaving every record producer to an explicit server-authoritative source. |
 | SVC-045 | LIVE/PARTIAL | `inspectWorldStory(player)` / `chooseWorldStory(player, node, choice)` — PR #399 / merge `65a33ec87a99fd982fa73332dbb215765ba2dd2b`; resolves authored nodes/choices, commits one immutable choice and persists authored flags through revision CAS. |
 | SVC-046 | LIVE/PARTIAL | `inspectMail(player)` / `readMail(player, mailId)` / `claimMailReward(player, mailId)` — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; resolves authored mail/reward truth server-side, persists read/claim state and uses deterministic wallet transaction receipts so retry/restart cannot double-credit. |
+| SVC-047 | LIVE/PARTIAL | `inspectLeagueRegistration(player)` / `registerLeagueChallenge(player, challengeId)` — PR #408 / implementation head `fb452f60fb14dddbb146f2df78e5dad79d074c08`; re-resolves canonical Trainer identity, validates registration metadata against the canonical Trainer challenge catalogue and persists an owner-scoped idempotent registration. Battle start, opponent selection, PTU eligibility and record mutation remain outside this boundary. |
 
 ---
 
