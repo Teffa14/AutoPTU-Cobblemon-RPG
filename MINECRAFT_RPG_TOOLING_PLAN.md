@@ -282,7 +282,7 @@ These should become the normal gameplay path.
 | BUI-012 | TODO | Winner/loser/result screen. |
 | BUI-013 | TODO | Post-battle result/reward screen. |
 | BUI-014 | LIVE/PARTIAL | Spectator mode — PR #362 / merge `fc5c5f028c7f1c532dcc18a83ec462ad5cd86a1c` adds server-generated opaque battle IDs, authenticated read-only attachment and a spectator HUD/status projection. Full semantic playback fan-out/camera remains follow-up presentation work. |
-| BUI-015 | LIVE/PARTIAL | Semantic battle trace/replay evidence — PR #375 / merge `d352c2ac867f9784da4e96f14c93dd9b02b93833`; the Fabric semantic playback boundary records the exact ordered authoritative event envelopes per reservation, deduplicates overlapping replay batches, fails closed on conflicting history, and bounds active evidence to 256 events. Durable/exportable post-battle retention remains follow-up work; Minecraft derives no PTU legality, damage, status, faint, winner or reward state from this trace. |
+| BUI-015 | LIVE/PARTIAL | Semantic battle trace/replay evidence — PR #375 / merge `d352c2ac867f9784da4e96f14c93dd9b02b93833` records the exact ordered authoritative event envelopes per reservation, deduplicates overlapping replay batches, fails closed on conflicting history, and bounds active evidence to 256 events. PR #378 / merge `e261c7e04b24b9bf61b6b2effb8e897cf9e0870f` exposes the active trace in Minecraft through the operator-only evidence command. Durable/exportable post-battle retention remains follow-up work; Minecraft derives no PTU legality, damage, status, faint, winner or reward state from this trace. |
 | BUI-016 | TODO | Battle soft-lock detection and safe-checkpoint recovery. |
 
 ---
@@ -398,7 +398,7 @@ These are required for operations, testing and recovery. They must never be norm
 | ADM-019 | TODO | `/autoptu admin recover battle <battleId>` |
 | ADM-020 | TODO | `/autoptu admin rollback battle <battleId>` only to a durable safe checkpoint. |
 | ADM-021 | TODO | `/autoptu admin featuregates` |
-| ADM-022 | TODO | `/autoptu admin evidence battle <battleId>` |
+| ADM-022 | LIVE/PARTIAL | `/autoptu admin evidence battle <reservationId>` — PR #378 / merge `e261c7e04b24b9bf61b6b2effb8e897cf9e0870f`; permission-level-2 operators can inspect the last 20 exact semantic events already recorded for an active authoritative reservation. Mapping this surface to the server-generated opaque battle ID and durable/exportable evidence retention remain follow-up work. |
 | ADM-023 | TODO | `/autoptu admin reload rpg-config` |
 
 ---
