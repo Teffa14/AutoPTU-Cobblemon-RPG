@@ -1,0 +1,11 @@
+{
+  "officialTextureBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
+  "derivedTexture": "ouros_aura_sentinel.png",
+  "derivedTextureSha256": "f4a513808c3382e272cd8a07c1f9909d86db48141214191252a5df2ad37a6549",
+  "bodyTexelRework": "All occupied normal-texture texels receive a non-uniform cool value treatment keyed to original luminance plus low-amplitude coordinate variation. Eight previously transparent palette slots at x=80..87,y=63 carry the V46 cosmetic material colors. Alpha is preserved for every official texel.",
+  "paletteIntent": "Keep Lucario recognizable while shifting the normal surface toward a colder Aura Sentinel hierarchy: deep navy shadows, stronger blue midtones and restrained pale highlights. Coordinate variation prevents a single uniform multiply or hue rotation.",
+  "materialIntent": "Biological dark regions retain lower values; light planes gain cooler highlights; midtones separate into multiple blue values. The V46 wrap, sash and halo use an independent pale-blue/navy ramp so the costume separates from the body at gameplay scale.",
+  "allowAlphaSemanticsChange": false,
+  "reviewStatus": "ARTISTIC FAIL",
+  "note": "This is a technically valid full-surface derived normal texture for V46 review. It is not owner-approved and does not claim final paint quality. Shiny remains independently blocked from promotion until a derived shiny pass receives the same provenance treatment."
+}
