@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalShopPurchaseService;
 import io.autoptu.cobblemon.authority.CanonicalShopQueryService;
+import io.autoptu.cobblemon.authority.CanonicalShopRestockService;
 import io.autoptu.cobblemon.authority.CanonicalShopSaleService;
 import io.autoptu.cobblemon.authority.CanonicalShopSellCatalogue;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -66,6 +67,7 @@ public final class FabricShopRuntime {
 
         CanonicalShopQueryService.ShopSnapshot shop;
         try {
+            reconcileDueRestock(player, shopId);
             shop = new CanonicalShopQueryService(
                     CanonicalShopCatalogue.DEFAULT,
                     FabricCanonicalPlayerStoreRuntime.requireShopStockRepository(player.getServer())
@@ -91,6 +93,12 @@ public final class FabricShopRuntime {
         ServerPlayerEntity player = requireCanonicalPlayer(source);
         if (player == null) return 0;
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        try {
+            reconcileDueRestock(player, DEFAULT_SHOP_ID);
+        } catch (RuntimeException failed) {
+            source.sendError(Text.literal("Shop stock could not be reconciled safely."));
+            return 0;
+        }
         CanonicalShopPurchaseService service = new CanonicalShopPurchaseService(
                 CanonicalShopCatalogue.DEFAULT,
                 FabricCanonicalPlayerStoreRuntime.requireWalletRepository(player.getServer()),
@@ -160,6 +168,13 @@ public final class FabricShopRuntime {
                         + " for " + attempt.totalPrice() + " " + attempt.currencyId()
                         + " | wallet " + result.walletBalance()), false);
         return 1;
+    }
+
+    private static void reconcileDueRestock(ServerPlayerEntity player, String shopId) {
+        new CanonicalShopRestockService(
+                CanonicalShopCatalogue.DEFAULT,
+                FabricCanonicalPlayerStoreRuntime.requireShopStockRepository(player.getServer()))
+                .reconcileShop(shopId, FabricTrainerPtuActionRuntime.currentRpgDay(player.getServer()));
     }
 
     private static ServerPlayerEntity requireCanonicalPlayer(ServerCommandSource source) {
