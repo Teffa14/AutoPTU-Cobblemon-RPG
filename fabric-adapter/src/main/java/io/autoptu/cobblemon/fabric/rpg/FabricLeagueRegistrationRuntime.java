@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.rpg;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalLeagueChallengeCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalLeagueRegistrationService;
+import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeCatalogue;
 import io.autoptu.cobblemon.authority.FileCanonicalLeagueRegistrationRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalTrainerRecordRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -28,8 +29,8 @@ public final class FabricLeagueRegistrationRuntime {
                                 .then(CommandManager.literal("register")
                                         .then(CommandManager.argument("challengeId", StringArgumentType.word())
                                                 .suggests((context, builder) -> {
-                                                    CanonicalLeagueChallengeCatalogue.DEFAULT.challenges()
-                                                            .forEach(challenge -> builder.suggest(challenge.challengeId()));
+                                                    CanonicalLeagueChallengeCatalogue.DEFAULT.registrations()
+                                                            .forEach(registration -> builder.suggest(registration.challengeId()));
                                                     return builder.buildFuture();
                                                 })
                                                 .executes(context -> register(
@@ -50,7 +51,7 @@ public final class FabricLeagueRegistrationRuntime {
                 player.sendMessage(Text.literal("No active Gym/League registrations. Use /autoptu league register <challengeId>."), false);
             } else {
                 for (var registration : summary.registrations()) {
-                    player.sendMessage(Text.literal("[REGISTERED] " + registration.displayName()
+                    player.sendMessage(Text.literal("[REGISTERED " + registration.kind() + "] " + registration.displayName()
                             + " — " + registration.challengeId()), false);
                 }
             }
@@ -90,6 +91,7 @@ public final class FabricLeagueRegistrationRuntime {
         Path root = canonicalStateRoot(player);
         return new CanonicalLeagueRegistrationService(
                 CanonicalLeagueChallengeCatalogue.DEFAULT,
+                CanonicalTrainerChallengeCatalogue.DEFAULT,
                 FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
                 new FileCanonicalLeagueRegistrationRepository(root),
                 new FileCanonicalTrainerRecordRepository(root));
