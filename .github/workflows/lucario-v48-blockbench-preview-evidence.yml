@@ -1,0 +1,114 @@
+name: Lucario V48 Blockbench Preview Evidence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'tools/cobblemon-model-review/authored-sources/0448_lucario/v48-asymmetric-wrap.patch.json'
+      - 'tools/cobblemon-model-review/materialize_lucario_authored_preview.py'
+      - 'tools/cobblemon-model-review/blockbench_authored_capture.mjs'
+      - 'tools/cobblemon-model-review/validate_authored_cosmetic_patch.py'
+      - '.github/workflows/lucario-v48-blockbench-preview-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blockbench-preview-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Hard same-species reference gate before materialization
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py docs/cobblemon-skin-reference-dossiers/0448_lucario.json --expected-species lucario
+          python tools/cobblemon-model-review/validate_authored_cosmetic_patch.py tools/cobblemon-model-review/authored-sources/0448_lucario/v48-asymmetric-wrap.patch.json --expected-species lucario
+      - name: Install preview dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+      - name: Fetch and fingerprint exact official Cobblemon 1.7.3 Lucario baseline
+        run: |
+          set -euo pipefail
+          mkdir -p .v48-official .v48-output
+          curl --fail --silent --show-error --location --retry 4 https://api.modrinth.com/v2/version/kF7CvxTo -o .v48-official/version.json
+          python - <<'PY'
+          import json,pathlib
+          d=json.load(open('.v48-official/version.json')); f=next((x for x in d['files'] if x.get('primary')),d['files'][0])
+          pathlib.Path('.v48-official/url').write_text(f['url']); pathlib.Path('.v48-official/name').write_text(f['filename'])
+          PY
+          curl --fail --silent --show-error --location --retry 4 "$(cat .v48-official/url)" -o .v48-official/cobblemon.jar
+          echo 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3  .v48-official/cobblemon.jar' | sha256sum --check --strict
+          echo '7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e  .v48-official/cobblemon.jar' | sha512sum --check --strict
+          python - <<'PY'
+          import hashlib,zipfile,pathlib,json
+          expected={'model':'ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9','texture':'98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a','shiny':'b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d','animation':'ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563','poser':'7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d','resolver':'a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81','license':'fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660'}
+          ext={'model':'.geo.json','texture':'.png','shiny':'.shiny.png','animation':'.animation.json','poser':'.poser.json','resolver':'.resolver.json','license':'.license'}; found={}
+          with zipfile.ZipFile('.v48-official/cobblemon.jar') as z:
+            for n in z.namelist():
+              if n.endswith('/'): continue
+              b=z.read(n); h=hashlib.sha256(b).hexdigest()
+              for k,w in expected.items():
+                if h==w: pathlib.Path('.v48-official',k+ext[k]).write_bytes(b); found[k]={'path':n,'sha256':h}
+          if set(found)!=set(expected): raise SystemExit(f'missing hashes {set(expected)-set(found)}')
+          json.dump(found,open('.v48-output/official-assets.json','w'),indent=2)
+          PY
+      - name: Materialize V48 strictly outside runtime resources
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/materialize_lucario_authored_preview.py --patch tools/cobblemon-model-review/authored-sources/0448_lucario/v48-asymmetric-wrap.patch.json --official-model .v48-official/model.geo.json --official-texture .v48-official/texture.png --output-dir .v48-output
+      - name: Resolve official animation states
+        id: anim
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          k=list(json.load(open('.v48-official/animation.animation.json'))['animations'])
+          g=next(x for x in k if 'ground_idle' in x.lower()); b=next(x for x in k if 'battle_idle' in x.lower())
+          print('ground='+g); print('battle='+b); print('time=0.35')
+          PY
+      - name: Pin Blockbench 5.1.6
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 https://github.com/JannisX11/blockbench/releases/download/v5.1.6/Blockbench_5.1.6.AppImage -o .v48-official/blockbench.AppImage
+          echo 'c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e  .v48-official/blockbench.AppImage' | sha256sum --check --strict
+          chmod +x .v48-official/blockbench.AppImage
+          (cd .v48-official && ./blockbench.AppImage --appimage-extract >/dev/null)
+      - name: Capture matched-camera Blockbench evidence
+        env: {GROUND: '${{ steps.anim.outputs.ground }}', BATTLE: '${{ steps.anim.outputs.battle }}', AT: '${{ steps.anim.outputs.time }}'}
+        run: |
+          set -euo pipefail
+          capture_once(){ model="$1"; tex="$2"; anim="$3"; out="$4"; port="$5"; pin="$6"; pout="$7"; attempt="$8"; user="$PWD/.v48-official/u-${port}-${attempt}"; log="$PWD/.v48-official/bb-${port}-${attempt}.log"; rm -rf "$user" "$out"; mkdir -p "$user" "$out"; xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.v48-official/squashfs-root" .v48-official/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$user" "$model" >"$log" 2>&1 & pid=$!; ready=0; for _ in $(seq 1 90); do if curl -fs "http://127.0.0.1:$port/json/version" >/dev/null 2>&1; then ready=1; break; fi; if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; return 1; fi; sleep 1; done; [ "$ready" -eq 1 ] || { cat "$log"; kill "$pid" 2>/dev/null || true; return 1; }; args=(--endpoint "http://127.0.0.1:$port" --texture "$tex" --animation "$PWD/.v48-official/animation.animation.json" --animation-name "$anim" --animation-time "$AT" --output-dir "$out"); [ -n "$pin" ] && args+=(--camera-profile-in "$pin"); [ -n "$pout" ] && args+=(--camera-profile-out "$pout"); node tools/cobblemon-model-review/blockbench_authored_capture.mjs "${args[@]}"; rc=$?; kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; return "$rc"; }
+          capture(){ for attempt in 1 2 3; do capture_once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$attempt" && return 0; done; return 1; }
+          CAMERA="$PWD/.v48-output/camera.json"
+          capture "$PWD/.v48-official/model.geo.json" "$PWD/.v48-official/texture.png" "$GROUND" "$PWD/.v48-output/official" 9481 '' "$CAMERA"
+          capture "$PWD/.v48-output/lucario_v48_preview.geo.json" "$PWD/.v48-output/lucario_v48_preview.png" "$GROUND" "$PWD/.v48-output/hero" 9482 "$CAMERA" ''
+          capture "$PWD/.v48-output/lucario_v48_preview.geo.json" "$PWD/.v48-output/lucario_v48_preview.png" "$BATTLE" "$PWD/.v48-output/battle" 9483 "$CAMERA" ''
+          cp .v48-output/official/three_quarter.png .v48-output/official_reference_three_quarter.png
+          cp .v48-output/hero/three_quarter.png .v48-output/hero_three_quarter.png
+          cp .v48-output/battle/three_quarter.png .v48-output/battle_ready_three_quarter.png
+          cp .v48-output/hero/front.png .v48-output/hero_front.png
+          cp .v48-output/hero/left.png .v48-output/hero_left.png
+          cp .v48-output/hero/right.png .v48-output/hero_right.png
+          cp .v48-output/hero/back.png .v48-output/hero_back.png
+          cp .v48-output/hero/three_quarter_gameplay_160.png .v48-output/hero_gameplay_160.png
+      - name: Build owner-review contact sheet
+        run: |
+          python tools/cobblemon-model-review/build_review_contact_sheet.py --input-dir .v48-output --gameplay-name hero_gameplay_160.png --output .v48-output/contact_sheet.png
+      - name: Fingerprint preview evidence
+        run: |
+          set -euo pipefail
+          (cd .v48-output && sha256sum official_reference_three_quarter.png hero_three_quarter.png battle_ready_three_quarter.png hero_front.png hero_left.png hero_right.png hero_back.png hero_gameplay_160.png contact_sheet.png > evidence-sha256.txt)
+          printf '%s\n' '${{ github.sha }}' > .v48-output/head-sha.txt
+          printf '%s\n' 'ARTISTIC FAIL — OWNER APPROVAL NOT GRANTED' > .v48-output/art-status.txt
+      - name: Upload exact V48 preview evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: lucario-v48-blockbench-preview-evidence, path: .v48-output, if-no-files-found: error, include-hidden-files: true, retention-days: 30}
