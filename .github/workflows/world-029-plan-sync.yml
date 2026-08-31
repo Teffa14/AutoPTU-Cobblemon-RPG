@@ -1,0 +1,52 @@
+name: WORLD-029 Plan Sync
+
+on:
+  push:
+    branches:
+      - rpg-414-mailbox-ui
+    paths:
+      - .github/workflows/world-029-plan-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg-414-mailbox-ui
+      - name: Update canonical Minecraft RPG plan
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("MINECRAFT_RPG_TOOLING_PLAN.md")
+          text = path.read_text(encoding="utf-8")
+
+          world_anchor = "| WORLD-028 | LIVE | Permanent composite facility identity migration complete. Cedar Mart migrated in PR #280; item storage in PR #290 / merge `48a9ddf17abbf96804e469d725e0c11e8f835ddb`; crafting workstation in PR #294 / merge `ab4e45e785fc09a5a1ed796b0f23f4761654080e`; field camp in PR #297 / merge `397760893fabfcc0cf037a83dc1b98c8e07e8b57`. Native unique primitives such as Cobblemon PC/Healing Machine and Minecraft Lodestone remain reusable where identity is already unambiguous. |"
+          world_row = "| WORLD-029 | LIVE/PARTIAL | Physical Ouros mailbox/final mail UI — PR #414 / implementation head `4c70b1adb9d69da3163ee8761f2a035c8e3b78a9`; right-clicking the explicit namespaced `autoptu_cobblemon_rpg_fabric_adapter:ouros_mailbox` opens the authenticated Trainer's server-authored inbox, persists read state, and delegates reward claims to the existing exactly-once canonical mail/wallet service. Block identity, Trainer identity and interaction range are revalidated server-side; richer delivery triggers and non-currency reward bundles remain follow-up work. |"
+          if world_row not in text:
+              if world_anchor not in text:
+                  raise SystemExit("WORLD-028 anchor missing; refusing unsafe plan rewrite")
+              text = text.replace(world_anchor, world_anchor + "\n" + world_row, 1)
+
+          old_rpg = "| RPG-013 | LIVE/PARTIAL | Mail/message system with idempotent rewards — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2`; `/autoptu mail`, `mail read <mailId>` and `mail claim <mailId>` use a server-authored inbox, durable owner-scoped read/claim state and deterministic wallet receipts. The initial `ouros-welcome` message grants exactly 100 Ouros credits once; richer delivery triggers, item/XP rewards and final mailbox UI remain follow-up work. |"
+          new_rpg = "| RPG-013 | LIVE/PARTIAL | Mail/message system with idempotent rewards — PR #401 / merge `6dc7cdeec086de809e27be9d454acf07af8710e2` supplies the durable server-authored inbox/read/claim service and exactly-once wallet receipt; PR #414 / implementation head `4c70b1adb9d69da3163ee8761f2a035c8e3b78a9` adds the physical namespaced Ouros mailbox UI over that same authority boundary. The initial `ouros-welcome` message grants exactly 100 Ouros credits once; richer delivery triggers and item/XP or multi-store rewards remain follow-up work. |"
+          if new_rpg not in text:
+              if old_rpg not in text:
+                  raise SystemExit("RPG-013 anchor missing; refusing unsafe plan rewrite")
+              text = text.replace(old_rpg, new_rpg, 1)
+
+          path.write_text(text, encoding="utf-8")
+      - name: Commit canonical plan and remove staging workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/world-029-plan-sync.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git diff --cached --check
+          git commit -m "WORLD-029 sync canonical Minecraft RPG plan"
+          git push origin HEAD:rpg-414-mailbox-ui
