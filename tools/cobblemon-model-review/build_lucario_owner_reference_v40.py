@@ -19,14 +19,14 @@ v1=v39.v1
 NORMAL_META=ROOT/'docs/cobblemon-skins/0448_lucario/v40-reference-derived-normal.json'
 SHINY_META=ROOT/'docs/cobblemon-skins/0448_lucario/v40-reference-derived-shiny.json'
 C=v39.C
+_base_cosmetic_bones=v39.cosmetic_bones
 
 def cosmetic_bones():
-    bones=v39.cosmetic_bones()
+    bones=_base_cosmetic_bones()
     out=[]
     for bone in bones:
         name=bone.get('name')
         if name=='ouros_v39_reference_cap':
-            # Low cloth crown built from overlapping angled lobes around the ears.
             bone=v1.bone('ouros_v40_reference_cap','head_angle',[0,39,-.2],[
                 C((-4.55,38.30,-2.86),(4.95,2.10,5.55),88,pivot=(-2.05,39.45,-.05),rotation=(0,-5,8)),
                 C((-.40,38.25,-2.86),(4.95,2.15,5.55),87,pivot=(2.05,39.45,-.05),rotation=(0,5,-8)),
@@ -45,8 +45,6 @@ def cosmetic_bones():
                 C((4.05,39.45,-2.34),(1.05,2.18,1.90),83,pivot=(4.50,40.42,-1.38),rotation=(0,9,-18)),
             ])
         elif name=='ouros_v39_reference_apron_skirt':
-            # Continuous waist-to-hem read from nested diagonal panels. No dominant
-            # rectangular front face: each tier overlaps the next and widens down.
             bone=v1.bone('ouros_v40_reference_apron_skirt','torso',[0,17.4,-.3],[
                 C((-5.45,9.15,2.16),(10.90,7.90,1.10),82,pivot=(0,16.40,2.70),rotation=(-4,0,0)),
                 C((-6.78,9.45,-.35),(1.35,7.35,3.30),83,pivot=(-5.95,15.95,1.10),rotation=(0,-10,-6)),
