@@ -3,6 +3,10 @@ package io.autoptu.cobblemon.fabric.rpg;
 import io.autoptu.cobblemon.authority.CanonicalNpcDialogueCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestJournalService;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
+import io.autoptu.cobblemon.authority.CanonicalQuestRewardCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestRewardService;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -135,14 +139,7 @@ public final class FabricNpcDialogueRuntime {
             displayedText = option.response();
             String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
             if (option.questId() != null) {
-                var service = new CanonicalQuestJournalService(
-                        CanonicalQuestCatalogue.DEFAULT,
-                        FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer())
-                );
-                var result = service.accept(playerId, dialogue.npcId(), option.questId());
-                displayedText = result.newlyAccepted()
-                        ? "Quest accepted: " + result.quest().title() + " — " + result.quest().objectiveText()
-                        : "Quest already in journal: " + result.quest().title() + " — " + result.quest().objectiveText();
+                handleQuestOption(playerId, option.questId());
             } else if (option.challengeId() != null) {
                 var service = new CanonicalTrainerChallengeRequestService(
                         CanonicalTrainerChallengeCatalogue.DEFAULT,
@@ -155,6 +152,44 @@ public final class FabricNpcDialogueRuntime {
                         : "Challenge unavailable: " + result.detail();
             }
             refresh();
+        }
+
+        private void handleQuestOption(String playerId, String questId) {
+            var journals = FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer());
+            var journalService = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals);
+            var accepted = journalService.accept(playerId, dialogue.npcId(), questId);
+            if (accepted.newlyAccepted()) {
+                displayedText = "Quest accepted: " + accepted.quest().title() + " — " + accepted.quest().objectiveText();
+                return;
+            }
+
+            var objectiveService = new CanonicalQuestObjectiveService(
+                    CanonicalQuestObjectiveCatalogue.DEFAULT,
+                    journals,
+                    FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(player.getServer())
+            );
+            var rewardService = new CanonicalQuestRewardService(
+                    CanonicalQuestRewardCatalogue.DEFAULT,
+                    journals,
+                    objectiveService,
+                    FabricCanonicalPlayerStoreRuntime.requireWalletRepository(player.getServer())
+            );
+            var claim = rewardService.claim(playerId, questId);
+            switch (claim.status()) {
+                case APPLIED -> displayedText = "Quest complete: " + accepted.quest().title()
+                        + ". Reward: " + claim.reward().amount() + " Ouros credits. Balance: " + claim.transaction().balance() + ".";
+                case ALREADY_APPLIED -> displayedText = "Quest reward already claimed: " + accepted.quest().title()
+                        + ". Balance: " + claim.transaction().balance() + " Ouros credits.";
+                case OBJECTIVES_INCOMPLETE -> {
+                    var progress = objectiveService.inspectQuest(playerId, questId);
+                    displayedText = "Quest in progress: " + accepted.quest().title() + " — "
+                            + progress.completedCount() + "/" + progress.totalCount() + " objectives complete.";
+                }
+                case NO_AUTHORED_REWARD -> displayedText = "Quest already in journal: " + accepted.quest().title()
+                        + " — " + accepted.quest().objectiveText();
+                case QUEST_NOT_ACCEPTED -> displayedText = "Quest state changed before reward claim. Talk to the Ranger again.";
+                case TRANSACTION_CONFLICT, RETRY_EXHAUSTED -> displayedText = "Quest reward could not be committed safely. Your canonical wallet was not credited twice.";
+            }
         }
 
         @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
