@@ -1,0 +1,44 @@
+name: Temporary plan bookkeeping
+
+on:
+  push:
+    branches:
+      - rpg/shop-stock-replenishment
+    paths:
+      - .github/workflows/temporary-plan-bookkeeping.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/shop-stock-replenishment
+      - name: Update canonical product plan and remove helper
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          lines = p.read_text().splitlines()
+          fac = [i for i,l in enumerate(lines) if l.startswith('| FAC-002 |')]
+          svc = [i for i,l in enumerate(lines) if l.startswith('| SVC-050 |')]
+          stock = [i for i,l in enumerate(lines) if l.startswith('| LIVE | Durable canonical shop stock —')]
+          assert len(fac) == 1, fac
+          assert len(svc) == 1, svc
+          assert len(stock) == 1, stock
+          lines[fac[0]] = '| FAC-002 | LIVE/PARTIAL | Shop catalogue/stock/price service. PR #247 / implementation head `36870beb75976891d0d4ebbe2f1edfaf78423e36` adds the reusable authored catalogue/query boundary. PR #250 / implementation head `748a57efc20678962f65efad9d4feb7450bafd54` adds world-save-scoped remaining stock and CAS depletion primitives. PR #251 / implementation head `05c46f1b309988cec67ab8caf2ddb44a76dfecbe` adds restart-safe exactly-once buy orchestration. PR #254 / implementation head `07637aa6fdefb14e3a42e36788bab7fc9c35a38e` adds explicit authored sell prices plus restart-safe item consumption/wallet credit. PR #256 / implementation head `b483936f4bae43dd8c1eca77a1ecbd2d8ee8a6f6` adds the physical server-authored buy/sell counter UI. PR #423 / production head `cb606363430c0c1eb10d9ee7be1987acbb435bd1` adds durable full replenishment to each authored stock cap at most once per server-owned monotonic RPG day, shared by the physical Cedar Mart and fallback command. Per-shop schedules and partial replenishment policies remain follow-up authored economy work. |'
+          lines.insert(svc[0] + 1, '| SVC-051 | LIVE/PARTIAL | `reconcileShopStock(shopId, rpgDayId)` — PR #423 / production head `cb606363430c0c1eb10d9ee7be1987acbb435bd1`; resolves the shop and stock caps exclusively from the server-authored catalogue, uses the server-owned monotonic RPG day as the durable restock identity, persists one idempotent receipt per offer/day with revision-CAS retry, and never accepts client stock, time, price, inventory truth or PTU effects. |')
+          stock_i = next(i for i,l in enumerate(lines) if l.startswith('| LIVE | Durable canonical shop stock —'))
+          lines[stock_i] = '| LIVE | Durable canonical shop stock — PR #250 / implementation head `748a57efc20678962f65efad9d4feb7450bafd54`. Remaining quantity and revision persist per authored shop/offer under the world save. PR #423 / production head `cb606363430c0c1eb10d9ee7be1987acbb435bd1` adds schema-v3 durable daily restock receipts while preserving prior depletion receipts and v1/v2 reads; explicit server-authored reconciliation can refill to the authored cap once per RPG day, while unauthored replenishment through generic CAS remains rejected. |'
+          p.write_text('\n'.join(lines) + '\n')
+          PY
+          rm .github/workflows/temporary-plan-bookkeeping.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/temporary-plan-bookkeeping.yml
+          git commit -m "Update plan for durable shop replenishment"
+          git push origin HEAD:rpg/shop-stock-replenishment
