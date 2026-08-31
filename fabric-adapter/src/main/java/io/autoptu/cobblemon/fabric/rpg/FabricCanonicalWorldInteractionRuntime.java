@@ -5,15 +5,21 @@ import io.autoptu.cobblemon.authority.CanonicalWorldInteractionService;
 import io.autoptu.cobblemon.authority.FileCanonicalWorldEventObjectRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.RespawnAnchorBlock;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -35,6 +41,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
     private FabricCanonicalWorldInteractionRuntime() {}
 
     public static void register() {
+        ServerLifecycleEvents.SERVER_STARTED.register(FabricCanonicalWorldInteractionRuntime::reconcilePersistedWorldEvents);
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) {
                 return ActionResult.PASS;
@@ -95,6 +102,22 @@ public final class FabricCanonicalWorldInteractionRuntime {
         });
     }
 
+    static void reconcilePersistedWorldEvents(MinecraftServer server) {
+        var repository = FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(server);
+        for (var state : repository.findAll()) {
+            if (state.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
+                    || !CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(state.eventKey())) {
+                continue;
+            }
+            Optional<WorldObjectPosition> position = parseWorldObjectPosition(state.objectId());
+            if (position.isEmpty()) continue;
+            WorldObjectPosition object = position.orElseThrow();
+            ServerWorld world = server.getWorld(object.worldKey());
+            if (world == null || !world.getBlockState(object.marker()).isOf(Blocks.GOLD_BLOCK)) continue;
+            projectShrineState(world, object.marker().up(), state);
+        }
+    }
+
     static void projectShrineState(
             World world,
             BlockPos anchor,
@@ -126,6 +149,24 @@ public final class FabricCanonicalWorldInteractionRuntime {
         return Optional.of(new AuthoredObject(objectId, kind, marker.up()));
     }
 
+    private static Optional<WorldObjectPosition> parseWorldObjectPosition(String objectId) {
+        String[] parts = objectId.split(":", -1);
+        if (parts.length != 5) return Optional.empty();
+        Identifier dimension = Identifier.tryParse(parts[0] + ":" + parts[1]);
+        if (dimension == null) return Optional.empty();
+        try {
+            int x = Integer.parseInt(parts[2]);
+            int y = Integer.parseInt(parts[3]);
+            int z = Integer.parseInt(parts[4]);
+            return Optional.of(new WorldObjectPosition(
+                    RegistryKey.of(RegistryKeys.WORLD, dimension),
+                    new BlockPos(x, y, z)
+            ));
+        } catch (NumberFormatException ignored) {
+            return Optional.empty();
+        }
+    }
+
     private static BlockPos markerFor(World world, BlockPos clicked, CanonicalWorldInteractionService.Kind kind) {
         if (world.getBlockState(clicked.down()).isOf(Blocks.GOLD_BLOCK)) return clicked.down();
         if (kind == CanonicalWorldInteractionService.Kind.DOOR
@@ -151,4 +192,6 @@ public final class FabricCanonicalWorldInteractionRuntime {
             CanonicalWorldInteractionService.Kind kind,
             BlockPos anchor
     ) {}
+
+    private record WorldObjectPosition(RegistryKey<World> worldKey, BlockPos marker) {}
 }
