@@ -1,0 +1,51 @@
+name: Temporary WORLD-019 Plan Sync
+
+on:
+  push:
+    branches:
+      - rpg/world-019-move-tutor-shell-v2
+
+permissions:
+  contents: write
+
+jobs:
+  sync-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/world-019-move-tutor-shell-v2
+          fetch-depth: 0
+      - name: Patch canonical plan exactly once
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("MINECRAFT_RPG_TOOLING_PLAN.md")
+          text = path.read_text()
+          old_world = "| WORLD-019 | TODO | Move tutor/relearner NPC shell. |"
+          new_world = "| WORLD-019 | LIVE/PARTIAL | Move tutor/relearner NPC shell — PR #410 / implementation head `e0e23176449ca1549c405f4278eabf172a1a8baf`; right-clicking the server-authored Cedar Move Tutor opens a read-only canonical party/move inspection menu, and every selection revalidates physical NPC identity/range plus Pokemon identity/revision. Teaching, forgetting and relearning remain blocked under FAC-006/RPG-007 until AutoPTU-Java supplies authoritative PTU learnability/mutation. |"
+          if old_world in text:
+              text = text.replace(old_world, new_world, 1)
+          elif new_world not in text:
+              raise SystemExit("WORLD-019 row did not match expected canonical plan state")
+
+          svc47 = "| SVC-047 | LIVE/PARTIAL | `inspectLeagueRegistration(player)` / `registerLeagueChallenge(player, challengeId)` — PR #408 / implementation head `eda1f3694f311a01ae1bb5856deaf199036d8e7e`; re-resolves canonical Trainer identity, validates registration metadata against the canonical Trainer challenge catalogue and persists an owner-scoped idempotent registration. Battle start, opponent selection, PTU eligibility and record mutation remain outside this boundary. |"
+          svc48 = "| SVC-048 | LIVE/PARTIAL | `inspectMoveTutorPokemon(player, partySlot)` — PR #410 / implementation head `e0e23176449ca1549c405f4278eabf172a1a8baf`; resolves authenticated party membership, canonical Pokemon ownership, persisted current move loadout and Pokemon revision for the physical tutor surface. It performs no learnability calculation, tutor eligibility, cost, move mutation or PTU effect. |"
+          if svc48 not in text:
+              if svc47 not in text:
+                  raise SystemExit("SVC-047 anchor missing from canonical plan")
+              text = text.replace(svc47, svc47 + "\n" + svc48, 1)
+
+          path.write_text(text)
+      - name: Commit synchronized plan when changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- MINECRAFT_RPG_TOOLING_PLAN.md; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "WORLD-019 sync canonical Minecraft RPG plan"
+          git push origin HEAD:rpg/world-019-move-tutor-shell-v2
