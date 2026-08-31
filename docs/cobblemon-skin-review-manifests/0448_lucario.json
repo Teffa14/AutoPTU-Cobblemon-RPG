@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Aura Sentinel — Resonance Ronin V27",
+  "concept": "Aura Sentinel — Resonance Ronin V28",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -34,69 +34,43 @@
     "animationPath": "assets/cobblemon/bedrock/pokemon/animations/0448_lucario/lucario.animation.json",
     "animationSha256": "ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563",
     "auxiliaryAssets": [
-      {
-        "role": "POSER",
-        "path": "assets/cobblemon/bedrock/pokemon/posers/0448_lucario/lucario.json",
-        "sha256": "7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d"
-      },
-      {
-        "role": "RESOLVER",
-        "path": "assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/0_lucario_base.json",
-        "sha256": "a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81"
-      },
-      {
-        "role": "MODEL_LICENSE",
-        "path": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/license",
-        "sha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"
-      }
+      {"role":"POSER","path":"assets/cobblemon/bedrock/pokemon/posers/0448_lucario/lucario.json","sha256":"7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d"},
+      {"role":"RESOLVER","path":"assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/0_lucario_base.json","sha256":"a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81"},
+      {"role":"MODEL_LICENSE","path":"assets/cobblemon/bedrock/pokemon/models/0448_lucario/license","sha256":"fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660"}
     ]
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
     "modelSha256": "7077976f8ae18f71b7507d04fdaa50a8a7e6b46266505ec66f9e9e9a8d295901",
-    "productionBoneCount": 92,
-    "cosmeticBoneCount": 5,
-    "cosmeticCubeCount": 8,
-    "attachmentGate": {
-      "anchorGap": 1.5,
-      "pieceGap": 1.0
-    },
+    "productionBoneCount": 90,
+    "cosmeticBoneCount": 3,
+    "cosmeticCubeCount": 6,
+    "attachmentGate": {"anchorGap":1.5,"pieceGap":1.0},
     "textures": [
       {
-        "role": "BODY",
-        "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
-        "sha256": "0638a3232a3fe9fba8d0743f23f98870a50ad379642f6f2431e159167962ade5",
-        "derivation": "DERIVED_FROM_OFFICIAL",
-        "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v27-derived-normal.json"
+        "role":"BODY",
+        "path":"fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
+        "sha256":"0638a3232a3fe9fba8d0743f23f98870a50ad379642f6f2431e159167962ade5",
+        "derivation":"DERIVED_FROM_OFFICIAL",
+        "officialBaselineSha256":"98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
+        "derivedMetadataPath":"docs/cobblemon-skins/0448_lucario/v28-derived-normal.json"
       },
       {
-        "role": "OVERLAY",
-        "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png",
-        "sha256": "9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee",
-        "derivation": "ACCESSORY_OVERLAY"
+        "role":"OVERLAY",
+        "path":"fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png",
+        "sha256":"9ba1c3c0c6e1ab7075f432a248fa4b1a9137bb2b1d8906f1cc3fcbe1f61dc8ee",
+        "derivation":"ACCESSORY_OVERLAY"
       }
     ],
     "runtimeAssets": [
-      {
-        "role": "RESOLVER",
-        "path": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json",
-        "sha256": "6a8e2d47ea0fab34cb6bf5955609049f1cc3b8d744ad6c8155333a36eb7be0ba"
-      },
-      {
-        "role": "SHINY_BODY",
-        "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
-        "sha256": "7ce504ac9d7cc55ac363a8ce385c75d64b8ea7b9e00cab7c57cd7e9682b44353"
-      }
+      {"role":"RESOLVER","path":"fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/resolvers/0448_lucario/90_ouros_aura_sentinel.json","sha256":"6a8e2d47ea0fab34cb6bf5955609049f1cc3b8d744ad6c8155333a36eb7be0ba"},
+      {"role":"SHINY_BODY","path":"fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png","sha256":"7ce504ac9d7cc55ac363a8ce385c75d64b8ea7b9e00cab7c57cd7e9682b44353"}
     ]
   },
   "builder": {
     "deterministic": true,
-    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v24.py",
-    "command": [
-      "python",
-      "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v24.py"
-    ],
+    "scriptPath": "tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v28.py",
+    "command": ["python","tools/cobblemon-model-review/build_aura_sentinel_resonance_ronin_v28.py"],
     "outputs": [
       "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
@@ -105,98 +79,53 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v27-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v27-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v28-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v28-derived-shiny.json"
     ]
   },
   "blockbench": {
-    "version": "5.1.6",
-    "appImageSha256": "c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e",
-    "matchedCamera": true,
-    "gameplayResolution": 160,
-    "heroAnimation": "animation.lucario.ground_idle",
-    "heroAnimationTime": 0.35,
-    "battleAnimation": "animation.lucario.battle_idle",
-    "battleAnimationTime": 0.35,
-    "requiredEvidenceNames": [
-      "official_reference_three_quarter.png",
-      "hero_three_quarter.png",
-      "battle_ready_three_quarter.png",
-      "hero_front.png",
-      "hero_back.png",
-      "hero_gameplay_160.png"
-    ],
-    "technicalVisualFloor": {
-      "minimumPixelDifferenceRatio": 0.08,
-      "minimumSilhouetteDeltaRatio": 0.04
-    }
+    "version":"5.1.6",
+    "appImageSha256":"c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e",
+    "matchedCamera":true,
+    "gameplayResolution":160,
+    "heroAnimation":"animation.lucario.ground_idle",
+    "heroAnimationTime":0.35,
+    "battleAnimation":"animation.lucario.battle_idle",
+    "battleAnimationTime":0.35,
+    "requiredEvidenceNames":["official_reference_three_quarter.png","hero_three_quarter.png","battle_ready_three_quarter.png","hero_front.png","hero_back.png","hero_gameplay_160.png"],
+    "technicalVisualFloor":{"minimumPixelDifferenceRatio":0.08,"minimumSilhouetteDeltaRatio":0.04}
   },
   "evidence": {
-    "artifactName": "lucario-aura-sentinel-resonance-ronin-professional-review",
-    "reviewContractFile": "review-contract.json",
-    "pngHashManifestFile": "png-sha256.txt",
-    "requiredFiles": [
-      "official_reference_three_quarter.png",
-      "hero_three_quarter.png",
-      "battle_ready_three_quarter.png",
-      "hero_front.png",
-      "hero_back.png",
-      "hero_gameplay_160.png",
-      "contact_sheet.png",
-      "review-contract.json",
-      "png-sha256.txt"
-    ]
+    "artifactName":"lucario-aura-sentinel-resonance-ronin-professional-review",
+    "reviewContractFile":"review-contract.json",
+    "pngHashManifestFile":"png-sha256.txt",
+    "requiredFiles":["official_reference_three_quarter.png","hero_three_quarter.png","battle_ready_three_quarter.png","hero_front.png","hero_back.png","hero_gameplay_160.png","contact_sheet.png","review-contract.json","png-sha256.txt"]
   },
   "qualityIntent": {
-    "referenceLessons": [
+    "referenceLessons":[
       "Use layered parent-safe cloth masses across head and torso so a costume reads as one continuous character design, not scattered add-ons.",
       "Carry authored material continuity through animated body regions so gameplay motion preserves the transformation.",
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
-    "signaturePieces": [
-      "Open diagonal aura collar framing the chest spike",
-      "Two-stage torso resonance rib following the waist taper",
-      "Opposed forearm and shin traces that continue the diagonal rhythm through the full body"
+    "signaturePieces":[
+      "Single asymmetric resonance arc sweeping from left shoulder past the upper torso",
+      "Torso-root counter-facet that preserves chest-spike negative space",
+      "Small opposite hip echo carrying the diagonal through the body without a second bulky system"
     ],
-    "macroFormPlan": "V27 deletes the rejected shoulder/back mantle architecture entirely. Five anatomy-parented systems trace a diagonal collar-rib-hip line and answer it on the opposite forearm/shin. The head, dorsal outline and tail stay deliberately open; silhouette change comes from distributed contour gestures rather than one backpack-like mass.",
-    "paintPlan": "Normal and shiny remain independently derived from exact 1.7.3 baselines. Cobalt biology uses three deterministic local value bands, stronger indigo occlusion and sparse directional edge glints; dark biology receives separate indigo shaping. Cream spikes, whites, eyes, dimensions, UV layout and alpha semantics remain protected.",
-    "gameplayReadGoal": "At 160 px read a coherent diagonal resonance path across collar, torso, hip and opposite limbs. No shoulder backpack, mantle rectangle, cage, repeated fins or large slabs may appear.",
-    "antiPatternsToReject": [
-      "Pokemon base plus scattered accessories",
-      "Rectangular cage, shrine frame or portal silhouette",
-      "Detached floating fins or equipment islands",
-      "Flat recolor used as a substitute for authored geometry"
-    ],
-    "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "V26 passed technical floors but direct Blockbench QA still read the compact shoulder/back shell as a backpack-like cuboid mass. V27 abandons that architecture instead of shrinking or thickening it again, distributing eight thin rotated contour volumes across the anatomy and asking paint to carry more of the transformation."
+    "macroFormPlan":"V28 preserves V27 clean head/back/tail and deletes the scattered collar-rib-limb traces. One three-facet tapered shoulder arc provides the only dominant silhouette break, rooted by two smaller torso facets around the chest spike. A single hip echo continues the diagonal rhythm. No mantle, backpack, cage, repeated fins or orthogonal armor stack is allowed.",
+    "paintPlan":"Normal and shiny remain independently derived from exact 1.7.3 baselines. Broader cobalt value fields, indigo occlusion and sparse directional glints support the shoulder arc without drawing literal costume markings. Cream spikes, whites, eyes, dimensions, UV layout and alpha semantics stay protected.",
+    "gameplayReadGoal":"At 160 px read one premium asymmetric shoulder crescent plus a coherent cobalt/indigo material treatment. The silhouette break must exceed the unchanged 0.04 floor through useful contour, not oversized slabs.",
+    "antiPatternsToReject":["Pokemon base plus scattered accessories","Rectangular cage, shrine frame or portal silhouette","Detached floating fins or equipment islands","Flat recolor used as a substitute for authored geometry"],
+    "thirdPartyReusePolicy":"TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
+    "iterationNote":"V27 solved rear clutter but failed silhouette at 0.0036 because all added forms hugged the official outline and read as straps. V28 removes those traces and spends the geometry budget on one anatomy-connected, overlapping, tapered shoulder/upper-torso signature system with deliberate negative space."
   },
   "variantCoverage": {
-    "audited": true,
-    "variants": [
-      {
-        "name": "default",
-        "coverage": "Default preserves the exact official 87-bone Lucario geometry and uses a validated V27 normal texture independently derived from the exact official 1.7.3 baseline."
-      },
-      {
-        "name": "shiny",
-        "coverage": "Shiny uses the same V27 cosmetic geometry and overlay plus an independently derived V27 texture from the exact official shiny 1.7.3 baseline."
-      },
-      {
-        "name": "sex/forms",
-        "coverage": "The official 1.7.3 resolver path exposes no male/female geometry split for this Lucario model; Mega Lucario remains outside this cosmetic slice."
-      }
+    "audited":true,
+    "variants":[
+      {"name":"default","coverage":"Default preserves the exact official 87-bone Lucario geometry and uses a validated V28 normal texture independently derived from the exact official 1.7.3 baseline."},
+      {"name":"shiny","coverage":"Shiny uses the same V28 cosmetic geometry and overlay plus an independently derived V28 texture from the exact official shiny 1.7.3 baseline."},
+      {"name":"sex/forms","coverage":"The official 1.7.3 resolver path exposes no male/female geometry split for this Lucario model; Mega Lucario remains outside this cosmetic slice."}
     ]
   },
-  "technicalChecks": [
-    "REFERENCE_DOSSIER",
-    "OFFICIAL_SOURCE_HASHES",
-    "ORIGINAL_BONE_EQUALITY",
-    "COSMETIC_ATTACHMENT",
-    "BUILDER_REPRODUCIBILITY",
-    "BLOCKBENCH_MATCHED_CAMERA",
-    "GAMEPLAY_SCALE_EVIDENCE",
-    "PLAYABLE_TEST_BUILD",
-    "INTEGRATION_CORE_CI",
-    "DERIVED_TEXTURE_PROVENANCE"
-  ]
+  "technicalChecks":["REFERENCE_DOSSIER","OFFICIAL_SOURCE_HASHES","ORIGINAL_BONE_EQUALITY","COSMETIC_ATTACHMENT","BUILDER_REPRODUCIBILITY","BLOCKBENCH_MATCHED_CAMERA","GAMEPLAY_SCALE_EVIDENCE","PLAYABLE_TEST_BUILD","INTEGRATION_CORE_CI","DERIVED_TEXTURE_PROVENANCE"]
 }
