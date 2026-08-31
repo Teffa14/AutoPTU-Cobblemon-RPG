@@ -22,14 +22,14 @@ final class CanonicalProgressionGateServiceTest {
         assertFalse(service.canPass("trainer-a", CanonicalProgressionGateCatalogue.CEDAR_BADGE_GATE_ID).allowed());
 
         var current = repository.findOrCreate("trainer-a");
-        repository.replace(new FileCanonicalTrainerRecordRepository.State(
+        assertTrue(repository.replaceIfRevision(new FileCanonicalTrainerRecordRepository.TrainerRecord(
                 current.playerId(),
                 current.wins(),
                 current.losses(),
                 Set.of(CanonicalProgressionGateCatalogue.CEDAR_TRIAL_BADGE_ID),
                 List.of(),
-                current.revision()),
-                current.revision());
+                current.revision() + 1),
+                current.revision()));
 
         assertTrue(service.canPass("trainer-a", CanonicalProgressionGateCatalogue.CEDAR_BADGE_GATE_ID).allowed());
     }
