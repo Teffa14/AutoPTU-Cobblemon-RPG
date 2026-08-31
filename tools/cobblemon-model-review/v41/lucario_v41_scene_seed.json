@@ -2,7 +2,7 @@
   "format": "ouros.blockbench-scene-seed.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Blue/White Maid Lucario V41 — bonnet-only macroform pass 3",
+  "concept": "Blue/White Maid Lucario V41 — bonnet-only macroform pass 4",
   "authoringState": "PREVIEW_SCENE_SEED_NOT_BLOCKBENCH_AUTHORED",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "officialBaseline": {
@@ -28,7 +28,7 @@
       "Build a curved read from a small number of overlapping oriented surfaces, not a staircase of cuboids.",
       "Keep the bonnet anatomy-following and animation-parented to head_angle."
     ],
-    "iterationNote": "Pass 2 increased visibility but still read as side flowers in three-quarter view and a horizontal stripe from the rear. Pass 3 replaces that layout with a continuous rear-crown fan: broad rear-left/rear-center/rear-right cap panels, larger ear-root wings, two shallow top cloth panels, and a three-segment lower scalloped ruffle. This is still preview geometry, not owner-approved production art."
+    "iterationNote": "Pass 3 finally produced a coherent rear arc, but its front-facing ear-root wings still read as two white side ornaments and the hero three-quarter view hid too much of the cap behind Lucario's head/aura sensors. Pass 4 makes one bounded correction: tuck the side wings inward/back, lift and broaden the shallow top cloth so it peeks over the rear crown in three-quarter, and retain the proven rear scalloped arc. No body garment is added."
   },
   "palette": {
     "84": [135, 151, 207, 255],
@@ -52,13 +52,12 @@
     "side_wing": {
       "legend": {"W": 87, "L": 85, "S": 88},
       "pixels": [
-        "...WWW",
-        "..WWLW",
-        ".WWLLW",
-        "WWLSLW",
-        "WLLLLW",
-        ".WLLW.",
-        "..WW.."
+        "..WWW",
+        ".WWLW",
+        "WWLLW",
+        "WLSLW",
+        ".WLLW",
+        "..WW."
       ]
     },
     "ruffle": {
@@ -74,15 +73,15 @@
     {
       "name": "ouros_v41_bonnet_shell",
       "parent": "head_angle",
-      "pivot": [0, 40.85, 2.75],
+      "pivot": [0, 41.05, 2.68],
       "elements": [
-        {"origin": [-4.46, 39.52, 3.08], "size": [3.26, 3.74, 0], "pivot": [-2.52, 41.28, 3.20], "rotation": [-13, 0, 12], "uvSprite": "cap_panel"},
-        {"origin": [-1.72, 39.70, 3.34], "size": [3.48, 3.82, 0], "pivot": [0.04, 41.42, 3.42], "rotation": [-15, 0, -1], "uvSprite": "cap_panel"},
-        {"origin": [1.22, 39.58, 3.10], "size": [3.24, 3.70, 0], "pivot": [2.50, 41.30, 3.20], "rotation": [-12, 0, -11], "uvSprite": "cap_panel"},
-        {"origin": [-5.06, 39.18, 0.54], "size": [0, 4.08, 3.30], "pivot": [-4.82, 41.18, 2.18], "rotation": [2, -30, 12], "uvSprite": "side_wing"},
-        {"origin": [5.00, 39.30, 0.62], "size": [0, 3.94, 3.24], "pivot": [4.78, 41.20, 2.22], "rotation": [-1, 28, -10], "uvSprite": "side_wing"},
-        {"origin": [-3.84, 42.20, 1.06], "size": [3.70, 0, 3.18], "pivot": [-1.90, 42.22, 2.60], "rotation": [19, -8, 12], "uvSprite": "cap_panel"},
-        {"origin": [0.16, 42.24, 1.12], "size": [3.66, 0, 3.14], "pivot": [1.88, 42.26, 2.62], "rotation": [20, 7, -10], "uvSprite": "cap_panel"}
+        {"origin": [-4.40, 39.54, 3.10], "size": [3.22, 3.72, 0], "pivot": [-2.48, 41.30, 3.20], "rotation": [-13, 0, 12], "uvSprite": "cap_panel"},
+        {"origin": [-1.70, 39.72, 3.36], "size": [3.44, 3.80, 0], "pivot": [0.04, 41.44, 3.44], "rotation": [-15, 0, -1], "uvSprite": "cap_panel"},
+        {"origin": [1.20, 39.60, 3.12], "size": [3.20, 3.68, 0], "pivot": [2.46, 41.32, 3.22], "rotation": [-12, 0, -11], "uvSprite": "cap_panel"},
+        {"origin": [-4.44, 39.54, 1.08], "size": [0, 3.36, 2.58], "pivot": [-4.28, 41.16, 2.34], "rotation": [1, -31, 10], "uvSprite": "side_wing"},
+        {"origin": [4.40, 39.64, 1.14], "size": [0, 3.24, 2.54], "pivot": [4.26, 41.18, 2.36], "rotation": [-1, 29, -9], "uvSprite": "side_wing"},
+        {"origin": [-4.02, 43.02, 0.74], "size": [3.94, 0, 3.52], "pivot": [-2.00, 43.06, 2.46], "rotation": [23, -8, 11], "uvSprite": "cap_panel"},
+        {"origin": [0.08, 43.06, 0.80], "size": [3.90, 0, 3.48], "pivot": [1.98, 43.10, 2.48], "rotation": [24, 7, -9], "uvSprite": "cap_panel"}
       ]
     },
     {
@@ -90,9 +89,9 @@
       "parent": "head_angle",
       "pivot": [0, 39.20, 3.50],
       "elements": [
-        {"origin": [-4.34, 37.86, 3.50], "size": [2.82, 1.80, 0], "pivot": [-2.70, 39.22, 3.58], "rotation": [-11, 0, 12], "uvSprite": "ruffle"},
-        {"origin": [-1.66, 37.62, 3.66], "size": [3.34, 2.00, 0], "pivot": [0.02, 39.18, 3.72], "rotation": [-13, 0, -1], "uvSprite": "ruffle"},
-        {"origin": [1.54, 37.90, 3.52], "size": [2.80, 1.76, 0], "pivot": [2.68, 39.24, 3.58], "rotation": [-10, 0, -11], "uvSprite": "ruffle"}
+        {"origin": [-4.30, 37.88, 3.50], "size": [2.80, 1.78, 0], "pivot": [-2.68, 39.22, 3.58], "rotation": [-11, 0, 12], "uvSprite": "ruffle"},
+        {"origin": [-1.64, 37.64, 3.66], "size": [3.30, 1.98, 0], "pivot": [0.02, 39.18, 3.72], "rotation": [-13, 0, -1], "uvSprite": "ruffle"},
+        {"origin": [1.52, 37.92, 3.52], "size": [2.78, 1.74, 0], "pivot": [2.66, 39.24, 3.58], "rotation": [-10, 0, -11], "uvSprite": "ruffle"}
       ]
     }
   ]
