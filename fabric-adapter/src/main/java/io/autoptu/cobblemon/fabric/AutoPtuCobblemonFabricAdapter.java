@@ -38,6 +38,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricItemStorageTerminalRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricLocationDiscoveryRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricNpcDialogueRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricNpcDialogueRuntimeSmoke;
+import io.autoptu.cobblemon.fabric.rpg.FabricNpcRelationshipRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyHealingRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyLeadRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricPartyManagementRuntime;
@@ -122,6 +123,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricShopRuntime.register();
         FabricShopCounterRuntime.register();
         FabricShopCounterRuntimeSmoke.registerIfEnabled();
+        FabricNpcRelationshipRuntime.register();
         FabricNpcDialogueRuntime.register();
         FabricNpcDialogueRuntimeSmoke.registerIfEnabled();
         FabricGymLeagueRegistrationRuntime.register();
