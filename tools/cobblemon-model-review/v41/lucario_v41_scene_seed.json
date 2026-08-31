@@ -2,7 +2,7 @@
   "format": "ouros.blockbench-scene-seed.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Blue/White Maid Lucario V41 — cloth-flow reset",
+  "concept": "Blue/White Maid Lucario V41 — alpha-cloth contour reset",
   "authoringState": "PREVIEW_SCENE_SEED_NOT_BLOCKBENCH_AUTHORED",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "officialBaseline": {
@@ -11,28 +11,27 @@
     "officialBoneCount": 87
   },
   "designIntent": {
-    "firstRead": "A rear-set maid bonnet wrapping behind Lucario's ears and a blue dress with a narrow asymmetric white apron.",
+    "firstRead": "A rear-set ruffled maid bonnet and a blue cloth dress with a narrow scalloped white apron, not Lucario plus rectangular plates.",
     "macroRules": [
       "No forehead band.",
       "No stacked horizontal cap slabs.",
       "No large rectangular bonnet plates beside the ears.",
       "No single rectangular apron board.",
       "No paired rectangular apron shields.",
-      "No rigid folding-fan silhouette across the whole front.",
+      "Use alpha-masked zero-thickness Bedrock planes for visible cloth hems and ruffles.",
       "Keep the white apron subordinate to the blue skirt silhouette.",
-      "Break the apron hem with overlap, unequal lengths and stronger diagonal flow.",
-      "Build the dress silhouette through side and rear drapes, not by inflating a frontal white mass.",
+      "Break every major cloth hem with taper, scallop, asymmetry or overlap.",
+      "Build the dress silhouette through blue front/side/rear drapes rather than a frontal white mass.",
       "The bonnet sits over the rear crown and wraps behind the ear roots; the forehead and face stay open.",
-      "Use very thin surfaces for cloth and reserve volumetric cuboids for actual volume.",
-      "Carry blue/periwinkle cloth through torso, sleeves, hips, front, side and rear; use white as trim/apron hierarchy.",
-      "Spend geometry on contour changes, not repeated identical blocks."
+      "Reserve volumetric cuboids for actual volume such as cuffs, not for drawing cloth contour.",
+      "Carry blue/periwinkle cloth through torso, sleeves, hips, front, side and rear; use white as trim/apron hierarchy."
     ],
     "referenceTechniqueCarryover": [
       "Two-stage parented drape and edge hierarchy from the inspected Ruins Style technique study.",
       "Whole-body costume continuity and anatomy-following shells from the inspected Space Style technique study.",
       "Connected head/torso garment hierarchy and animation-parented overlays from the inspected Covert Style technique study."
     ],
-    "iterationNote": "Manual QA of head 667e96dc60a8bfdd6bcdf664d1d4c121bc48a16c found a real improvement in torso and skirt hierarchy but rejected the remaining white forehead line and the rigid central apron hem. This pass moves all crown surfaces rearward so the front view has no bonnet bar, narrows the two white apron sheets, increases their opposing diagonal flow and gives them unequal lower extents. The poly_mesh experiment remains excluded because Blockbench 5.1.6 omitted it from the scene."
+    "iterationNote": "Manual QA of 948336e68174aa928fb457889d98b37c3fbc8454 showed that thin rectangles still read as rigid strips and the silhouette floor fell to 0.0262. This pass changes authoring technique rather than adding geometry: the bonnet, apron and skirt silhouette are drawn with alpha-masked zero-thickness Bedrock planes. The accessory atlas is allocated only in transparent baseline pixels by the materializer. The prior poly_mesh experiment remains excluded because Blockbench 5.1.6 silently omitted it."
   },
   "palette": {
     "80": [28, 31, 40, 255],
@@ -46,18 +45,131 @@
     "88": [167, 177, 196, 255],
     "89": [112, 123, 143, 255]
   },
+  "spriteMasks": {
+    "bonnet_top": {
+      "legend": {"W": 87, "L": 85},
+      "pixels": [
+        "..WWWWW..",
+        ".WWWWWWW.",
+        "WWWWWWWWW",
+        "WWWLLLWWW",
+        ".WWLLLWW.",
+        "..W.W.W.."
+      ]
+    },
+    "bonnet_rear": {
+      "legend": {"W": 87, "L": 85},
+      "pixels": [
+        ".WWWWWWWW.",
+        "WWLLLLLLWW",
+        "WWLLLLLLWW",
+        ".WWLLLLWW.",
+        "..W.W.W..."
+      ]
+    },
+    "bonnet_side": {
+      "legend": {"W": 87, "L": 85},
+      "pixels": [
+        "..WW..",
+        ".WWWW.",
+        "WWLLWW",
+        "WWLLWW",
+        ".WLLW.",
+        ".WWWW.",
+        "..WW..",
+        ".W..W."
+      ]
+    },
+    "apron_main": {
+      "legend": {"W": 87, "L": 85},
+      "pixels": [
+        "..WWWW..",
+        ".WWWWWW.",
+        ".WWLLWW.",
+        "WWLLLLWW",
+        "WWLLLLWW",
+        "WWLLLLWW",
+        ".WLLLLW.",
+        ".WWLLWW.",
+        ".WWWWWW.",
+        ".WWWWWW.",
+        "WW.WW.WW",
+        ".W.W.W.."
+      ]
+    },
+    "apron_fold": {
+      "legend": {"W": 86, "L": 85},
+      "pixels": [
+        ".WWW.",
+        "WWWWW",
+        "WWLLW",
+        ".WLLW",
+        ".WLLW",
+        ".WWWW",
+        ".WW.W",
+        ".W.W.",
+        "..W.."
+      ]
+    },
+    "skirt_left": {
+      "legend": {"B": 82, "M": 83},
+      "pixels": [
+        "...BBB...",
+        "..BBBBB..",
+        ".BBBBBBB.",
+        "BBBBBBBBB",
+        "BBMMMMBBB",
+        "BMMMMMMBB",
+        "BMMMMMMBB",
+        "BBMMMMBBB",
+        "BBBBBBBB.",
+        "BBBBBB...",
+        "BBB.B...."
+      ]
+    },
+    "skirt_right": {
+      "legend": {"B": 82, "M": 83},
+      "pixels": [
+        "...BBB...",
+        "..BBBBB..",
+        ".BBBBBBB.",
+        "BBBBBBBBB",
+        "BBBMMMMBB",
+        "BBMMMMMMB",
+        "BBMMMMMMB",
+        "BBBMMMMBB",
+        ".BBBBBBBB",
+        "...BBBBBB",
+        "....B.BBB"
+      ]
+    },
+    "side_drape": {
+      "legend": {"B": 82, "M": 84},
+      "pixels": [
+        "..BB..",
+        ".BBBB.",
+        "BBBBBB",
+        "BBMMBB",
+        "BMMMMB",
+        "BMMMMB",
+        "BBMMBB",
+        "BBBBB.",
+        ".BBB..",
+        "..B..."
+      ]
+    }
+  },
   "bones": [
     {
       "name": "ouros_v41_cloth_cap",
       "parent": "head_angle",
-      "pivot": [0, 40.0, 0.8],
+      "pivot": [0, 40.0, 0.9],
       "elements": [
-        {"origin": [-3.62, 40.12, -0.42], "size": [3.38, 0.14, 2.90], "pivot": [-1.72, 40.24, 1.06], "rotation": [14, -8, 13], "uvSlot": 87},
-        {"origin": [0.18, 40.10, -0.38], "size": [3.38, 0.14, 2.86], "pivot": [1.72, 40.22, 1.08], "rotation": [15, 8, -12], "uvSlot": 86},
-        {"origin": [-3.42, 38.98, 2.14], "size": [6.84, 1.02, 0.14], "pivot": [0, 39.60, 2.22], "rotation": [-11, 0, 0], "uvSlot": 85},
-        {"origin": [-4.80, 38.68, -0.34], "size": [0.14, 2.72, 3.06], "pivot": [-4.64, 40.10, 1.22], "rotation": [0, -22, 18], "uvSlot": 84},
-        {"origin": [4.66, 38.74, -0.30], "size": [0.14, 2.60, 3.00], "pivot": [4.64, 40.08, 1.24], "rotation": [0, 21, -16], "uvSlot": 85},
-        {"origin": [-4.72, 37.98, 1.54], "size": [1.30, 2.80, 0.12], "pivot": [-3.82, 39.90, 1.62], "rotation": [-6, 0, 28], "uvSlot": 83}
+        {"origin": [-3.78, 40.12, -0.30], "size": [3.72, 0, 3.10], "pivot": [-1.82, 40.16, 1.18], "rotation": [14, -8, 12], "uvSprite": "bonnet_top"},
+        {"origin": [0.06, 40.10, -0.26], "size": [3.72, 0, 3.06], "pivot": [1.82, 40.14, 1.20], "rotation": [15, 8, -11], "uvSprite": "bonnet_top"},
+        {"origin": [-3.56, 38.56, 2.16], "size": [7.12, 3.10, 0], "pivot": [0, 40.08, 2.20], "rotation": [-7, 0, 0], "uvSprite": "bonnet_rear"},
+        {"origin": [-4.76, 38.52, -0.18], "size": [0, 3.04, 3.18], "pivot": [-4.64, 40.08, 1.34], "rotation": [0, -22, 18], "uvSprite": "bonnet_side"},
+        {"origin": [4.76, 38.58, -0.14], "size": [0, 2.92, 3.12], "pivot": [4.64, 40.06, 1.36], "rotation": [0, 21, -16], "uvSprite": "bonnet_side"}
       ]
     },
     {
@@ -65,14 +177,14 @@
       "parent": "torso3",
       "pivot": [0, 27.0, -0.4],
       "elements": [
-        {"origin": [-3.06, 23.74, -4.16], "size": [2.88, 5.20, 0.16], "pivot": [-1.46, 27.02, -4.04], "rotation": [4, -2, -8], "uvSlot": 82},
-        {"origin": [0.18, 23.74, -4.16], "size": [2.88, 5.20, 0.16], "pivot": [1.46, 27.02, -4.04], "rotation": [4, 2, 8], "uvSlot": 83},
-        {"origin": [-3.86, 24.18, -2.54], "size": [0.16, 4.82, 4.02], "pivot": [-3.74, 27.00, -0.46], "rotation": [0, -12, -3], "uvSlot": 81},
-        {"origin": [3.70, 24.18, -2.54], "size": [0.16, 4.82, 4.02], "pivot": [3.74, 27.00, -0.46], "rotation": [0, 12, 3], "uvSlot": 82},
-        {"origin": [-2.88, 24.18, 1.56], "size": [2.92, 4.72, 0.14], "pivot": [-1.42, 27.06, 1.64], "rotation": [-3, 0, -5], "uvSlot": 81},
-        {"origin": [-0.04, 24.18, 1.56], "size": [2.92, 4.72, 0.14], "pivot": [1.42, 27.06, 1.64], "rotation": [-3, 0, 5], "uvSlot": 82},
-        {"origin": [-2.70, 29.18, -3.42], "size": [2.48, 0.70, 2.02], "pivot": [-1.28, 29.66, -2.38], "rotation": [6, -4, -16], "uvSlot": 86},
-        {"origin": [0.22, 29.18, -3.42], "size": [2.48, 0.70, 2.02], "pivot": [1.28, 29.66, -2.38], "rotation": [6, 4, 15], "uvSlot": 85}
+        {"origin": [-3.00, 23.78, -4.16], "size": [2.86, 5.12, 0], "pivot": [-1.44, 27.00, -4.08], "rotation": [4, -2, -8], "uvSlot": 82},
+        {"origin": [0.14, 23.78, -4.16], "size": [2.86, 5.12, 0], "pivot": [1.44, 27.00, -4.08], "rotation": [4, 2, 8], "uvSlot": 83},
+        {"origin": [-3.82, 24.18, -2.50], "size": [0, 4.78, 4.00], "pivot": [-3.74, 26.98, -0.46], "rotation": [0, -12, -3], "uvSlot": 81},
+        {"origin": [3.82, 24.18, -2.50], "size": [0, 4.78, 4.00], "pivot": [3.74, 26.98, -0.46], "rotation": [0, 12, 3], "uvSlot": 82},
+        {"origin": [-2.84, 24.20, 1.60], "size": [2.88, 4.68, 0], "pivot": [-1.40, 27.04, 1.66], "rotation": [-3, 0, -5], "uvSlot": 81},
+        {"origin": [-0.04, 24.20, 1.60], "size": [2.88, 4.68, 0], "pivot": [1.40, 27.04, 1.66], "rotation": [-3, 0, 5], "uvSlot": 82},
+        {"origin": [-2.66, 29.20, -3.38], "size": [2.42, 0, 2.00], "pivot": [-1.26, 29.64, -2.36], "rotation": [6, -4, -16], "uvSlot": 86},
+        {"origin": [0.24, 29.20, -3.38], "size": [2.42, 0, 2.00], "pivot": [1.26, 29.64, -2.36], "rotation": [6, 4, 15], "uvSlot": 85}
       ]
     },
     {
@@ -80,10 +192,9 @@
       "parent": "arm_left",
       "pivot": [5.3, 29.7, -0.4],
       "elements": [
-        {"origin": [2.12, 28.26, -1.74], "size": [4.16, 2.52, 0.16], "pivot": [4.36, 29.56, -1.62], "rotation": [7, -7, -6], "uvSlot": 84},
-        {"origin": [2.18, 28.24, 0.76], "size": [4.10, 2.48, 0.14], "pivot": [4.36, 29.54, 0.84], "rotation": [-7, 7, -6], "uvSlot": 83},
-        {"origin": [5.98, 28.18, -1.86], "size": [2.00, 2.68, 2.92], "pivot": [6.96, 29.50, -0.38], "rotation": [0, 0, -4], "uvSlot": 82},
-        {"origin": [7.62, 28.10, -1.90], "size": [1.02, 2.78, 2.98], "pivot": [8.12, 29.48, -0.38], "rotation": [0, 0, -2], "uvSlot": 80}
+        {"origin": [2.14, 28.28, -1.72], "size": [4.10, 2.46, 0], "pivot": [4.34, 29.54, -1.62], "rotation": [7, -7, -6], "uvSlot": 84},
+        {"origin": [2.20, 28.26, 0.78], "size": [4.04, 2.42, 0], "pivot": [4.34, 29.52, 0.86], "rotation": [-7, 7, -6], "uvSlot": 83},
+        {"origin": [6.02, 28.18, -1.84], "size": [1.92, 2.64, 2.88], "pivot": [6.96, 29.48, -0.38], "rotation": [0, 0, -4], "uvSlot": 82}
       ]
     },
     {
@@ -91,26 +202,25 @@
       "parent": "arm_right",
       "pivot": [-5.3, 29.7, -0.4],
       "elements": [
-        {"origin": [-6.28, 28.26, -1.74], "size": [4.16, 2.52, 0.16], "pivot": [-4.36, 29.56, -1.62], "rotation": [7, 7, 6], "uvSlot": 84},
-        {"origin": [-6.28, 28.24, 0.76], "size": [4.10, 2.48, 0.14], "pivot": [-4.36, 29.54, 0.84], "rotation": [-7, -7, 6], "uvSlot": 83},
-        {"origin": [-7.98, 28.18, -1.86], "size": [2.00, 2.68, 2.92], "pivot": [-6.96, 29.50, -0.38], "rotation": [0, 0, 4], "uvSlot": 82},
-        {"origin": [-8.64, 28.10, -1.90], "size": [1.02, 2.78, 2.98], "pivot": [-8.12, 29.48, -0.38], "rotation": [0, 0, 2], "uvSlot": 80}
+        {"origin": [-6.24, 28.28, -1.72], "size": [4.10, 2.46, 0], "pivot": [-4.34, 29.54, -1.62], "rotation": [7, 7, 6], "uvSlot": 84},
+        {"origin": [-6.24, 28.26, 0.78], "size": [4.04, 2.42, 0], "pivot": [-4.34, 29.52, 0.86], "rotation": [-7, -7, 6], "uvSlot": 83},
+        {"origin": [-7.94, 28.18, -1.84], "size": [1.92, 2.64, 2.88], "pivot": [-6.96, 29.48, -0.38], "rotation": [0, 0, 4], "uvSlot": 82}
       ]
     },
     {
       "name": "ouros_v41_apron_wrap",
       "parent": "torso",
-      "pivot": [0, 17.2, -2.2],
+      "pivot": [0, 17.1, -2.0],
       "elements": [
-        {"origin": [-3.12, 16.14, -4.86], "size": [6.16, 0.74, 0.12], "pivot": [0, 16.58, -4.78], "rotation": [5, 0, 0], "uvSlot": 85},
-        {"origin": [-2.66, 10.14, -5.06], "size": [3.24, 6.94, 0.12], "pivot": [-0.82, 16.12, -4.96], "rotation": [8, -4, -15], "uvSlot": 87},
-        {"origin": [0.66, 12.10, -5.10], "size": [1.96, 4.86, 0.10], "pivot": [1.30, 15.92, -5.00], "rotation": [9, 5, 18], "uvSlot": 86},
-        {"origin": [-7.04, 10.66, -4.26], "size": [3.96, 7.02, 0.12], "pivot": [-4.70, 16.78, -3.64], "rotation": [5, -25, -22], "uvSlot": 82},
-        {"origin": [3.26, 11.12, -4.20], "size": [3.66, 6.52, 0.12], "pivot": [4.68, 16.76, -3.60], "rotation": [5, 25, 20], "uvSlot": 83},
-        {"origin": [-5.76, 10.96, -3.66], "size": [0.12, 6.32, 5.36], "pivot": [-5.62, 16.54, -0.94], "rotation": [0, -16, -5], "uvSlot": 82},
-        {"origin": [5.64, 11.26, -3.62], "size": [0.12, 6.00, 5.28], "pivot": [5.62, 16.54, -0.92], "rotation": [0, 16, 5], "uvSlot": 83},
-        {"origin": [-5.00, 9.52, 1.68], "size": [4.46, 7.78, 0.12], "pivot": [-2.52, 16.96, 1.78], "rotation": [-6, 0, 12], "uvSlot": 82},
-        {"origin": [0.44, 10.12, 1.68], "size": [4.32, 7.18, 0.12], "pivot": [2.46, 16.96, 1.78], "rotation": [-6, 0, -10], "uvSlot": 83}
+        {"origin": [-3.02, 16.18, -4.88], "size": [6.02, 0.70, 0], "pivot": [0, 16.58, -4.82], "rotation": [5, 0, 0], "uvSlot": 85},
+        {"origin": [-2.64, 9.86, -5.10], "size": [4.10, 7.50, 0], "pivot": [-0.78, 16.10, -5.02], "rotation": [8, -4, -14], "uvSprite": "apron_main"},
+        {"origin": [0.70, 11.56, -5.14], "size": [2.50, 5.72, 0], "pivot": [1.34, 15.86, -5.06], "rotation": [9, 5, 18], "uvSprite": "apron_fold"},
+        {"origin": [-7.28, 9.50, -4.64], "size": [5.18, 8.30, 0], "pivot": [-4.66, 16.74, -4.18], "rotation": [5, -16, -20], "uvSprite": "skirt_left"},
+        {"origin": [2.22, 10.14, -4.58], "size": [5.02, 7.70, 0], "pivot": [4.62, 16.72, -4.12], "rotation": [5, 16, 18], "uvSprite": "skirt_right"},
+        {"origin": [-5.88, 10.62, -3.62], "size": [0, 6.80, 5.50], "pivot": [-5.66, 16.52, -0.86], "rotation": [0, -15, -5], "uvSprite": "side_drape"},
+        {"origin": [5.88, 10.90, -3.58], "size": [0, 6.48, 5.42], "pivot": [5.66, 16.52, -0.84], "rotation": [0, 15, 5], "uvSprite": "side_drape"},
+        {"origin": [-5.22, 9.18, 1.72], "size": [4.86, 8.18, 0], "pivot": [-2.56, 16.94, 1.80], "rotation": [-6, 0, 12], "uvSprite": "skirt_left"},
+        {"origin": [0.36, 9.86, 1.72], "size": [4.72, 7.50, 0], "pivot": [2.48, 16.94, 1.80], "rotation": [-6, 0, -10], "uvSprite": "skirt_right"}
       ]
     },
     {
@@ -118,10 +228,10 @@
       "parent": "torso",
       "pivot": [0, 18.0, 3.5],
       "elements": [
-        {"origin": [-5.02, 16.52, 3.24], "size": [4.54, 2.32, 0.14], "pivot": [-1.58, 18.04, 3.34], "rotation": [-4, 0, -32], "uvSlot": 84},
-        {"origin": [0.48, 16.52, 3.24], "size": [4.54, 2.32, 0.14], "pivot": [1.58, 18.04, 3.34], "rotation": [-4, 0, 32], "uvSlot": 85},
-        {"origin": [-3.08, 9.26, 3.34], "size": [2.04, 8.02, 0.12], "pivot": [-1.50, 17.08, 3.42], "rotation": [-3, 0, 15], "uvSlot": 83},
-        {"origin": [1.04, 9.88, 3.34], "size": [2.04, 7.40, 0.12], "pivot": [1.50, 17.08, 3.42], "rotation": [-3, 0, -12], "uvSlot": 84}
+        {"origin": [-4.92, 16.62, 3.28], "size": [4.42, 2.18, 0], "pivot": [-1.56, 18.02, 3.38], "rotation": [-4, 0, -31], "uvSlot": 84},
+        {"origin": [0.50, 16.62, 3.28], "size": [4.42, 2.18, 0], "pivot": [1.56, 18.02, 3.38], "rotation": [-4, 0, 31], "uvSlot": 85},
+        {"origin": [-2.96, 9.36, 3.38], "size": [1.94, 7.88, 0], "pivot": [-1.48, 17.08, 3.46], "rotation": [-3, 0, 14], "uvSlot": 83},
+        {"origin": [1.02, 9.94, 3.38], "size": [1.94, 7.30, 0], "pivot": [1.48, 17.08, 3.46], "rotation": [-3, 0, -12], "uvSlot": 84}
       ]
     }
   ]
