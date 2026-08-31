@@ -2,7 +2,7 @@
   "format": "ouros.cobblemon-professional-skin-review.v1",
   "species": "lucario",
   "nationalDex": 448,
-  "concept": "Owner Reference Replica — Blue/White Maid Lucario V36b",
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V37",
   "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
   "artStatus": "ARTISTIC FAIL",
   "ownerApproval": {
@@ -53,10 +53,10 @@
   },
   "production": {
     "modelPath": "fabric-adapter/src/main/resources/assets/cobblemon/bedrock/pokemon/models/0448_lucario/ouros_aura_sentinel_lucario.geo.json",
-    "modelSha256": "19c682c086961b613df74f949039be950a1607aac52b2be599ea5efcb88fab64",
+    "modelSha256": "a1c3d7044b59de5d743cd7b448abf4bf3dcc61ae3ffbd6714ec4989d7f4100df",
     "productionBoneCount": 98,
     "cosmeticBoneCount": 11,
-    "cosmeticCubeCount": 51,
+    "cosmeticCubeCount": 42,
     "attachmentGate": {
       "anchorGap": 1.5,
       "pieceGap": 1.0
@@ -65,15 +65,15 @@
       {
         "role": "BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel.png",
-        "sha256": "50affa2a7732236dba85d5a408e34fbb31181e78399cf1af3c563fa37711caa5",
+        "sha256": "a4e7099a9706e97dc99a3cfdd2b5fa683fb47dc56a64d2dd7729fef2ff150746",
         "derivation": "DERIVED_FROM_OFFICIAL",
         "officialBaselineSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
-        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v36-reference-derived-normal.json"
+        "derivedMetadataPath": "docs/cobblemon-skins/0448_lucario/v37-reference-derived-normal.json"
       },
       {
         "role": "OVERLAY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_accessories.png",
-        "sha256": "cd736d716d3542cc9c8d3df0f58a3799396559508e897a213c1afeb4feeefd06",
+        "sha256": "f87ffc6a78c424c368c8cae25b164711c3c74d8282deb78a4a23833fca48686d",
         "derivation": "ACCESSORY_OVERLAY"
       }
     ],
@@ -86,7 +86,7 @@
       {
         "role": "SHINY_BODY",
         "path": "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
-        "sha256": "c3bf4d5de032ad90bd99353efd2ba90d9c54e470bce8946b3d3e422c0b1afaca"
+        "sha256": "1bd45b578eac31b289694fce202c0a6a3788ea5bdc7ad51e7386359db12701e2"
       }
     ]
   },
@@ -105,8 +105,8 @@
       "fabric-adapter/src/main/resources/assets/cobblemon/textures/pokemon/0448_lucario/ouros_aura_sentinel_shiny.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_1.7.3.png",
       "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
-      "docs/cobblemon-skins/0448_lucario/v36-reference-derived-normal.json",
-      "docs/cobblemon-skins/0448_lucario/v36-reference-derived-shiny.json"
+      "docs/cobblemon-skins/0448_lucario/v37-reference-derived-normal.json",
+      "docs/cobblemon-skins/0448_lucario/v37-reference-derived-shiny.json"
     ]
   },
   "blockbench": {
@@ -154,33 +154,34 @@
       "Use overlapping shells, contour transitions and material hierarchy while preserving every official biological UV and animation bone."
     ],
     "signaturePieces": [
-      "Low folded cool-white cap with teal band and asymmetric blue ribbon stack",
-      "Fitted white bodice and tapered sleeves with blue cuffs, charcoal gloves and silver clasp",
-      "Segmented hip-wrapping white apron with angled lobes, stepped hem and blue rear underskirt"
+      "Tall irregular folded cool-white cap enclosing official ear bases, with dominant camera-facing left blue ribbon stack",
+      "Narrow uninterrupted white bodice and long white sleeves with periwinkle cuffs, oversized charcoal gloves and silver clasp",
+      "One deep continuous white apron volume wrapping the hips over a three-piece blue rear/side under-skirt"
     ],
-    "macroFormPlan": "V36b replaces the rejected tower-cap and placard-apron read. Cap height is compressed into four broad overlapping folds. Apron is built from a shallow yoke, angled upper side panels, staggered lower lobes and narrow hip wraps so the contour follows the body instead of hanging as one board.",
-    "paintPlan": "Normal/shiny remain independent exact-official derivations with blue/teal biological value ramps plus dedicated cool-white/grey, periwinkle-blue and charcoal accessory materials.",
-    "gameplayReadGoal": "At 160 px read a low cap, fitted upper garment and soft segmented apron/skirt. No tower, box corset or detached placard should dominate.",
+    "macroFormPlan": "V37 rejects V36b panel fragmentation. It uses a few large primary masses matching the supplied target: five cap folds, one torso shell, two-stage sleeves, two-piece gloves, one waist bridge, one deep apron front, two white hip wraps and three blue under-skirt masses.",
+    "paintPlan": "Normal/shiny derive independently from exact official 1.7.3 baselines. Exact official ear UV regions are repainted charcoal so uncovered ear tips cannot read as blue posts; cream biological landmarks are neutralized to cool grey/white; remaining blue biology stays saturated teal/navy like the target.",
+    "gameplayReadGoal": "At 160 px the first read must match the owner image: tall folded white cap with obvious left blue ribbon, black/red face, narrow white upper body with long sleeves, giant dark gloves, broad white hip volume and only secondary blue side/rear skirt.",
     "antiPatternsToReject": [
-      "Detached placard apron",
-      "Square cosmetic boots",
-      "Blue-dominant apron",
-      "Cyan/gold Ronin palette",
+      "Blue upright ear posts above the costume cap",
+      "Fragmented apron tiles",
+      "Detached rectangular apron placard",
+      "Stacked symmetric hat tower",
+      "Short block-armor sleeves",
       "Any change to official biological bones or battle-state authority"
     ],
     "thirdPartyReusePolicy": "TECHNIQUES_ONLY_UNLESS_LICENSED_DERIVATIVE_DONOR",
-    "iterationNote": "Owner rejected V35/current V36 visual. V36b materially rebuilds the two failed macroforms: cap crown height reduced by roughly half; apron front split into overlapping angled lobes with staggered hem heights; side wraps narrowed; bodice and sleeves thinned/rotated."
+    "iterationNote": "V36b exact Blockbench evidence was opened and rejected before this pass. V37 is based on the recovered original owner image, not on technical metrics. Owner approval remains absent."
   },
   "variantCoverage": {
     "audited": true,
     "variants": [
       {
         "name": "default",
-        "coverage": "Default preserves exact official 87-bone anatomy plus V36b costume and independent normal paint."
+        "coverage": "Default preserves exact official 87-bone anatomy plus V37 owner-reference costume and independent normal paint."
       },
       {
         "name": "shiny",
-        "coverage": "Shiny uses identical V36b costume geometry and independent official-shiny derivation."
+        "coverage": "Shiny uses identical V37 costume geometry and independent official-shiny derivation."
       },
       {
         "name": "sex/forms",
