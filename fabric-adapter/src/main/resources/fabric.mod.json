@@ -8,7 +8,8 @@
   "entrypoints": {
     "main": [
       "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter",
-      "io.autoptu.cobblemon.fabric.admin.FabricBattleEvidenceAdminRuntime"
+      "io.autoptu.cobblemon.fabric.admin.FabricBattleEvidenceAdminRuntime",
+      "io.autoptu.cobblemon.fabric.rpg.FabricNurseryEntrypoint"
     ]
   },
   "depends": {
