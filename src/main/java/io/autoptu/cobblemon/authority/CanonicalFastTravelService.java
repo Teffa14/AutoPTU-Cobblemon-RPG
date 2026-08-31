@@ -6,8 +6,8 @@ import java.util.Objects;
  * Server-owned authorization boundary for Minecraft fast travel.
  *
  * Minecraft owns the physical travel point and teleport implementation. This service only decides
- * whether a request may use an observed point and a server-authored destination. It owns no PTU
- * legality, battle state, RNG, rewards or client-authored coordinates.
+ * whether a request may use an observed point and a server-authored, persistently unlocked
+ * destination. It owns no PTU legality, battle state, RNG, rewards or client-authored coordinates.
  */
 public final class CanonicalFastTravelService {
     private final double maxDistanceSquared;
@@ -40,6 +40,9 @@ public final class CanonicalFastTravelService {
         if (!request.destinationAuthored()) {
             return Decision.denied("destination is not server-authored");
         }
+        if (!request.destinationUnlocked()) {
+            return Decision.denied("destination has not been discovered by this Trainer");
+        }
         if (!request.destinationAvailable()) {
             return Decision.denied("destination is not currently available");
         }
@@ -54,6 +57,7 @@ public final class CanonicalFastTravelService {
             double distanceSquared,
             String destinationId,
             boolean destinationAuthored,
+            boolean destinationUnlocked,
             boolean destinationAvailable
     ) {}
 
