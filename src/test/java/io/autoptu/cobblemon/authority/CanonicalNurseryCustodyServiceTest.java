@@ -68,7 +68,7 @@ class CanonicalNurseryCustodyServiceTest {
         assertTrue(repository.replaceIfRevision(advanced, baseline.revision()));
         assertFalse(repository.replaceIfRevision(
                 new FileCanonicalNurseryRepository.NurseryState("player-1", CanonicalNurseryCustodyService.CEDAR_NURSERY,
-                        List.of(), advanced.revision() + 1), baseline.revision()));
+                        List.of(), baseline.revision() + 1), baseline.revision()));
     }
 
     private Fixture fixture(String playerId, String pokemonId) {
