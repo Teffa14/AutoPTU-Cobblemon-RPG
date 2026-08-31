@@ -5,10 +5,10 @@
   "officialTextureBaseline": "tools/cobblemon-model-review/baselines/0448_lucario/lucario_official_shiny_1.7.3.png",
   "officialTextureBaselineSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
   "derivedTexture": "ouros_aura_sentinel_shiny.png",
-  "derivedTextureSha256": "c3b7e26ef6e0503dae30f8664a09d3ccafa9d8fbe918c9564d6e63aefcedc651",
-  "bodyTexelRework": "OWNER_REFERENCE_MATERIAL_MATCH",
-  "paletteIntent": "Match the supplied existing skin: teal/cobalt Lucario biology plus charcoal dark biology; cool white, gray, royal blue and black costume are authored in the accessory overlay.",
-  "materialIntent": "Discrete block-value ramps with local highlights/occlusion; not a flat hue shift. Costume geometry carries the dominant transformation.",
+  "derivedTextureSha256": "361e2098f8c169287991fbac968bbf2dcd894658f52b86d79480de711cc3d399",
+  "bodyTexelRework": "OWNER_REFERENCE_MATERIAL_MATCH_V29C",
+  "paletteIntent": "Match supplied skin with deeper navy/teal biological blue and charcoal dark biology; costume remains explicit cool white, gray, royal blue and black overlay.",
+  "materialIntent": "Discrete local value blocks/highlights; lower-body biological silhouette is preserved instead of replaced by cosmetic boot boxes.",
   "repaintRegions": [
     "existing blue biological texels",
     "existing dark biological texels"
