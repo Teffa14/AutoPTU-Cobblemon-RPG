@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.CanonicalBagQueryService;
 import io.autoptu.cobblemon.authority.CanonicalShopCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalShopPurchaseService;
 import io.autoptu.cobblemon.authority.CanonicalShopQueryService;
+import io.autoptu.cobblemon.authority.CanonicalShopRestockService;
 import io.autoptu.cobblemon.authority.CanonicalShopSaleService;
 import io.autoptu.cobblemon.authority.CanonicalShopSellCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWalletQueryService;
@@ -82,6 +83,7 @@ public final class FabricShopCounterRuntime {
         private final BlockPos counterPos;
         private final String playerId;
         private final CanonicalShopQueryService shopQuery;
+        private final CanonicalShopRestockService restockService;
         private final CanonicalBagQueryService bagQuery;
         private final CanonicalWalletQueryService walletQuery;
         private final CanonicalShopPurchaseService purchaseService;
@@ -105,9 +107,9 @@ public final class FabricShopCounterRuntime {
             this.player = player;
             this.counterPos = counterPos.toImmutable();
             this.playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-            this.shopQuery = new CanonicalShopQueryService(
-                    CanonicalShopCatalogue.DEFAULT,
-                    FabricCanonicalPlayerStoreRuntime.requireShopStockRepository(player.getServer()));
+            var stockRepository = FabricCanonicalPlayerStoreRuntime.requireShopStockRepository(player.getServer());
+            this.shopQuery = new CanonicalShopQueryService(CanonicalShopCatalogue.DEFAULT, stockRepository);
+            this.restockService = new CanonicalShopRestockService(CanonicalShopCatalogue.DEFAULT, stockRepository);
             this.bagQuery = new CanonicalBagQueryService(
                     FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()));
             this.walletQuery = new CanonicalWalletQueryService(
@@ -115,7 +117,7 @@ public final class FabricShopCounterRuntime {
             this.purchaseService = new CanonicalShopPurchaseService(
                     CanonicalShopCatalogue.DEFAULT,
                     FabricCanonicalPlayerStoreRuntime.requireWalletRepository(player.getServer()),
-                    FabricCanonicalPlayerStoreRuntime.requireShopStockRepository(player.getServer()),
+                    stockRepository,
                     FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()),
                     FabricCanonicalPlayerStoreRuntime.requireShopPurchaseRepository(player.getServer()));
             this.saleService = new CanonicalShopSaleService(
@@ -158,6 +160,7 @@ public final class FabricShopCounterRuntime {
         }
 
         private void buyOne(BuySelection selection) {
+            reconcileDueRestock();
             CanonicalShopQueryService.OfferSnapshot current = shopQuery.inspectShop(playerId, SHOP_ID).offers().stream()
                     .filter(candidate -> candidate.offer().offerId().equals(selection.offerId()))
                     .findFirst().orElse(null);
@@ -207,6 +210,7 @@ public final class FabricShopCounterRuntime {
         }
 
         private void refresh() {
+            reconcileDueRestock();
             buySelections.clear();
             sellSelections.clear();
             for (int i = 0; i < TOP_SLOT_COUNT; i++) displayInventory.setStack(i, ItemStack.EMPTY);
@@ -244,6 +248,10 @@ public final class FabricShopCounterRuntime {
             }
             displayInventory.markDirty();
             sendContentUpdates();
+        }
+
+        private void reconcileDueRestock() {
+            restockService.reconcileShop(SHOP_ID, FabricTrainerPtuActionRuntime.currentRpgDay(player.getServer()));
         }
 
         private static ItemStack menuItem(ItemStack stack, String name) {
