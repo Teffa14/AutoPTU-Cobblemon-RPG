@@ -16,11 +16,11 @@ import net.minecraft.util.math.BlockPos;
 /**
  * Server-authoritative fast-travel fallback commands.
  *
- * <p>The no-argument form lists only authored destinations. The destination form accepts only a
- * destination id selection from the client, then re-resolves Trainer identity, the observed nearby
- * lodestone, authored destination metadata and current availability on the server before delegating
- * execution to {@link FabricFastTravelRuntime}. No coordinates, unlock state or travel outcome are
- * trusted from the command request.
+ * <p>The no-argument form lists only authored destinations and reports persistent discovery lock
+ * state. The destination form accepts only a destination id selection from the client, then
+ * re-resolves Trainer identity, the observed nearby lodestone, authored destination, durable unlock
+ * and current server availability before delegating execution to {@link FabricFastTravelRuntime}.
+ * No coordinates, unlock state or travel outcome are trusted from the command request.
  */
 public final class FabricTravelCommandRuntime {
     private static final int SEARCH_RADIUS = 5;
@@ -67,6 +67,7 @@ public final class FabricTravelCommandRuntime {
                             sourcePoint.getY() + 0.5D,
                             sourcePoint.getZ() + 0.5D)
                     : Double.POSITIVE_INFINITY;
+            boolean unlocked = FabricFastTravelRuntime.destinationUnlocked(player.getServer(), playerId, destination);
 
             CanonicalFastTravelService.Decision decision = SERVICE.canTravel(
                     new CanonicalFastTravelService.Request(
@@ -77,10 +78,13 @@ public final class FabricTravelCommandRuntime {
                             distanceSquared,
                             destination.id(),
                             CanonicalFastTravelCatalogue.find(destination.id()).isPresent(),
+                            unlocked,
                             FabricFastTravelRuntime.destinationAvailable(player.getServer(), destination)
                     )
             );
-            String state = decision.allowed() ? "READY" : "UNAVAILABLE: " + decision.reason();
+            String state = decision.allowed()
+                    ? "READY"
+                    : unlocked ? "UNAVAILABLE: " + decision.reason() : "LOCKED: discover this location first";
             player.sendMessage(Text.literal(
                     "- " + destination.displayName() + " [" + destination.id() + "] — " + state), false);
         }

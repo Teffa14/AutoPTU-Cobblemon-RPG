@@ -20,9 +20,10 @@ import net.minecraft.world.World;
  * Minecraft-native fast travel surface.
  *
  * <p>Lodestones stay normal vanilla blocks. Sneak-use with an empty main hand asks the server to
- * travel to the server-owned Overworld spawn. Compass use is deliberately left to vanilla so the
+ * travel to a server-owned destination only after that authenticated Trainer has persistently
+ * discovered the matching authored location. Compass use is deliberately left to vanilla so the
  * normal lodestone/compass mechanic remains intact. Minecraft performs the actual teleport; the
- * AutoPTU layer only validates canonical Trainer/source/destination authority.
+ * AutoPTU layer validates canonical Trainer/source/destination/unlock authority.
  *
  * <p>The explicit command fallback delegates to {@link #attemptTravel(ServerPlayerEntity, BlockPos,
  * String)} as well, so physical interaction and command execution share one authority boundary.
@@ -69,6 +70,7 @@ public final class FabricFastTravelRuntime {
                         player.squaredDistanceTo(source.getX() + 0.5D, source.getY() + 0.5D, source.getZ() + 0.5D),
                         requestedDestinationId,
                         destination.isPresent(),
+                        destination.filter(value -> destinationUnlocked(server, playerId, value)).isPresent(),
                         destination.filter(value -> destinationAvailable(server, value)).isPresent()
                 )
         );
@@ -85,6 +87,17 @@ public final class FabricFastTravelRuntime {
 
         player.sendMessage(Text.literal("Fast traveled to " + authoredDestination.displayName() + "."), false);
         return true;
+    }
+
+    static boolean destinationUnlocked(
+            MinecraftServer server,
+            String playerId,
+            CanonicalFastTravelCatalogue.Destination destination
+    ) {
+        return FabricCanonicalPlayerStoreRuntime.requireLocationDiscoveryRepository(server)
+                .find(playerId)
+                .map(state -> state.locationIds().contains(destination.id()))
+                .orElse(false);
     }
 
     static boolean destinationAvailable(MinecraftServer server, CanonicalFastTravelCatalogue.Destination destination) {
