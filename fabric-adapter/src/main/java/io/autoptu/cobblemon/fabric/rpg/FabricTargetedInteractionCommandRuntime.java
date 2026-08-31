@@ -86,6 +86,8 @@ public final class FabricTargetedInteractionCommandRuntime {
                 player.sendMessage(Text.literal("Ouros shrine denied: " + event.detail()), true);
                 return 0;
             }
+            FabricCanonicalWorldInteractionRuntime.projectShrineState(
+                    player.getServerWorld(), object.anchor(), event.state());
             player.sendMessage(Text.literal(event.newlyActivated()
                     ? "The Ouros shrine awakens. Its world state is now persistent."
                     : "The Ouros shrine is already awake."), false);
