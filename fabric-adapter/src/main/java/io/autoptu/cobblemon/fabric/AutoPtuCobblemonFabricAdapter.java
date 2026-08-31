@@ -13,6 +13,8 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
+import io.autoptu.cobblemon.fabric.rpg.FabricBadgeGateRuntime;
+import io.autoptu.cobblemon.fabric.rpg.FabricBadgeGateRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.rpg.FabricBagRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCanonicalWorldInteractionRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCareStatusRuntime;
@@ -132,6 +134,8 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricNpcDialogueRuntimeSmoke.registerIfEnabled();
         FabricGymLeagueRegistrationRuntime.register();
         FabricGymLeagueRegistrationRuntimeSmoke.registerIfEnabled();
+        FabricBadgeGateRuntime.register();
+        FabricBadgeGateRuntimeSmoke.registerIfEnabled();
         FabricLocationDiscoveryRuntime.register();
         FabricPokemonStorageRuntime.register();
         FabricPokemonStorageTerminalRuntime.register();
