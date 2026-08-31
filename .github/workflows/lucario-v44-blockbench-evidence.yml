@@ -1,0 +1,167 @@
+name: Lucario V44 Blockbench Evidence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'tools/cobblemon-model-review/authored-sources/0448_lucario/v44-stepped-mantle.patch.json'
+      - 'tools/cobblemon-model-review/materialize_lucario_authored_preview.py'
+      - 'tools/cobblemon-model-review/blockbench_authored_capture.mjs'
+      - '.github/workflows/lucario-v44-blockbench-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blockbench-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate hard same-species reference gate and authored source
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py docs/cobblemon-skin-reference-dossiers/0448_lucario.json --expected-species lucario
+          python tools/cobblemon-model-review/validate_authored_cosmetic_patch.py tools/cobblemon-model-review/authored-sources/0448_lucario/v44-stepped-mantle.patch.json --expected-species lucario
+      - name: Install preview dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+      - name: Download pinned official Cobblemon JAR and extract exact Lucario assets by SHA-256
+        run: |
+          set -euo pipefail
+          mkdir -p .v44-official .v44-output
+          curl --fail --silent --show-error --location --retry 4 https://api.modrinth.com/v2/version/kF7CvxTo -o .v44-official/version.json
+          python - <<'PY'
+          import json, pathlib
+          d=json.load(open('.v44-official/version.json',encoding='utf-8'))
+          files=d.get('files',[])
+          primary=next((f for f in files if f.get('primary')),files[0])
+          pathlib.Path('.v44-official/url.txt').write_text(primary['url'],encoding='utf-8')
+          pathlib.Path('.v44-official/name.txt').write_text(primary['filename'],encoding='utf-8')
+          PY
+          curl --fail --silent --show-error --location --retry 4 "$(cat .v44-official/url.txt)" -o .v44-official/cobblemon.jar
+          echo 'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3  .v44-official/cobblemon.jar' | sha256sum --check --strict
+          python - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          expected={
+            'model':'ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9',
+            'texture':'98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a',
+            'animation':'ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563',
+            'poser':'7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d',
+            'resolver':'a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81',
+            'license':'fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660'}
+          found={}
+          with zipfile.ZipFile('.v44-official/cobblemon.jar') as z:
+            for n in z.namelist():
+              if n.endswith('/'): continue
+              data=z.read(n); h=hashlib.sha256(data).hexdigest()
+              for kind,want in expected.items():
+                if h==want:
+                  ext={'model':'.geo.json','texture':'.png','animation':'.animation.json','poser':'.poser.json','resolver':'.resolver.json','license':'.license'}[kind]
+                  p=pathlib.Path('.v44-official')/(kind+ext); p.write_bytes(data); found[kind]={'path':n,'sha256':h,'bytes':len(data)}
+          missing=set(expected)-set(found)
+          if missing: raise SystemExit(f'missing official hash matches: {sorted(missing)}')
+          json.dump({'cobblemonVersion':'1.7.3','modrinthVersionId':'kF7CvxTo','jarFilename':pathlib.Path('.v44-official/name.txt').read_text(),'jarSha256':'f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3','jarSha512':'7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e','assets':found},open('.v44-output/official-source-manifest.json','w'),indent=2)
+          PY
+      - name: Materialize V44 preview from exact official model and texture
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/materialize_lucario_authored_preview.py \
+            --patch tools/cobblemon-model-review/authored-sources/0448_lucario/v44-stepped-mantle.patch.json \
+            --official-model .v44-official/model.geo.json \
+            --official-texture .v44-official/texture.png \
+            --output-dir .v44-output
+          cp .v44-official/model.geo.json .v44-output/official_lucario.geo.json
+          cp .v44-official/texture.png .v44-output/official_lucario.png
+          cp .v44-official/animation.animation.json .v44-output/official_lucario.animation.json
+      - name: Resolve official animation states
+        id: anim
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          d=json.load(open('.v44-official/animation.animation.json',encoding='utf-8'))
+          keys=list(d.get('animations',{}))
+          if not keys: raise SystemExit('official animation JSON has no animations')
+          ground=next((k for k in keys if 'ground_idle' in k.lower()),keys[0])
+          battle=next((k for k in keys if 'battle_idle' in k.lower()),ground)
+          print(f'ground={ground}')
+          print(f'battle={battle}')
+          print('time=0.35')
+          PY
+      - name: Download and verify pinned Blockbench 5.1.6
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 https://github.com/JannisX11/blockbench/releases/download/v5.1.6/Blockbench_5.1.6.AppImage -o .v44-official/blockbench.AppImage
+          echo 'c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e  .v44-official/blockbench.AppImage' | sha256sum --check --strict
+          chmod +x .v44-official/blockbench.AppImage
+          (cd .v44-official && ./blockbench.AppImage --appimage-extract >/dev/null)
+      - name: Capture matched-camera official, hero and battle evidence in Blockbench
+        env:
+          GROUND: ${{ steps.anim.outputs.ground }}
+          BATTLE: ${{ steps.anim.outputs.battle }}
+          AT: ${{ steps.anim.outputs.time }}
+        run: |
+          set -euo pipefail
+          capture() {
+            model="$1"; texture="$2"; anim="$3"; out="$4"; port="$5"; profile_in="$6"; profile_out="$7"
+            userdata="$PWD/.v44-official/user-$port"; log="$PWD/.v44-official/bb-$port.log"; rm -rf "$userdata" "$out"; mkdir -p "$userdata" "$out"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.v44-official/squashfs-root" .v44-official/squashfs-root/AppRun --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle --remote-debugging-port="$port" --userData "$userdata" "$model" >"$log" 2>&1 &
+            pid=$!; trap 'kill $pid 2>/dev/null || true' RETURN
+            for _ in $(seq 1 90); do curl --fail --silent "http://127.0.0.1:$port/json/version" >/dev/null 2>&1 && break; kill -0 "$pid" 2>/dev/null || { cat "$log"; return 1; }; sleep 1; done
+            args=(--endpoint "http://127.0.0.1:$port" --texture "$texture" --animation "$PWD/.v44-official/animation.animation.json" --animation-name "$anim" --animation-time "$AT" --output-dir "$out")
+            [ -n "$profile_in" ] && args+=(--camera-profile-in "$profile_in"); [ -n "$profile_out" ] && args+=(--camera-profile-out "$profile_out")
+            node tools/cobblemon-model-review/blockbench_authored_capture.mjs "${args[@]}"
+            kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true
+          }
+          CAMERA="$PWD/.v44-output/official-camera.json"
+          capture "$PWD/.v44-official/model.geo.json" "$PWD/.v44-official/texture.png" "$GROUND" "$PWD/.v44-output/official" 9431 '' "$CAMERA"
+          capture "$PWD/.v44-output/lucario_v44_preview.geo.json" "$PWD/.v44-output/lucario_v44_preview.png" "$GROUND" "$PWD/.v44-output/hero" 9432 "$CAMERA" ''
+          capture "$PWD/.v44-output/lucario_v44_preview.geo.json" "$PWD/.v44-output/lucario_v44_preview.png" "$BATTLE" "$PWD/.v44-output/battle" 9433 "$CAMERA" ''
+          cp .v44-output/official/three_quarter.png .v44-output/official_reference_three_quarter.png
+          cp .v44-output/hero/three_quarter.png .v44-output/hero_three_quarter.png
+          cp .v44-output/battle/three_quarter.png .v44-output/battle_ready_three_quarter.png
+          cp .v44-output/hero/front.png .v44-output/hero_front.png
+          cp .v44-output/hero/left.png .v44-output/hero_left.png
+          cp .v44-output/hero/right.png .v44-output/hero_right.png
+          cp .v44-output/hero/back.png .v44-output/hero_back.png
+          cp .v44-output/hero/three_quarter_gameplay_160.png .v44-output/hero_gameplay_160.png
+      - name: Build contact sheet and evidence manifest
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GROUND: ${{ steps.anim.outputs.ground }}
+          BATTLE: ${{ steps.anim.outputs.battle }}
+        run: |
+          python - <<'PY'
+          from PIL import Image,ImageOps,ImageDraw
+          import hashlib,json,os,pathlib
+          root=pathlib.Path('.v44-output')
+          names=['official_reference_three_quarter.png','hero_three_quarter.png','battle_ready_three_quarter.png','hero_front.png','hero_back.png','hero_gameplay_160.png']
+          cells=[]
+          for n in names:
+            im=Image.open(root/n).convert('RGBA'); im.thumbnail((512,512)); canvas=Image.new('RGBA',(540,570),(245,245,245,255)); canvas.alpha_composite(im,((540-im.width)//2,20)); ImageDraw.Draw(canvas).text((12,540),n,fill=(0,0,0,255)); cells.append(canvas)
+          sheet=Image.new('RGBA',(1080,1710),(230,230,230,255))
+          for i,c in enumerate(cells): sheet.alpha_composite(c,((i%2)*540,(i//2)*570))
+          sheet.save(root/'contact_sheet.png')
+          def h(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+          evidence={'format':'ouros.blockbench-evidence.v44','headSha':os.environ['HEAD_SHA'],'viewer':'Blockbench 5.1.6','viewerSha256':'c6dd92036f3c10495df53911a74e5b00a1d557ea13e506084177ef55a5cd7c0e','groundAnimation':os.environ['GROUND'],'battleAnimation':os.environ['BATTLE'],'artApproval':'NOT_GRANTED','files':{n:h(root/n) for n in names+['contact_sheet.png']}}
+          (root/'evidence-manifest.json').write_text(json.dumps(evidence,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Upload Lucario V44 current Blockbench evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lucario-v44-blockbench-evidence
+          path: .v44-output
+          if-no-files-found: error
+          retention-days: 30
