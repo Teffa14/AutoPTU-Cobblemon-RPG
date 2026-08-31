@@ -48,6 +48,10 @@ public final class WorldEncounterTriggerRequestService {
         this.repository = Objects.requireNonNull(repository, "repository");
     }
 
+    public synchronized void resetRepository() {
+        this.repository = new InMemoryRepository();
+    }
+
     /**
      * Legacy/server fallback for callers that do not already own a visible encounter identity.
      * Normal wild gameplay should use requestBoundEncounter.
