@@ -1,0 +1,39 @@
+name: BUI-015 Plan Patch
+
+on:
+  push:
+    branches:
+      - docs/bui-015-plan-status
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/bui-015-plan-status
+      - name: Patch canonical tooling plan exactly once
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old = '| BUI-015 | TODO | Semantic battle trace/replay evidence. |'
+          new = '| BUI-015 | LIVE/PARTIAL | Semantic battle trace/replay evidence — PR #375 / merge `d352c2ac867f9784da4e96f14c93dd9b02b93833`; the Fabric semantic playback boundary records the exact ordered authoritative event envelopes per reservation, deduplicates overlapping replay batches, fails closed on conflicting history, and bounds active evidence to 256 events. Durable/exportable post-battle retention remains follow-up work; Minecraft derives no PTU legality, damage, status, faint, winner or reward state from this trace. |'
+          if text.count(old) != 1:
+              raise SystemExit('expected exactly one BUI-015 TODO row')
+          path.write_text(text.replace(old, new))
+          PY
+      - name: Commit plan patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "Teffa14"
+          git config user.email "98290252+Teffa14@users.noreply.github.com"
+          git rm .github/workflows/bui-015-plan-patch.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "Document BUI-015 semantic battle trace"
+          git push origin HEAD:docs/bui-015-plan-status
