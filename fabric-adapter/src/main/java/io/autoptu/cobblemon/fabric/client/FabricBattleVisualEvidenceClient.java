@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.client;
 
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -11,12 +12,15 @@ import net.minecraft.client.util.ScreenshotRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * QA-only graphical capture for the existing authoritative PlayableBattleTestRuntime.
  *
  * The client never supplies damage, hit, HP or any other battle fact. It starts the server-owned
  * demo battle through the normal command surface, uses a vanilla operator teleport only to place
- * the camera, and records frames after AutoPTU-Java has advanced the battle.
+ * the camera, and records frames only after server-synchronized Cobblemon entities expose the HP
+ * projected from AutoPTU-Java.
  */
 public final class FabricBattleVisualEvidenceClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-battle-visual-evidence");
@@ -87,20 +91,47 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
 
-        if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 72) {
+        List<PokemonEntity> battlePokemon = battlePokemon(client);
+        if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70 && battlePokemon.size() >= 2) {
             capture(client, READY_SCREENSHOT);
             readyCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence observed two server-synchronized battle Pokemon");
             return;
         }
-        if (readyCaptured && !firstStrikeCaptured && ticksSinceJoin >= 84) {
+
+        int damaged = damagedCount(battlePokemon);
+        if (readyCaptured && !firstStrikeCaptured && damaged >= 1) {
             capture(client, FIRST_STRIKE_SCREENSHOT);
             firstStrikeCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence observed first authoritative HP reduction");
             return;
         }
-        if (firstStrikeCaptured && !counterStrikeCaptured && ticksSinceJoin >= 114) {
+        if (firstStrikeCaptured && !counterStrikeCaptured && damaged >= 2) {
             capture(client, COUNTER_STRIKE_SCREENSHOT);
             counterStrikeCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence observed authoritative counter-strike HP reduction");
         }
+    }
+
+    private static List<PokemonEntity> battlePokemon(MinecraftClient client) {
+        return client.world.getEntitiesByClass(
+                PokemonEntity.class,
+                client.player.getBoundingBox().expand(32.0D),
+                pokemon -> pokemon.hasCustomName()
+                        && pokemon.getCustomName() != null
+                        && pokemon.getCustomName().getString().contains(" | HP ")
+        );
+    }
+
+    private static int damagedCount(List<PokemonEntity> battlePokemon) {
+        int damaged = 0;
+        for (PokemonEntity pokemon : battlePokemon) {
+            String label = pokemon.getCustomName() == null ? "" : pokemon.getCustomName().getString();
+            if (!label.contains("HP 30/30")) {
+                damaged++;
+            }
+        }
+        return damaged;
     }
 
     private static void capture(MinecraftClient client, String name) {
