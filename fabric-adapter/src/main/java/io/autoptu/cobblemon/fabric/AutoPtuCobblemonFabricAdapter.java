@@ -71,6 +71,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricTravelCommandRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricWalletRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricWorldEventProjectionRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
+import io.autoptu.cobblemon.fabric.world.MareaInteriorRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosBuildManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosGrandPalaceV4ManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosSignatureBuildRuntime;
@@ -155,6 +156,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricFieldCampRuntime.register();
         VisibleWildPokemonEncounterRuntime.register();
         CedarMeadowRuntime.register();
+        MareaInteriorRuntime.register();
         OurosSignatureBuildRuntime.register();
         OurosBuildManifestExportRuntime.registerIfEnabled();
         OurosGrandPalaceV4ManifestExportRuntime.registerIfEnabled();
