@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require and validate a professional review manifest for every production skin change."""
+"""Require and validate a professional review manifest for every surviving production skin change."""
 
 from __future__ import annotations
 
@@ -24,14 +24,29 @@ REGISTRY_PATH = "docs/cobblemon-skin-registry.json"
 PROFESSIONAL_LIFECYCLES = {"PROFESSIONAL_CANDIDATE", "OWNER_APPROVED_RELEASE"}
 
 
-def changed_files(base: str, head: str) -> list[str]:
+def changed_files(base: str, head: str) -> list[tuple[str, str]]:
     result = subprocess.run(
-        ["git", "diff", "--name-only", f"{base}...{head}"],
+        ["git", "diff", "--name-status", "--find-renames", f"{base}...{head}"],
         check=True,
         capture_output=True,
         text=True,
     )
-    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    changes: list[tuple[str, str]] = []
+    for line in result.stdout.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        status = parts[0]
+        if status.startswith(("R", "C")):
+            if len(parts) < 3:
+                raise SystemExit(f"malformed git diff rename/copy record: {line!r}")
+            path = parts[-1]
+        else:
+            if len(parts) < 2:
+                raise SystemExit(f"malformed git diff record: {line!r}")
+            path = parts[1]
+        changes.append((status, path))
+    return changes
 
 
 def registry_entries_at(revision: str) -> dict[str, dict]:
@@ -52,19 +67,24 @@ def main() -> None:
     parser.add_argument("--head", required=True)
     args = parser.parse_args()
 
-    files = changed_files(args.base, args.head)
-    changed = set(files)
+    file_changes = changed_files(args.base, args.head)
+    changed = {path for _, path in file_changes}
     production_slugs: set[str] = set()
     changed_manifest_slugs: set[str] = set()
+    removed_production_slugs: set[str] = set()
 
-    for path in files:
+    for status, path in file_changes:
         manifest_match = MANIFEST_PATTERN.match(path)
-        if manifest_match:
+        if manifest_match and not status.startswith("D"):
             changed_manifest_slugs.add(manifest_match.group("slug"))
         for pattern in PRODUCTION_PATTERNS:
             match = pattern.match(path)
             if match:
-                production_slugs.add(match.group("slug"))
+                slug = match.group("slug")
+                if status.startswith("D"):
+                    removed_production_slugs.add(slug)
+                else:
+                    production_slugs.add(slug)
                 break
 
     registry_validator = Path(__file__).with_name("validate_skin_registry.py")
@@ -145,11 +165,16 @@ def main() -> None:
     if failures:
         raise SystemExit(f"PROFESSIONAL SKIN GATE: {failures} validation step(s) failed")
 
+    if removed_production_slugs:
+        print(
+            "Allowed production skin removals without professional manifests: "
+            f"{sorted(removed_production_slugs)}"
+        )
     if production_slugs:
         print(f"Professional manifest gate PASS for production species: {sorted(production_slugs)}")
     elif changed_manifest_slugs:
         print(f"Professional manifest-only validation PASS: {sorted(changed_manifest_slugs)}")
-    else:
+    elif not removed_production_slugs:
         print("No production skin assets or professional review manifests changed.")
 
 
