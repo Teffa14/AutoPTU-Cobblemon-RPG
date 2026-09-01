@@ -23,28 +23,91 @@ jobs:
       - name: Install graphical launcher tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb xdotool imagemagick
+          sudo apt-get install -y xvfb imagemagick
           python3 -m pip install --disable-pip-version-check 'minecraft-launcher-lib==8.0'
       - name: Prepare production Fabric + Cobblemon mods
         run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
-      - name: Prepare graphical evidence workspace
+      - name: Prepare graphical server and client
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p test-evidence/visual graphical-client/mods
+          mkdir -p test-evidence/visual test-evidence/diagnostics graphical-client/mods graphical-server/mods
           cp fabric-adapter/build/production-smoke/mods/*.jar graphical-client/mods/
-      - name: Launch production Minecraft client under virtual display
+          cp fabric-adapter/build/production-smoke/mods/*.jar graphical-server/mods/
+
+          printf 'eula=true\n' > graphical-server/eula.txt
+          cat > graphical-server/server.properties <<'EOF'
+          online-mode=false
+          enforce-secure-profile=false
+          spawn-protection=0
+          gamemode=creative
+          difficulty=peaceful
+          level-type=minecraft:flat
+          generate-structures=false
+          view-distance=6
+          simulation-distance=4
+          motd=AutoPTU Visual Evidence
+          EOF
+          cat > graphical-server/ops.json <<'EOF'
+          [
+            {
+              "uuid": "032ad05d-4eb5-357c-8e46-71376d278de2",
+              "name": "AutoPTUVisual",
+              "level": 4,
+              "bypassesPlayerLimit": true
+            }
+          ]
+          EOF
+          curl -fsSL \
+            -o graphical-server/fabric-server-launch.jar \
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+      - name: Launch authoritative server and capture RPG scene
         shell: bash
         run: |
           set -euo pipefail
+          server_pid=""
+          client_pid=""
+          cleanup() {
+            if [ -n "$client_pid" ]; then
+              kill "$client_pid" 2>/dev/null || true
+              wait "$client_pid" 2>/dev/null || true
+            fi
+            if [ -n "$server_pid" ]; then
+              kill "$server_pid" 2>/dev/null || true
+              wait "$server_pid" 2>/dev/null || true
+            fi
+          }
+          trap cleanup EXIT
+
+          (
+            cd graphical-server
+            exec java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../graphical-server.log 2>&1
+          ) &
+          server_pid=$!
+
+          server_ready=0
+          for _ in $(seq 1 180); do
+            if grep -q 'AutoPTU Fabric server adapter initialized' graphical-server/logs/latest.log 2>/dev/null \
+              && grep -q 'AutoPTU Cobblemon runtime detected:' graphical-server/logs/latest.log 2>/dev/null \
+              && grep -q 'Done (' graphical-server/logs/latest.log 2>/dev/null; then
+              server_ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat graphical-server.log || true
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$server_ready" -ne 1 ]; then
+            cat graphical-server.log || true
+            exit 1
+          fi
+
           Xvfb :99 -screen 0 1280x720x24 > xvfb.log 2>&1 &
           export DISPLAY=:99
 
-          # Do not use Loom runClient here. Cobblemon's production Fabric jar contains Kotlin
-          # reflection metadata that targets the production intermediary namespace. A normal
-          # production launcher matches the namespace a real player uses and avoids false
-          # failures caused by Loom's named development runtime.
-          timeout 240s python3 - <<'PY' > graphical-client.log 2>&1 &
+          timeout 300s python3 - <<'PY' > graphical-client.log 2>&1 &
           import os
           import shutil
           import subprocess
@@ -65,23 +128,40 @@ jobs:
           )
           version = 'fabric-loader-0.17.2-1.21.1'
           options = minecraft_launcher_lib.utils.generate_test_options()
+          options['username'] = 'AutoPTUVisual'
+          options['uuid'] = '032ad05d4eb5357c8e4671376d278de2'
+          options['token'] = 'autoptu-ci-test-token'
           options['executablePath'] = shutil.which('java')
           options['defaultExecutablePath'] = shutil.which('java')
-          options['jvmArguments'] = ['-Xms512M', '-Xmx4G']
+          options['jvmArguments'] = [
+              '-Xms512M',
+              '-Xmx4G',
+              '-Dautoptu.visualEvidenceCapture=true',
+              '-Dautoptu.visualEvidenceServer=127.0.0.1:25565',
+          ]
+          options['customResolution'] = True
+          options['resolutionWidth'] = '1280'
+          options['resolutionHeight'] = '720'
           command = minecraft_launcher_lib.command.get_minecraft_command(version, root, options)
-          print('Launching production Fabric client:', ' '.join(command[:4]), '...', flush=True)
+          print('Launching production Fabric client; QA client hook will connect to local authoritative server', flush=True)
           raise SystemExit(subprocess.call(command, cwd=root))
           PY
           client_pid=$!
 
-          window=""
-          for _ in $(seq 1 220); do
+          screenshot='graphical-client/screenshots/autoptu-rpg-visualproof.png'
+          capture_ready=0
+          for _ in $(seq 1 280); do
             if grep -qE 'Game crashed!|Could not execute entrypoint|ExceptionInInitializerError|ClassNotFoundException: net.minecraft.class_2960' graphical-client.log 2>/dev/null; then
               cat graphical-client.log
               exit 1
             fi
-            window="$(xdotool search --onlyvisible --name 'Minecraft' 2>/dev/null | head -1 || true)"
-            if [ -n "$window" ]; then
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat graphical-server.log || true
+              exit 1
+            fi
+            if [ -s "$screenshot" ] \
+              && grep -q 'AutoPTU RPG visual proof scene built for AutoPTUVisual' graphical-server/logs/latest.log 2>/dev/null; then
+              capture_ready=1
               break
             fi
             if ! kill -0 "$client_pid" 2>/dev/null; then
@@ -90,36 +170,33 @@ jobs:
             fi
             sleep 1
           done
-          if [ -z "$window" ]; then
+          if [ "$capture_ready" -ne 1 ]; then
             cat graphical-client.log || true
+            cat graphical-server/logs/latest.log 2>/dev/null || true
             exit 1
           fi
 
-          sleep 12
-          import -window "$window" test-evidence/visual/minecraft-client-boot.png
-          colors="$(identify -format '%k' test-evidence/visual/minecraft-client-boot.png)"
-          geometry="$(identify -format '%wx%h' test-evidence/visual/minecraft-client-boot.png)"
-          echo "Captured Minecraft window ${geometry} with ${colors} colors"
-          if [ "$colors" -lt 32 ]; then
-            echo "Rejected blank/near-blank screenshot: only $colors colors"
+          cp "$screenshot" test-evidence/visual/autoptu-rpg-visualproof.png
+          colors="$(identify -format '%k' test-evidence/visual/autoptu-rpg-visualproof.png)"
+          geometry="$(identify -format '%wx%h' test-evidence/visual/autoptu-rpg-visualproof.png)"
+          echo "Captured authoritative RPG scene ${geometry} with ${colors} colors"
+          if [ "$colors" -lt 64 ]; then
+            echo "Rejected blank/near-blank RPG scene screenshot: only $colors colors"
             exit 1
           fi
-          if grep -qE 'Game crashed!|Could not execute entrypoint|ExceptionInInitializerError|ClassNotFoundException: net.minecraft.class_2960' graphical-client.log; then
-            cat graphical-client.log
-            exit 1
-          fi
-
-          kill "$client_pid" 2>/dev/null || true
-          wait "$client_pid" 2>/dev/null || true
-          test -s test-evidence/visual/minecraft-client-boot.png
+          grep 'AutoPTU RPG visual proof scene built for AutoPTUVisual' graphical-server/logs/latest.log
+          grep 'AutoPTU visual evidence screenshot requested: autoptu-rpg-visualproof.png' graphical-client/logs/latest.log
       - name: Collect graphical diagnostics
         if: always()
         shell: bash
         run: |
           set +e
-          mkdir -p test-evidence/diagnostics
           cp graphical-client/crash-reports/*.txt test-evidence/diagnostics/ 2>/dev/null || true
           cp graphical-client/logs/latest.log test-evidence/diagnostics/minecraft-client-latest.log 2>/dev/null || true
+          cp graphical-server/logs/latest.log test-evidence/diagnostics/minecraft-server-latest.log 2>/dev/null || true
+          cp graphical-client.log test-evidence/diagnostics/graphical-client-launch.log 2>/dev/null || true
+          cp graphical-server.log test-evidence/diagnostics/graphical-server-launch.log 2>/dev/null || true
+          cp xvfb.log test-evidence/diagnostics/xvfb.log 2>/dev/null || true
       - name: Upload graphical evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,5 +207,3 @@ jobs:
           path: |
             test-evidence/visual/**
             test-evidence/diagnostics/**
-            graphical-client.log
-            xvfb.log
