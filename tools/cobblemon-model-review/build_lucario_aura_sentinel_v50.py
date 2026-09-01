@@ -57,13 +57,7 @@ def request_bytes(url: str) -> bytes:
 
 def validate_reference_gate(repo_root: Path) -> None:
     subprocess.run(
-        [
-            sys.executable,
-            str(repo_root / DOSSIER_VALIDATOR),
-            str(repo_root / DOSSIER_PATH),
-            "--expected-species",
-            "lucario",
-        ],
+        [sys.executable, str(repo_root / DOSSIER_VALIDATOR), str(repo_root / DOSSIER_PATH), "--expected-species", "lucario"],
         cwd=repo_root,
         check=True,
     )
@@ -77,7 +71,6 @@ def load_release() -> tuple[dict, bytes]:
         raise SystemExit("pinned Cobblemon release metadata drift")
     if MINECRAFT_VERSION not in version.get("game_versions", []) or LOADER not in version.get("loaders", []):
         raise SystemExit("pinned Cobblemon release is not compatible with declared target")
-
     query = urllib.parse.urlencode({"loaders": json.dumps([LOADER]), "game_versions": json.dumps([MINECRAFT_VERSION])})
     compatible = json.loads(request_bytes(f"https://api.modrinth.com/v2/project/{PROJECT_ID}/version?{query}").decode("utf-8"))
     stable = [entry for entry in compatible if entry.get("version_type") == "release" and entry.get("status") == "listed"]
@@ -86,7 +79,6 @@ def load_release() -> tuple[dict, bytes]:
     latest = max(stable, key=lambda entry: entry.get("date_published", ""))
     if latest.get("id") != VERSION_ID:
         raise SystemExit(f"pinned release is stale: pinned={VERSION_ID} latest={latest.get('id')} ({latest.get('version_number')})")
-
     primary = next((entry for entry in version.get("files", []) if entry.get("primary")), None)
     if not isinstance(primary, dict) or primary.get("filename") != JAR_FILENAME:
         raise SystemExit("pinned primary JAR filename drift")
@@ -136,7 +128,6 @@ def validate_patch(patch: dict) -> list[dict]:
     drift = {key: (baseline.get(key), value) for key, value in required.items() if baseline.get(key) != value}
     if drift:
         raise SystemExit("authored patch official baseline drift: " + json.dumps(drift, sort_keys=True))
-
     bones = patch.get("bones")
     if not isinstance(bones, list) or not bones:
         raise SystemExit("authored patch has no cosmetic bones")
@@ -162,7 +153,6 @@ def build(repo_root: Path, output_dir: Path) -> dict:
     patch = json.loads((repo_root / PATCH_PATH).read_text(encoding="utf-8"))
     cosmetic_bones = validate_patch(patch)
     version, jar = load_release()
-
     with zipfile.ZipFile(BytesIO(jar)) as zf:
         official_model = zf.read(MODEL_PATH)
         if digest(official_model) != MODEL_SHA256:
@@ -172,8 +162,7 @@ def build(repo_root: Path, output_dir: Path) -> dict:
         animation_path, _ = unique_asset_by_hash(zf, ANIMATION_SHA256, (".json",))
         poser_path, _ = unique_asset_by_hash(zf, POSER_SHA256, (".json",))
         resolver_path, _ = unique_asset_by_hash(zf, RESOLVER_SHA256, (".json",))
-        license_path, _ = unique_asset_by_hash(zf, MODEL_LICENSE_SHA256, (".txt", ".md", ".license"))
-
+        license_path, _ = unique_asset_by_hash(zf, MODEL_LICENSE_SHA256, ())
     model = json.loads(official_model.decode("utf-8"))
     geometries = model.get("minecraft:geometry")
     if not isinstance(geometries, list) or len(geometries) != 1:
@@ -182,7 +171,6 @@ def build(repo_root: Path, output_dir: Path) -> dict:
     official_bones = geometry.get("bones")
     if not isinstance(official_bones, list) or len(official_bones) != OFFICIAL_BONE_COUNT:
         raise SystemExit("official Lucario bone count drift")
-
     known = {bone.get("name") for bone in official_bones if isinstance(bone, dict)}
     appended: list[dict] = []
     for bone in cosmetic_bones:
@@ -191,16 +179,13 @@ def build(repo_root: Path, output_dir: Path) -> dict:
             raise SystemExit(f"cosmetic bone {bone.get('name')} has unknown parent {parent!r}")
         appended.append(bone)
         known.add(bone["name"])
-
     geometry["description"]["identifier"] = "geometry.ouros_aura_sentinel_lucario_v50"
     geometry["bones"] = [*official_bones, *appended]
     candidate_bytes = (json.dumps(model, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
-
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "ouros_aura_sentinel_lucario_v50.geo.json").write_bytes(candidate_bytes)
     (output_dir / "official_normal.png").write_bytes(normal)
     (output_dir / "official_shiny.png").write_bytes(shiny)
-
     report = {
         "format": "ouros.lucario-v50-staging-build.v2",
         "species": "lucario",
