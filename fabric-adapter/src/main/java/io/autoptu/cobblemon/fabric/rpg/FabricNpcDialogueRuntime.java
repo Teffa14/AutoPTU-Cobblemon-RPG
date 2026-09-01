@@ -10,7 +10,6 @@ import io.autoptu.cobblemon.authority.CanonicalQuestRewardCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestRewardService;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeRequestService;
-import io.autoptu.cobblemon.authority.FileCanonicalWorldStoryRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -31,9 +30,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.WorldSavePath;
 
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -163,7 +160,7 @@ public final class FabricNpcDialogueRuntime {
             var journalService = new CanonicalQuestJournalService(
                     CanonicalQuestCatalogue.DEFAULT,
                     journals,
-                    worldStoryRepository(player)
+                    FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer())
             );
             var accepted = journalService.accept(playerId, dialogue.npcId(), questId);
             if (accepted.blockedByPrerequisites()) {
@@ -229,7 +226,7 @@ public final class FabricNpcDialogueRuntime {
                     CanonicalNpcDialogueCatalogue.DEFAULT,
                     CanonicalQuestCatalogue.DEFAULT,
                     FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer()),
-                    worldStoryRepository(player)
+                    FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer())
             ).inspect(playerId, dialogue.npcId());
         }
 
@@ -260,17 +257,6 @@ public final class FabricNpcDialogueRuntime {
             stack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(text));
             return stack;
         }
-    }
-
-    private static FileCanonicalWorldStoryRepository worldStoryRepository(ServerPlayerEntity player) {
-        return new FileCanonicalWorldStoryRepository(canonicalStateRoot(player));
-    }
-
-    private static Path canonicalStateRoot(ServerPlayerEntity player) {
-        return player.getServer().getSavePath(WorldSavePath.ROOT)
-                .resolve("autoptu")
-                .resolve("canonical-state")
-                .normalize();
     }
 
     private static String storyFlagLabel(String flag) {
