@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.client;
 
+import io.autoptu.cobblemon.fabric.network.FabricBattleCameraMode;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -19,6 +20,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String CAMERA_MODE_EVIDENCE_PROPERTY = "autoptu.crafticsCameraModeEvidence";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
+    private static final int MODE_STABLE_TICKS_BEFORE_CAPTURE = 3;
     private static int ticksBeforeConnect;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
@@ -27,6 +29,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static boolean trainerExternalCaptured;
     private static boolean tacticalAerialCaptured;
     private static boolean actionCinematicCaptured;
+    private static FabricBattleCameraMode observedMode;
+    private static int observedModeStableTicks;
     private static boolean readyCaptured;
     private static boolean firstCaptured;
     private static boolean counterCaptured;
@@ -37,6 +41,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             ticksSinceJoin = 0;
             battleRequested = cameraPlaced = false;
             trainerExternalCaptured = tacticalAerialCaptured = actionCinematicCaptured = false;
+            observedMode = null;
+            observedModeStableTicks = 0;
             readyCaptured = firstCaptured = counterCaptured = false;
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
@@ -68,25 +74,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
 
         if (cameraPlaced) sanitizeCaptureHud(client);
 
-        if (cameraPlaced && Boolean.getBoolean(CAMERA_MODE_EVIDENCE_PROPERTY)) {
-            if (!trainerExternalCaptured && ticksSinceJoin >= 68) {
-                capture(client, "autoptu-camera-trainer-external.png");
-                trainerExternalCaptured = true;
-                LOGGER.info("AutoPTU camera evidence captured trainer-external mode");
-                return;
-            }
-            if (!tacticalAerialCaptured && ticksSinceJoin >= 76) {
-                capture(client, "autoptu-camera-tactical-aerial.png");
-                tacticalAerialCaptured = true;
-                LOGGER.info("AutoPTU camera evidence captured tactical-aerial mode");
-                return;
-            }
-            if (!actionCinematicCaptured && ticksSinceJoin >= 84) {
-                capture(client, "autoptu-camera-action-cinematic.png");
-                actionCinematicCaptured = true;
-                LOGGER.info("AutoPTU camera evidence captured action-cinematic mode");
-                return;
-            }
+        if (cameraPlaced && Boolean.getBoolean(CAMERA_MODE_EVIDENCE_PROPERTY) && captureStableCameraMode(client)) {
+            return;
         }
 
         // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
@@ -103,6 +92,43 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             capture(client, "autoptu-battle-counter-strike.png"); counterCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
         }
+    }
+
+    private static boolean captureStableCameraMode(MinecraftClient client) {
+        FabricDetachedBattleCameraState.Snapshot snapshot = FabricDetachedBattleCameraState.snapshot();
+        if (snapshot == null) {
+            observedMode = null;
+            observedModeStableTicks = 0;
+            return false;
+        }
+
+        if (snapshot.mode() != observedMode) {
+            observedMode = snapshot.mode();
+            observedModeStableTicks = 1;
+            return false;
+        }
+        observedModeStableTicks++;
+        if (observedModeStableTicks < MODE_STABLE_TICKS_BEFORE_CAPTURE) return false;
+
+        if (snapshot.mode() == FabricBattleCameraMode.TRAINER_EXTERNAL && !trainerExternalCaptured) {
+            capture(client, "autoptu-camera-trainer-external.png");
+            trainerExternalCaptured = true;
+            LOGGER.info("AutoPTU camera evidence captured trainer-external mode after stable render window");
+            return true;
+        }
+        if (snapshot.mode() == FabricBattleCameraMode.TACTICAL_AERIAL && trainerExternalCaptured && !tacticalAerialCaptured) {
+            capture(client, "autoptu-camera-tactical-aerial.png");
+            tacticalAerialCaptured = true;
+            LOGGER.info("AutoPTU camera evidence captured tactical-aerial mode after stable render window");
+            return true;
+        }
+        if (snapshot.mode() == FabricBattleCameraMode.ACTION_CINEMATIC && tacticalAerialCaptured && !actionCinematicCaptured) {
+            capture(client, "autoptu-camera-action-cinematic.png");
+            actionCinematicCaptured = true;
+            LOGGER.info("AutoPTU camera evidence captured action-cinematic mode after stable render window");
+            return true;
+        }
+        return false;
     }
 
     private static void sanitizeCaptureHud(MinecraftClient client) {
