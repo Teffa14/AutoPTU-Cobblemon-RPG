@@ -7,8 +7,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.option.ChatVisibility;
 import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.network.message.ChatVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
