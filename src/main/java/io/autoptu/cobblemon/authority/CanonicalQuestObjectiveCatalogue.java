@@ -9,7 +9,22 @@ import java.util.Objects;
 public final class CanonicalQuestObjectiveCatalogue {
     public static final CanonicalQuestObjectiveCatalogue DEFAULT = new CanonicalQuestObjectiveCatalogue(List.of(
             new Objective("cedar-field-notes", "observe-lookout", "cedar_meadow:lookout_watching", "Observe the meadow lookout notice your approach."),
-            new Objective("cedar-field-notes", "observe-feeding-group", "cedar_meadow:feeders_alarmed", "Observe the feeding group react to the lookout alarm.")
+            new Objective("cedar-field-notes", "observe-feeding-group", "cedar_meadow:feeders_alarmed", "Observe the feeding group react to the lookout alarm."),
+
+            new Objective("marea-market-shortfall", "visit-loma-clara", "location:ouros.marea.loma_clara", "Visit Loma Clara and see the production side of the district."),
+            new Objective("marea-market-shortfall", "visit-mirador", "location:ouros.marea.estacion_mirador", "Visit Estacion Mirador and inspect what observations are actually available."),
+
+            new Objective("marea-route-field-check", "inspect-sendero", "location:ouros.marea.sendero_vidrio", "Inspect the ordinary condition of Sendero del Vidrio."),
+            new Objective("marea-route-field-check", "inspect-crossing", "location:ouros.marea.sendero_crossing", "Inspect the seasonal crossing instead of inferring route condition from town reports."),
+
+            new Objective("marea-mirador-observations", "visit-transect", "location:ouros.marea.mirador_transect", "Visit the Mirador transect trailhead."),
+            new Objective("marea-mirador-observations", "visit-tideglass", "location:ouros.marea.tideglass_archive", "Visit Tideglass Archive to compare current observations with preserved records."),
+
+            new Objective("marea-tideglass-comparison", "visit-storehouse", "location:ouros.marea.loma_storehouse", "Visit the Loma Clara cooperative storehouse."),
+            new Objective("marea-tideglass-comparison", "visit-mirador", "location:ouros.marea.estacion_mirador", "Visit Estacion Mirador before treating archive records as a current explanation."),
+
+            new Objective("marea-battle-yard-introduction", "visit-yard", "location:ouros.marea.bruma_battle_yard", "Visit the Bruma Battle Yard."),
+            new Objective("marea-battle-yard-introduction", "review-trainer-record", "rpg:trainer_record_reviewed", "Review your current canonical Trainer record before a future audited spar.")
     ));
 
     private final List<Objective> objectives;
