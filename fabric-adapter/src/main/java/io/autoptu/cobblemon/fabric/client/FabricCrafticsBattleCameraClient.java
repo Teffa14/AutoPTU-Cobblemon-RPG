@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.client;
 
+import io.autoptu.cobblemon.fabric.network.FabricBattleCameraNetworking;
 import io.autoptu.cobblemon.fabric.network.FabricBattleCameraPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -22,6 +23,7 @@ public final class FabricCrafticsBattleCameraClient implements ClientModInitiali
 
     @Override
     public void onInitializeClient() {
+        FabricBattleCameraNetworking.registerPayloadType();
         ClientPlayNetworking.registerGlobalReceiver(FabricBattleCameraPayload.ID, (payload, context) ->
                 context.client().execute(() -> apply(payload)));
     }
