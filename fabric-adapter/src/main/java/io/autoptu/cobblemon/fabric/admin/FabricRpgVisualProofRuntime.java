@@ -21,16 +21,19 @@ import org.slf4j.LoggerFactory;
  */
 public final class FabricRpgVisualProofRuntime {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-rpg-visual-proof");
+    public static final String QA_COMMAND = "autoptuvisualproof";
 
     private FabricRpgVisualProofRuntime() {}
 
     public static void register() {
+        // Keep the QA capture command on its own root. The production adapter has multiple
+        // independently registered /autoptu branches; a unique operator-only root prevents the
+        // evidence hook from depending on Brigadier merge order while remaining unavailable to
+        // normal players.
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("admin")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("visualproof")
-                                        .executes(context -> build(context.getSource()))))));
+                dispatcher.register(CommandManager.literal(QA_COMMAND)
+                        .requires(source -> source.hasPermissionLevel(2))
+                        .executes(context -> build(context.getSource()))));
     }
 
     private static int build(ServerCommandSource source) {
