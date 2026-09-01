@@ -60,6 +60,15 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
         }
 
         ticksSinceJoin++;
+
+        // A brand-new Minecraft game directory opens the first-launch accessibility/onboarding
+        // screen even after the QA client has joined a world. That screen blurred the valid scene
+        // in earlier evidence. This hook is explicitly CI-only, so clear transient screens during
+        // the first two seconds in-world before issuing the server-authoritative scene command.
+        if (ticksSinceJoin <= 40 && client.currentScreen != null) {
+            client.setScreen(null);
+        }
+
         if (!commandSent && ticksSinceJoin >= 60) {
             if (client.getNetworkHandler() == null) {
                 return;
@@ -71,6 +80,11 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
         }
 
         if (commandSent && ticksSinceJoin >= 180) {
+            // Ensure no first-launch or transient UI obscures the actual in-world proof frame.
+            if (client.currentScreen != null) {
+                client.setScreen(null);
+                return;
+            }
             ScreenshotRecorder.saveScreenshot(
                     client.runDirectory,
                     SCREENSHOT_NAME,
