@@ -29,9 +29,10 @@ public final class CobblemonPresentationEntityBackend
         Objects.requireNonNull(target, "target");
         if (moveId == null || moveId.isBlank()) throw new IllegalArgumentException("moveId is required");
 
-        // Presentation-only facing/lunge. Runtime/grid position is unchanged; callers return the
-        // entity to its authoritative presentation anchor after the cue. No range, hit chance,
-        // movement legality or move-specific effect is inferred here.
+        // Presentation-only facing. Do not translate or teleport the Pokemon for a generic attack:
+        // authoritative movement is projected separately, and inventing a lunge would visually move
+        // an actor without an AutoPTU relocation event. A future Cobblemon-specific animation may
+        // replace this neutral cue only when its exact poser/action-effect contract is verified.
         double dx = target.getX() - attacker.getX();
         double dz = target.getZ() - attacker.getZ();
         if (dx != 0.0D || dz != 0.0D) {
@@ -40,11 +41,6 @@ public final class CobblemonPresentationEntityBackend
             attacker.setHeadYaw(yaw);
             attacker.setBodyYaw(yaw);
         }
-
-        double nextX = attacker.getX() + dx * 0.45D;
-        double nextY = attacker.getY();
-        double nextZ = attacker.getZ() + dz * 0.45D;
-        attacker.requestTeleport(nextX, nextY, nextZ);
 
         if (attacker.getWorld() instanceof ServerWorld serverWorld) {
             serverWorld.spawnParticles(
