@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.fabric.network.FabricBattleCameraNetworking;
 import io.autoptu.cobblemon.fabric.network.FabricBattleCameraPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -33,16 +34,14 @@ public final class FabricCrafticsBattleCameraClient implements ClientModInitiali
         FabricBattleCameraNetworking.registerPayloadType();
         ClientPlayNetworking.registerGlobalReceiver(FabricBattleCameraPayload.ID, (payload, context) ->
                 context.client().execute(() -> apply(context.client(), payload)));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> client.execute(() -> clear(client)));
         ClientTickEvents.END_CLIENT_TICK.register(client -> FabricDetachedBattleCameraState.tick());
     }
 
     private static void apply(MinecraftClient client, FabricBattleCameraPayload payload) {
         try {
             if (!payload.active()) {
-                FabricDetachedBattleCameraState.clear();
-                restorePerspective(client);
-                CRAFTICS.clearBounds();
-                LOGGER.info("AutoPTU detached battle camera cleared");
+                clear(client);
                 return;
             }
 
@@ -63,6 +62,17 @@ public final class FabricCrafticsBattleCameraClient implements ClientModInitiali
             restorePerspective(client);
             LOGGER.error("Craftics scene-bound synchronization failed closed; AutoPTU battle state was not changed", exception);
         }
+    }
+
+    private static void clear(MinecraftClient client) {
+        FabricDetachedBattleCameraState.clear();
+        restorePerspective(client);
+        try {
+            CRAFTICS.clearBounds();
+        } catch (ReflectiveOperationException exception) {
+            LOGGER.warn("Could not clear optional Craftics scene bounds", exception);
+        }
+        LOGGER.info("AutoPTU detached battle camera cleared");
     }
 
     private static void capturePerspective(MinecraftClient client) {
