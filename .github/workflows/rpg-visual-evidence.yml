@@ -30,46 +30,57 @@ jobs:
           set -euo pipefail
           mkdir -p test-evidence/visual graphical-client/mods
           cp fabric-adapter/build/production-smoke/mods/*.jar graphical-client/mods/
-          printf 'eula=true\n' > graphical-client/eula.txt
-          cat > graphical-client/options.txt <<'EOF'
-          fullscreen:false
-          autoJump:false
-          guiScale:3
-          renderDistance:8
-          entityDistanceScaling:1.0
-          pauseOnLostFocus:false
-          EOF
       - name: Launch Minecraft client under virtual display
         shell: bash
         run: |
           set -euo pipefail
           Xvfb :99 -screen 0 1280x720x24 > xvfb.log 2>&1 &
           export DISPLAY=:99
-          # Loom's runClient uses the exact pinned Minecraft/Fabric/Cobblemon development runtime.
-          # A deterministic operator scene is created by the mod after a local world is available;
-          # this first graphical slice proves that the real client can boot and yields client PNG evidence.
           timeout 180s gradle :fabric-adapter:runClient --no-daemon > graphical-client.log 2>&1 &
           client_pid=$!
-          ready=0
-          for _ in $(seq 1 120); do
-            if grep -q 'Setting user:' graphical-client.log 2>/dev/null || grep -q 'Backend library:' graphical-client.log 2>/dev/null; then
-              ready=1
+          window=""
+          for _ in $(seq 1 150); do
+            if grep -qE 'Game crashed!|runClient FAILED|Could not execute entrypoint' graphical-client.log 2>/dev/null; then
+              cat graphical-client.log
+              exit 1
+            fi
+            window="$(xdotool search --onlyvisible --name 'Minecraft' 2>/dev/null | head -1 || true)"
+            if [ -n "$window" ]; then
               break
             fi
             if ! kill -0 "$client_pid" 2>/dev/null; then
-              break
+              cat graphical-client.log || true
+              exit 1
             fi
             sleep 1
           done
-          if [ "$ready" -ne 1 ]; then
+          if [ -z "$window" ]; then
             cat graphical-client.log || true
             exit 1
           fi
-          sleep 15
-          import -window root test-evidence/visual/minecraft-client-boot.png
+          sleep 8
+          import -window "$window" test-evidence/visual/minecraft-client-boot.png
+          # A black X root capture is not graphical evidence. Require actual pixel variation.
+          colors="$(identify -format '%k' test-evidence/visual/minecraft-client-boot.png)"
+          if [ "$colors" -lt 8 ]; then
+            echo "Rejected blank/near-blank screenshot: only $colors colors"
+            exit 1
+          fi
+          if grep -qE 'Game crashed!|runClient FAILED|Could not execute entrypoint' graphical-client.log; then
+            cat graphical-client.log
+            exit 1
+          fi
           kill "$client_pid" 2>/dev/null || true
           wait "$client_pid" 2>/dev/null || true
           test -s test-evidence/visual/minecraft-client-boot.png
+      - name: Collect graphical diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p test-evidence/diagnostics
+          cp fabric-adapter/run/crash-reports/*.txt test-evidence/diagnostics/ 2>/dev/null || true
+          cp fabric-adapter/run/logs/latest.log test-evidence/diagnostics/minecraft-client-latest.log 2>/dev/null || true
       - name: Upload graphical evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -79,5 +90,6 @@ jobs:
           if-no-files-found: warn
           path: |
             test-evidence/visual/**
+            test-evidence/diagnostics/**
             graphical-client.log
             xvfb.log
