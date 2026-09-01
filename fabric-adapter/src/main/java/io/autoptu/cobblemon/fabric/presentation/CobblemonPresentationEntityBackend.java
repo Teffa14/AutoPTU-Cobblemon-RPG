@@ -16,9 +16,12 @@ import java.util.Objects;
 /**
  * Applies presentation-only commands to an already-resolved live Cobblemon PokemonEntity.
  *
- * This class never reads the entity to make PTU decisions. Every value applied here is an
- * already-authoritative presentation output. Cobblemon health is only a write-through mirror and
- * must never be read back into canonical PTU battle state.
+ * This class never reads the entity to make PTU decisions. Every value received here is an
+ * already-authoritative presentation output. Cobblemon native HP is deliberately not used as a
+ * mirror of PTU HP: the two systems use different HP scales, and this backend currently receives
+ * authoritative current HP but not authoritative max HP. Exact PTU HP remains in AutoPTU-owned
+ * state/HUD/nameplate projections. Until the presentation contract carries max HP, mutating native
+ * Cobblemon HP would either clamp the value or manufacture a native faint that AutoPTU did not emit.
  */
 public final class CobblemonPresentationEntityBackend
         implements PresentationEntityPlatformBackend<PokemonEntity> {
@@ -63,13 +66,11 @@ public final class CobblemonPresentationEntityBackend
         if (targetHp < 0) throw new IllegalArgumentException("targetHp cannot be negative");
         if (damage < 0) throw new IllegalArgumentException("damage cannot be negative");
 
-        entity.getPokemon().setCurrentHealth(targetHp);
-        int projectedHp = entity.getPokemon().getCurrentHealth();
-        if (projectedHp != targetHp) {
-            throw new IllegalStateException(
-                    "Cobblemon cannot exactly mirror authoritative PTU HP " + targetHp
-                            + " for presentation; projected " + projectedHp);
-        }
+        // targetHp is authoritative PTU state, but it is not on Cobblemon's native HP scale.
+        // Do not write it into Pokemon.currentHealth and do not infer a ratio without authoritative
+        // max HP. In particular, targetHp == 0 is NOT permission to trigger Cobblemon faint/death;
+        // faint presentation remains blocked until AutoPTU emits an explicit semantic faint contract.
+        // The exact PTU value is projected separately by AutoPTU-owned battle UI/nameplate surfaces.
 
         // Damage is already authoritative upstream. Fabric only mirrors that committed result with
         // generic audiovisual impact feedback. Zero-damage projections stay presentation-neutral.
