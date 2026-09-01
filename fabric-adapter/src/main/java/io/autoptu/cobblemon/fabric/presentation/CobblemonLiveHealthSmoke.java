@@ -17,10 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Opt-in production-runtime smoke for authoritative HP presentation on a real PokemonEntity.
+ * Opt-in production-runtime smoke for the PTU/Cobblemon HP presentation boundary.
  *
- * The HP value is a test fixture standing in for an already-authoritative Java battle output.
- * Cobblemon only receives the display mirror; its health is never used to calculate or validate PTU HP.
+ * The authoritative HP fixture deliberately exceeds the spawned Pokemon's native HP scale. The
+ * smoke proves that presentation accepts that PTU result without clamping it into Cobblemon state,
+ * crashing, or causing a native faint. Exact PTU HP is rendered by AutoPTU-owned battle surfaces.
  */
 public final class CobblemonLiveHealthSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveHealthSmoke";
@@ -28,8 +29,7 @@ public final class CobblemonLiveHealthSmoke {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String RESERVATION_ID = "ci-live-health";
-    private static final int AUTHORITATIVE_TARGET_HP = 5;
-    private static final int AUTHORITATIVE_DAMAGE = 3;
+    private static final int AUTHORITATIVE_DAMAGE = 14;
 
     private CobblemonLiveHealthSmoke() {}
 
@@ -55,6 +55,9 @@ public final class CobblemonLiveHealthSmoke {
             throw new IllegalStateException("failed to spawn live Cobblemon PokemonEntity for HP smoke");
         }
 
+        int nativeHpBefore = entity.getPokemon().getCurrentHealth();
+        int authoritativeTargetHp = Math.max(16, nativeHpBefore + 5);
+
         String presentationEntityId = entity.getUuidAsString();
         PokemonEntity resolved = new CobblemonPokemonEntityLookup()
                 .find(server, presentationEntityId)
@@ -75,23 +78,28 @@ public final class CobblemonLiveHealthSmoke {
                         "smoke-pikachu-health",
                         presentationEntityId,
                         AUTHORITATIVE_DAMAGE,
-                        AUTHORITATIVE_TARGET_HP
+                        authoritativeTargetHp
                 )
         );
 
-        int displayedHp = entity.getPokemon().getCurrentHealth();
-        if (displayedHp != AUTHORITATIVE_TARGET_HP) {
+        int nativeHpAfter = entity.getPokemon().getCurrentHealth();
+        if (nativeHpAfter != nativeHpBefore) {
             throw new IllegalStateException(
-                    "live HP projection mismatch: expected=" + AUTHORITATIVE_TARGET_HP
-                            + " actual=" + displayedHp);
+                    "Cobblemon native HP must stay presentation-independent: before=" + nativeHpBefore
+                            + " after=" + nativeHpAfter
+                            + " authoritativePtuHp=" + authoritativeTargetHp);
+        }
+        if (!entity.isAlive()) {
+            throw new IllegalStateException("authoritative PTU HP projection must not manufacture a Cobblemon faint");
         }
 
         LOGGER.info(
-                "{}: entity={} targetHp={} damage={}",
+                "{}: entity={} authoritativeTargetHp={} damage={} nativeHp={}",
                 SUCCESS_LOG,
                 presentationEntityId,
-                AUTHORITATIVE_TARGET_HP,
-                AUTHORITATIVE_DAMAGE
+                authoritativeTargetHp,
+                AUTHORITATIVE_DAMAGE,
+                nativeHpAfter
         );
         entity.discard();
         registry.releaseReservation(RESERVATION_ID);
