@@ -22,6 +22,7 @@ import io.autoptu.cobblemon.authority.FileCanonicalShopSaleRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalShopStockRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWalletRepository;
 import io.autoptu.cobblemon.authority.FileCanonicalWorldEventObjectRepository;
+import io.autoptu.cobblemon.authority.FileCanonicalWorldStoryRepository;
 import io.autoptu.cobblemon.authority.FileCraftIngredientDepositHandoffRepository;
 import io.autoptu.cobblemon.authority.FileFieldCampSetupAttemptRepository;
 import io.autoptu.cobblemon.authority.FileVersionedCanonicalStateRepository;
@@ -57,6 +58,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
             FileCanonicalLocationDiscoveryRepository locationDiscoveries,
             FileCanonicalWorldEventObjectRepository worldEventObjects,
             FileCanonicalNpcRelationshipRepository npcRelationships,
+            FileCanonicalWorldStoryRepository worldStory,
             FileCanonicalShopStockRepository shopStock,
             FileCanonicalShopPurchaseRepository shopPurchases,
             FileCanonicalShopSaleRepository shopSales,
@@ -93,6 +95,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     public static FileCanonicalLocationDiscoveryRepository requireLocationDiscoveryRepository(MinecraftServer server) { return requireStores(server).locationDiscoveries(); }
     public static FileCanonicalWorldEventObjectRepository requireWorldEventObjectRepository(MinecraftServer server) { return requireStores(server).worldEventObjects(); }
     public static FileCanonicalNpcRelationshipRepository requireNpcRelationshipRepository(MinecraftServer server) { return requireStores(server).npcRelationships(); }
+    public static FileCanonicalWorldStoryRepository requireWorldStoryRepository(MinecraftServer server) { return requireStores(server).worldStory(); }
     public static FileCanonicalShopStockRepository requireShopStockRepository(MinecraftServer server) { return requireStores(server).shopStock(); }
     public static FileCanonicalShopPurchaseRepository requireShopPurchaseRepository(MinecraftServer server) { return requireStores(server).shopPurchases(); }
     public static FileCanonicalShopSaleRepository requireShopSaleRepository(MinecraftServer server) { return requireStores(server).shopSales(); }
@@ -137,6 +140,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         FileCanonicalLocationDiscoveryRepository locationDiscoveries = new FileCanonicalLocationDiscoveryRepository(root);
         FileCanonicalWorldEventObjectRepository worldEventObjects = new FileCanonicalWorldEventObjectRepository(root);
         FileCanonicalNpcRelationshipRepository npcRelationships = new FileCanonicalNpcRelationshipRepository(root);
+        FileCanonicalWorldStoryRepository worldStory = new FileCanonicalWorldStoryRepository(root);
         FileCanonicalShopStockRepository shopStock = new FileCanonicalShopStockRepository(root);
         FileCanonicalShopPurchaseRepository shopPurchases = new FileCanonicalShopPurchaseRepository(root);
         FileCanonicalShopSaleRepository shopSales = new FileCanonicalShopSaleRepository(root);
@@ -144,7 +148,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
         Stores stores = new Stores(
                 new FileVersionedCanonicalStateRepository(root), encounterProfiles, pokemon, pokemonStorage, pokemonTransfers,
                 assets, itemStorage, itemStorageTransfers, wallets, questJournals, questObjectives, locationDiscoveries, worldEventObjects, npcRelationships,
-                shopStock, shopPurchases, shopSales, new FileWorldTaskCraftAttemptRepository(root), new FileCraftIngredientDepositHandoffRepository(root),
+                worldStory, shopStock, shopPurchases, shopSales, new FileWorldTaskCraftAttemptRepository(root), new FileCraftIngredientDepositHandoffRepository(root),
                 new FileFieldCampSetupAttemptRepository(root), activeEncounterSessions, new WorldScopedCanonicalWildEncounterBlueprintRegistry(),
                 new WorldScopedWildEncounterCorrelationRegistry());
         synchronized (STORES) {
