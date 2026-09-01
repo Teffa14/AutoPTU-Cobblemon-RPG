@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalPartyLeadService;
+import io.autoptu.cobblemon.authority.CanonicalPartyManagementService;
 import io.autoptu.cobblemon.authority.CanonicalPartyQueryService;
 import io.autoptu.cobblemon.authority.CanonicalPartySummary;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -219,10 +220,30 @@ public final class FabricPartyManagementRuntime {
             }
 
             String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+            boolean trainerExists = FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer())
+                    .findPlayer(playerId)
+                    .isPresent();
+            CanonicalPartyManagementService.Decision preflight = new CanonicalPartyManagementService().canManage(
+                    new CanonicalPartyManagementService.Request(
+                            playerId,
+                            trainerExists,
+                            CanonicalPartyManagementService.Mutation.SET_LEAD,
+                            partySlot,
+                            displayedMember.pokemonId(),
+                            displayedParty.partyRevision(),
+                            current
+                    )
+            );
+            if (!preflight.allowed()) {
+                refresh();
+                player.sendMessage(Text.literal("Party change was rejected: " + preflight.reason()), false);
+                return;
+            }
+
             CanonicalPartyLeadService service = new CanonicalPartyLeadService(
                     FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer())
             );
-            CanonicalPartyLeadService.Decision decision = service.setLead(playerId, partySlot);
+            CanonicalPartyLeadService.Decision decision = service.setLead(playerId, preflight.partySlot());
             switch (decision.outcome()) {
                 case APPLIED -> player.sendMessage(Text.literal(
                         displayName(displayedMember.speciesId()) + " is now your party lead."), true);
