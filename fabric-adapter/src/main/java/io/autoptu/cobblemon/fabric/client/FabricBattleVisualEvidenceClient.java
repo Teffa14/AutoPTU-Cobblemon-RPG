@@ -25,7 +25,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean battleRequested;
-    private static boolean cameraPlaced;
+    private static boolean cameraReady;
     private static boolean trainerExternalCaptured;
     private static boolean tacticalAerialCaptured;
     private static boolean actionCinematicCaptured;
@@ -39,7 +39,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            battleRequested = cameraPlaced = false;
+            battleRequested = cameraReady = false;
             trainerExternalCaptured = tacticalAerialCaptured = actionCinematicCaptured = false;
             observedMode = null;
             observedModeStableTicks = 0;
@@ -63,24 +63,23 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
 
-        if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Keep the player near the server-authored battle actors. The detached camera itself is
-            // driven only by the S2C presentation frame; this command does not choose camera mode.
-            client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
-            cameraPlaced = true;
-            LOGGER.info("AutoPTU battle visual evidence player staging position placed");
+        if (battleRequested && !cameraReady && ticksSinceJoin >= 66) {
+            // The detached camera no longer requires moving the trainer to fake a viewing position.
+            // Keep the trainer at the exact position used by the server-authored external frame.
+            cameraReady = true;
+            LOGGER.info("AutoPTU battle visual evidence detached camera staging ready");
             return;
         }
 
-        if (cameraPlaced) sanitizeCaptureHud(client);
+        if (cameraReady) sanitizeCaptureHud(client);
 
-        if (cameraPlaced && Boolean.getBoolean(CAMERA_MODE_EVIDENCE_PROPERTY) && captureStableCameraMode(client)) {
+        if (cameraReady && Boolean.getBoolean(CAMERA_MODE_EVIDENCE_PROPERTY) && captureStableCameraMode(client)) {
             return;
         }
 
         // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
         // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
-        if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
+        if (cameraReady && !readyCaptured && ticksSinceJoin >= 70) {
             capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
         }
