@@ -1,5 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
 import io.autoptu.cobblemon.authority.CanonicalWorldEventObjectService;
 import io.autoptu.cobblemon.authority.CanonicalWorldInteractionService;
 import io.autoptu.cobblemon.authority.FileCanonicalWorldEventObjectRepository;
@@ -75,7 +77,20 @@ public final class FabricCanonicalWorldInteractionRuntime {
             }
 
             if (object.kind() == CanonicalWorldInteractionService.Kind.TERMINAL) {
-                serverPlayer.sendMessage(Text.literal("Ouros terminal authenticated: " + object.objectId()), false);
+                var objectiveService = new CanonicalQuestObjectiveService(
+                        CanonicalQuestObjectiveCatalogue.DEFAULT,
+                        FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(serverPlayer.getServer()),
+                        FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(serverPlayer.getServer())
+                );
+                var objectiveEvent = objectiveService.observe(
+                        playerId,
+                        CanonicalQuestObjectiveCatalogue.AUTHORED_QUEST_OBJECT_INSPECTED_EVENT
+                );
+                if (objectiveEvent.changed()) {
+                    serverPlayer.sendMessage(Text.literal("Quest updated: you inspected an authored field-notes object."), false);
+                } else {
+                    serverPlayer.sendMessage(Text.literal("Ouros field notes inspected."), false);
+                }
                 return ActionResult.SUCCESS;
             }
             if (object.kind() == CanonicalWorldInteractionService.Kind.SHRINE) {
