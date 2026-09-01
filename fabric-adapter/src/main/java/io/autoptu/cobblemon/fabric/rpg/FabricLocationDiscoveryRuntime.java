@@ -2,6 +2,9 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalLocationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalLocationDiscoveryService;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
+import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -17,6 +20,7 @@ import java.util.Map;
 /**
  * Observes authenticated players entering server-authored location footprints and persists discovery.
  * Player coordinates, location identity and progression truth never come from a client payload.
+ * Marea Interior uses fixed CanonicalWorldMapCatalogue anchors; legacy locations may still use spawn.
  */
 public final class FabricLocationDiscoveryRuntime {
     private static final int CHECK_INTERVAL_TICKS = 20;
@@ -27,13 +31,18 @@ public final class FabricLocationDiscoveryRuntime {
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (!shouldCheck(server)) return;
-            var service = new CanonicalLocationDiscoveryService(
+            var discovery = new CanonicalLocationDiscoveryService(
                     CanonicalLocationCatalogue.DEFAULT,
                     FabricCanonicalPlayerStoreRuntime.requireRepository(server),
                     FabricCanonicalPlayerStoreRuntime.requireLocationDiscoveryRepository(server)
             );
+            var objectives = new CanonicalQuestObjectiveService(
+                    CanonicalQuestObjectiveCatalogue.DEFAULT,
+                    FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(server),
+                    FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(server)
+            );
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                observePlayer(player, service);
+                observePlayer(player, discovery, objectives);
             }
         });
     }
@@ -50,17 +59,46 @@ public final class FabricLocationDiscoveryRuntime {
         }
     }
 
-    private static void observePlayer(ServerPlayerEntity player, CanonicalLocationDiscoveryService service) {
+    private static void observePlayer(
+            ServerPlayerEntity player,
+            CanonicalLocationDiscoveryService discovery,
+            CanonicalQuestObjectiveService objectives
+    ) {
         ServerWorld world = player.getServerWorld();
         String dimensionId = world.getRegistryKey().getValue().toString();
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
         for (var location : CanonicalLocationCatalogue.DEFAULT.locations()) {
             if (!location.dimensionId().equals(dimensionId)) continue;
-            BlockPos anchor = world.getSpawnPos();
+            BlockPos anchor = anchor(world, location.id());
             if (!withinRadius(player, anchor, location.triggerRadius())) continue;
-            String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-            var decision = service.observe(playerId, location.id());
+
+            var decision = discovery.observe(playerId, location.id());
             if (decision.allowed() && decision.newlyDiscovered()) {
                 player.sendMessage(Text.literal("Discovered: " + decision.location().displayName()), false);
+            }
+            observeQuestEvent(player, playerId, location.id(), objectives);
+        }
+    }
+
+    private static BlockPos anchor(ServerWorld world, String locationId) {
+        return CanonicalWorldMapCatalogue.DEFAULT.site(locationId)
+                .map(site -> new BlockPos(site.x(), site.y(), site.z()))
+                .orElseGet(world::getSpawnPos);
+    }
+
+    private static void observeQuestEvent(
+            ServerPlayerEntity player,
+            String playerId,
+            String locationId,
+            CanonicalQuestObjectiveService service
+    ) {
+        var result = service.observe(playerId, "location:" + locationId);
+        for (var update : result.updates()) {
+            if (!update.newlyCompleted()) continue;
+            var progress = update.questProgress();
+            player.sendMessage(Text.literal("Quest updated: " + update.objective().description()), false);
+            if (progress.complete()) {
+                player.sendMessage(Text.literal("Quest objectives complete: return to the quest giver."), false);
             }
         }
     }
