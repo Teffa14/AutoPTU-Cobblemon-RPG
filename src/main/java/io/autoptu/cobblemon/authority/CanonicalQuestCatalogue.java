@@ -14,7 +14,9 @@ public final class CanonicalQuestCatalogue {
                     "cedar-ranger",
                     "Cedar Field Notes",
                     "The Cedar Ranger asked you to begin a field journal for Cedar Meadow.",
-                    "Return after observing the meadow lookout and feeding group."
+                    "Return after observing the meadow lookout and feeding group.",
+                    List.of(),
+                    List.of("cedar_meadow_observe_first")
             ),
             new Quest(
                     "marea-market-shortfall",
@@ -89,10 +91,22 @@ public final class CanonicalQuestCatalogue {
             String title,
             String summary,
             String objectiveText,
-            List<String> requiredAcceptedQuestIds
+            List<String> requiredAcceptedQuestIds,
+            List<String> requiredStoryFlags
     ) {
         public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText) {
-            this(questId, giverNpcId, title, summary, objectiveText, List.of());
+            this(questId, giverNpcId, title, summary, objectiveText, List.of(), List.of());
+        }
+
+        public Quest(
+                String questId,
+                String giverNpcId,
+                String title,
+                String summary,
+                String objectiveText,
+                List<String> requiredAcceptedQuestIds
+        ) {
+            this(questId, giverNpcId, title, summary, objectiveText, requiredAcceptedQuestIds, List.of());
         }
 
         public Quest {
@@ -101,15 +115,19 @@ public final class CanonicalQuestCatalogue {
             title = requireText(title, "title");
             summary = requireText(summary, "summary");
             objectiveText = requireText(objectiveText, "objectiveText");
-            requiredAcceptedQuestIds = List.copyOf(Objects.requireNonNull(requiredAcceptedQuestIds, "requiredAcceptedQuestIds"));
-            java.util.HashSet<String> prerequisiteIds = new java.util.HashSet<>();
-            for (int i = 0; i < requiredAcceptedQuestIds.size(); i++) {
-                String prerequisiteQuestId = requireText(requiredAcceptedQuestIds.get(i), "requiredAcceptedQuestIds");
-                if (!prerequisiteIds.add(prerequisiteQuestId)) {
-                    throw new IllegalArgumentException("duplicate prerequisite questId: " + prerequisiteQuestId);
-                }
-            }
+            requiredAcceptedQuestIds = validateUnique(requiredAcceptedQuestIds, "requiredAcceptedQuestIds", "duplicate prerequisite questId: ");
+            requiredStoryFlags = validateUnique(requiredStoryFlags, "requiredStoryFlags", "duplicate prerequisite story flag: ");
         }
+    }
+
+    private static List<String> validateUnique(List<String> values, String field, String duplicatePrefix) {
+        List<String> copy = List.copyOf(Objects.requireNonNull(values, field));
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        for (String value : copy) {
+            String id = requireText(value, field);
+            if (!ids.add(id)) throw new IllegalArgumentException(duplicatePrefix + id);
+        }
+        return copy;
     }
 
     private static String requireText(String value, String field) {
