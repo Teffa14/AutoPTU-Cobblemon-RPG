@@ -10,6 +10,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Operator-only deterministic showcase for visually inspecting already-live RPG world surfaces.
@@ -18,6 +20,8 @@ import net.minecraft.util.math.BlockPos;
  * in a stable layout near the operator so graphical-client evidence can be captured reproducibly.
  */
 public final class FabricRpgVisualProofRuntime {
+    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-rpg-visual-proof");
+
     private FabricRpgVisualProofRuntime() {}
 
     public static void register() {
@@ -74,6 +78,7 @@ public final class FabricRpgVisualProofRuntime {
                 0.0F,
                 8.0F);
         player.sendMessage(Text.literal("AutoPTU RPG visual proof scene ready. Face forward to inspect live world surfaces."), false);
+        LOGGER.info("AutoPTU RPG visual proof scene built for {}", player.getGameProfile().getName());
         return 1;
     }
 
