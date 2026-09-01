@@ -17,7 +17,10 @@ final class CanonicalQuestJournalServiceTest {
     @Test
     void acceptsOnceAndPersistsAcrossRepositoryReopen() {
         var repository = new FileCanonicalQuestJournalRepository(tempDir);
-        var service = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, repository);
+        var storyRepository = new FileCanonicalWorldStoryRepository(tempDir);
+        new CanonicalWorldStoryService(CanonicalWorldStoryCatalogue.DEFAULT, storyRepository)
+                .choose("player-1", "cedar-meadow-approach", "observe-first");
+        var service = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, repository, storyRepository);
 
         var first = service.accept("player-1", "cedar-ranger", "cedar-field-notes");
         assertTrue(first.newlyAccepted());
@@ -59,6 +62,7 @@ final class CanonicalQuestJournalServiceTest {
         var eligibility = service.eligibility(playerId, "ouros.npc.mara_veyra", "marea-route-field-check");
         assertFalse(eligibility.eligible());
         assertEquals(java.util.List.of("marea-market-shortfall"), eligibility.missingAcceptedQuestIds());
+        assertTrue(eligibility.missingStoryFlags().isEmpty());
 
         var blocked = service.accept(playerId, "ouros.npc.mara_veyra", "marea-route-field-check");
         assertTrue(blocked.blockedByPrerequisites());
@@ -76,5 +80,33 @@ final class CanonicalQuestJournalServiceTest {
         assertTrue(route.newlyAccepted());
         assertEquals(2L, route.journal().revision());
         assertTrue(route.journal().entries().containsKey("marea-route-field-check"));
+    }
+
+    @Test
+    void blocksCedarFieldNotesUntilPersistedObserveFirstStoryFlagExists() {
+        String playerId = "trainer:cedar-story";
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var stories = new FileCanonicalWorldStoryRepository(tempDir);
+        var service = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals, stories);
+
+        var blocked = service.accept(playerId, "cedar-ranger", "cedar-field-notes");
+        assertTrue(blocked.blockedByPrerequisites());
+        assertEquals(java.util.List.of("cedar_meadow_observe_first"), blocked.missingStoryFlags());
+        assertTrue(blocked.missingAcceptedQuestIds().isEmpty());
+        assertEquals(0L, blocked.journal().revision());
+        assertFalse(blocked.journal().entries().containsKey("cedar-field-notes"));
+
+        new CanonicalWorldStoryService(CanonicalWorldStoryCatalogue.DEFAULT, stories)
+                .choose(playerId, "cedar-meadow-approach", "observe-first");
+
+        var eligibility = service.eligibility(playerId, "cedar-ranger", "cedar-field-notes");
+        assertTrue(eligibility.eligible());
+        assertTrue(eligibility.missingStoryFlags().isEmpty());
+        assertEquals(1L, eligibility.storyRevision());
+
+        var accepted = service.accept(playerId, "cedar-ranger", "cedar-field-notes");
+        assertTrue(accepted.newlyAccepted());
+        assertTrue(accepted.missingStoryFlags().isEmpty());
+        assertEquals(1L, accepted.journal().revision());
     }
 }
