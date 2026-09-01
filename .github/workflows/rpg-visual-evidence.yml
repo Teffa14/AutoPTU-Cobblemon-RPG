@@ -48,10 +48,12 @@ jobs:
           simulation-distance=4
           motd=AutoPTU Visual Evidence
           EOF
+          # Offline-mode servers derive OfflinePlayer:<name> UUIDs server-side. Keep ops.json on
+          # that exact identity so the QA actor can execute the operator-only evidence command.
           cat > graphical-server/ops.json <<'EOF'
           [
             {
-              "uuid": "032ad05d-4eb5-357c-8e46-71376d278de2",
+              "uuid": "43d6469a-bef9-3d6f-bbb3-3ad8e4494453",
               "name": "AutoPTUVisual",
               "level": 4,
               "bypassesPlayerLimit": true
@@ -129,7 +131,7 @@ jobs:
           version = 'fabric-loader-0.17.2-1.21.1'
           options = minecraft_launcher_lib.utils.generate_test_options()
           options['username'] = 'AutoPTUVisual'
-          options['uuid'] = '032ad05d4eb5357c8e4671376d278de2'
+          options['uuid'] = '43d6469abef93d6fbbb33ad8e4494453'
           options['token'] = 'autoptu-ci-test-token'
           options['executablePath'] = shutil.which('java')
           options['defaultExecutablePath'] = shutil.which('java')
