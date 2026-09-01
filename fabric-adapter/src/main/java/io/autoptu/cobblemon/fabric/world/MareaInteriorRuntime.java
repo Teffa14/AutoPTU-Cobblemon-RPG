@@ -21,8 +21,9 @@ import java.util.Set;
 /**
  * Physical Marea Interior bootstrap for the first canon-backed Ouros district.
  *
- * Blocks, villager bodies and names are presentation. Canonical NPC identity, quests and location
- * state remain server-owned. Minecraft entity loss or AI movement cannot rewrite NPC history.
+ * Blocks, villager bodies and named Pokemon bodies are presentation. Canonical NPC identity,
+ * partner identity, quests and location state remain server-owned. Minecraft entity loss, AI
+ * movement or Cobblemon payload state cannot rewrite NPC or partner history.
  */
 public final class MareaInteriorRuntime {
     private static final String NPC_TAG_PREFIX = "autoptu:npc:";
@@ -49,8 +50,10 @@ public final class MareaInteriorRuntime {
         ServerWorld world = source.getServer().getOverworld();
         MareaInteriorBuilder.BuildResult result = MareaInteriorBuilder.build(world);
         int spawned = spawnResidents(world);
+        int projectedPartners = projectPartners(world);
         source.sendFeedback(() -> Text.literal("Marea Interior built at fixed Ouros coordinates. Sites: "
-                + result.builtSiteIds().size() + "; canonical resident actors created: " + spawned + "."), false);
+                + result.builtSiteIds().size() + "; canonical resident actors created: " + spawned
+                + "; named partner Pokemon projected: " + projectedPartners + "."), false);
         source.sendFeedback(() -> Text.literal("Use /ouros world marea_interior visit to enter Puerto Bruma."), false);
         return 1;
     }
@@ -109,6 +112,16 @@ public final class MareaInteriorRuntime {
             spawned++;
         }
         return spawned;
+    }
+
+    private static int projectPartners(ServerWorld world) {
+        int projected = 0;
+        for (var npc : CanonicalNpcCatalogue.DEFAULT.npcs()) {
+            BlockPos position = NPC_WORK_POSITIONS.get(npc.npcId());
+            if (position == null) continue;
+            if (NpcPartnerPokemonProjectionRuntime.ensureProjected(world, npc.npcId(), position) != null) projected++;
+        }
+        return projected;
     }
 
     private static VillagerEntity findExisting(ServerWorld world, BlockPos position, String npcId) {
