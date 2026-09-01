@@ -40,10 +40,15 @@ final class CanonicalQuestObjectiveServiceTest {
         var second = reopened.observe("player-1", "cedar_meadow:feeders_alarmed");
         assertTrue(second.changed());
         assertEquals(2L, second.updates().getFirst().questProgress().completedCount());
-        assertTrue(second.updates().getFirst().questProgress().complete());
+        assertFalse(second.updates().getFirst().questProgress().complete());
+
+        var third = reopened.observe("player-1", CanonicalQuestObjectiveCatalogue.AUTHORED_QUEST_OBJECT_INSPECTED_EVENT);
+        assertTrue(third.changed());
+        assertEquals(3L, third.updates().getFirst().questProgress().completedCount());
+        assertTrue(third.updates().getFirst().questProgress().complete());
 
         var persisted = reopened.inspectQuest("player-1", "cedar-field-notes");
-        assertEquals(2L, persisted.completedCount());
+        assertEquals(3L, persisted.completedCount());
         assertTrue(persisted.complete());
     }
 

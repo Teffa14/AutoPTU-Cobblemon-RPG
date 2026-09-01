@@ -88,6 +88,7 @@ final class CanonicalQuestRewardServiceTest {
         var service = new CanonicalQuestObjectiveService(CanonicalQuestObjectiveCatalogue.DEFAULT, stores.journals, stores.objectives);
         service.observe(playerId, "cedar_meadow:lookout_watching");
         service.observe(playerId, "cedar_meadow:feeders_alarmed");
+        service.observe(playerId, CanonicalQuestObjectiveCatalogue.AUTHORED_QUEST_OBJECT_INSPECTED_EVENT);
     }
 
     private record Stores(
