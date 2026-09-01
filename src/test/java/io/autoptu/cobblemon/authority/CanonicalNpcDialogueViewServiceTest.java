@@ -69,6 +69,33 @@ final class CanonicalNpcDialogueViewServiceTest {
         assertNull(unlocked.lockReason());
     }
 
+    @Test
+    void taroProjectsPersistedNereaRelationshipAsQuestEligibility() {
+        String playerId = "trainer:relationship-dialogue";
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var relationships = new FileCanonicalNpcRelationshipRepository(tempDir);
+        var viewService = new CanonicalNpcDialogueViewService(
+                CanonicalNpcDialogueCatalogue.DEFAULT,
+                CanonicalQuestCatalogue.DEFAULT,
+                journals,
+                null,
+                relationships
+        );
+
+        var locked = option(viewService.inspect(playerId, "ouros.npc.taro_min"), "comparison");
+        assertFalse(locked.eligibleQuest());
+        assertEquals("Locked: The Record Is Not the Cause", locked.displayLabel());
+        assertEquals("Meet first: Dr. Nerea Sol", locked.lockReason());
+
+        new CanonicalNpcRelationshipService(CanonicalNpcDialogueCatalogue.DEFAULT, relationships)
+                .observeContact(playerId, "ouros.npc.nerea_sol");
+
+        var unlocked = option(viewService.inspect(playerId, "ouros.npc.taro_min"), "comparison");
+        assertTrue(unlocked.eligibleQuest());
+        assertEquals("Give me something to compare.", unlocked.displayLabel());
+        assertNull(unlocked.lockReason());
+    }
+
     private static CanonicalNpcDialogueViewService.OptionView option(CanonicalNpcDialogueViewService.DialogueView view, String optionId) {
         return view.options().stream().filter(option -> option.optionId().equals(optionId)).findFirst().orElseThrow();
     }
