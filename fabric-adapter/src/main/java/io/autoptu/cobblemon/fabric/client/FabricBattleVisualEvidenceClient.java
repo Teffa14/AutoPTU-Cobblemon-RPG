@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 public final class FabricBattleVisualEvidenceClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-battle-visual-evidence");
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
+    private static final String CAMERA_MODE_EVIDENCE_PROPERTY = "autoptu.crafticsCameraModeEvidence";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
     private static int ticksBeforeConnect;
@@ -23,6 +24,9 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static boolean connectRequested;
     private static boolean battleRequested;
     private static boolean cameraPlaced;
+    private static boolean trainerExternalCaptured;
+    private static boolean tacticalAerialCaptured;
+    private static boolean actionCinematicCaptured;
     private static boolean readyCaptured;
     private static boolean firstCaptured;
     private static boolean counterCaptured;
@@ -31,7 +35,9 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            battleRequested = cameraPlaced = readyCaptured = firstCaptured = counterCaptured = false;
+            battleRequested = cameraPlaced = false;
+            trainerExternalCaptured = tacticalAerialCaptured = actionCinematicCaptured = false;
+            readyCaptured = firstCaptured = counterCaptured = false;
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -52,16 +58,36 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         }
 
         if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Send both required slash commands while chat is still enabled. Minecraft suppresses
-            // sendChatCommand when ChatVisibility.HIDDEN is already active.
+            // Keep the player near the server-authored battle actors. The detached camera itself is
+            // driven only by the S2C presentation frame; this command does not choose camera mode.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
-            LOGGER.info("AutoPTU battle visual evidence camera placed");
+            LOGGER.info("AutoPTU battle visual evidence player staging position placed");
             return;
         }
 
-        // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
         if (cameraPlaced) sanitizeCaptureHud(client);
+
+        if (cameraPlaced && Boolean.getBoolean(CAMERA_MODE_EVIDENCE_PROPERTY)) {
+            if (!trainerExternalCaptured && ticksSinceJoin >= 68) {
+                capture(client, "autoptu-camera-trainer-external.png");
+                trainerExternalCaptured = true;
+                LOGGER.info("AutoPTU camera evidence captured trainer-external mode");
+                return;
+            }
+            if (!tacticalAerialCaptured && ticksSinceJoin >= 76) {
+                capture(client, "autoptu-camera-tactical-aerial.png");
+                tacticalAerialCaptured = true;
+                LOGGER.info("AutoPTU camera evidence captured tactical-aerial mode");
+                return;
+            }
+            if (!actionCinematicCaptured && ticksSinceJoin >= 84) {
+                capture(client, "autoptu-camera-action-cinematic.png");
+                actionCinematicCaptured = true;
+                LOGGER.info("AutoPTU camera evidence captured action-cinematic mode");
+                return;
+            }
+        }
 
         // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
         // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
