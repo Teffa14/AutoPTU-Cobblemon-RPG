@@ -345,7 +345,7 @@ These should become the normal gameplay path.
 
 | ID | Status | Boundary |
 |---|---|---|
-| SVC-001 | TODO | `canPerform(player, action, context)` |
+| SVC-001 | LIVE/PARTIAL | `canPerform(player, action, context)` — PR #440 / implementation head `3400faacadac3d70bd25f2aed97b8caa035bf731` adds the reusable canonical Trainer/action/context preflight. Its first normal Minecraft consumer is the server-observed empty-hand party quick-access gesture; broader action-specific policy remains in dedicated services and PTU legality remains upstream. |
 | SVC-002 | LIVE | `canInteract(player, object, context)` — PR #271 / merge `01886d9f6b427284870bcf22016b968858b1559a`. The server validates canonical Trainer existence, authored object identity/type and interaction range before allowing the Minecraft-facing interaction; it supplies no PTU legality, RNG, rewards, progression or battle outcome. |
 | SVC-003 | TODO | `canUse(player, item, target, context)` |
 | SVC-004 | LIVE/PARTIAL | `canCraft(player, recipe, context)` — PR #226 resolves Trainer capability, PR #228 supplies server-owned material/output contracts, PR #229 supplies exactly-once mutation, PR #230 adds side-effect-free canonical material eligibility, PR #231 supplies server-observed authored-ingredient acquisition, PR #233 wires that authority into normal workstation execution, PR #235 exposes explicit player recipe requests, and PR #236 / `38a3b230a5bb9ca4a3d9313065678b3a617afaa1` exposes server-owned readiness and selection through normal workstation interaction while preserving server revalidation. Cross-store acquisition recovery remains future work. |
