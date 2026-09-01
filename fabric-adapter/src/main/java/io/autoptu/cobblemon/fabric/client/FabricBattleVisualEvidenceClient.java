@@ -1,6 +1,5 @@
 package io.autoptu.cobblemon.fabric.client;
 
-import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -12,8 +11,6 @@ import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.network.message.ChatVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /** QA-only production-client capture for the server-owned playable AutoPTU battle. */
 public final class FabricBattleVisualEvidenceClient implements ClientModInitializer {
@@ -54,21 +51,20 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
 
-        if (battleRequested && !cameraPlaced && battlePokemon(client).size() >= 2) {
-            // Camera-only command. The server-owned battle has already materialized both combatants.
+        if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
+            // Send both required slash commands while chat is still enabled. Minecraft suppresses
+            // sendChatCommand when ChatVisibility.HIDDEN is already active.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
-            LOGGER.info("AutoPTU battle visual evidence observed two server-synchronized battle Pokemon");
             LOGGER.info("AutoPTU battle visual evidence camera placed");
             return;
         }
 
-        // Hide and clear non-battle UI only after both server commands have been sent. Hiding chat
-        // earlier prevents Minecraft from sending slash commands at all.
+        // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
         if (cameraPlaced) sanitizeCaptureHud(client);
 
-        // Do not use Cobblemon-native HP as battle authority. AutoPTU-Java owns the fixed demo
-        // cadence and PTU results; these windows only capture its server-synchronized presentation.
+        // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
+        // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
         if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
             capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
@@ -81,16 +77,6 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             capture(client, "autoptu-battle-counter-strike.png"); counterCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
         }
-    }
-
-    private static List<PokemonEntity> battlePokemon(MinecraftClient client) {
-        return client.world.getEntitiesByClass(
-                PokemonEntity.class,
-                client.player.getBoundingBox().expand(32.0D),
-                pokemon -> pokemon.hasCustomName()
-                        && pokemon.getCustomName() != null
-                        && pokemon.getCustomName().getString().contains(" | HP ")
-        );
     }
 
     private static void sanitizeCaptureHud(MinecraftClient client) {
