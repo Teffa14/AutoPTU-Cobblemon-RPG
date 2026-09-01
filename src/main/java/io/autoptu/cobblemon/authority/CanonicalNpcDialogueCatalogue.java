@@ -22,8 +22,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     )
             ),
             new Dialogue(
-                    "ouros.npc.ivo_serrat",
-                    "Ivo Serrat",
+                    "ouros.npc.ivo_serrat", "Ivo Serrat",
                     "Three uneven deliveries and half the market already has one perfect explanation. I would rather know what actually happened.",
                     List.of(
                             new Option("shortfall", "What is wrong with the deliveries?", "They are smaller and less predictable than last season. That is the observation. Crop failure, road trouble and hoarding are still claims."),
@@ -33,8 +32,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     )
             ),
             new Dialogue(
-                    "ouros.npc.mara_veyra",
-                    "Mara Veyra",
+                    "ouros.npc.mara_veyra", "Mara Veyra",
                     "If you need a conclusion, bring me evidence. If you need a route checked, I can give you a route.",
                     List.of(
                             new Option("office", "What does the Field Office handle?", "Route reports, wildlife incidents, missing-person searches and practical coordination. We are not a police force and we do not own every Pokemon we help."),
@@ -44,8 +42,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     )
             ),
             new Dialogue(
-                    "ouros.npc.nerea_sol",
-                    "Dr. Nerea Sol",
+                    "ouros.npc.nerea_sol", "Dr. Nerea Sol",
                     "The station has measurements, gaps, revisions and a great many people who prefer to remember only the first of those.",
                     List.of(
                             new Option("station", "What does Mirador measure?", "Weather observations, ecological transects and route-adjacent field notes. Each record has a time, method and limits."),
@@ -55,8 +52,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     )
             ),
             new Dialogue(
-                    "ouros.npc.taro_min",
-                    "Taro Min",
+                    "ouros.npc.taro_min", "Taro Min",
                     "A useful archive preserves the wrong recollection beside the right date instead of quietly editing the town into agreement.",
                     List.of(
                             new Option("archive", "What is kept here?", "Route surveys, market records, oral-history deposits and copies of field observations. The record tells you what was recorded, not automatically what was true."),
@@ -66,8 +62,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     )
             ),
             new Dialogue(
-                    "ouros.npc.sela_orrin",
-                    "Sela Orrin",
+                    "ouros.npc.sela_orrin", "Sela Orrin",
                     "A rematch is useful only if something changed. Otherwise we are just repeating ourselves with better posture.",
                     List.of(
                             new Option("yard", "What is the Battle Yard?", "A local training and battle institution. It is not a Gym just because people fight here, and I do not hand out invented badges."),
@@ -75,7 +70,37 @@ public final class CanonicalNpcDialogueCatalogue {
                             new Option("delivery", "Can battling help the delivery problem?", "It can help if a real field situation requires a battle. Winning a match does not explain missing produce."),
                             new Option("rook", "Tell me about Rook.", "Rook is my Falinks partner. His effective battle level can grow with serious challengers, but his identity and our history do not reroll every encounter.")
                     )
-            )
+            ),
+            simple("ouros.npc.lia_morn", "Lia Morn",
+                    "Dock schedules are boring right up until somebody needs to know whether a shipment actually arrived.",
+                    "I coordinate berths, arrivals and unloading windows. I can verify an arrival record; I cannot tell you why a crate was light."),
+            simple("ouros.npc.mina_cors", "Mina Cors",
+                    "The bay changes faster than the timetable, but a changed timetable still needs a reason somebody can record.",
+                    "I run the local ferry. Wake and I know the water, but practical judgment is still not a supernatural forecast."),
+            simple("ouros.npc.oren_vale", "Oren Vale",
+                    "A clinic should make ordinary care ordinary. Drama is not a treatment plan.",
+                    "I handle real care cases and routine recovery work. The exact mechanical healing result still comes from the governing PTU state."),
+            simple("ouros.npc.teo_lark", "Teo Lark",
+                    "If an instrument gives a strange reading, check the instrument before inventing a strange world.",
+                    "I maintain carts, lamps, fixtures and field instruments. Repairs can matter to a story without becoming invented crafting bonuses."),
+            simple("ouros.npc.alba_rios", "Alba Rios",
+                    "The cooperative speaks for shared work. It does not make fifteen farms into one farm.",
+                    "I manage my own holding and represent one producer voice. What happened on my fields is evidence about my fields, not automatically all of Loma Clara."),
+            simple("ouros.npc.brin_havel", "Brin Havel",
+                    "The storehouse ledger is much less exciting than the rumor board, which is why I trust it for different questions.",
+                    "I record intake and dispatch preparation. A dispatch record proves what we prepared to send, not that every crate reached Bruma."),
+            simple("ouros.npc.jo_venn", "Jo Venn",
+                    "Teaching observation is mostly teaching people to write down what they saw before explaining it.",
+                    "I run practical field lessons. We use real public observations, but students do not gain PTU mechanics just because they attended class."),
+            simple("ouros.npc.ema_rey", "Ema Rey",
+                    "Nerea writes the protocol. I spend a lot of time finding out what the protocol feels like in mud and crosswind.",
+                    "I check instruments, walk transects and prepare field notes. If Teo repairs a sensor, that repair stays in the record."),
+            simple("ouros.npc.pia_min", "Pia Min",
+                    "A document can travel faster than its context. My job is to try not to lose either.",
+                    "I handle circulation, copies and courier work for Tideglass. Taro is my professional mentor; a shared surname does not establish family history."),
+            simple("ouros.npc.jace_orrin", "Jace Orrin",
+                    "Sela says a rival who never changes is just a training dummy with better dialogue.",
+                    "I train here and help maintain the yard. Sela is my mentor. Whatever else people assume from our surname is not established fact.")
     ));
 
     private final Map<String, Dialogue> dialogues;
@@ -93,6 +118,13 @@ public final class CanonicalNpcDialogueCatalogue {
     public Optional<Dialogue> dialogue(String npcId) {
         if (npcId == null || npcId.isBlank()) return Optional.empty();
         return Optional.ofNullable(dialogues.get(npcId));
+    }
+
+    private static Dialogue simple(String npcId, String displayName, String openingLine, String roleResponse) {
+        return new Dialogue(npcId, displayName, openingLine, List.of(
+                new Option("work", "What do you do here?", roleResponse),
+                new Option("district", "What is happening around Marea Interior?", "People are following several threads at once. Talk to the people who own each record instead of treating one NPC as the voice of the whole district.")
+        ));
     }
 
     public record Dialogue(String npcId, String displayName, String openingLine, List<Option> options) {
