@@ -7,6 +7,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
+import net.minecraft.client.option.ChatVisibility;
 import net.minecraft.client.util.ScreenshotRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
             battleRequested = cameraPlaced = readyCaptured = firstCaptured = counterCaptured = false;
+            sanitizeCaptureHud(client);
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -40,6 +42,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (ticksSinceJoin < 0) { requestConnection(client); return; }
         if (counterCaptured || client.player == null || client.world == null) return;
         ticksSinceJoin++;
+        sanitizeCaptureHud(client);
         if (ticksSinceJoin <= 40 && client.currentScreen != null) client.setScreen(null);
         if (client.getNetworkHandler() == null) return;
         if (!battleRequested && ticksSinceJoin >= 60) {
@@ -71,8 +74,15 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         }
     }
 
+    private static void sanitizeCaptureHud(MinecraftClient client) {
+        client.options.getChatVisibility().setValue(ChatVisibility.HIDDEN);
+        client.inGameHud.getChatHud().clear(false);
+        client.getToastManager().clear();
+    }
+
     private static void capture(MinecraftClient client, String name) {
         if (client.currentScreen != null) client.setScreen(null);
+        sanitizeCaptureHud(client);
         ScreenshotRecorder.saveScreenshot(client.runDirectory, name, client.getFramebuffer(),
                 message -> LOGGER.info("AutoPTU battle visual evidence screenshot result {}: {}", name, message.getString()));
         LOGGER.info("AutoPTU battle visual evidence screenshot requested: {}", name);
