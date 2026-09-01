@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Server-owned quest definitions. Quest objectives/rewards are data only and carry no PTU legality. */
+/** Server-owned quest definitions. Quest objectives/rewards/prerequisites are RPG data only and carry no PTU legality. */
 public final class CanonicalQuestCatalogue {
     public static final CanonicalQuestCatalogue DEFAULT = new CanonicalQuestCatalogue(List.of(
             new Quest(
@@ -28,7 +28,8 @@ public final class CanonicalQuestCatalogue {
                     "ouros.npc.mara_veyra",
                     "Reading the Sendero",
                     "Mara Veyra wants a direct route observation separated from rumor about the deliveries.",
-                    "Inspect Sendero del Vidrio and its seasonal crossing."
+                    "Inspect Sendero del Vidrio and its seasonal crossing.",
+                    List.of("marea-market-shortfall")
             ),
             new Quest(
                     "marea-mirador-observations",
@@ -64,6 +65,16 @@ public final class CanonicalQuestCatalogue {
                 throw new IllegalArgumentException("duplicate questId: " + quest.questId());
             }
         }
+        for (Quest quest : indexed.values()) {
+            for (String prerequisiteQuestId : quest.requiredAcceptedQuestIds()) {
+                if (quest.questId().equals(prerequisiteQuestId)) {
+                    throw new IllegalArgumentException("quest cannot require itself: " + quest.questId());
+                }
+                if (!indexed.containsKey(prerequisiteQuestId)) {
+                    throw new IllegalArgumentException("unknown prerequisite questId: " + prerequisiteQuestId);
+                }
+            }
+        }
         this.quests = Map.copyOf(indexed);
     }
 
@@ -72,13 +83,32 @@ public final class CanonicalQuestCatalogue {
         return Optional.ofNullable(quests.get(questId));
     }
 
-    public record Quest(String questId, String giverNpcId, String title, String summary, String objectiveText) {
+    public record Quest(
+            String questId,
+            String giverNpcId,
+            String title,
+            String summary,
+            String objectiveText,
+            List<String> requiredAcceptedQuestIds
+    ) {
+        public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText) {
+            this(questId, giverNpcId, title, summary, objectiveText, List.of());
+        }
+
         public Quest {
             questId = requireText(questId, "questId");
             giverNpcId = requireText(giverNpcId, "giverNpcId");
             title = requireText(title, "title");
             summary = requireText(summary, "summary");
             objectiveText = requireText(objectiveText, "objectiveText");
+            requiredAcceptedQuestIds = List.copyOf(Objects.requireNonNull(requiredAcceptedQuestIds, "requiredAcceptedQuestIds"));
+            java.util.HashSet<String> prerequisiteIds = new java.util.HashSet<>();
+            for (int i = 0; i < requiredAcceptedQuestIds.size(); i++) {
+                String prerequisiteQuestId = requireText(requiredAcceptedQuestIds.get(i), "requiredAcceptedQuestIds");
+                if (!prerequisiteIds.add(prerequisiteQuestId)) {
+                    throw new IllegalArgumentException("duplicate prerequisite questId: " + prerequisiteQuestId);
+                }
+            }
         }
     }
 

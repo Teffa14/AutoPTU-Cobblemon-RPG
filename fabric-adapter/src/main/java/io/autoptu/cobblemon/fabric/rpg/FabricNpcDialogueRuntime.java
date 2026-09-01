@@ -159,6 +159,16 @@ public final class FabricNpcDialogueRuntime {
             var journals = FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer());
             var journalService = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals);
             var accepted = journalService.accept(playerId, dialogue.npcId(), questId);
+            if (accepted.blockedByPrerequisites()) {
+                String requirements = accepted.missingAcceptedQuestIds().stream()
+                        .map(requiredQuestId -> CanonicalQuestCatalogue.DEFAULT.quest(requiredQuestId)
+                                .map(CanonicalQuestCatalogue.Quest::title)
+                                .orElse(requiredQuestId))
+                        .reduce((left, right) -> left + ", " + right)
+                        .orElse("required story work");
+                displayedText = "Quest locked: " + accepted.quest().title() + ". Accept first: " + requirements + ".";
+                return;
+            }
             if (accepted.newlyAccepted()) {
                 displayedText = "Quest accepted: " + accepted.quest().title() + " — " + accepted.quest().objectiveText();
                 return;
@@ -212,9 +222,14 @@ public final class FabricNpcDialogueRuntime {
             for (CanonicalNpcDialogueViewService.OptionView option : currentView().options()) {
                 if (slot >= TOP_SLOT_COUNT) break;
                 ItemStack icon = option.questId() != null
-                        ? (option.acceptedQuest() ? Items.WRITTEN_BOOK.getDefaultStack() : Items.WRITABLE_BOOK.getDefaultStack())
+                        ? (option.acceptedQuest()
+                                ? Items.WRITTEN_BOOK.getDefaultStack()
+                                : option.eligibleQuest() ? Items.WRITABLE_BOOK.getDefaultStack() : Items.BARRIER.getDefaultStack())
                         : option.challengeId() != null ? Items.IRON_SWORD.getDefaultStack() : Items.PAPER.getDefaultStack();
-                displayInventory.setStack(slot, menuItem(icon, option.displayLabel()));
+                String label = option.lockReason() == null
+                        ? option.displayLabel()
+                        : option.displayLabel() + " — " + option.lockReason();
+                displayInventory.setStack(slot, menuItem(icon, label));
                 optionIds.put(slot, option.optionId());
                 slot++;
             }
