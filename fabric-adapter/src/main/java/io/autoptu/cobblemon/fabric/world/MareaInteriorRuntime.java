@@ -70,8 +70,7 @@ public final class MareaInteriorRuntime {
                 anchor.getZ() + 0.5D,
                 Set.of(),
                 0.0F,
-                0.0F,
-                true
+                0.0F
         );
         player.sendMessage(Text.literal("Puerto Bruma — Marea Interior"), false);
         player.sendMessage(Text.literal("Market Hall, Field Office, Tideglass Archive, Battle Yard, clinic and ferry landing are all physical sites around you."), false);
