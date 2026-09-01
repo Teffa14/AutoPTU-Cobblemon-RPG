@@ -12,6 +12,9 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricNurseryEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricLeagueRegistrationEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint"
+    ],
+    "client": [
+      "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient"
     ]
   },
   "depends": {
