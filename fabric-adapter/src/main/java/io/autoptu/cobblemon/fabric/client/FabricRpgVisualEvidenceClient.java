@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
  *
  * Disabled in normal play. When -Dautoptu.visualEvidenceCapture=true is present, the client
  * connects itself to the configured evidence server, waits for a real multiplayer join, asks the
- * authoritative server to build the existing operator visual proof scene, then uses Minecraft's
- * own screenshot recorder after the world has rendered. It never creates PTU state or reads
- * Cobblemon battle state.
+ * authoritative server to build the operator visual proof scene, then uses Minecraft's own
+ * screenshot recorder after the world has rendered. It never creates PTU state or reads Cobblemon
+ * battle state.
  */
 public final class FabricRpgVisualEvidenceClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-rpg-visual-evidence");
@@ -26,6 +26,7 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
     private static final String SCREENSHOT_NAME = "autoptu-rpg-visualproof.png";
+    private static final String QA_SCENE_COMMAND = "autoptuvisualproof";
 
     private static int ticksBeforeConnect;
     private static int ticksSinceJoin = -1;
@@ -63,7 +64,7 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
             if (client.getNetworkHandler() == null) {
                 return;
             }
-            client.getNetworkHandler().sendChatCommand("autoptu admin visualproof");
+            client.getNetworkHandler().sendChatCommand(QA_SCENE_COMMAND);
             commandSent = true;
             LOGGER.info("AutoPTU visual evidence requested authoritative visual proof scene");
             return;
