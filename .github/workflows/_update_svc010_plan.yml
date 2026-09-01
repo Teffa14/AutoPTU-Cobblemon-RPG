@@ -1,0 +1,39 @@
+name: Temporary SVC-010 plan patch
+
+on:
+  push:
+    branches:
+      - feat/svc-010-quest-prerequisites
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/svc-010-quest-prerequisites
+          fetch-depth: 0
+      - name: Patch canonical plan and remove temporary workflow
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = p.read_text()
+          old = "| SVC-010 | LIVE/PARTIAL | `canAcceptQuest(player, quest)` — PR #258 validates that the quest is server-authored, is offered by the revalidated canonical NPC and is not trusted from client metadata. Conditional story/prerequisite eligibility remains future quest-state work. |"
+          new = "| SVC-010 | LIVE/PARTIAL | `canAcceptQuest(player, quest)` — PR #258 validates that the quest is server-authored, is offered by the revalidated canonical NPC and is not trusted from client metadata. PR #445 / production head `f41b19e0c36aa79610e6f82382fdf591b13205cc` adds server-authored required-accepted-quest prerequisites, projects locked/eligible state in physical NPC dialogue, and rechecks the durable journal immediately before acceptance so stale or unmet requests cannot mutate quest state. Broader story-flag, relationship and faction prerequisite predicates remain follow-up work. |"
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one SVC-010 row, found {count}')
+          p.write_text(text.replace(old, new))
+          PY
+          rm .github/workflows/_update_svc010_plan.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/_update_svc010_plan.yml
+          git commit -m "Record SVC-010 quest prerequisite authority"
+          git push origin HEAD:feat/svc-010-quest-prerequisites
