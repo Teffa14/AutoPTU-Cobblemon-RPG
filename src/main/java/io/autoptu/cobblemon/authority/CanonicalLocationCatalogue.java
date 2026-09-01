@@ -8,7 +8,23 @@ import java.util.Optional;
 /** Server-authored RPG locations. This catalogue carries world identity only, never PTU rules. */
 public final class CanonicalLocationCatalogue {
     public static final CanonicalLocationCatalogue DEFAULT = new CanonicalLocationCatalogue(List.of(
-            new Location("overworld_spawn", "Overworld Spawn", "minecraft:overworld", 12.0D)
+            new Location("overworld_spawn", "Overworld Spawn", "minecraft:overworld", 12.0D),
+            new Location("ouros.marea.puerto_bruma", "Puerto Bruma", "minecraft:overworld", 54.0D),
+            new Location("ouros.marea.bruma_market_hall", "Bruma Market Hall", "minecraft:overworld", 12.0D),
+            new Location("ouros.marea.marea_field_office", "Marea Field Office", "minecraft:overworld", 10.0D),
+            new Location("ouros.marea.tideglass_archive", "Tideglass Archive", "minecraft:overworld", 10.0D),
+            new Location("ouros.marea.bruma_battle_yard", "Bruma Battle Yard", "minecraft:overworld", 14.0D),
+            new Location("ouros.marea.ferry_landing", "Puerto Bruma Ferry Landing", "minecraft:overworld", 12.0D),
+            new Location("ouros.marea.clinic", "Puerto Bruma Clinic", "minecraft:overworld", 10.0D),
+            new Location("ouros.marea.sendero_vidrio", "Sendero del Vidrio", "minecraft:overworld", 22.0D),
+            new Location("ouros.marea.sendero_crossing", "Sendero Seasonal Crossing", "minecraft:overworld", 12.0D),
+            new Location("ouros.marea.loma_clara", "Loma Clara", "minecraft:overworld", 44.0D),
+            new Location("ouros.marea.loma_storehouse", "Loma Clara Cooperative Storehouse", "minecraft:overworld", 10.0D),
+            new Location("ouros.marea.loma_communal_kitchen", "Loma Clara Communal Kitchen", "minecraft:overworld", 10.0D),
+            new Location("ouros.marea.loma_field_school", "Loma Clara Field School", "minecraft:overworld", 10.0D),
+            new Location("ouros.marea.estacion_mirador", "Estacion Mirador", "minecraft:overworld", 30.0D),
+            new Location("ouros.marea.mirador_weather_mast", "Mirador Weather Mast", "minecraft:overworld", 8.0D),
+            new Location("ouros.marea.mirador_transect", "Mirador Transect Trailhead", "minecraft:overworld", 9.0D)
     ));
 
     private final Map<String, Location> locations;
