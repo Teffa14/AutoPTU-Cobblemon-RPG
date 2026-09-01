@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.client;
 
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -11,6 +12,8 @@ import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.network.message.ChatVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /** QA-only production-client capture for the server-owned playable AutoPTU battle. */
 public final class FabricBattleVisualEvidenceClient implements ClientModInitializer {
@@ -32,7 +35,6 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
             battleRequested = cameraPlaced = readyCaptured = firstCaptured = counterCaptured = false;
-            sanitizeCaptureHud(client);
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -42,24 +44,31 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (ticksSinceJoin < 0) { requestConnection(client); return; }
         if (counterCaptured || client.player == null || client.world == null) return;
         ticksSinceJoin++;
-        sanitizeCaptureHud(client);
         if (ticksSinceJoin <= 40 && client.currentScreen != null) client.setScreen(null);
         if (client.getNetworkHandler() == null) return;
+
         if (!battleRequested && ticksSinceJoin >= 60) {
             client.getNetworkHandler().sendChatCommand("autoptu testbattle charmander");
             battleRequested = true;
             LOGGER.info("AutoPTU battle visual evidence requested authoritative demo battle");
             return;
         }
-        if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
+
+        if (battleRequested && !cameraPlaced && battlePokemon(client).size() >= 2) {
+            // Camera-only command. The server-owned battle has already materialized both combatants.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
+            LOGGER.info("AutoPTU battle visual evidence observed two server-synchronized battle Pokemon");
             LOGGER.info("AutoPTU battle visual evidence camera placed");
             return;
         }
-        // Do not use Cobblemon-native HP or client entity metadata as an authority gate. The server
-        // owns the fixed demo cadence and logs the authoritative PTU results. These timed frames are
-        // only visual evidence and are later checked against those server/client battle messages.
+
+        // Hide and clear non-battle UI only after both server commands have been sent. Hiding chat
+        // earlier prevents Minecraft from sending slash commands at all.
+        if (cameraPlaced) sanitizeCaptureHud(client);
+
+        // Do not use Cobblemon-native HP as battle authority. AutoPTU-Java owns the fixed demo
+        // cadence and PTU results; these windows only capture its server-synchronized presentation.
         if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
             capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
@@ -72,6 +81,16 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             capture(client, "autoptu-battle-counter-strike.png"); counterCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
         }
+    }
+
+    private static List<PokemonEntity> battlePokemon(MinecraftClient client) {
+        return client.world.getEntitiesByClass(
+                PokemonEntity.class,
+                client.player.getBoundingBox().expand(32.0D),
+                pokemon -> pokemon.hasCustomName()
+                        && pokemon.getCustomName() != null
+                        && pokemon.getCustomName().getString().contains(" | HP ")
+        );
     }
 
     private static void sanitizeCaptureHud(MinecraftClient client) {
