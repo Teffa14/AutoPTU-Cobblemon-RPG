@@ -3,63 +3,85 @@ package io.autoptu.cobblemon.fabric.client;
 import io.autoptu.cobblemon.fabric.network.FabricBattleCameraNetworking;
 import io.autoptu.cobblemon.fabric.network.FabricBattleCameraPayload;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.Perspective;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
 /**
- * Optional Craftics presentation adapter for server-authored AutoPTU battle camera frames.
+ * Detached AutoPTU battle camera with optional Craftics scene-bound synchronization.
  *
- * <p>The bridge deliberately does not call Craftics enterCombat, setInCombat, selection, movement,
- * AP, targeting, damage or turn APIs. It only activates Craftics' cinematic isometric camera over
- * physical bounds supplied by the AutoPTU server, preserving AutoPTU as the sole battle authority.
+ * <p>AutoPTU owns the camera mode and physical focus point. The client switches to third-person so
+ * the trainer body can remain visible and the first-person hand is not rendered, then the camera
+ * mixin places the view independently from the player's eyes. Craftics is used only as an optional
+ * presentation companion for matching scene bounds; its combat, AP, movement, targeting, damage,
+ * turn and result state are never activated.
  */
 public final class FabricCrafticsBattleCameraClient implements ClientModInitializer {
-    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-craftics-camera");
+    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-detached-battle-camera");
     private static final CrafticsBridge CRAFTICS = CrafticsBridge.discover();
+    private static Perspective previousPerspective;
+    private static boolean perspectiveCaptured;
 
     @Override
     public void onInitializeClient() {
         FabricBattleCameraNetworking.registerPayloadType();
         ClientPlayNetworking.registerGlobalReceiver(FabricBattleCameraPayload.ID, (payload, context) ->
-                context.client().execute(() -> apply(payload)));
+                context.client().execute(() -> apply(context.client(), payload)));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> FabricDetachedBattleCameraState.tick());
     }
 
-    private static void apply(FabricBattleCameraPayload payload) {
-        if (!CRAFTICS.available()) return;
+    private static void apply(MinecraftClient client, FabricBattleCameraPayload payload) {
         try {
             if (!payload.active()) {
-                CRAFTICS.clear();
-                LOGGER.info("AutoPTU Craftics tactical camera cleared");
+                FabricDetachedBattleCameraState.clear();
+                restorePerspective(client);
+                CRAFTICS.clearBounds();
+                LOGGER.info("AutoPTU detached battle camera cleared");
                 return;
             }
-            CRAFTICS.activate(
-                    payload.originX(), payload.originY(), payload.originZ(), payload.width(), payload.height());
+
+            capturePerspective(client);
+            client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+            FabricDetachedBattleCameraState.apply(payload);
+            CRAFTICS.syncBounds(payload);
             LOGGER.info(
-                    "AutoPTU Craftics tactical camera active for {} at [{},{},{}] {}x{}",
-                    payload.battleId(), payload.originX(), payload.originY(), payload.originZ(),
-                    payload.width(), payload.height());
+                    "AutoPTU detached battle camera mode {} active for {} at focus [{},{},{}]",
+                    payload.mode(),
+                    payload.battleId(),
+                    payload.focusX(),
+                    payload.focusY(),
+                    payload.focusZ()
+            );
         } catch (ReflectiveOperationException exception) {
-            LOGGER.error("Craftics camera adapter failed closed; AutoPTU battle state was not changed", exception);
+            FabricDetachedBattleCameraState.clear();
+            restorePerspective(client);
+            LOGGER.error("Craftics scene-bound synchronization failed closed; AutoPTU battle state was not changed", exception);
         }
     }
 
-    private record CrafticsBridge(
-            boolean available,
-            Method setSceneBounds,
-            Method clearSceneBounds,
-            Method setCinematicActive,
-            Method seedCinematicFocusOnPlayer,
-            Method focusOn,
-            Method setCombatYaw,
-            Method setCombatPitch
-    ) {
+    private static void capturePerspective(MinecraftClient client) {
+        if (perspectiveCaptured) return;
+        previousPerspective = client.options.getPerspective();
+        perspectiveCaptured = true;
+    }
+
+    private static void restorePerspective(MinecraftClient client) {
+        if (!perspectiveCaptured) return;
+        client.options.setPerspective(previousPerspective == null ? Perspective.FIRST_PERSON : previousPerspective);
+        previousPerspective = null;
+        perspectiveCaptured = false;
+    }
+
+    private record CrafticsBridge(boolean available, Method setSceneBounds, Method clearSceneBounds) {
         static CrafticsBridge discover() {
             if (!FabricLoader.getInstance().isModLoaded("craftics")) {
-                LOGGER.info("Craftics is not installed; AutoPTU keeps the vanilla server-owned camera fallback");
+                LOGGER.info("Craftics is not installed; detached AutoPTU camera remains available");
                 return unavailable();
             }
             try {
@@ -67,36 +89,34 @@ public final class FabricCrafticsBattleCameraClient implements ClientModInitiali
                 CrafticsBridge bridge = new CrafticsBridge(
                         true,
                         state.getMethod("setSceneBounds", int.class, int.class, int.class, int.class, int.class),
-                        state.getMethod("clearSceneBounds"),
-                        state.getMethod("setCinematicActive", boolean.class),
-                        state.getMethod("seedCinematicFocusOnPlayer"),
-                        state.getMethod("focusOn", double.class, double.class),
-                        state.getMethod("setCombatYaw", float.class),
-                        state.getMethod("setCombatPitch", float.class));
-                LOGGER.info("Craftics camera presentation bridge available");
+                        state.getMethod("clearSceneBounds")
+                );
+                LOGGER.info("Craftics presentation bounds bridge available");
                 return bridge;
             } catch (ReflectiveOperationException exception) {
-                LOGGER.warn("Installed Craftics does not expose the pinned camera surface; adapter disabled", exception);
+                LOGGER.warn("Installed Craftics does not expose the pinned scene-bound surface; continuing without it", exception);
                 return unavailable();
             }
         }
 
         private static CrafticsBridge unavailable() {
-            return new CrafticsBridge(false, null, null, null, null, null, null, null);
+            return new CrafticsBridge(false, null, null);
         }
 
-        void activate(int originX, int originY, int originZ, int width, int height)
-                throws ReflectiveOperationException {
-            setSceneBounds.invoke(null, originX, originY, originZ, width, height);
-            setCombatYaw.invoke(null, 225.0F);
-            setCombatPitch.invoke(null, 55.0F);
-            seedCinematicFocusOnPlayer.invoke(null);
-            setCinematicActive.invoke(null, true);
-            focusOn.invoke(null, originX + width / 2.0D, originZ + height / 2.0D);
+        void syncBounds(FabricBattleCameraPayload payload) throws ReflectiveOperationException {
+            if (!available) return;
+            setSceneBounds.invoke(
+                    null,
+                    payload.originX(),
+                    payload.originY(),
+                    payload.originZ(),
+                    payload.width(),
+                    payload.height()
+            );
         }
 
-        void clear() throws ReflectiveOperationException {
-            setCinematicActive.invoke(null, false);
+        void clearBounds() throws ReflectiveOperationException {
+            if (!available) return;
             clearSceneBounds.invoke(null);
         }
     }
