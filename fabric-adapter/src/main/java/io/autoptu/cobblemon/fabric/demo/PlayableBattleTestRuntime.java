@@ -51,6 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class PlayableBattleTestRuntime {
     private static final int DEMO_HP = 30;
     private static final int TURN_DELAY_TICKS = 30;
+    private static final int TRAINER_INTRO_TICKS = 12;
+    private static final int ACTION_CAMERA_TICKS = 12;
     private static final int LUNGE_TICKS = 8;
     private static final int CLEANUP_TICKS = 80;
 
@@ -208,6 +210,8 @@ public final class PlayableBattleTestRuntime {
         private final PythonRandom random;
         private boolean playerTurn = true;
         private int delay = 20;
+        private int trainerIntroRemaining = TRAINER_INTRO_TICKS;
+        private int cameraReturnRemaining;
         private int lungeRemaining;
         private PokemonEntity lungingEntity;
         private BlockPos lungeReturn;
@@ -245,19 +249,15 @@ public final class PlayableBattleTestRuntime {
         private void announceStart() {
             player.sendMessage(Text.literal("AutoPTU TEST: " + playerPokemonName + " vs " + enemyPokemonName), false);
             player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
-            sendTacticalCameraFrame();
+            sendTrainerExternalCamera();
         }
 
-        private void sendTacticalCameraFrame() {
-            // These are physical presentation bounds around the two already-server-spawned actors,
-            // not a PTU legality grid. Craftics receives camera framing only and never owns battle state.
+        private CameraBounds cameraBounds() {
             int minX = playerOrigin.getX() - 2;
             int minZ = playerOrigin.getZ() - 3;
             int maxX = enemyOrigin.getX() + 2;
             int maxZ = enemyOrigin.getZ() + 3;
-            FabricBattleCameraNetworking.sendFrame(
-                    player,
-                    protectionScopeId,
+            return new CameraBounds(
                     minX,
                     playerOrigin.getY() - 1,
                     minZ,
@@ -266,10 +266,59 @@ public final class PlayableBattleTestRuntime {
             );
         }
 
+        private void sendTrainerExternalCamera() {
+            CameraBounds bounds = cameraBounds();
+            FabricBattleCameraNetworking.sendTrainerExternal(
+                    player,
+                    protectionScopeId,
+                    bounds.originX(),
+                    bounds.originY(),
+                    bounds.originZ(),
+                    bounds.width(),
+                    bounds.height()
+            );
+        }
+
+        private void sendTacticalCamera() {
+            CameraBounds bounds = cameraBounds();
+            FabricBattleCameraNetworking.sendTacticalAerial(
+                    player,
+                    protectionScopeId,
+                    bounds.originX(),
+                    bounds.originY(),
+                    bounds.originZ(),
+                    bounds.width(),
+                    bounds.height()
+            );
+        }
+
+        private void sendActionCamera(PokemonEntity attacker, PokemonEntity target) {
+            CameraBounds bounds = cameraBounds();
+            FabricBattleCameraNetworking.sendActionCinematic(
+                    player,
+                    protectionScopeId,
+                    bounds.originX(),
+                    bounds.originY(),
+                    bounds.originZ(),
+                    bounds.width(),
+                    bounds.height(),
+                    attacker.getPos(),
+                    target.getPos()
+            );
+            cameraReturnRemaining = ACTION_CAMERA_TICKS;
+        }
+
         private void tick() {
             if (playerEntity.isRemoved() || enemyEntity.isRemoved()) {
                 cleanupNow();
                 return;
+            }
+
+            if (trainerIntroRemaining > 0 && --trainerIntroRemaining == 0) {
+                sendTacticalCamera();
+            }
+            if (cameraReturnRemaining > 0 && --cameraReturnRemaining == 0) {
+                sendTacticalCamera();
             }
 
             if (lungeRemaining > 0 && --lungeRemaining == 0 && lungingEntity != null && lungeReturn != null) {
@@ -327,6 +376,7 @@ public final class PlayableBattleTestRuntime {
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("AutoPTU-Java emitted no MoveResolvedEvent"));
 
+            sendActionCamera(attackerEntity, targetEntity);
             PRESENTATION.animateMove(attackerEntity, targetEntity, event.moveId());
             lungingEntity = attackerEntity;
             lungeReturn = attackerOrigin;
@@ -375,4 +425,6 @@ public final class PlayableBattleTestRuntime {
             entity.setCustomNameVisible(true);
         }
     }
+
+    private record CameraBounds(int originX, int originY, int originZ, int width, int height) {}
 }
