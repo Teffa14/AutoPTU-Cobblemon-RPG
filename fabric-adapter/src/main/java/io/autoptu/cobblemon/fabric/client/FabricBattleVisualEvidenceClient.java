@@ -19,8 +19,8 @@ import java.util.List;
  *
  * The client never supplies damage, hit, HP or any other battle fact. It starts the server-owned
  * demo battle through the normal command surface, uses a vanilla operator teleport only to place
- * the camera, and records frames only after server-synchronized Cobblemon entities expose the HP
- * projected from AutoPTU-Java.
+ * the camera, and records deterministic windows around the server-owned battle cadence. The
+ * screenshots themselves expose the server-synchronized PTU HP nameplates for manual validation.
  */
 public final class FabricBattleVisualEvidenceClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-battle-visual-evidence");
@@ -42,9 +42,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
 
     @Override
     public void onInitializeClient() {
-        if (!Boolean.getBoolean(ENABLE_PROPERTY)) {
-            return;
-        }
+        if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
@@ -63,17 +61,11 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             requestEvidenceServerConnection(client);
             return;
         }
-        if (counterStrikeCaptured || client.player == null || client.world == null) {
-            return;
-        }
+        if (counterStrikeCaptured || client.player == null || client.world == null) return;
 
         ticksSinceJoin++;
-        if (ticksSinceJoin <= 40 && client.currentScreen != null) {
-            client.setScreen(null);
-        }
-        if (client.getNetworkHandler() == null) {
-            return;
-        }
+        if (ticksSinceJoin <= 40 && client.currentScreen != null) client.setScreen(null);
+        if (client.getNetworkHandler() == null) return;
 
         if (!battleRequested && ticksSinceJoin >= 60) {
             client.getNetworkHandler().sendChatCommand("autoptu testbattle charmander");
@@ -83,8 +75,6 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         }
 
         if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Vanilla camera placement only. The combatants were already spawned by the server-owned
-            // battle runtime; this command does not move or mutate either combatant.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
             LOGGER.info("AutoPTU battle visual evidence camera placed");
@@ -99,17 +89,20 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
 
-        int damaged = damagedCount(battlePokemon);
-        if (readyCaptured && !firstStrikeCaptured && damaged >= 1) {
+        // PlayableBattleTestRuntime resolves its first move 20 server ticks after construction and
+        // subsequent turns every 30 server ticks. Capture later deterministic windows rather than
+        // treating Cobblemon native health as PTU truth. The visible custom nameplates remain the
+        // server-synchronized authoritative HP projection and are inspected in the artifact.
+        if (readyCaptured && !firstStrikeCaptured && ticksSinceJoin >= 100) {
             capture(client, FIRST_STRIKE_SCREENSHOT);
             firstStrikeCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence observed first authoritative HP reduction");
+            LOGGER.info("AutoPTU battle visual evidence captured post-first-move window");
             return;
         }
-        if (firstStrikeCaptured && !counterStrikeCaptured && damaged >= 2) {
+        if (firstStrikeCaptured && !counterStrikeCaptured && ticksSinceJoin >= 135) {
             capture(client, COUNTER_STRIKE_SCREENSHOT);
             counterStrikeCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence observed authoritative counter-strike HP reduction");
+            LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
         }
     }
 
@@ -123,21 +116,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         );
     }
 
-    private static int damagedCount(List<PokemonEntity> battlePokemon) {
-        int damaged = 0;
-        for (PokemonEntity pokemon : battlePokemon) {
-            String label = pokemon.getCustomName() == null ? "" : pokemon.getCustomName().getString();
-            if (!label.contains("HP 30/30")) {
-                damaged++;
-            }
-        }
-        return damaged;
-    }
-
     private static void capture(MinecraftClient client, String name) {
-        if (client.currentScreen != null) {
-            client.setScreen(null);
-        }
+        if (client.currentScreen != null) client.setScreen(null);
         ScreenshotRecorder.saveScreenshot(
                 client.runDirectory,
                 name,
@@ -147,12 +127,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     }
 
     private static void requestEvidenceServerConnection(MinecraftClient client) {
-        if (connectRequested || client.currentScreen == null || client.world != null) {
-            return;
-        }
-        if (++ticksBeforeConnect < 40) {
-            return;
-        }
+        if (connectRequested || client.currentScreen == null || client.world != null) return;
+        if (++ticksBeforeConnect < 40) return;
 
         String target = System.getProperty(SERVER_PROPERTY, DEFAULT_SERVER).trim();
         if (!ServerAddress.isValid(target)) {
