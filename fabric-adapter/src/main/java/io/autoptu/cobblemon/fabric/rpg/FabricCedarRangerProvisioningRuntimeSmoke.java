@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -20,7 +21,9 @@ public final class FabricCedarRangerProvisioningRuntimeSmoke {
     private FabricCedarRangerProvisioningRuntimeSmoke() {}
 
     public static void registerIfEnabled() {
-        if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
+        boolean dedicated = Boolean.getBoolean(ENABLE_PROPERTY);
+        boolean restartRun = !System.getProperty(FabricCanonicalPlayerStoreRestartSmoke.MODE_PROPERTY, "").isBlank();
+        if (!dedicated && !restartRun) return;
         ServerLifecycleEvents.SERVER_STARTED.register(FabricCedarRangerProvisioningRuntimeSmoke::run);
     }
 
