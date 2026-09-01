@@ -10,6 +10,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Operator-only deterministic showcase for visually inspecting already-live RPG world surfaces.
@@ -18,15 +20,20 @@ import net.minecraft.util.math.BlockPos;
  * in a stable layout near the operator so graphical-client evidence can be captured reproducibly.
  */
 public final class FabricRpgVisualProofRuntime {
+    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-rpg-visual-proof");
+    public static final String QA_COMMAND = "autoptuvisualproof";
+
     private FabricRpgVisualProofRuntime() {}
 
     public static void register() {
+        // Keep the QA capture command on its own root. The production adapter has multiple
+        // independently registered /autoptu branches; a unique operator-only root prevents the
+        // evidence hook from depending on Brigadier merge order while remaining unavailable to
+        // normal players.
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("admin")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("visualproof")
-                                        .executes(context -> build(context.getSource()))))));
+                dispatcher.register(CommandManager.literal(QA_COMMAND)
+                        .requires(source -> source.hasPermissionLevel(2))
+                        .executes(context -> build(context.getSource()))));
     }
 
     private static int build(ServerCommandSource source) {
@@ -74,6 +81,7 @@ public final class FabricRpgVisualProofRuntime {
                 0.0F,
                 8.0F);
         player.sendMessage(Text.literal("AutoPTU RPG visual proof scene ready. Face forward to inspect live world surfaces."), false);
+        LOGGER.info("AutoPTU RPG visual proof scene built for {}", player.getGameProfile().getName());
         return 1;
     }
 
