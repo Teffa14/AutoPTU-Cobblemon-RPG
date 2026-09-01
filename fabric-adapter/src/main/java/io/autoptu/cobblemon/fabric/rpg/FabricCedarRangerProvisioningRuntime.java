@@ -93,14 +93,14 @@ public final class FabricCedarRangerProvisioningRuntime {
     }
 
     static boolean isCanonicalFieldNotes(World world, BlockPos anchor) {
-        if (world == null || anchor == null || !world.getRegistryKey().equals(World.OVERWORLD)) return false;
-        BlockPos expected = fieldNotesAnchor(world);
+        if (!(world instanceof ServerWorld serverWorld) || anchor == null || !world.getRegistryKey().equals(World.OVERWORLD)) return false;
+        BlockPos expected = fieldNotesAnchor(serverWorld);
         return anchor.equals(expected)
                 && world.getBlockState(anchor).isOf(Blocks.LECTERN)
                 && world.getBlockState(anchor.down()).isOf(Blocks.GOLD_BLOCK);
     }
 
-    static BlockPos fieldNotesAnchor(World world) {
+    static BlockPos fieldNotesAnchor(ServerWorld world) {
         BlockPos spawn = world.getSpawnPos();
         BlockPos rangerTarget = findStandingPosition(world, spawn.add(SPAWN_OFFSET_X, 0, SPAWN_OFFSET_Z));
         return rangerTarget.add(FIELD_NOTES_OFFSET_X, 0, 0);
@@ -114,6 +114,7 @@ public final class FabricCedarRangerProvisioningRuntime {
             if (world.getBlockState(candidate.down()).isAir()) continue;
             return candidate;
         }
-        return world.getSpawnPos();
+        if (world instanceof ServerWorld serverWorld) return serverWorld.getSpawnPos();
+        return preferred;
     }
 }
