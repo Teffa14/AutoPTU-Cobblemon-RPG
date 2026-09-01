@@ -17,6 +17,15 @@ public final class CanonicalQuestCatalogue {
                     "Return after observing the meadow lookout and feeding group."
             ),
             new Quest(
+                    "cedar-observer-brief",
+                    "cedar-ranger",
+                    "The Patient Approach",
+                    "The Cedar Ranger has a follow-up brief for Trainers who chose to observe the meadow before approaching.",
+                    "Compare what you noticed before contact with what changed after you entered the meadow.",
+                    List.of(),
+                    List.of("cedar_meadow_observe_first")
+            ),
+            new Quest(
                     "marea-market-shortfall",
                     "ouros.npc.ivo_serrat",
                     "The Thin Delivery Season",
@@ -61,18 +70,12 @@ public final class CanonicalQuestCatalogue {
         Map<String, Quest> indexed = new LinkedHashMap<>();
         for (Quest quest : quests) {
             Objects.requireNonNull(quest, "quest");
-            if (indexed.putIfAbsent(quest.questId(), quest) != null) {
-                throw new IllegalArgumentException("duplicate questId: " + quest.questId());
-            }
+            if (indexed.putIfAbsent(quest.questId(), quest) != null) throw new IllegalArgumentException("duplicate questId: " + quest.questId());
         }
         for (Quest quest : indexed.values()) {
             for (String prerequisiteQuestId : quest.requiredAcceptedQuestIds()) {
-                if (quest.questId().equals(prerequisiteQuestId)) {
-                    throw new IllegalArgumentException("quest cannot require itself: " + quest.questId());
-                }
-                if (!indexed.containsKey(prerequisiteQuestId)) {
-                    throw new IllegalArgumentException("unknown prerequisite questId: " + prerequisiteQuestId);
-                }
+                if (quest.questId().equals(prerequisiteQuestId)) throw new IllegalArgumentException("quest cannot require itself: " + quest.questId());
+                if (!indexed.containsKey(prerequisiteQuestId)) throw new IllegalArgumentException("unknown prerequisite questId: " + prerequisiteQuestId);
             }
         }
         this.quests = Map.copyOf(indexed);
@@ -83,33 +86,31 @@ public final class CanonicalQuestCatalogue {
         return Optional.ofNullable(quests.get(questId));
     }
 
-    public record Quest(
-            String questId,
-            String giverNpcId,
-            String title,
-            String summary,
-            String objectiveText,
-            List<String> requiredAcceptedQuestIds
-    ) {
+    public record Quest(String questId, String giverNpcId, String title, String summary, String objectiveText,
+                        List<String> requiredAcceptedQuestIds, List<String> requiredStoryFlags) {
         public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText) {
-            this(questId, giverNpcId, title, summary, objectiveText, List.of());
+            this(questId, giverNpcId, title, summary, objectiveText, List.of(), List.of());
         }
-
+        public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText,
+                     List<String> requiredAcceptedQuestIds) {
+            this(questId, giverNpcId, title, summary, objectiveText, requiredAcceptedQuestIds, List.of());
+        }
         public Quest {
-            questId = requireText(questId, "questId");
-            giverNpcId = requireText(giverNpcId, "giverNpcId");
-            title = requireText(title, "title");
-            summary = requireText(summary, "summary");
-            objectiveText = requireText(objectiveText, "objectiveText");
-            requiredAcceptedQuestIds = List.copyOf(Objects.requireNonNull(requiredAcceptedQuestIds, "requiredAcceptedQuestIds"));
-            java.util.HashSet<String> prerequisiteIds = new java.util.HashSet<>();
-            for (int i = 0; i < requiredAcceptedQuestIds.size(); i++) {
-                String prerequisiteQuestId = requireText(requiredAcceptedQuestIds.get(i), "requiredAcceptedQuestIds");
-                if (!prerequisiteIds.add(prerequisiteQuestId)) {
-                    throw new IllegalArgumentException("duplicate prerequisite questId: " + prerequisiteQuestId);
-                }
-            }
+            questId = requireText(questId, "questId"); giverNpcId = requireText(giverNpcId, "giverNpcId");
+            title = requireText(title, "title"); summary = requireText(summary, "summary"); objectiveText = requireText(objectiveText, "objectiveText");
+            requiredAcceptedQuestIds = validateUnique(requiredAcceptedQuestIds, "requiredAcceptedQuestIds", "duplicate prerequisite questId: ");
+            requiredStoryFlags = validateUnique(requiredStoryFlags, "requiredStoryFlags", "duplicate prerequisite story flag: ");
         }
+    }
+
+    private static List<String> validateUnique(List<String> values, String field, String duplicatePrefix) {
+        List<String> copy = List.copyOf(Objects.requireNonNull(values, field));
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        for (String value : copy) {
+            String id = requireText(value, field);
+            if (!ids.add(id)) throw new IllegalArgumentException(duplicatePrefix + id);
+        }
+        return copy;
     }
 
     private static String requireText(String value, String field) {

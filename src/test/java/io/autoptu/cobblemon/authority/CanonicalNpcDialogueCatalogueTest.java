@@ -14,9 +14,10 @@ class CanonicalNpcDialogueCatalogueTest {
     void defaultCatalogueExposesAuthoredCedarRangerDialogue() {
         var dialogue = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue("cedar-ranger").orElseThrow();
         assertEquals("Cedar Ranger", dialogue.displayName());
-        assertEquals(5, dialogue.options().size());
+        assertEquals(6, dialogue.options().size());
         assertEquals("meadow", dialogue.options().getFirst().optionId());
         assertEquals("cedar-field-notes", dialogue.option("field-notes").orElseThrow().questId());
+        assertEquals("cedar-observer-brief", dialogue.option("observer-brief").orElseThrow().questId());
         var challenge = dialogue.option("field-spar").orElseThrow();
         assertEquals("cedar-ranger-field-spar", challenge.challengeId());
         assertNull(challenge.questId());
@@ -28,15 +29,13 @@ class CanonicalNpcDialogueCatalogueTest {
     void duplicateNpcIdsFailClosed() {
         var option = new CanonicalNpcDialogueCatalogue.Option("hello", "Hello", "Hello there.");
         var dialogue = new CanonicalNpcDialogueCatalogue.Dialogue("npc", "NPC", "Opening", List.of(option));
-        assertThrows(IllegalArgumentException.class,
-                () -> new CanonicalNpcDialogueCatalogue(List.of(dialogue, dialogue)));
+        assertThrows(IllegalArgumentException.class, () -> new CanonicalNpcDialogueCatalogue(List.of(dialogue, dialogue)));
     }
 
     @Test
     void duplicateOptionIdsFailClosed() {
         var first = new CanonicalNpcDialogueCatalogue.Option("same", "First", "One");
         var second = new CanonicalNpcDialogueCatalogue.Option("same", "Second", "Two");
-        assertThrows(IllegalArgumentException.class,
-                () -> new CanonicalNpcDialogueCatalogue.Dialogue("npc", "NPC", "Opening", List.of(first, second)));
+        assertThrows(IllegalArgumentException.class, () -> new CanonicalNpcDialogueCatalogue.Dialogue("npc", "NPC", "Opening", List.of(first, second)));
     }
 }
