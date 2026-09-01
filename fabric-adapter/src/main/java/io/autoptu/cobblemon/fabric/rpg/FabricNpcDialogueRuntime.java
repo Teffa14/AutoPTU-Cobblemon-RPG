@@ -10,6 +10,7 @@ import io.autoptu.cobblemon.authority.CanonicalQuestRewardCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestRewardService;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalTrainerChallengeRequestService;
+import io.autoptu.cobblemon.authority.FileCanonicalWorldStoryRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -30,7 +31,9 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.WorldSavePath;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -157,16 +160,31 @@ public final class FabricNpcDialogueRuntime {
 
         private void handleQuestOption(String playerId, String questId) {
             var journals = FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer());
-            var journalService = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals);
+            var journalService = new CanonicalQuestJournalService(
+                    CanonicalQuestCatalogue.DEFAULT,
+                    journals,
+                    worldStoryRepository(player)
+            );
             var accepted = journalService.accept(playerId, dialogue.npcId(), questId);
             if (accepted.blockedByPrerequisites()) {
-                String requirements = accepted.missingAcceptedQuestIds().stream()
+                String questRequirements = accepted.missingAcceptedQuestIds().stream()
                         .map(requiredQuestId -> CanonicalQuestCatalogue.DEFAULT.quest(requiredQuestId)
                                 .map(CanonicalQuestCatalogue.Quest::title)
                                 .orElse(requiredQuestId))
                         .reduce((left, right) -> left + ", " + right)
-                        .orElse("required story work");
-                displayedText = "Quest locked: " + accepted.quest().title() + ". Accept first: " + requirements + ".";
+                        .orElse(null);
+                String storyRequirements = accepted.missingStoryFlags().stream()
+                        .map(FabricNpcDialogueRuntime::storyFlagLabel)
+                        .reduce((left, right) -> left + ", " + right)
+                        .orElse(null);
+                if (questRequirements != null && storyRequirements != null) {
+                    displayedText = "Quest locked: " + accepted.quest().title() + ". Accept first: " + questRequirements
+                            + ". Story choice required: " + storyRequirements + ".";
+                } else if (questRequirements != null) {
+                    displayedText = "Quest locked: " + accepted.quest().title() + ". Accept first: " + questRequirements + ".";
+                } else {
+                    displayedText = "Quest locked: " + accepted.quest().title() + ". Story choice required: " + storyRequirements + ".";
+                }
                 return;
             }
             if (accepted.newlyAccepted()) {
@@ -210,7 +228,8 @@ public final class FabricNpcDialogueRuntime {
             return new CanonicalNpcDialogueViewService(
                     CanonicalNpcDialogueCatalogue.DEFAULT,
                     CanonicalQuestCatalogue.DEFAULT,
-                    FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer())
+                    FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer()),
+                    worldStoryRepository(player)
             ).inspect(playerId, dialogue.npcId());
         }
 
@@ -241,5 +260,21 @@ public final class FabricNpcDialogueRuntime {
             stack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(text));
             return stack;
         }
+    }
+
+    private static FileCanonicalWorldStoryRepository worldStoryRepository(ServerPlayerEntity player) {
+        return new FileCanonicalWorldStoryRepository(canonicalStateRoot(player));
+    }
+
+    private static Path canonicalStateRoot(ServerPlayerEntity player) {
+        return player.getServer().getSavePath(WorldSavePath.ROOT)
+                .resolve("autoptu")
+                .resolve("canonical-state")
+                .normalize();
+    }
+
+    private static String storyFlagLabel(String flag) {
+        if ("cedar_meadow_observe_first".equals(flag)) return "Observe before approaching Cedar Meadow";
+        return flag.replace('_', ' ');
     }
 }
