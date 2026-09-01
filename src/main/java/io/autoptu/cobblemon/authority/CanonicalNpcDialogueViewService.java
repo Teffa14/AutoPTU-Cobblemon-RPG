@@ -15,13 +15,14 @@ public final class CanonicalNpcDialogueViewService {
     private final CanonicalQuestCatalogue questCatalogue;
     private final FileCanonicalQuestJournalRepository questJournals;
     private final FileCanonicalWorldStoryRepository worldStory;
+    private final FileCanonicalNpcRelationshipRepository relationships;
 
     public CanonicalNpcDialogueViewService(
             CanonicalNpcDialogueCatalogue dialogueCatalogue,
             CanonicalQuestCatalogue questCatalogue,
             FileCanonicalQuestJournalRepository questJournals
     ) {
-        this(dialogueCatalogue, questCatalogue, questJournals, null);
+        this(dialogueCatalogue, questCatalogue, questJournals, null, null);
     }
 
     public CanonicalNpcDialogueViewService(
@@ -30,10 +31,21 @@ public final class CanonicalNpcDialogueViewService {
             FileCanonicalQuestJournalRepository questJournals,
             FileCanonicalWorldStoryRepository worldStory
     ) {
+        this(dialogueCatalogue, questCatalogue, questJournals, worldStory, null);
+    }
+
+    public CanonicalNpcDialogueViewService(
+            CanonicalNpcDialogueCatalogue dialogueCatalogue,
+            CanonicalQuestCatalogue questCatalogue,
+            FileCanonicalQuestJournalRepository questJournals,
+            FileCanonicalWorldStoryRepository worldStory,
+            FileCanonicalNpcRelationshipRepository relationships
+    ) {
         this.dialogueCatalogue = Objects.requireNonNull(dialogueCatalogue, "dialogueCatalogue");
         this.questCatalogue = Objects.requireNonNull(questCatalogue, "questCatalogue");
         this.questJournals = Objects.requireNonNull(questJournals, "questJournals");
         this.worldStory = worldStory;
+        this.relationships = relationships;
     }
 
     public DialogueView inspect(String playerId, String npcId) {
@@ -44,12 +56,13 @@ public final class CanonicalNpcDialogueViewService {
                 ? Set.of()
                 : worldStory.findOrCreate(playerId).storyFlags();
         List<OptionView> options = dialogue.options().stream()
-                .map(option -> project(option, journal, storyFlags))
+                .map(option -> project(playerId, option, journal, storyFlags))
                 .toList();
         return new DialogueView(dialogue.npcId(), dialogue.displayName(), dialogue.openingLine(), options, journal.revision());
     }
 
     private OptionView project(
+            String playerId,
             CanonicalNpcDialogueCatalogue.Option option,
             FileCanonicalQuestJournalRepository.JournalState journal,
             Set<String> storyFlags
@@ -66,15 +79,18 @@ public final class CanonicalNpcDialogueViewService {
         List<String> missingStoryFlags = accepted ? List.of() : quest.requiredStoryFlags().stream()
                 .filter(requiredFlag -> !storyFlags.contains(requiredFlag))
                 .toList();
-        boolean eligible = accepted || (missingQuests.isEmpty() && missingStoryFlags.isEmpty());
+        List<String> missingMetNpcIds = accepted ? List.of() : quest.requiredMetNpcIds().stream()
+                .filter(requiredNpcId -> !hasMet(playerId, requiredNpcId))
+                .toList();
+        boolean eligible = accepted || (missingQuests.isEmpty() && missingStoryFlags.isEmpty() && missingMetNpcIds.isEmpty());
         String label = accepted
                 ? "Continue: " + quest.title()
                 : eligible ? option.label() : "Locked: " + quest.title();
-        String lockReason = eligible ? null : prerequisiteReason(missingQuests, missingStoryFlags);
+        String lockReason = eligible ? null : prerequisiteReason(missingQuests, missingStoryFlags, missingMetNpcIds);
         return new OptionView(option.optionId(), label, accepted, eligible, quest.questId(), null, lockReason);
     }
 
-    private String prerequisiteReason(List<String> missingQuestIds, List<String> missingStoryFlags) {
+    private String prerequisiteReason(List<String> missingQuestIds, List<String> missingStoryFlags, List<String> missingMetNpcIds) {
         String questReason = missingQuestIds.isEmpty() ? null : "Accept first: " + missingQuestIds.stream()
                 .map(questId -> questCatalogue.quest(questId).map(CanonicalQuestCatalogue.Quest::title).orElse(questId))
                 .reduce((left, right) -> left + ", " + right)
@@ -83,9 +99,27 @@ public final class CanonicalNpcDialogueViewService {
                 .map(CanonicalNpcDialogueViewService::storyFlagLabel)
                 .reduce((left, right) -> left + ", " + right)
                 .orElse("required story choice");
-        if (questReason == null) return storyReason;
-        if (storyReason == null) return questReason;
-        return questReason + "; " + storyReason;
+        String relationshipReason = missingMetNpcIds.isEmpty() ? null : "Meet first: " + missingMetNpcIds.stream()
+                .map(npcId -> dialogueCatalogue.dialogue(npcId).map(CanonicalNpcDialogueCatalogue.Dialogue::displayName).orElse(npcId))
+                .reduce((left, right) -> left + ", " + right)
+                .orElse("required contact");
+        return joinReasons(questReason, storyReason, relationshipReason);
+    }
+
+    private boolean hasMet(String playerId, String npcId) {
+        if (relationships == null) return false;
+        return relationships.find(playerId, npcId)
+                .map(FileCanonicalNpcRelationshipRepository.RelationshipState::met)
+                .orElse(false);
+    }
+
+    private static String joinReasons(String... reasons) {
+        String joined = null;
+        for (String reason : reasons) {
+            if (reason == null) continue;
+            joined = joined == null ? reason : joined + "; " + reason;
+        }
+        return joined;
     }
 
     private static String storyFlagLabel(String flag) {
