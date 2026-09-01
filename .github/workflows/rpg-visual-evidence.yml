@@ -1,0 +1,134 @@
+name: RPG Visual Evidence
+
+on:
+  pull_request:
+    paths:
+      - 'fabric-adapter/**'
+      - '.github/workflows/rpg-visual-evidence.yml'
+  workflow_dispatch:
+
+jobs:
+  graphical-client-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Install graphical launcher tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xdotool imagemagick
+          python3 -m pip install --disable-pip-version-check 'minecraft-launcher-lib==8.0'
+      - name: Prepare production Fabric + Cobblemon mods
+        run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
+      - name: Prepare graphical evidence workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-evidence/visual graphical-client/mods
+          cp fabric-adapter/build/production-smoke/mods/*.jar graphical-client/mods/
+      - name: Launch production Minecraft client under virtual display
+        shell: bash
+        run: |
+          set -euo pipefail
+          Xvfb :99 -screen 0 1280x720x24 > xvfb.log 2>&1 &
+          export DISPLAY=:99
+
+          # Do not use Loom runClient here. Cobblemon's production Fabric jar contains Kotlin
+          # reflection metadata that targets the production intermediary namespace. A normal
+          # production launcher matches the namespace a real player uses and avoids false
+          # failures caused by Loom's named development runtime.
+          timeout 240s python3 - <<'PY' > graphical-client.log 2>&1 &
+          import os
+          import shutil
+          import subprocess
+          import minecraft_launcher_lib
+
+          root = os.path.abspath('graphical-client')
+          callback = {
+              'setStatus': lambda text: print(text, flush=True),
+              'setProgress': lambda value: None,
+              'setMax': lambda value: None,
+          }
+          minecraft_launcher_lib.fabric.install_fabric(
+              '1.21.1',
+              root,
+              loader_version='0.17.2',
+              callback=callback,
+              java=shutil.which('java'),
+          )
+          version = 'fabric-loader-0.17.2-1.21.1'
+          options = minecraft_launcher_lib.utils.generate_test_options()
+          options['executablePath'] = shutil.which('java')
+          options['defaultExecutablePath'] = shutil.which('java')
+          options['jvmArguments'] = ['-Xms512M', '-Xmx4G']
+          command = minecraft_launcher_lib.command.get_minecraft_command(version, root, options)
+          print('Launching production Fabric client:', ' '.join(command[:4]), '...', flush=True)
+          raise SystemExit(subprocess.call(command, cwd=root))
+          PY
+          client_pid=$!
+
+          window=""
+          for _ in $(seq 1 220); do
+            if grep -qE 'Game crashed!|Could not execute entrypoint|ExceptionInInitializerError|ClassNotFoundException: net.minecraft.class_2960' graphical-client.log 2>/dev/null; then
+              cat graphical-client.log
+              exit 1
+            fi
+            window="$(xdotool search --onlyvisible --name 'Minecraft' 2>/dev/null | head -1 || true)"
+            if [ -n "$window" ]; then
+              break
+            fi
+            if ! kill -0 "$client_pid" 2>/dev/null; then
+              cat graphical-client.log || true
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ -z "$window" ]; then
+            cat graphical-client.log || true
+            exit 1
+          fi
+
+          sleep 12
+          import -window "$window" test-evidence/visual/minecraft-client-boot.png
+          colors="$(identify -format '%k' test-evidence/visual/minecraft-client-boot.png)"
+          geometry="$(identify -format '%wx%h' test-evidence/visual/minecraft-client-boot.png)"
+          echo "Captured Minecraft window ${geometry} with ${colors} colors"
+          if [ "$colors" -lt 32 ]; then
+            echo "Rejected blank/near-blank screenshot: only $colors colors"
+            exit 1
+          fi
+          if grep -qE 'Game crashed!|Could not execute entrypoint|ExceptionInInitializerError|ClassNotFoundException: net.minecraft.class_2960' graphical-client.log; then
+            cat graphical-client.log
+            exit 1
+          fi
+
+          kill "$client_pid" 2>/dev/null || true
+          wait "$client_pid" 2>/dev/null || true
+          test -s test-evidence/visual/minecraft-client-boot.png
+      - name: Collect graphical diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p test-evidence/diagnostics
+          cp graphical-client/crash-reports/*.txt test-evidence/diagnostics/ 2>/dev/null || true
+          cp graphical-client/logs/latest.log test-evidence/diagnostics/minecraft-client-latest.log 2>/dev/null || true
+      - name: Upload graphical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpg-visual-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            test-evidence/visual/**
+            test-evidence/diagnostics/**
+            graphical-client.log
+            xvfb.log
