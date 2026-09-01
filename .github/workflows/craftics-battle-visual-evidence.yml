@@ -4,8 +4,12 @@ on:
   pull_request:
     paths:
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/client/FabricCrafticsBattleCameraClient.java'
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/client/FabricDetachedBattleCameraState.java'
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/client/FabricBattleVisualEvidenceClient.java'
+      - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/mixin/client/BattleDetachedCameraMixin.java'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/network/FabricBattleCamera*'
       - 'fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/demo/PlayableBattleTestRuntime.java'
+      - 'fabric-adapter/src/main/resources/autoptu_cobblemon_rpg.client.mixins.json'
       - 'fabric-adapter/src/main/resources/fabric.mod.json'
       - '.github/workflows/craftics-battle-visual-evidence.yml'
   workflow_dispatch:
@@ -74,7 +78,7 @@ jobs:
           [{"uuid":"43d6469a-bef9-3d6f-bbb3-3ad8e4494453","name":"AutoPTUVisual","level":4,"bypassesPlayerLimit":true}]
           EOF
           curl -fsSL -o graphical-server/fabric-server-launch.jar 'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
-      - name: Launch authoritative battle through Craftics camera
+      - name: Launch authoritative battle through detached Craftics-compatible camera
         shell: bash
         run: |
           set -euo pipefail
@@ -98,34 +102,43 @@ jobs:
           minecraft_launcher_lib.fabric.install_fabric('1.21.1',root,loader_version='0.17.2',callback=cb,java=shutil.which('java'))
           options=minecraft_launcher_lib.utils.generate_test_options()
           options.update({'username':'AutoPTUVisual','uuid':'43d6469abef93d6fbbb33ad8e4494453','token':'autoptu-ci-test-token','executablePath':shutil.which('java'),'defaultExecutablePath':shutil.which('java'),'customResolution':True,'resolutionWidth':'1280','resolutionHeight':'720'})
-          options['jvmArguments']=['-Xms512M','-Xmx4G','-Dautoptu.battleVisualEvidenceCapture=true','-Dautoptu.visualEvidenceServer=127.0.0.1:25565']
+          options['jvmArguments']=['-Xms512M','-Xmx4G','-Dautoptu.battleVisualEvidenceCapture=true','-Dautoptu.crafticsCameraModeEvidence=true','-Dautoptu.visualEvidenceServer=127.0.0.1:25565']
           cmd=minecraft_launcher_lib.command.get_minecraft_command('fabric-loader-0.17.2-1.21.1',root,options)
           raise SystemExit(subprocess.call(cmd,cwd=root))
           PY
           client_pid=$!
-          ready='graphical-client/screenshots/autoptu-battle-ready.png'; first='graphical-client/screenshots/autoptu-battle-first-strike.png'; counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
+          trainer='graphical-client/screenshots/autoptu-camera-trainer-external.png'
+          tactical='graphical-client/screenshots/autoptu-camera-tactical-aerial.png'
+          action='graphical-client/screenshots/autoptu-camera-action-cinematic.png'
+          ready='graphical-client/screenshots/autoptu-battle-ready.png'
+          first='graphical-client/screenshots/autoptu-battle-first-strike.png'
+          counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
           capture_ready=0
           for _ in $(seq 1 340); do
-            if [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] \
+            if [ -s "$trainer" ] && [ -s "$tactical" ] && [ -s "$action" ] \
+              && [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] \
               && grep -q 'AutoPTU TEST: Charmander vs Pikachu' graphical-client/logs/latest.log 2>/dev/null \
-              && grep -q 'AutoPTU Craftics tactical camera active' graphical-client/logs/latest.log 2>/dev/null \
-              && grep -q 'captured ready window' graphical-client/logs/latest.log 2>/dev/null \
-              && grep -q 'captured post-first-move window' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'mode TRAINER_EXTERNAL active' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'mode TACTICAL_AERIAL active' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'mode ACTION_CINEMATIC active' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'captured trainer-external mode' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'captured tactical-aerial mode' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'captured action-cinematic mode' graphical-client/logs/latest.log 2>/dev/null \
               && grep -q 'captured post-counter-move window' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
             kill -0 "$client_pid" 2>/dev/null || { cat graphical-client.log; exit 1; }
             sleep 1
           done
           [ "$capture_ready" -eq 1 ] || { cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; }
-          cp "$ready" "$first" "$counter" test-evidence/craftics-battle/
+          cp "$trainer" "$tactical" "$action" "$ready" "$first" "$counter" test-evidence/craftics-battle/
           for frame in test-evidence/craftics-battle/*.png; do
             colors="$(identify -format '%k' "$frame")"; geometry="$(identify -format '%wx%h' "$frame")"
             echo "Captured $(basename "$frame") ${geometry} ${colors} colors"
             [ "$colors" -ge 64 ] || exit 1
           done
-          grep 'AutoPTU Craftics tactical camera active' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured ready window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-first-move window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-counter-move window' graphical-client/logs/latest.log
+          grep 'AutoPTU detached battle camera mode' graphical-client/logs/latest.log
+          grep 'AutoPTU camera evidence captured trainer-external mode' graphical-client/logs/latest.log
+          grep 'AutoPTU camera evidence captured tactical-aerial mode' graphical-client/logs/latest.log
+          grep 'AutoPTU camera evidence captured action-cinematic mode' graphical-client/logs/latest.log
       - name: Collect Craftics graphical diagnostics
         if: always()
         shell: bash
