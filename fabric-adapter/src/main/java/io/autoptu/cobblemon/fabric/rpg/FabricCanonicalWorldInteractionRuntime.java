@@ -27,13 +27,7 @@ import net.minecraft.world.World;
 
 import java.util.Optional;
 
-/**
- * Normal-world interaction gate for explicitly authored Ouros objects.
- *
- * A gold block directly below the interaction footprint marks the object as authored. Ordinary
- * Minecraft chests, switches, doors, lecterns and respawn anchors remain vanilla when no marker is
- * present. Authored objects require an authenticated canonical Trainer and range revalidation.
- */
+/** Normal-world interaction gate for explicitly authored Ouros objects. */
 public final class FabricCanonicalWorldInteractionRuntime {
     private static final double MAX_DISTANCE_SQUARED = 25.0D;
     private static final int ACTIVATED_SHRINE_CHARGES = 4;
@@ -77,7 +71,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
             }
 
             if (object.kind() == CanonicalWorldInteractionService.Kind.TERMINAL) {
-                if (!FabricCedarRangerProvisioningRuntime.isCanonicalFieldNotes(world, object.anchor())) {
+                if (!isQuestObjectiveTerminal(world, object)) {
                     serverPlayer.sendMessage(Text.literal("Ouros terminal authenticated: " + object.objectId()), false);
                     return ActionResult.SUCCESS;
                 }
@@ -115,10 +109,14 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 }
                 return ActionResult.SUCCESS;
             }
-
-            // Chest, switch and door behavior remains Minecraft-native after server authorization.
             return ActionResult.PASS;
         });
+    }
+
+    static boolean isQuestObjectiveTerminal(World world, AuthoredObject object) {
+        return object != null
+                && object.kind() == CanonicalWorldInteractionService.Kind.TERMINAL
+                && FabricCedarRangerProvisioningRuntime.isCanonicalFieldNotes(world, object.anchor());
     }
 
     static void reconcilePersistedWorldEvents(MinecraftServer server) {
@@ -137,31 +135,20 @@ public final class FabricCanonicalWorldInteractionRuntime {
         }
     }
 
-    static void projectShrineState(
-            World world,
-            BlockPos anchor,
-            FileCanonicalWorldEventObjectRepository.State canonicalState
-    ) {
+    static void projectShrineState(World world, BlockPos anchor, FileCanonicalWorldEventObjectRepository.State canonicalState) {
         if (canonicalState == null
                 || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
-                || !CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(canonicalState.eventKey())) {
-            return;
-        }
+                || !CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(canonicalState.eventKey())) return;
         BlockState current = world.getBlockState(anchor);
         if (!current.isOf(Blocks.RESPAWN_ANCHOR)) return;
         if (current.get(RespawnAnchorBlock.CHARGES) == ACTIVATED_SHRINE_CHARGES) return;
-        world.setBlockState(
-                anchor,
-                current.with(RespawnAnchorBlock.CHARGES, ACTIVATED_SHRINE_CHARGES),
-                Block.NOTIFY_ALL
-        );
+        world.setBlockState(anchor, current.with(RespawnAnchorBlock.CHARGES, ACTIVATED_SHRINE_CHARGES), Block.NOTIFY_ALL);
     }
 
     static Optional<AuthoredObject> authoredObject(World world, BlockPos clicked) {
         BlockState state = world.getBlockState(clicked);
         CanonicalWorldInteractionService.Kind kind = kindOf(state.getBlock());
         if (kind == null) return Optional.empty();
-
         BlockPos marker = markerFor(world, clicked, kind);
         if (marker == null) return Optional.empty();
         String objectId = world.getRegistryKey().getValue() + ":" + marker.getX() + ":" + marker.getY() + ":" + marker.getZ();
@@ -177,10 +164,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
             int x = Integer.parseInt(parts[2]);
             int y = Integer.parseInt(parts[3]);
             int z = Integer.parseInt(parts[4]);
-            return Optional.of(new WorldObjectPosition(
-                    RegistryKey.of(RegistryKeys.WORLD, dimension),
-                    new BlockPos(x, y, z)
-            ));
+            return Optional.of(new WorldObjectPosition(RegistryKey.of(RegistryKeys.WORLD, dimension), new BlockPos(x, y, z)));
         } catch (NumberFormatException ignored) {
             return Optional.empty();
         }
@@ -189,28 +173,20 @@ public final class FabricCanonicalWorldInteractionRuntime {
     private static BlockPos markerFor(World world, BlockPos clicked, CanonicalWorldInteractionService.Kind kind) {
         if (world.getBlockState(clicked.down()).isOf(Blocks.GOLD_BLOCK)) return clicked.down();
         if (kind == CanonicalWorldInteractionService.Kind.DOOR
-                && world.getBlockState(clicked.down(2)).isOf(Blocks.GOLD_BLOCK)) {
-            return clicked.down(2);
-        }
+                && world.getBlockState(clicked.down(2)).isOf(Blocks.GOLD_BLOCK)) return clicked.down(2);
         return null;
     }
 
     private static CanonicalWorldInteractionService.Kind kindOf(Block block) {
         if (block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) return CanonicalWorldInteractionService.Kind.CHEST;
-        if (block == Blocks.LEVER || block == Blocks.STONE_BUTTON || block == Blocks.OAK_BUTTON) {
-            return CanonicalWorldInteractionService.Kind.SWITCH;
-        }
+        if (block == Blocks.LEVER || block == Blocks.STONE_BUTTON || block == Blocks.OAK_BUTTON) return CanonicalWorldInteractionService.Kind.SWITCH;
         if (block == Blocks.OAK_DOOR || block == Blocks.IRON_DOOR) return CanonicalWorldInteractionService.Kind.DOOR;
         if (block == Blocks.LECTERN) return CanonicalWorldInteractionService.Kind.TERMINAL;
         if (block == Blocks.RESPAWN_ANCHOR) return CanonicalWorldInteractionService.Kind.SHRINE;
         return null;
     }
 
-    record AuthoredObject(
-            String objectId,
-            CanonicalWorldInteractionService.Kind kind,
-            BlockPos anchor
-    ) {}
+    record AuthoredObject(String objectId, CanonicalWorldInteractionService.Kind kind, BlockPos anchor) {}
 
     private record WorldObjectPosition(RegistryKey<World> worldKey, BlockPos marker) {}
 }
