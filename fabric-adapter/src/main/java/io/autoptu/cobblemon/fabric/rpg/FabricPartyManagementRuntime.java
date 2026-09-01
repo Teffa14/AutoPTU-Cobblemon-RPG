@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalPartyLeadService;
 import io.autoptu.cobblemon.authority.CanonicalPartyManagementService;
+import io.autoptu.cobblemon.authority.CanonicalPartyOrderService;
 import io.autoptu.cobblemon.authority.CanonicalPartyQueryService;
 import io.autoptu.cobblemon.authority.CanonicalPartySummary;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -37,8 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Server-authored party management surface. Minecraft renders canonical party state and submits only
- * slot selections. The server re-resolves party identity/revision before delegating lead mutation to
- * the existing durable authority service or opening the read-only canonical Pokemon summary.
+ * slot selections. The server re-resolves party identity/revision before delegating lead or reorder
+ * mutation to existing durable authority services, or opening the read-only canonical Pokemon summary.
  */
 public final class FabricPartyManagementRuntime {
     private static final int TOP_SLOT_COUNT = 27;
@@ -165,6 +166,9 @@ public final class FabricPartyManagementRuntime {
         private final SimpleInventory displayInventory;
         private final ServerPlayerEntity player;
         private CanonicalPartySummary displayedParty;
+        private int reorderSourceSlot = -1;
+        private String reorderSourcePokemonId;
+        private long reorderSourceRevision = -1L;
 
         private PartyManagementScreenHandler(int syncId, PlayerInventory inventory, ServerPlayerEntity player) {
             this(syncId, inventory, player, new SimpleInventory(TOP_SLOT_COUNT));
@@ -189,7 +193,9 @@ public final class FabricPartyManagementRuntime {
 
         @Override
         public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity clickingPlayer) {
-            if (clickingPlayer != player || actionType != SlotActionType.PICKUP || (button != 0 && button != 1)) return;
+            boolean normalClick = actionType == SlotActionType.PICKUP && (button == 0 || button == 1);
+            boolean reorderClick = actionType == SlotActionType.QUICK_MOVE && button == 0;
+            if (clickingPlayer != player || (!normalClick && !reorderClick)) return;
             if (!canUse(clickingPlayer)) {
                 player.closeHandledScreen();
                 return;
@@ -206,8 +212,14 @@ public final class FabricPartyManagementRuntime {
                     || current.partyRevision() != displayedParty.partyRevision()
                     || currentMember == null
                     || !currentMember.pokemonId().equals(displayedMember.pokemonId())) {
+                clearReorderSelection();
                 refresh();
                 player.sendMessage(Text.literal("Party changed on the server. The screen was refreshed."), true);
+                return;
+            }
+
+            if (reorderClick) {
+                handleReorderSelection(partySlot, displayedMember, current);
                 return;
             }
 
@@ -251,13 +263,95 @@ public final class FabricPartyManagementRuntime {
                 case INVALID_SLOT, NO_PARTY, CONCURRENT_WRITE -> player.sendMessage(Text.literal(
                         "Party lead change was rejected: " + decision.reason()), false);
             }
+            clearReorderSelection();
             refresh();
+        }
+
+        private void handleReorderSelection(
+                int partySlot,
+                CanonicalPartySummary.Member displayedMember,
+                CanonicalPartySummary current
+        ) {
+            if (reorderSourceSlot < 1) {
+                reorderSourceSlot = partySlot;
+                reorderSourcePokemonId = displayedMember.pokemonId();
+                reorderSourceRevision = displayedParty.partyRevision();
+                refresh();
+                player.sendMessage(Text.literal(
+                        "Move selected: " + displayName(displayedMember.speciesId())
+                                + ". Shift-click another party slot to place it there."), true);
+                return;
+            }
+            if (reorderSourceSlot == partySlot) {
+                clearReorderSelection();
+                refresh();
+                player.sendMessage(Text.literal("Party move selection cleared."), true);
+                return;
+            }
+
+            String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+            boolean trainerExists = FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer())
+                    .findPlayer(playerId)
+                    .isPresent();
+            CanonicalPartyManagementService.Decision preflight = new CanonicalPartyManagementService().canManage(
+                    new CanonicalPartyManagementService.Request(
+                            playerId,
+                            trainerExists,
+                            CanonicalPartyManagementService.Mutation.REORDER,
+                            reorderSourceSlot,
+                            reorderSourcePokemonId,
+                            partySlot,
+                            displayedMember.pokemonId(),
+                            reorderSourceRevision,
+                            current
+                    )
+            );
+            if (!preflight.allowed()) {
+                clearReorderSelection();
+                refresh();
+                player.sendMessage(Text.literal("Party move was rejected: " + preflight.reason()), false);
+                return;
+            }
+
+            CanonicalPartyOrderService service = new CanonicalPartyOrderService(
+                    FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(player.getServer())
+            );
+            CanonicalPartyOrderService.Decision decision = service.move(
+                    playerId,
+                    preflight.partySlot(),
+                    preflight.targetPartySlot()
+            );
+            clearReorderSelection();
+            switch (decision.outcome()) {
+                case APPLIED -> player.sendMessage(Text.literal(
+                        "Party order updated. Moved slot " + preflight.partySlot()
+                                + " to " + preflight.targetPartySlot() + "."), true);
+                case ALREADY_ORDERED -> player.sendMessage(Text.literal("That Pokemon is already in that party slot."), true);
+                case INVALID_SLOT, NO_PARTY, CONCURRENT_WRITE -> player.sendMessage(Text.literal(
+                        "Party move was rejected: " + decision.reason()), false);
+            }
+            refresh();
+        }
+
+        private void clearReorderSelection() {
+            reorderSourceSlot = -1;
+            reorderSourcePokemonId = null;
+            reorderSourceRevision = -1L;
         }
 
         @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
 
         private void refresh() {
             displayedParty = queryParty(player);
+            if (reorderSourceSlot > 0) {
+                CanonicalPartySummary.Member source = displayedParty == null ? null : memberAt(displayedParty, reorderSourceSlot);
+                if (displayedParty == null
+                        || displayedParty.partyRevision() != reorderSourceRevision
+                        || source == null
+                        || !source.pokemonId().equals(reorderSourcePokemonId)) {
+                    clearReorderSelection();
+                }
+            }
             for (int i = 0; i < TOP_SLOT_COUNT; i++) displayInventory.setStack(i, ItemStack.EMPTY);
             if (displayedParty == null || displayedParty.members().isEmpty()) {
                 displayInventory.setStack(13, named(Items.BARRIER.getDefaultStack(), "No canonical party available"));
@@ -265,12 +359,16 @@ public final class FabricPartyManagementRuntime {
                 List<CanonicalPartySummary.Member> members = displayedParty.members();
                 for (int i = 0; i < members.size() && i < PARTY_SLOTS.length; i++) {
                     CanonicalPartySummary.Member member = members.get(i);
-                    ItemStack icon = (member.slot() == 1 ? Items.LIME_CONCRETE : Items.LIGHT_BLUE_CONCRETE).getDefaultStack();
-                    displayInventory.setStack(PARTY_SLOTS[i], named(icon, memberLabel(member)));
+                    boolean selectedForMove = member.slot() == reorderSourceSlot;
+                    ItemStack icon = (selectedForMove
+                            ? Items.YELLOW_CONCRETE
+                            : member.slot() == 1 ? Items.LIME_CONCRETE : Items.LIGHT_BLUE_CONCRETE).getDefaultStack();
+                    String label = (selectedForMove ? "MOVE SOURCE | " : "") + memberLabel(member);
+                    displayInventory.setStack(PARTY_SLOTS[i], named(icon, label));
                 }
                 displayInventory.setStack(22, named(
                         Items.COMPASS.getDefaultStack(),
-                        "Left click: lead | Right click: summary"
+                        "Left: lead | Shift-left: move | Right: summary"
                 ));
             }
             displayInventory.markDirty();

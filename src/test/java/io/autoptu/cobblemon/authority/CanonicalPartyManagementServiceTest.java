@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,6 +23,21 @@ class CanonicalPartyManagementServiceTest {
     }
 
     @Test
+    void allowsMatchingServerResolvedReorderSelection() {
+        CanonicalPartySummary party = party("minecraft-player:test", 7L);
+        CanonicalPartyManagementService.Decision decision = service.canManage(
+                new CanonicalPartyManagementService.Request(
+                        party.playerId(), true, CanonicalPartyManagementService.Mutation.REORDER,
+                        1, "poke-a", 2, "poke-b", 7L, party));
+
+        assertTrue(decision.allowed());
+        assertEquals(1, decision.partySlot());
+        assertEquals("poke-a", decision.pokemonId());
+        assertEquals(2, decision.targetPartySlot());
+        assertEquals("poke-b", decision.targetPokemonId());
+    }
+
+    @Test
     void rejectsStaleRevisionAndForgedPokemonIdentity() {
         CanonicalPartySummary party = party("minecraft-player:test", 7L);
         assertFalse(service.canManage(new CanonicalPartyManagementService.Request(
@@ -30,6 +46,28 @@ class CanonicalPartyManagementServiceTest {
         assertFalse(service.canManage(new CanonicalPartyManagementService.Request(
                 party.playerId(), true, CanonicalPartyManagementService.Mutation.SET_LEAD,
                 2, "foreign-pokemon", 7L, party)).allowed());
+    }
+
+    @Test
+    void rejectsReorderWhenTargetOrSourceIdentityChanged() {
+        CanonicalPartySummary party = party("minecraft-player:test", 7L);
+        assertFalse(service.canManage(new CanonicalPartyManagementService.Request(
+                party.playerId(), true, CanonicalPartyManagementService.Mutation.REORDER,
+                1, "foreign-source", 2, "poke-b", 7L, party)).allowed());
+        assertFalse(service.canManage(new CanonicalPartyManagementService.Request(
+                party.playerId(), true, CanonicalPartyManagementService.Mutation.REORDER,
+                1, "poke-a", 2, "foreign-target", 7L, party)).allowed());
+    }
+
+    @Test
+    void rejectsReorderToSameOrUnoccupiedSlot() {
+        CanonicalPartySummary party = party("minecraft-player:test", 7L);
+        assertFalse(service.canManage(new CanonicalPartyManagementService.Request(
+                party.playerId(), true, CanonicalPartyManagementService.Mutation.REORDER,
+                1, "poke-a", 1, "poke-a", 7L, party)).allowed());
+        assertFalse(service.canManage(new CanonicalPartyManagementService.Request(
+                party.playerId(), true, CanonicalPartyManagementService.Mutation.REORDER,
+                1, "poke-a", 3, "poke-c", 7L, party)).allowed());
     }
 
     @Test
