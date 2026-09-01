@@ -19,10 +19,14 @@ final class CanonicalNpcDialogueViewServiceTest {
         String playerId = "trainer:test";
         String npcId = "cedar-ranger";
         var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var stories = new FileCanonicalWorldStoryRepository(tempDir);
+        new CanonicalWorldStoryService(CanonicalWorldStoryCatalogue.DEFAULT, stories)
+                .choose(playerId, "cedar-meadow-approach", "observe-first");
         var viewService = new CanonicalNpcDialogueViewService(
                 CanonicalNpcDialogueCatalogue.DEFAULT,
                 CanonicalQuestCatalogue.DEFAULT,
-                journals
+                journals,
+                stories
         );
 
         var initial = option(viewService.inspect(playerId, npcId), "field-notes");
@@ -31,14 +35,15 @@ final class CanonicalNpcDialogueViewServiceTest {
         assertNull(initial.lockReason());
         assertEquals("Anything I can help with?", initial.displayLabel());
 
-        var accepted = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals)
+        var accepted = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals, stories)
                 .accept(playerId, npcId, "cedar-field-notes");
         assertTrue(accepted.newlyAccepted());
 
         var reopened = new CanonicalNpcDialogueViewService(
                 CanonicalNpcDialogueCatalogue.DEFAULT,
                 CanonicalQuestCatalogue.DEFAULT,
-                new FileCanonicalQuestJournalRepository(tempDir)
+                new FileCanonicalQuestJournalRepository(tempDir),
+                new FileCanonicalWorldStoryRepository(tempDir)
         );
         var persisted = option(reopened.inspect(playerId, npcId), "field-notes");
         assertTrue(persisted.acceptedQuest());
@@ -66,7 +71,7 @@ final class CanonicalNpcDialogueViewServiceTest {
         assertFalse(locked.acceptedQuest());
         assertFalse(locked.eligibleQuest());
         assertEquals("Locked: Reading the Sendero", locked.displayLabel());
-        assertEquals("Requires accepted quest: The Thin Delivery Season", locked.lockReason());
+        assertEquals("Accept first: The Thin Delivery Season", locked.lockReason());
 
         new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals)
                 .accept(playerId, "ouros.npc.ivo_serrat", "marea-market-shortfall");
@@ -75,6 +80,32 @@ final class CanonicalNpcDialogueViewServiceTest {
         assertFalse(unlocked.acceptedQuest());
         assertTrue(unlocked.eligibleQuest());
         assertEquals("I can inspect the Sendero.", unlocked.displayLabel());
+        assertNull(unlocked.lockReason());
+    }
+
+    @Test
+    void cedarRangerProjectsPersistedStoryChoiceAsQuestEligibility() {
+        String playerId = "trainer:cedar-dialogue";
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var stories = new FileCanonicalWorldStoryRepository(tempDir);
+        var viewService = new CanonicalNpcDialogueViewService(
+                CanonicalNpcDialogueCatalogue.DEFAULT,
+                CanonicalQuestCatalogue.DEFAULT,
+                journals,
+                stories
+        );
+
+        var locked = option(viewService.inspect(playerId, "cedar-ranger"), "field-notes");
+        assertFalse(locked.eligibleQuest());
+        assertEquals("Locked: Cedar Field Notes", locked.displayLabel());
+        assertEquals("Story choice required: Observe before approaching Cedar Meadow", locked.lockReason());
+
+        new CanonicalWorldStoryService(CanonicalWorldStoryCatalogue.DEFAULT, stories)
+                .choose(playerId, "cedar-meadow-approach", "observe-first");
+
+        var unlocked = option(viewService.inspect(playerId, "cedar-ranger"), "field-notes");
+        assertTrue(unlocked.eligibleQuest());
+        assertEquals("Anything I can help with?", unlocked.displayLabel());
         assertNull(unlocked.lockReason());
     }
 
