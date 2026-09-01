@@ -35,6 +35,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,11 +51,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class PlayableBattleTestRuntime {
     private static final int DEMO_HP = 30;
     private static final int TURN_DELAY_TICKS = 30;
-    private static final int LUNGE_TICKS = 8;
     private static final int CLEANUP_TICKS = 80;
 
+    // The demo owns one explicit damaging strike scenario, so it can state its presentation category
+    // directly. Normal production playback must resolve this through the authoritative move catalog.
     private static final CobblemonPresentationEntityBackend PRESENTATION =
-            new CobblemonPresentationEntityBackend();
+            new CobblemonPresentationEntityBackend(moveId -> Optional.of("physical"));
     private static final Map<UUID, Session> ACTIVE = new ConcurrentHashMap<>();
 
     private PlayableBattleTestRuntime() {}
@@ -207,9 +209,6 @@ public final class PlayableBattleTestRuntime {
         private final PythonRandom random;
         private boolean playerTurn = true;
         private int delay = 20;
-        private int lungeRemaining;
-        private PokemonEntity lungingEntity;
-        private BlockPos lungeReturn;
         private boolean finished;
         private int cleanupRemaining;
 
@@ -252,16 +251,6 @@ public final class PlayableBattleTestRuntime {
                 return;
             }
 
-            if (lungeRemaining > 0 && --lungeRemaining == 0 && lungingEntity != null && lungeReturn != null) {
-                lungingEntity.requestTeleport(
-                        lungeReturn.getX() + 0.5D,
-                        lungeReturn.getY(),
-                        lungeReturn.getZ() + 0.5D
-                );
-                lungingEntity = null;
-                lungeReturn = null;
-            }
-
             if (finished) {
                 if (--cleanupRemaining <= 0) cleanupNow();
                 return;
@@ -277,7 +266,6 @@ public final class PlayableBattleTestRuntime {
             RuntimeCombatantState target = playerTurn ? enemyState : playerState;
             PokemonEntity attackerEntity = playerTurn ? playerEntity : enemyEntity;
             PokemonEntity targetEntity = playerTurn ? enemyEntity : playerEntity;
-            BlockPos attackerOrigin = playerTurn ? playerOrigin : enemyOrigin;
             String attackerName = playerTurn ? playerPokemonName : enemyPokemonName;
             String targetName = playerTurn ? enemyPokemonName : playerPokemonName;
 
@@ -308,9 +296,6 @@ public final class PlayableBattleTestRuntime {
                     .orElseThrow(() -> new IllegalStateException("AutoPTU-Java emitted no MoveResolvedEvent"));
 
             PRESENTATION.animateMove(attackerEntity, targetEntity, event.moveId());
-            lungingEntity = attackerEntity;
-            lungeReturn = attackerOrigin;
-            lungeRemaining = LUNGE_TICKS;
 
             if (event.hit()) {
                 PRESENTATION.projectDisplayedHealth(targetEntity, event.targetHp(), event.damage());

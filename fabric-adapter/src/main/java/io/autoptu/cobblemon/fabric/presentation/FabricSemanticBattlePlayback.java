@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.presentation;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.BattleAuthoritySnapshot;
+import io.autoptu.cobblemon.battlecore.AuthoritativeMoveCatalog;
 import io.autoptu.cobblemon.battlecore.BattleEntityBoundPresentationDispatcher;
 import io.autoptu.cobblemon.battlecore.BattleHealthProjectionBatch;
 import io.autoptu.cobblemon.battlecore.BattleHealthProjectionProjector;
@@ -32,9 +33,33 @@ public final class FabricSemanticBattlePlayback {
     private final BattleHealthProjectionProjector healthProjector = new BattleHealthProjectionProjector();
     private final BattleWorldRelocationProjector relocationProjector = new BattleWorldRelocationProjector();
     private final BattlePresentationEntityProjector entityProjector = new BattlePresentationEntityProjector();
-    private final GatewayBackedBattleEntityBoundPresentationConsumer consumer =
-            new GatewayBackedBattleEntityBoundPresentationConsumer(
-                    new RegistryBackedPresentationEntityGateway<>(handles, new CobblemonPresentationEntityBackend()));
+    private final GatewayBackedBattleEntityBoundPresentationConsumer consumer;
+
+    /**
+     * Compatibility constructor for playback paths that have not yet bound the authoritative move
+     * catalog. Those paths remain on the minimal neutral visual fallback rather than guessing a move
+     * category from Cobblemon or Minecraft state.
+     */
+    public FabricSemanticBattlePlayback() {
+        this(CobblemonMoveAnimationResolver.none());
+    }
+
+    /**
+     * Preferred production constructor. The server-owned move catalog selects only presentation
+     * categories; AutoPTU remains authoritative for every battle rule and result.
+     */
+    public FabricSemanticBattlePlayback(AuthoritativeMoveCatalog moveCatalog) {
+        this(new AuthoritativeCobblemonMoveAnimationResolver(Objects.requireNonNull(moveCatalog, "moveCatalog")));
+    }
+
+    FabricSemanticBattlePlayback(CobblemonMoveAnimationResolver moveAnimations) {
+        this.consumer = new GatewayBackedBattleEntityBoundPresentationConsumer(
+                new RegistryBackedPresentationEntityGateway<>(
+                        handles,
+                        new CobblemonPresentationEntityBackend(Objects.requireNonNull(moveAnimations, "moveAnimations"))
+                )
+        );
+    }
 
     public void registerEntity(String reservationId, String presentationEntityId, PokemonEntity entity) {
         handles.register(reservationId, presentationEntityId, Objects.requireNonNull(entity, "entity"));

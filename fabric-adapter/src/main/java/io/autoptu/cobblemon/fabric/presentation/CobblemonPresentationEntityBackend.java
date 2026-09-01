@@ -11,6 +11,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -22,6 +23,15 @@ import java.util.Objects;
  */
 public final class CobblemonPresentationEntityBackend
         implements PresentationEntityPlatformBackend<PokemonEntity> {
+    private final CobblemonMoveAnimationResolver moveAnimations;
+
+    public CobblemonPresentationEntityBackend() {
+        this(CobblemonMoveAnimationResolver.none());
+    }
+
+    public CobblemonPresentationEntityBackend(CobblemonMoveAnimationResolver moveAnimations) {
+        this.moveAnimations = Objects.requireNonNull(moveAnimations, "moveAnimations");
+    }
 
     @Override
     public void animateMove(PokemonEntity attacker, PokemonEntity target, String moveId) {
@@ -29,9 +39,8 @@ public final class CobblemonPresentationEntityBackend
         Objects.requireNonNull(target, "target");
         if (moveId == null || moveId.isBlank()) throw new IllegalArgumentException("moveId is required");
 
-        // Presentation-only facing/lunge. Runtime/grid position is unchanged; callers return the
-        // entity to its authoritative presentation anchor after the cue. No range, hit chance,
-        // movement legality or move-specific effect is inferred here.
+        // Facing is presentation-only. Runtime/grid position is never changed here, and no range,
+        // hit chance, movement legality or move effect is inferred from Minecraft/Cobblemon state.
         double dx = target.getX() - attacker.getX();
         double dz = target.getZ() - attacker.getZ();
         if (dx != 0.0D || dz != 0.0D) {
@@ -41,11 +50,18 @@ public final class CobblemonPresentationEntityBackend
             attacker.setBodyYaw(yaw);
         }
 
-        double nextX = attacker.getX() + dx * 0.45D;
-        double nextY = attacker.getY();
-        double nextZ = attacker.getZ() + dz * 0.45D;
-        attacker.requestTeleport(nextX, nextY, nextZ);
+        // Prefer Cobblemon's own poser animation packet when a trusted server-owned move catalog
+        // supplied an explicit category. This reuses the model's native animation without invoking
+        // Cobblemon BattleState or asking Cobblemon to decide any gameplay fact.
+        var nativeAnimation = moveAnimations.resolve(moveId.strip());
+        if (nativeAnimation.isPresent()) {
+            attacker.playAnimation(nativeAnimation.get(), List.of());
+            return;
+        }
 
+        // Minimal neutral fallback for move metadata that cannot yet be mapped safely. Deliberately
+        // avoid the old custom teleport lunge: presentation must not manufacture movement when
+        // Cobblemon already supplies a poser system and no authoritative category is available.
         if (attacker.getWorld() instanceof ServerWorld serverWorld) {
             serverWorld.spawnParticles(
                     ParticleTypes.SWEEP_ATTACK,
