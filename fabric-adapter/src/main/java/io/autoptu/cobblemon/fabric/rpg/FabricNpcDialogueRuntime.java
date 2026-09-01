@@ -160,7 +160,8 @@ public final class FabricNpcDialogueRuntime {
             var journalService = new CanonicalQuestJournalService(
                     CanonicalQuestCatalogue.DEFAULT,
                     journals,
-                    FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer())
+                    FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer()),
+                    FabricCanonicalPlayerStoreRuntime.requireNpcRelationshipRepository(player.getServer())
             );
             var accepted = journalService.accept(playerId, dialogue.npcId(), questId);
             if (accepted.blockedByPrerequisites()) {
@@ -174,14 +175,14 @@ public final class FabricNpcDialogueRuntime {
                         .map(FabricNpcDialogueRuntime::storyFlagLabel)
                         .reduce((left, right) -> left + ", " + right)
                         .orElse(null);
-                if (questRequirements != null && storyRequirements != null) {
-                    displayedText = "Quest locked: " + accepted.quest().title() + ". Accept first: " + questRequirements
-                            + ". Story choice required: " + storyRequirements + ".";
-                } else if (questRequirements != null) {
-                    displayedText = "Quest locked: " + accepted.quest().title() + ". Accept first: " + questRequirements + ".";
-                } else {
-                    displayedText = "Quest locked: " + accepted.quest().title() + ". Story choice required: " + storyRequirements + ".";
-                }
+                String relationshipRequirements = accepted.missingMetNpcIds().stream()
+                        .map(requiredNpcId -> CanonicalNpcDialogueCatalogue.DEFAULT.dialogue(requiredNpcId)
+                                .map(CanonicalNpcDialogueCatalogue.Dialogue::displayName)
+                                .orElse(requiredNpcId))
+                        .reduce((left, right) -> left + ", " + right)
+                        .orElse(null);
+                displayedText = "Quest locked: " + accepted.quest().title() + ". "
+                        + joinRequirementText(questRequirements, storyRequirements, relationshipRequirements);
                 return;
             }
             if (accepted.newlyAccepted()) {
@@ -226,7 +227,8 @@ public final class FabricNpcDialogueRuntime {
                     CanonicalNpcDialogueCatalogue.DEFAULT,
                     CanonicalQuestCatalogue.DEFAULT,
                     FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer()),
-                    FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer())
+                    FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer()),
+                    FabricCanonicalPlayerStoreRuntime.requireNpcRelationshipRepository(player.getServer())
             ).inspect(playerId, dialogue.npcId());
         }
 
@@ -257,6 +259,18 @@ public final class FabricNpcDialogueRuntime {
             stack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(text));
             return stack;
         }
+    }
+
+    private static String joinRequirementText(String questRequirements, String storyRequirements, String relationshipRequirements) {
+        String text = null;
+        if (questRequirements != null) text = "Accept first: " + questRequirements + ".";
+        if (storyRequirements != null) text = appendRequirement(text, "Story choice required: " + storyRequirements + ".");
+        if (relationshipRequirements != null) text = appendRequirement(text, "Meet first: " + relationshipRequirements + ".");
+        return text == null ? "Prerequisites changed; refresh and try again." : text;
+    }
+
+    private static String appendRequirement(String current, String next) {
+        return current == null ? next : current + " " + next;
     }
 
     private static String storyFlagLabel(String flag) {

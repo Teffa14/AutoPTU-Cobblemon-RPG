@@ -52,7 +52,10 @@ public final class CanonicalQuestCatalogue {
                     "ouros.npc.taro_min",
                     "The Record Is Not the Cause",
                     "Taro Min wants a current observation paired with an older source instead of letting one archive entry become the answer.",
-                    "Visit the Loma Clara cooperative storehouse and Estacion Mirador before returning to the archive."
+                    "Visit the Loma Clara cooperative storehouse and Estacion Mirador before returning to the archive.",
+                    List.of(),
+                    List.of(),
+                    List.of("ouros.npc.nerea_sol")
             ),
             new Quest(
                     "marea-battle-yard-introduction",
@@ -87,19 +90,24 @@ public final class CanonicalQuestCatalogue {
     }
 
     public record Quest(String questId, String giverNpcId, String title, String summary, String objectiveText,
-                        List<String> requiredAcceptedQuestIds, List<String> requiredStoryFlags) {
+                        List<String> requiredAcceptedQuestIds, List<String> requiredStoryFlags, List<String> requiredMetNpcIds) {
         public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText) {
-            this(questId, giverNpcId, title, summary, objectiveText, List.of(), List.of());
+            this(questId, giverNpcId, title, summary, objectiveText, List.of(), List.of(), List.of());
         }
         public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText,
                      List<String> requiredAcceptedQuestIds) {
-            this(questId, giverNpcId, title, summary, objectiveText, requiredAcceptedQuestIds, List.of());
+            this(questId, giverNpcId, title, summary, objectiveText, requiredAcceptedQuestIds, List.of(), List.of());
+        }
+        public Quest(String questId, String giverNpcId, String title, String summary, String objectiveText,
+                     List<String> requiredAcceptedQuestIds, List<String> requiredStoryFlags) {
+            this(questId, giverNpcId, title, summary, objectiveText, requiredAcceptedQuestIds, requiredStoryFlags, List.of());
         }
         public Quest {
             questId = requireText(questId, "questId"); giverNpcId = requireText(giverNpcId, "giverNpcId");
             title = requireText(title, "title"); summary = requireText(summary, "summary"); objectiveText = requireText(objectiveText, "objectiveText");
             requiredAcceptedQuestIds = validateUnique(requiredAcceptedQuestIds, "requiredAcceptedQuestIds", "duplicate prerequisite questId: ");
             requiredStoryFlags = validateUnique(requiredStoryFlags, "requiredStoryFlags", "duplicate prerequisite story flag: ");
+            requiredMetNpcIds = validateUnique(requiredMetNpcIds, "requiredMetNpcIds", "duplicate prerequisite NPC relationship: ");
         }
     }
 

@@ -53,6 +53,7 @@ final class CanonicalQuestJournalServiceTest {
         assertFalse(eligibility.eligible());
         assertEquals(java.util.List.of("marea-market-shortfall"), eligibility.missingAcceptedQuestIds());
         assertTrue(eligibility.missingStoryFlags().isEmpty());
+        assertTrue(eligibility.missingMetNpcIds().isEmpty());
         var blocked = service.accept(playerId, "ouros.npc.mara_veyra", "marea-route-field-check");
         assertTrue(blocked.blockedByPrerequisites());
         assertNull(blocked.commit());
@@ -81,6 +82,31 @@ final class CanonicalQuestJournalServiceTest {
         assertTrue(eligibility.eligible());
         assertEquals(1L, eligibility.storyRevision());
         var accepted = service.accept(playerId, "cedar-ranger", "cedar-observer-brief");
+        assertTrue(accepted.newlyAccepted());
+        assertEquals(1L, accepted.journal().revision());
+    }
+
+    @Test
+    void blocksTideglassComparisonUntilPersistedNereaRelationshipExists() {
+        String playerId = "trainer:relationship-gate";
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var relationships = new FileCanonicalNpcRelationshipRepository(tempDir);
+        var service = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals, null, relationships);
+
+        var blocked = service.accept(playerId, "ouros.npc.taro_min", "marea-tideglass-comparison");
+        assertTrue(blocked.blockedByPrerequisites());
+        assertEquals(java.util.List.of("ouros.npc.nerea_sol"), blocked.missingMetNpcIds());
+        assertNull(blocked.commit());
+        assertEquals(0L, blocked.journal().revision());
+        assertFalse(blocked.journal().entries().containsKey("marea-tideglass-comparison"));
+
+        new CanonicalNpcRelationshipService(CanonicalNpcDialogueCatalogue.DEFAULT, relationships)
+                .observeContact(playerId, "ouros.npc.nerea_sol");
+
+        var eligibility = service.eligibility(playerId, "ouros.npc.taro_min", "marea-tideglass-comparison");
+        assertTrue(eligibility.eligible());
+        assertTrue(eligibility.missingMetNpcIds().isEmpty());
+        var accepted = service.accept(playerId, "ouros.npc.taro_min", "marea-tideglass-comparison");
         assertTrue(accepted.newlyAccepted());
         assertEquals(1L, accepted.journal().revision());
     }

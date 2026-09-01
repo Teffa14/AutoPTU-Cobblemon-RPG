@@ -9,9 +9,10 @@ public final class CanonicalQuestJournalService {
     private final CanonicalQuestCatalogue catalogue;
     private final FileCanonicalQuestJournalRepository repository;
     private final FileCanonicalWorldStoryRepository worldStoryRepository;
+    private final FileCanonicalNpcRelationshipRepository relationshipRepository;
 
     public CanonicalQuestJournalService(CanonicalQuestCatalogue catalogue, FileCanonicalQuestJournalRepository repository) {
-        this(catalogue, repository, null);
+        this(catalogue, repository, null, null);
     }
 
     public CanonicalQuestJournalService(
@@ -19,9 +20,19 @@ public final class CanonicalQuestJournalService {
             FileCanonicalQuestJournalRepository repository,
             FileCanonicalWorldStoryRepository worldStoryRepository
     ) {
+        this(catalogue, repository, worldStoryRepository, null);
+    }
+
+    public CanonicalQuestJournalService(
+            CanonicalQuestCatalogue catalogue,
+            FileCanonicalQuestJournalRepository repository,
+            FileCanonicalWorldStoryRepository worldStoryRepository,
+            FileCanonicalNpcRelationshipRepository relationshipRepository
+    ) {
         this.catalogue = Objects.requireNonNull(catalogue, "catalogue");
         this.repository = Objects.requireNonNull(repository, "repository");
         this.worldStoryRepository = worldStoryRepository;
+        this.relationshipRepository = relationshipRepository;
     }
 
     public FileCanonicalQuestJournalRepository.JournalState inspect(String playerId) {
@@ -32,7 +43,7 @@ public final class CanonicalQuestJournalService {
         var quest = requireOfferedQuest(npcId, questId);
         var journal = repository.findOrCreate(playerId);
         var story = storyState(playerId);
-        return eligibility(quest, journal, story);
+        return eligibility(playerId, quest, journal, story);
     }
 
     public AcceptQuestResult accept(String playerId, String npcId, String questId) {
@@ -47,11 +58,12 @@ public final class CanonicalQuestJournalService {
                         result.journal(),
                         result,
                         List.of(),
+                        List.of(),
                         List.of()
                 );
             }
 
-            var eligibility = eligibility(quest, current, storyState(playerId));
+            var eligibility = eligibility(playerId, quest, current, storyState(playerId));
             if (!eligibility.eligible()) {
                 return new AcceptQuestResult(
                         quest,
@@ -59,7 +71,8 @@ public final class CanonicalQuestJournalService {
                         current,
                         null,
                         eligibility.missingAcceptedQuestIds(),
-                        eligibility.missingStoryFlags()
+                        eligibility.missingStoryFlags(),
+                        eligibility.missingMetNpcIds()
                 );
             }
 
@@ -72,6 +85,7 @@ public final class CanonicalQuestJournalService {
                             : AcceptQuestStatus.ALREADY_ACCEPTED,
                     result.journal(),
                     result,
+                    List.of(),
                     List.of(),
                     List.of()
             );
@@ -87,12 +101,13 @@ public final class CanonicalQuestJournalService {
     }
 
     private QuestEligibility eligibility(
+            String playerId,
             CanonicalQuestCatalogue.Quest quest,
             FileCanonicalQuestJournalRepository.JournalState journal,
             StoryState story
     ) {
         if (journal.entries().containsKey(quest.questId())) {
-            return new QuestEligibility(quest, true, List.of(), List.of(), journal.revision(), story.revision());
+            return new QuestEligibility(quest, true, List.of(), List.of(), List.of(), journal.revision(), story.revision());
         }
         List<String> missingQuests = quest.requiredAcceptedQuestIds().stream()
                 .filter(requiredQuestId -> !journal.entries().containsKey(requiredQuestId))
@@ -100,11 +115,15 @@ public final class CanonicalQuestJournalService {
         List<String> missingStoryFlags = quest.requiredStoryFlags().stream()
                 .filter(requiredFlag -> !story.flags().contains(requiredFlag))
                 .toList();
+        List<String> missingMetNpcIds = quest.requiredMetNpcIds().stream()
+                .filter(requiredNpcId -> !hasMet(playerId, requiredNpcId))
+                .toList();
         return new QuestEligibility(
                 quest,
-                missingQuests.isEmpty() && missingStoryFlags.isEmpty(),
+                missingQuests.isEmpty() && missingStoryFlags.isEmpty() && missingMetNpcIds.isEmpty(),
                 missingQuests,
                 missingStoryFlags,
+                missingMetNpcIds,
                 journal.revision(),
                 story.revision()
         );
@@ -114,6 +133,13 @@ public final class CanonicalQuestJournalService {
         if (worldStoryRepository == null) return new StoryState(Set.of(), 0L);
         var story = worldStoryRepository.findOrCreate(playerId);
         return new StoryState(story.storyFlags(), story.revision());
+    }
+
+    private boolean hasMet(String playerId, String npcId) {
+        if (relationshipRepository == null) return false;
+        return relationshipRepository.find(playerId, npcId)
+                .map(FileCanonicalNpcRelationshipRepository.RelationshipState::met)
+                .orElse(false);
     }
 
     private record StoryState(Set<String> flags, long revision) {
@@ -128,6 +154,7 @@ public final class CanonicalQuestJournalService {
             boolean eligible,
             List<String> missingAcceptedQuestIds,
             List<String> missingStoryFlags,
+            List<String> missingMetNpcIds,
             long journalRevision,
             long storyRevision
     ) {
@@ -135,9 +162,10 @@ public final class CanonicalQuestJournalService {
             Objects.requireNonNull(quest, "quest");
             missingAcceptedQuestIds = List.copyOf(Objects.requireNonNull(missingAcceptedQuestIds, "missingAcceptedQuestIds"));
             missingStoryFlags = List.copyOf(Objects.requireNonNull(missingStoryFlags, "missingStoryFlags"));
+            missingMetNpcIds = List.copyOf(Objects.requireNonNull(missingMetNpcIds, "missingMetNpcIds"));
             if (journalRevision < 0) throw new IllegalArgumentException("journalRevision must not be negative");
             if (storyRevision < 0) throw new IllegalArgumentException("storyRevision must not be negative");
-            if (eligible && (!missingAcceptedQuestIds.isEmpty() || !missingStoryFlags.isEmpty())) {
+            if (eligible && (!missingAcceptedQuestIds.isEmpty() || !missingStoryFlags.isEmpty() || !missingMetNpcIds.isEmpty())) {
                 throw new IllegalArgumentException("eligible quest cannot have missing prerequisites");
             }
         }
@@ -151,7 +179,8 @@ public final class CanonicalQuestJournalService {
             FileCanonicalQuestJournalRepository.JournalState journal,
             FileCanonicalQuestJournalRepository.AcceptResult commit,
             List<String> missingAcceptedQuestIds,
-            List<String> missingStoryFlags
+            List<String> missingStoryFlags,
+            List<String> missingMetNpcIds
     ) {
         public AcceptQuestResult {
             Objects.requireNonNull(quest, "quest");
@@ -159,9 +188,11 @@ public final class CanonicalQuestJournalService {
             Objects.requireNonNull(journal, "journal");
             missingAcceptedQuestIds = List.copyOf(Objects.requireNonNull(missingAcceptedQuestIds, "missingAcceptedQuestIds"));
             missingStoryFlags = List.copyOf(Objects.requireNonNull(missingStoryFlags, "missingStoryFlags"));
+            missingMetNpcIds = List.copyOf(Objects.requireNonNull(missingMetNpcIds, "missingMetNpcIds"));
             if (status == AcceptQuestStatus.BLOCKED_PREREQUISITES
                     && missingAcceptedQuestIds.isEmpty()
-                    && missingStoryFlags.isEmpty()) {
+                    && missingStoryFlags.isEmpty()
+                    && missingMetNpcIds.isEmpty()) {
                 throw new IllegalArgumentException("blocked quest requires at least one missing prerequisite");
             }
             if (status != AcceptQuestStatus.BLOCKED_PREREQUISITES && commit == null) {
