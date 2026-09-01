@@ -7,9 +7,12 @@ import java.util.Objects;
 
 /** Server-authored quest objective bindings. Event keys describe RPG world observations only. */
 public final class CanonicalQuestObjectiveCatalogue {
+    public static final String AUTHORED_QUEST_OBJECT_INSPECTED_EVENT = "rpg:authored_quest_object_inspected";
+
     public static final CanonicalQuestObjectiveCatalogue DEFAULT = new CanonicalQuestObjectiveCatalogue(List.of(
             new Objective("cedar-field-notes", "observe-lookout", "cedar_meadow:lookout_watching", "Observe the meadow lookout notice your approach."),
             new Objective("cedar-field-notes", "observe-feeding-group", "cedar_meadow:feeders_alarmed", "Observe the feeding group react to the lookout alarm."),
+            new Objective("cedar-field-notes", "inspect-field-notes", AUTHORED_QUEST_OBJECT_INSPECTED_EVENT, "Inspect the Ranger's authored field-notes lectern."),
 
             new Objective("marea-market-shortfall", "visit-loma-clara", "location:ouros.marea.loma_clara", "Visit Loma Clara and see the production side of the district."),
             new Objective("marea-market-shortfall", "visit-mirador", "location:ouros.marea.estacion_mirador", "Visit Estacion Mirador and inspect what observations are actually available."),
