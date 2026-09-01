@@ -39,13 +39,28 @@ public final class CanonicalNpcDialogueViewService {
             FileCanonicalQuestJournalRepository.JournalState journal
     ) {
         if (option.questId() == null) {
-            return new OptionView(option.optionId(), option.label(), false, null, option.challengeId());
+            return new OptionView(option.optionId(), option.label(), false, true, null, option.challengeId(), null);
         }
         var quest = questCatalogue.quest(option.questId())
                 .orElseThrow(() -> new IllegalStateException("dialogue references unknown canonical questId: " + option.questId()));
         boolean accepted = journal.entries().containsKey(quest.questId());
-        String label = accepted ? "Continue: " + quest.title() : option.label();
-        return new OptionView(option.optionId(), label, accepted, quest.questId(), null);
+        List<String> missing = accepted ? List.of() : quest.requiredAcceptedQuestIds().stream()
+                .filter(requiredQuestId -> !journal.entries().containsKey(requiredQuestId))
+                .toList();
+        boolean eligible = accepted || missing.isEmpty();
+        String label = accepted
+                ? "Continue: " + quest.title()
+                : eligible ? option.label() : "Locked: " + quest.title();
+        String lockReason = eligible ? null : prerequisiteReason(missing);
+        return new OptionView(option.optionId(), label, accepted, eligible, quest.questId(), null, lockReason);
+    }
+
+    private String prerequisiteReason(List<String> missingQuestIds) {
+        String requiredTitles = missingQuestIds.stream()
+                .map(questId -> questCatalogue.quest(questId).map(CanonicalQuestCatalogue.Quest::title).orElse(questId))
+                .reduce((left, right) -> left + ", " + right)
+                .orElse("required story work");
+        return "Requires accepted quest: " + requiredTitles;
     }
 
     public record DialogueView(
@@ -64,7 +79,9 @@ public final class CanonicalNpcDialogueViewService {
             String optionId,
             String displayLabel,
             boolean acceptedQuest,
+            boolean eligibleQuest,
             String questId,
-            String challengeId
+            String challengeId,
+            String lockReason
     ) { }
 }
