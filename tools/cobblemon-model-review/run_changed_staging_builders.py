@@ -9,9 +9,12 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 BUILDER_RE = re.compile(r"^tools/cobblemon-model-review/build_.+_v\d+\.py$")
+TRANSIENT_HTTP_RE = re.compile(r"HTTP Error 5\d\d")
+MAX_ATTEMPTS = 3
 
 
 def git(*args: str, cwd: Path) -> str:
@@ -22,6 +25,19 @@ def git(*args: str, cwd: Path) -> str:
 def changed_builders(repo_root: Path, base: str, head: str) -> list[Path]:
     names = git("diff", "--name-only", base, head, cwd=repo_root).splitlines()
     return [repo_root / name for name in names if BUILDER_RE.match(name)]
+
+
+def run_builder(command: list[str], root: Path) -> tuple[subprocess.CompletedProcess[str], int]:
+    completed: subprocess.CompletedProcess[str] | None = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        completed = subprocess.run(command, cwd=root, text=True, capture_output=True)
+        if completed.returncode == 0:
+            return completed, attempt
+        combined = f"{completed.stdout}\n{completed.stderr}"
+        if not TRANSIENT_HTTP_RE.search(combined) or attempt == MAX_ATTEMPTS:
+            return completed, attempt
+        time.sleep(2 ** (attempt - 1))
+    raise AssertionError("unreachable")
 
 
 def main() -> None:
@@ -43,10 +59,11 @@ def main() -> None:
         for index, builder in enumerate(builders):
             output_dir = temp_root / f"builder-{index}"
             command = [sys.executable, str(builder.relative_to(root)), "--repo-root", str(root), "--output-dir", str(output_dir)]
-            completed = subprocess.run(command, cwd=root, text=True, capture_output=True)
+            completed, attempts = run_builder(command, root)
             if completed.returncode != 0:
                 print(json.dumps({
                     "builder": str(builder.relative_to(root)),
+                    "attempts": attempts,
                     "returnCode": completed.returncode,
                     "stdout": completed.stdout,
                     "stderr": completed.stderr,
@@ -57,7 +74,12 @@ def main() -> None:
             if not report_path.is_file():
                 raise SystemExit(f"changed staging builder did not emit build-report.json: {builder}")
             report = json.loads(report_path.read_text(encoding="utf-8"))
-            reports.append({"builder": str(builder.relative_to(root)), "stdout": completed.stdout.strip(), "report": report})
+            reports.append({
+                "builder": str(builder.relative_to(root)),
+                "attempts": attempts,
+                "stdout": completed.stdout.strip(),
+                "report": report
+            })
 
     print(json.dumps({"changedStagingBuilders": reports, "status": "PASS"}, indent=2))
 
