@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import io.autoptu.cobblemon.fabric.network.FabricBattleCameraNetworking;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
@@ -244,6 +245,25 @@ public final class PlayableBattleTestRuntime {
         private void announceStart() {
             player.sendMessage(Text.literal("AutoPTU TEST: " + playerPokemonName + " vs " + enemyPokemonName), false);
             player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
+            sendTacticalCameraFrame();
+        }
+
+        private void sendTacticalCameraFrame() {
+            // These are physical presentation bounds around the two already-server-spawned actors,
+            // not a PTU legality grid. Craftics receives camera framing only and never owns battle state.
+            int minX = playerOrigin.getX() - 2;
+            int minZ = playerOrigin.getZ() - 3;
+            int maxX = enemyOrigin.getX() + 2;
+            int maxZ = enemyOrigin.getZ() + 3;
+            FabricBattleCameraNetworking.sendFrame(
+                    player,
+                    protectionScopeId,
+                    minX,
+                    playerOrigin.getY() - 1,
+                    minZ,
+                    maxX - minX + 1,
+                    maxZ - minZ + 1
+            );
         }
 
         private void tick() {
@@ -343,6 +363,7 @@ public final class PlayableBattleTestRuntime {
         }
 
         private void cleanupNow() {
+            FabricBattleCameraNetworking.clear(player);
             FabricRpgWorldProtectionRegistry.clear(protectionScopeId);
             playerEntity.discard();
             enemyEntity.discard();
