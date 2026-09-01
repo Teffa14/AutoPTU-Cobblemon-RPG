@@ -35,7 +35,6 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,10 +52,10 @@ public final class PlayableBattleTestRuntime {
     private static final int TURN_DELAY_TICKS = 30;
     private static final int CLEANUP_TICKS = 80;
 
-    // The demo owns one explicit damaging strike scenario, so it can state its presentation category
-    // directly. Normal production playback must resolve this through the authoritative move catalog.
+    // The demo intentionally uses neutral presentation until a real Cobblemon poser-animation id is
+    // available from trusted presentation metadata. PTU damage categories are not animation ids.
     private static final CobblemonPresentationEntityBackend PRESENTATION =
-            new CobblemonPresentationEntityBackend(moveId -> Optional.of("physical"));
+            new CobblemonPresentationEntityBackend();
     private static final Map<UUID, Session> ACTIVE = new ConcurrentHashMap<>();
 
     private PlayableBattleTestRuntime() {}
@@ -78,27 +77,29 @@ public final class PlayableBattleTestRuntime {
             }
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            handler.player.sendMessage(Text.literal("AutoPTU playable battle test is installed."), false);
-            handler.player.sendMessage(Text.literal(
-                    "Choose a Pokemon: /autoptu testbattle bulbasaur, charmander, or squirtle"), false);
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            Session session = ACTIVE.remove(handler.player.getUuid());
+            if (session != null) session.cleanupNow();
         });
     }
 
-    private static int start(ServerCommandSource source, String starterId) {
-        ServerPlayerEntity player = source.getPlayer();
-        if (player == null) {
-            source.sendError(Text.literal("This test battle must be started by a player."));
-            return 0;
-        }
-        if (ACTIVE.containsKey(player.getUuid())) {
-            source.sendError(Text.literal("You already have an AutoPTU test battle running."));
+    private static int start(ServerCommandSource source, String speciesName) {
+        ServerPlayerEntity player;
+        try {
+            player = source.getPlayerOrThrow();
+        } catch (Exception exception) {
+            source.sendError(Text.literal("This command must be run by a player."));
             return 0;
         }
 
-        Species starter = PokemonSpecies.INSTANCE.getByName(starterId);
-        Species opponent = PokemonSpecies.INSTANCE.getByName("pikachu");
-        if (starter == null || opponent == null) {
+        if (ACTIVE.containsKey(player.getUuid())) {
+            source.sendError(Text.literal("A test battle is already active."));
+            return 0;
+        }
+
+        Species playerSpecies = PokemonSpecies.getByName(speciesName);
+        Species enemySpecies = PokemonSpecies.getByName("rattata");
+        if (playerSpecies == null || enemySpecies == null) {
             source.sendError(Text.literal("Cobblemon species data is not ready."));
             return 0;
         }
@@ -106,106 +107,56 @@ public final class PlayableBattleTestRuntime {
         ServerWorld world = player.getServerWorld();
         BlockPos playerOrigin = player.getBlockPos().add(2, 0, 0);
         BlockPos enemyOrigin = player.getBlockPos().add(6, 0, 0);
-        PokemonEntity playerPokemon = spawn(world, starter, playerOrigin);
-        PokemonEntity enemyPokemon = spawn(world, opponent, enemyOrigin);
 
-        String protectionScopeId = "battle-demo:" + player.getUuidAsString();
-        FabricRpgWorldProtectionRegistry.protect(
-                protectionScopeId,
-                world.getRegistryKey(),
-                playerOrigin.add(-2, -2, -3),
-                enemyOrigin.add(2, 3, 3),
-                "an AutoPTU battle is active here"
-        );
+        PokemonEntity playerEntity = spawn(world, playerSpecies, playerOrigin);
+        PokemonEntity enemyEntity = spawn(world, enemySpecies, enemyOrigin);
+        if (playerEntity == null || enemyEntity == null) {
+            if (playerEntity != null) playerEntity.discard();
+            if (enemyEntity != null) enemyEntity.discard();
+            source.sendError(Text.literal("Could not materialize Cobblemon battle entities."));
+            return 0;
+        }
 
         Session session = new Session(
                 player,
-                displayName(starterId),
-                "Pikachu",
-                playerPokemon,
-                enemyPokemon,
+                playerEntity,
+                enemyEntity,
                 playerOrigin,
                 enemyOrigin,
-                protectionScopeId
+                playerSpecies.getName(),
+                enemySpecies.getName()
         );
         ACTIVE.put(player.getUuid(), session);
-        session.announceStart();
+        session.begin();
         return 1;
     }
 
-    private static PokemonEntity spawn(ServerWorld world, Species species, BlockPos position) {
+    private static PokemonEntity spawn(ServerWorld world, Species species, BlockPos pos) {
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
-        PokemonEntity entity = new PokemonEntity(world, pokemon, CobblemonEntities.POKEMON);
-        entity.setAiDisabled(true);
-        entity.setPersistent();
-        entity.refreshPositionAndAngles(
-                position.getX() + 0.5D,
-                position.getY(),
-                position.getZ() + 0.5D,
-                0.0F,
-                0.0F
-        );
-        if (!world.spawnEntity(entity)) {
-            throw new IllegalStateException("failed to spawn playable AutoPTU battle PokemonEntity");
-        }
+        pokemon.setLevel(5);
+        pokemon.setCurrentHealth(DEMO_HP);
+
+        PokemonEntity entity = CobblemonEntities.POKEMON.create(world);
+        if (entity == null) return null;
+        entity.setPokemon(pokemon);
+        entity.refreshPositionAndAngles(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
+        if (!world.spawnEntity(entity)) return null;
         return entity;
-    }
-
-    private static RuntimeCombatantState combatant(String id, GridCoord position) {
-        return new RuntimeCombatantState(
-                id,
-                MovementProfile.walking(position, 3),
-                DEMO_HP,
-                DEMO_HP,
-                new ActionBudget()
-        );
-    }
-
-    private static MoveOption demoMove() {
-        return MoveOption.standard(
-                "demo-strike",
-                new MoveSpec("Ranged", "Ranged", 3, 3, null, null, "Ranged")
-        );
-    }
-
-    private static MoveResolutionInput demoMoveInput() {
-        // These are server-owned scenario inputs to the upstream resolver. DB 4 is a real supported
-        // PTU table entry; attack/defense are chosen so every landed hit advances the visible demo.
-        // Rolls, crit state, damage arithmetic, action consumption and HP mutation remain in Java.
-        return new MoveResolutionInput(
-                2,
-                0,
-                0,
-                20,
-                false,
-                false,
-                false,
-                4,
-                10,
-                5,
-                false,
-                1.0,
-                List.of()
-        );
-    }
-
-    private static String displayName(String speciesId) {
-        return Character.toUpperCase(speciesId.charAt(0)) + speciesId.substring(1);
     }
 
     private static final class Session {
         private final ServerPlayerEntity player;
-        private final String playerPokemonName;
-        private final String enemyPokemonName;
         private final PokemonEntity playerEntity;
         private final PokemonEntity enemyEntity;
         private final BlockPos playerOrigin;
         private final BlockPos enemyOrigin;
-        private final String protectionScopeId;
-        private final RuntimeCombatantState playerState;
-        private final RuntimeCombatantState enemyState;
-        private final BattleRuntimeState runtime;
+        private final String playerPokemonName;
+        private final String enemyPokemonName;
+        private final BattleRuntime runtime;
+        private BattleRuntimeState state;
+        private RuntimeCombatantState playerState;
+        private RuntimeCombatantState enemyState;
         private final PythonRandom random;
         private boolean playerTurn = true;
         private int delay = 20;
@@ -214,39 +165,50 @@ public final class PlayableBattleTestRuntime {
 
         private Session(
                 ServerPlayerEntity player,
-                String playerPokemonName,
-                String enemyPokemonName,
                 PokemonEntity playerEntity,
                 PokemonEntity enemyEntity,
                 BlockPos playerOrigin,
                 BlockPos enemyOrigin,
-                String protectionScopeId
+                String playerPokemonName,
+                String enemyPokemonName
         ) {
             this.player = player;
-            this.playerPokemonName = playerPokemonName;
-            this.enemyPokemonName = enemyPokemonName;
             this.playerEntity = playerEntity;
             this.enemyEntity = enemyEntity;
             this.playerOrigin = playerOrigin;
             this.enemyOrigin = enemyOrigin;
-            this.protectionScopeId = protectionScopeId;
-            this.playerState = combatant("player-demo", new GridCoord(1, 1));
-            this.enemyState = combatant("wild-demo", new GridCoord(2, 1));
-            this.runtime = new BattleRuntimeState(
-                    new MovementGrid(6, 6, Set.of(), Map.of()),
-                    List.of(playerState, enemyState)
-            );
-            this.random = new PythonRandom(20260823);
-            updateNameplates();
+            this.playerPokemonName = playerPokemonName;
+            this.enemyPokemonName = enemyPokemonName;
+            this.runtime = new BattleRuntime();
+            this.random = new PythonRandom(1337L);
+
+            MovementGrid grid = MovementGrid.rectangular(12, 6);
+            MovementProfile movement = MovementProfile.overland(6);
+            playerState = new RuntimeCombatantState("player", DEMO_HP, new GridCoord(1, 2), movement);
+            enemyState = new RuntimeCombatantState("enemy", DEMO_HP, new GridCoord(5, 2), movement);
+            state = BattleRuntimeState.builder(grid)
+                    .combatant(playerState)
+                    .combatant(enemyState)
+                    .actionBudget("player", ActionBudget.standard())
+                    .actionBudget("enemy", ActionBudget.standard())
+                    .build();
         }
 
-        private void announceStart() {
-            player.sendMessage(Text.literal("AutoPTU TEST: " + playerPokemonName + " vs " + enemyPokemonName), false);
-            player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
+        private void begin() {
+            protect(playerEntity);
+            protect(enemyEntity);
+            player.sendMessage(Text.literal(
+                    "AutoPTU test battle: " + playerPokemonName + " vs " + enemyPokemonName
+                            + ". Auto-resolving authoritative turns..."
+            ), false);
+        }
+
+        private void protect(PokemonEntity entity) {
+            FabricRpgWorldProtectionRegistry.protect(entity.getUuid());
         }
 
         private void tick() {
-            if (playerEntity.isRemoved() || enemyEntity.isRemoved()) {
+            if (player.isDisconnected()) {
                 cleanupNow();
                 return;
             }
@@ -255,10 +217,11 @@ public final class PlayableBattleTestRuntime {
                 if (--cleanupRemaining <= 0) cleanupNow();
                 return;
             }
-            if (--delay > 0) return;
 
-            resolveTurn();
-            delay = TURN_DELAY_TICKS;
+            if (--delay <= 0) {
+                resolveTurn();
+                delay = TURN_DELAY_TICKS;
+            }
         }
 
         private void resolveTurn() {
@@ -269,29 +232,36 @@ public final class PlayableBattleTestRuntime {
             String attackerName = playerTurn ? playerPokemonName : enemyPokemonName;
             String targetName = playerTurn ? enemyPokemonName : playerPokemonName;
 
-            attacker.actionBudget().resetConsumedActions();
-            MoveChoice choice = new MoveChoice(
-                    attacker.combatantId(),
+            MoveSpec move = new MoveSpec(
                     "demo-strike",
+                    ActionType.STANDARD,
+                    2,
+                    6,
+                    20,
+                    false
+            );
+            MoveOption option = new MoveOption(
+                    move,
                     ChoiceTargetMode.COMBATANT,
-                    target.combatantId(),
-                    target.position(),
-                    ActionType.STANDARD
+                    Set.of(target.id()),
+                    6,
+                    true
             );
+            MoveChoice choice = new MoveChoice(attacker.id(), option, target.id());
 
-            AppliedActionResult applied = BattleRuntime.applyAuthoritativeMove(
-                    runtime,
+            MoveResolutionInput resolutionInput = new MoveResolutionInput(
                     choice,
-                    demoMove(),
-                    "Medium",
-                    "Medium",
-                    Set.of(),
-                    playerTurn ? "Player" : "Wild",
-                    random,
-                    demoMoveInput()
+                    10,
+                    0,
+                    0,
+                    0,
+                    Set.of()
             );
-            MoveResolvedEvent event = (MoveResolvedEvent) applied.events().stream()
+            AppliedActionResult result = runtime.resolveAndApplyMove(state, resolutionInput, random);
+            state = result.state();
+            MoveResolvedEvent event = result.events().stream()
                     .filter(MoveResolvedEvent.class::isInstance)
+                    .map(MoveResolvedEvent.class::cast)
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("AutoPTU-Java emitted no MoveResolvedEvent"));
 
@@ -299,44 +269,32 @@ public final class PlayableBattleTestRuntime {
 
             if (event.hit()) {
                 PRESENTATION.projectDisplayedHealth(targetEntity, event.targetHp(), event.damage());
-                player.sendMessage(Text.literal(
-                        attackerName + " attacks " + targetName + " for " + event.damage()
-                                + " damage. HP: " + event.targetHp() + "/" + DEMO_HP
-                                + (event.crit() ? " CRITICAL" : "")), false);
-            } else {
-                player.sendMessage(Text.literal(attackerName + " attacks, but misses."), false);
             }
-            updateNameplates();
 
-            if (event.targetHp() == 0) {
-                finish(attackerName, targetName);
+            player.sendMessage(Text.literal(
+                    attackerName + " used demo-strike on " + targetName
+                            + ": hit=" + event.hit()
+                            + ", damage=" + event.damage()
+                            + ", targetHp=" + event.targetHp()
+            ), false);
+
+            playerState = state.combatant("player");
+            enemyState = state.combatant("enemy");
+            if (playerState.hp() <= 0 || enemyState.hp() <= 0) {
+                finished = true;
+                cleanupRemaining = CLEANUP_TICKS;
+                player.sendMessage(Text.literal("AutoPTU test battle resolved. Entities will clean up."), false);
                 return;
             }
             playerTurn = !playerTurn;
         }
 
-        private void updateNameplates() {
-            nameplate(playerEntity, playerPokemonName, playerState.hp());
-            nameplate(enemyEntity, enemyPokemonName, enemyState.hp());
-        }
-
-        private void finish(String winner, String loser) {
-            finished = true;
-            cleanupRemaining = CLEANUP_TICKS;
-            player.sendMessage(Text.literal("BATTLE OVER - WINNER: " + winner + " | LOSER: " + loser), false);
-            player.sendMessage(Text.literal("This first vertical test does not commit XP, items or campaign results."), false);
-        }
-
         private void cleanupNow() {
-            FabricRpgWorldProtectionRegistry.clear(protectionScopeId);
-            playerEntity.discard();
-            enemyEntity.discard();
             ACTIVE.remove(player.getUuid(), this);
-        }
-
-        private static void nameplate(PokemonEntity entity, String name, int hp) {
-            entity.setCustomName(Text.literal(name + " | HP " + hp + "/" + DEMO_HP + (hp == 0 ? " | KO" : "")));
-            entity.setCustomNameVisible(true);
+            FabricRpgWorldProtectionRegistry.release(playerEntity.getUuid());
+            FabricRpgWorldProtectionRegistry.release(enemyEntity.getUuid());
+            if (!playerEntity.isRemoved()) playerEntity.discard();
+            if (!enemyEntity.isRemoved()) enemyEntity.discard();
         }
     }
 }
