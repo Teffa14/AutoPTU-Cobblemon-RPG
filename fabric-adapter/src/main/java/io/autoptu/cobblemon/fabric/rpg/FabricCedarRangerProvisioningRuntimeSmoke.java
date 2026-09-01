@@ -1,7 +1,9 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalWorldInteractionService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -12,10 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/** Dedicated-server proof that normal-world Cedar Ranger provisioning is restart/idempotency safe. */
+/** Dedicated-server proof that normal-world Cedar Ranger and field-notes provisioning are restart/idempotency safe. */
 public final class FabricCedarRangerProvisioningRuntimeSmoke {
     public static final String ENABLE_PROPERTY = "autoptu.liveCedarRangerProvisioningSmoke";
     public static final String SUCCESS_LOG = "AutoPTU live Cedar Ranger normal-world provisioning smoke passed";
+    public static final String FIELD_NOTES_SUCCESS_LOG = "AutoPTU live Cedar Field Notes quest-object provisioning smoke passed";
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
 
     private FabricCedarRangerProvisioningRuntimeSmoke() {}
@@ -33,24 +36,42 @@ public final class FabricCedarRangerProvisioningRuntimeSmoke {
         if (!first.getUuid().equals(second.getUuid())) {
             throw new IllegalStateException("Cedar Ranger provisioning was not idempotent within one server boot");
         }
-        if (FabricNpcDialogueRuntime.npcId(first)
-                .filter(FabricCedarRangerProvisioningRuntime.NPC_ID::equals)
-                .isEmpty()) {
+        if (FabricNpcDialogueRuntime.npcId(first).filter(FabricCedarRangerProvisioningRuntime.NPC_ID::equals).isEmpty()) {
             throw new IllegalStateException("Provisioned Cedar Ranger is missing canonical NPC identity");
         }
-        if (!first.isPersistent()) {
-            throw new IllegalStateException("Provisioned Cedar Ranger is not persistent");
-        }
+        if (!first.isPersistent()) throw new IllegalStateException("Provisioned Cedar Ranger is not persistent");
 
         ServerWorld world = server.getOverworld();
+        BlockPos fieldNotes = FabricCedarRangerProvisioningRuntime.ensureFieldNotesProvisioned(server);
+        BlockPos fieldNotesAgain = FabricCedarRangerProvisioningRuntime.ensureFieldNotesProvisioned(server);
+        if (!fieldNotes.equals(fieldNotesAgain)) {
+            throw new IllegalStateException("Cedar Field Notes provisioning was not idempotent within one server boot");
+        }
+        if (!world.getBlockState(fieldNotes).isOf(Blocks.LECTERN)
+                || !world.getBlockState(fieldNotes.down()).isOf(Blocks.GOLD_BLOCK)) {
+            throw new IllegalStateException("Canonical Cedar Field Notes physical surface is missing");
+        }
+        var canonicalTerminal = new FabricCanonicalWorldInteractionRuntime.AuthoredObject(
+                "smoke:cedar-field-notes",
+                CanonicalWorldInteractionService.Kind.TERMINAL,
+                fieldNotes
+        );
+        if (!FabricCanonicalWorldInteractionRuntime.isQuestObjectiveTerminal(world, canonicalTerminal)) {
+            throw new IllegalStateException("Canonical Cedar Field Notes did not pass the quest-object identity gate");
+        }
+        var arbitraryTerminal = new FabricCanonicalWorldInteractionRuntime.AuthoredObject(
+                "smoke:arbitrary-authored-lectern",
+                CanonicalWorldInteractionService.Kind.TERMINAL,
+                fieldNotes.add(1, 0, 0)
+        );
+        if (FabricCanonicalWorldInteractionRuntime.isQuestObjectiveTerminal(world, arbitraryTerminal)) {
+            throw new IllegalStateException("Arbitrary authored lectern could emit Cedar quest objective progress");
+        }
+
         BlockPos spawn = world.getSpawnPos();
         Box search = new Box(
-                spawn.getX() - 48.0D,
-                spawn.getY() - 32.0D,
-                spawn.getZ() - 48.0D,
-                spawn.getX() + 48.0D,
-                spawn.getY() + 32.0D,
-                spawn.getZ() + 48.0D
+                spawn.getX() - 48.0D, spawn.getY() - 32.0D, spawn.getZ() - 48.0D,
+                spawn.getX() + 48.0D, spawn.getY() + 32.0D, spawn.getZ() + 48.0D
         );
         List<VillagerEntity> canonicalRangers = world.getEntitiesByClass(
                 VillagerEntity.class,
@@ -63,5 +84,6 @@ public final class FabricCedarRangerProvisioningRuntimeSmoke {
             throw new IllegalStateException("Expected exactly one canonical Cedar Ranger near spawn, found " + canonicalRangers.size());
         }
         LOGGER.info(SUCCESS_LOG);
+        LOGGER.info(FIELD_NOTES_SUCCESS_LOG);
     }
 }
