@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the single source of truth for every repository Cobblemon skin."""
+"""Validate the registry and keep non-production Cobblemon skins out of shipped resources."""
 
 from __future__ import annotations
 
@@ -17,6 +17,10 @@ LIFECYCLES = {
     "REFERENCE_BLOCKED",
     "REFERENCE_READY",
     "LEGACY_QUARANTINED",
+    "PROFESSIONAL_CANDIDATE",
+    "OWNER_APPROVED_RELEASE",
+}
+SHIPPABLE_LIFECYCLES = {
     "PROFESSIONAL_CANDIDATE",
     "OWNER_APPROVED_RELEASE",
 }
@@ -215,10 +219,21 @@ def main() -> None:
 
     on_disk = production_slugs(root)
     registered = set(by_slug)
-    if on_disk != registered:
-        missing = sorted(on_disk - registered)
-        stale = sorted(registered - on_disk)
-        fail(f"registry/on-disk coverage mismatch missing={missing} stale={stale}")
+    shippable = {
+        slug
+        for slug, entry in by_slug.items()
+        if entry["lifecycle"] in SHIPPABLE_LIFECYCLES
+    }
+    unregistered = sorted(on_disk - registered)
+    quarantined_on_disk = sorted(on_disk - shippable)
+    missing_shippable = sorted(shippable - on_disk)
+    if unregistered or quarantined_on_disk or missing_shippable:
+        fail(
+            "production resource coverage mismatch "
+            f"unregistered={unregistered} "
+            f"quarantined_on_disk={quarantined_on_disk} "
+            f"missing_shippable={missing_shippable}"
+        )
 
     dossier_dir = root / "docs/cobblemon-skin-reference-dossiers"
     dossiers_on_disk = {
@@ -243,6 +258,7 @@ def main() -> None:
                 "status": "PASS",
                 "activeSlice": active,
                 "registeredSkins": len(entries),
+                "shippedSkins": sorted(on_disk),
                 "saleEligible": sorted(
                     slug for slug, entry in by_slug.items() if entry["saleEligible"]
                 ),
