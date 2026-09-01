@@ -20,6 +20,12 @@
       "io.autoptu.cobblemon.fabric.client.FabricCrafticsBattleCameraClient"
     ]
   },
+  "mixins": [
+    {
+      "config": "autoptu_cobblemon_rpg.client.mixins.json",
+      "environment": "client"
+    }
+  ],
   "depends": {
     "fabricloader": ">=0.17.2",
     "fabric-api": "*",
