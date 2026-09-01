@@ -16,6 +16,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     List.of(
                             new Option("meadow", "What should I watch for?", "The lookout notices movement first. If it raises the alarm, the feeding group will move for cover."),
                             new Option("field-notes", "Anything I can help with?", "Start a field journal for me. Observe the meadow lookout and feeding group, then come back to collect the field stipend.", "cedar-field-notes"),
+                            new Option("observer-brief", "I observed before approaching.", "Good. Then compare what you noticed before contact with what changed after you entered the meadow.", "cedar-observer-brief"),
                             new Option("facilities", "Where can I prepare?", "Use the healing machine, PC, Mart and crafting stations you find in the world. Their state belongs to your canonical Trainer."),
                             Option.challenge("field-spar", "Challenge Cedar Ranger", "Let's see whether your party is ready for a proper field spar.", "cedar-ranger-field-spar"),
                             new Option("battles", "How do battles work here?", "When a battle starts, AutoPTU decides legal actions and outcomes. The Minecraft world only presents the authoritative result.")
@@ -71,36 +72,16 @@ public final class CanonicalNpcDialogueCatalogue {
                             new Option("rook", "Tell me about Rook.", "Rook is my Falinks partner. His effective battle level can grow with serious challengers, but his identity and our history do not reroll every encounter.")
                     )
             ),
-            simple("ouros.npc.lia_morn", "Lia Morn",
-                    "Dock schedules are boring right up until somebody needs to know whether a shipment actually arrived.",
-                    "I coordinate berths, arrivals and unloading windows. I can verify an arrival record; I cannot tell you why a crate was light."),
-            simple("ouros.npc.mina_cors", "Mina Cors",
-                    "The bay changes faster than the timetable, but a changed timetable still needs a reason somebody can record.",
-                    "I run the local ferry. Wake and I know the water, but practical judgment is still not a supernatural forecast."),
-            simple("ouros.npc.oren_vale", "Oren Vale",
-                    "A clinic should make ordinary care ordinary. Drama is not a treatment plan.",
-                    "I handle real care cases and routine recovery work. The exact mechanical healing result still comes from the governing PTU state."),
-            simple("ouros.npc.teo_lark", "Teo Lark",
-                    "If an instrument gives a strange reading, check the instrument before inventing a strange world.",
-                    "I maintain carts, lamps, fixtures and field instruments. Repairs can matter to a story without becoming invented crafting bonuses."),
-            simple("ouros.npc.alba_rios", "Alba Rios",
-                    "The cooperative speaks for shared work. It does not make fifteen farms into one farm.",
-                    "I manage my own holding and represent one producer voice. What happened on my fields is evidence about my fields, not automatically all of Loma Clara."),
-            simple("ouros.npc.brin_havel", "Brin Havel",
-                    "The storehouse ledger is much less exciting than the rumor board, which is why I trust it for different questions.",
-                    "I record intake and dispatch preparation. A dispatch record proves what we prepared to send, not that every crate reached Bruma."),
-            simple("ouros.npc.jo_venn", "Jo Venn",
-                    "Teaching observation is mostly teaching people to write down what they saw before explaining it.",
-                    "I run practical field lessons. We use real public observations, but students do not gain PTU mechanics just because they attended class."),
-            simple("ouros.npc.ema_rey", "Ema Rey",
-                    "Nerea writes the protocol. I spend a lot of time finding out what the protocol feels like in mud and crosswind.",
-                    "I check instruments, walk transects and prepare field notes. If Teo repairs a sensor, that repair stays in the record."),
-            simple("ouros.npc.pia_min", "Pia Min",
-                    "A document can travel faster than its context. My job is to try not to lose either.",
-                    "I handle circulation, copies and courier work for Tideglass. Taro is my professional mentor; a shared surname does not establish family history."),
-            simple("ouros.npc.jace_orrin", "Jace Orrin",
-                    "Sela says a rival who never changes is just a training dummy with better dialogue.",
-                    "I train here and help maintain the yard. Sela is my mentor. Whatever else people assume from our surname is not established fact.")
+            simple("ouros.npc.lia_morn", "Lia Morn", "Dock schedules are boring right up until somebody needs to know whether a shipment actually arrived.", "I coordinate berths, arrivals and unloading windows. I can verify an arrival record; I cannot tell you why a crate was light."),
+            simple("ouros.npc.mina_cors", "Mina Cors", "The bay changes faster than the timetable, but a changed timetable still needs a reason somebody can record.", "I run the local ferry. Wake and I know the water, but practical judgment is still not a supernatural forecast."),
+            simple("ouros.npc.oren_vale", "Oren Vale", "A clinic should make ordinary care ordinary. Drama is not a treatment plan.", "I handle real care cases and routine recovery work. The exact mechanical healing result still comes from the governing PTU state."),
+            simple("ouros.npc.teo_lark", "Teo Lark", "If an instrument gives a strange reading, check the instrument before inventing a strange world.", "I maintain carts, lamps, fixtures and field instruments. Repairs can matter to a story without becoming invented crafting bonuses."),
+            simple("ouros.npc.alba_rios", "Alba Rios", "The cooperative speaks for shared work. It does not make fifteen farms into one farm.", "I manage my own holding and represent one producer voice. What happened on my fields is evidence about my fields, not automatically all of Loma Clara."),
+            simple("ouros.npc.brin_havel", "Brin Havel", "The storehouse ledger is much less exciting than the rumor board, which is why I trust it for different questions.", "I record intake and dispatch preparation. A dispatch record proves what we prepared to send, not that every crate reached Bruma."),
+            simple("ouros.npc.jo_venn", "Jo Venn", "Teaching observation is mostly teaching people to write down what they saw before explaining it.", "I run practical field lessons. We use real public observations, but students do not gain PTU mechanics just because they attended class."),
+            simple("ouros.npc.ema_rey", "Ema Rey", "Nerea writes the protocol. I spend a lot of time finding out what the protocol feels like in mud and crosswind.", "I check instruments, walk transects and prepare field notes. If Teo repairs a sensor, that repair stays in the record."),
+            simple("ouros.npc.pia_min", "Pia Min", "A document can travel faster than its context. My job is to try not to lose either.", "I handle circulation, copies and courier work for Tideglass. Taro is my professional mentor; a shared surname does not establish family history."),
+            simple("ouros.npc.jace_orrin", "Jace Orrin", "Sela says a rival who never changes is just a training dummy with better dialogue.", "I train here and help maintain the yard. Sela is my mentor. Whatever else people assume from our surname is not established fact.")
     ));
 
     private final Map<String, Dialogue> dialogues;
@@ -129,18 +110,12 @@ public final class CanonicalNpcDialogueCatalogue {
 
     public record Dialogue(String npcId, String displayName, String openingLine, List<Option> options) {
         public Dialogue {
-            npcId = requireText(npcId, "npcId");
-            displayName = requireText(displayName, "displayName");
-            openingLine = requireText(openingLine, "openingLine");
+            npcId = requireText(npcId, "npcId"); displayName = requireText(displayName, "displayName"); openingLine = requireText(openingLine, "openingLine");
             options = List.copyOf(Objects.requireNonNull(options, "options"));
             if (options.isEmpty()) throw new IllegalArgumentException("dialogue options cannot be empty");
             java.util.HashSet<String> ids = new java.util.HashSet<>();
-            for (Option option : options) {
-                Objects.requireNonNull(option, "option");
-                if (!ids.add(option.optionId())) throw new IllegalArgumentException("duplicate optionId: " + option.optionId());
-            }
+            for (Option option : options) { Objects.requireNonNull(option, "option"); if (!ids.add(option.optionId())) throw new IllegalArgumentException("duplicate optionId: " + option.optionId()); }
         }
-
         public Optional<Option> option(String optionId) {
             if (optionId == null || optionId.isBlank()) return Optional.empty();
             return options.stream().filter(option -> option.optionId().equals(optionId)).findFirst();
@@ -150,13 +125,9 @@ public final class CanonicalNpcDialogueCatalogue {
     public record Option(String optionId, String label, String response, String questId, String challengeId) {
         public Option(String optionId, String label, String response) { this(optionId, label, response, null, null); }
         public Option(String optionId, String label, String response, String questId) { this(optionId, label, response, questId, null); }
-        public static Option challenge(String optionId, String label, String response, String challengeId) {
-            return new Option(optionId, label, response, null, challengeId);
-        }
+        public static Option challenge(String optionId, String label, String response, String challengeId) { return new Option(optionId, label, response, null, challengeId); }
         public Option {
-            optionId = requireText(optionId, "optionId");
-            label = requireText(label, "label");
-            response = requireText(response, "response");
+            optionId = requireText(optionId, "optionId"); label = requireText(label, "label"); response = requireText(response, "response");
             if (questId != null) questId = requireText(questId, "questId");
             if (challengeId != null) challengeId = requireText(challengeId, "challengeId");
             if (questId != null && challengeId != null) throw new IllegalArgumentException("dialogue option cannot be both quest and challenge action");
