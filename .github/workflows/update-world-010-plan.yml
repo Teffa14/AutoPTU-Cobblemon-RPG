@@ -1,0 +1,40 @@
+name: Record WORLD-010 plan shipment
+
+on:
+  push:
+    branches:
+      - feat/world-010-field-notes-object
+    paths:
+      - .github/workflows/update-world-010-plan.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/world-010-field-notes-object
+      - name: Update canonical plan and remove one-shot helper
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old = '| WORLD-010 | LIVE/PARTIAL | Quest-giver/quest-object interaction. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` makes the physical Cedar Ranger expose one authored quest offer through the existing dialogue UI; the server revalidates NPC identity, authenticated Trainer and quest/giver binding before an idempotent durable acceptance commit. Generic quest objects and objective-event processing remain follow-up work. |'
+          new = '| WORLD-010 | LIVE | Quest-giver/quest-object interaction. PR #258 / implementation head `a60a4084660a87e5315e754d08684c834b7921a8` makes the physical Cedar Ranger expose one authored quest offer through the existing dialogue UI; the server revalidates NPC identity, authenticated Trainer and quest/giver binding before an idempotent durable acceptance commit. PR #438 / implementation head `15a3d3f8dc4db7405e86dc7843efa5374bbf007c` provisions the Cedar Ranger field-notes lectern in the normal Overworld, emits objective progress only from that exact server-owned physical object, rejects arbitrary authored lecterns as Cedar quest progress sources, and proves provisioning/identity across dedicated-server restart. |'
+          if old not in text:
+              if new in text:
+                  raise SystemExit(0)
+              raise SystemExit('WORLD-010 canonical row did not match expected current-main content')
+          path.write_text(text.replace(old, new, 1))
+      - name: Commit plan record
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/update-world-010-plan.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git commit -m "docs: mark WORLD-010 live via PR 438"
+          git push origin HEAD:feat/world-010-field-notes-object
