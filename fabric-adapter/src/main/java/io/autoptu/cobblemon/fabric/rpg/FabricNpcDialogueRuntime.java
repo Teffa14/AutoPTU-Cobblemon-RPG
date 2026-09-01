@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalNpcDialogueCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalNpcDialogueViewService;
 import io.autoptu.cobblemon.authority.CanonicalQuestCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestJournalService;
 import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
@@ -194,17 +195,26 @@ public final class FabricNpcDialogueRuntime {
 
         @Override public ItemStack quickMove(PlayerEntity player, int slot) { return ItemStack.EMPTY; }
 
+        private CanonicalNpcDialogueViewService.DialogueView currentView() {
+            String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+            return new CanonicalNpcDialogueViewService(
+                    CanonicalNpcDialogueCatalogue.DEFAULT,
+                    CanonicalQuestCatalogue.DEFAULT,
+                    FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer())
+            ).inspect(playerId, dialogue.npcId());
+        }
+
         private void refresh() {
             optionIds.clear();
             for (int i = 0; i < TOP_SLOT_COUNT; i++) displayInventory.setStack(i, ItemStack.EMPTY);
             displayInventory.setStack(TEXT_SLOT, menuItem(Items.BOOK.getDefaultStack(), displayedText));
             int slot = OPTION_START_SLOT;
-            for (CanonicalNpcDialogueCatalogue.Option option : dialogue.options()) {
+            for (CanonicalNpcDialogueViewService.OptionView option : currentView().options()) {
                 if (slot >= TOP_SLOT_COUNT) break;
                 ItemStack icon = option.questId() != null
-                        ? Items.WRITABLE_BOOK.getDefaultStack()
+                        ? (option.acceptedQuest() ? Items.WRITTEN_BOOK.getDefaultStack() : Items.WRITABLE_BOOK.getDefaultStack())
                         : option.challengeId() != null ? Items.IRON_SWORD.getDefaultStack() : Items.PAPER.getDefaultStack();
-                displayInventory.setStack(slot, menuItem(icon, option.label()));
+                displayInventory.setStack(slot, menuItem(icon, option.displayLabel()));
                 optionIds.put(slot, option.optionId());
                 slot++;
             }
