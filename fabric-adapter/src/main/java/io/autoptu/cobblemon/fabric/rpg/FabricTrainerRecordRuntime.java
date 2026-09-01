@@ -1,5 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
 import io.autoptu.cobblemon.authority.CanonicalTrainerRecordQueryService;
 import io.autoptu.cobblemon.authority.FileCanonicalTrainerRecordRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -15,6 +17,8 @@ import java.nio.file.Path;
 
 /** Read-only Minecraft surface for durable server-owned Trainer records. */
 public final class FabricTrainerRecordRuntime {
+    private static final String RECORD_REVIEW_EVENT = "rpg:trainer_record_reviewed";
+
     private FabricTrainerRecordRuntime() {}
 
     public static void register() {
@@ -46,7 +50,24 @@ public final class FabricTrainerRecordRuntime {
                 + " — badges " + snapshot.badgeIds().size()
                 + " — tournaments " + snapshot.tournamentRecordIds().size()
                 + " — revision " + snapshot.revision()), false);
+        observeQuestEvent(player, playerId);
         return 1;
+    }
+
+    private static void observeQuestEvent(ServerPlayerEntity player, String playerId) {
+        var service = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(player.getServer())
+        );
+        var result = service.observe(playerId, RECORD_REVIEW_EVENT);
+        for (var update : result.updates()) {
+            if (!update.newlyCompleted()) continue;
+            player.sendMessage(Text.literal("Quest updated: " + update.objective().description()), false);
+            if (update.questProgress().complete()) {
+                player.sendMessage(Text.literal("Quest objectives complete: return to the quest giver."), false);
+            }
+        }
     }
 
     private static Path canonicalStateRoot(ServerPlayerEntity player) {
