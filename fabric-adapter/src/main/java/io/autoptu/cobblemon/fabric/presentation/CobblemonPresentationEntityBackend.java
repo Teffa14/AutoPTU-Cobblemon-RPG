@@ -50,18 +50,19 @@ public final class CobblemonPresentationEntityBackend
             attacker.setBodyYaw(yaw);
         }
 
-        // Prefer Cobblemon's own poser animation packet when a trusted server-owned move catalog
-        // supplied an explicit category. This reuses the model's native animation without invoking
-        // Cobblemon BattleState or asking Cobblemon to decide any gameplay fact.
+        // Cobblemon's poser API is the preferred presentation path, but the adapter may only invoke
+        // an animation name that has been supplied explicitly by a trusted presentation resolver.
+        // Do not manufacture poser IDs from PTU damage categories: Cobblemon 1.7.3 accepts arbitrary
+        // strings and does not guarantee category names such as "physical" or "special" exist on a
+        // Pokemon model. An unresolved move therefore stays on the neutral visual fallback below.
         var nativeAnimation = moveAnimations.resolve(moveId.strip());
         if (nativeAnimation.isPresent()) {
             attacker.playAnimation(nativeAnimation.get(), List.of());
             return;
         }
 
-        // Minimal neutral fallback for move metadata that cannot yet be mapped safely. Deliberately
-        // avoid the old custom teleport lunge: presentation must not manufacture movement when
-        // Cobblemon already supplies a poser system and no authoritative category is available.
+        // Minimal neutral fallback. Deliberately avoid the old custom teleport lunge: presentation
+        // must not manufacture movement or claim a native animation that the model may not expose.
         if (attacker.getWorld() instanceof ServerWorld serverWorld) {
             serverWorld.spawnParticles(
                     ParticleTypes.SWEEP_ATTACK,
