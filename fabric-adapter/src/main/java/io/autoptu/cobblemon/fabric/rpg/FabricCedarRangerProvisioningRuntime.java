@@ -1,33 +1,39 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.world.World;
 
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Provisions the authored Cedar Ranger as a normal persistent world actor.
+ * Provisions the authored Cedar Ranger and field-notes quest object as normal persistent world actors.
  *
- * The villager owns presentation and physical interaction only. Its canonical NPC identity is
- * bound one-way through {@link FabricNpcDialogueRuntime}; Trainer, quest, wallet, challenge and
- * battle truth remain in server-owned AutoPTU repositories/services.
+ * The villager and lectern own presentation and physical interaction only. Their canonical RPG
+ * effects remain in server-owned AutoPTU repositories/services.
  */
 public final class FabricCedarRangerProvisioningRuntime {
     static final String NPC_ID = "cedar-ranger";
     private static final int SPAWN_OFFSET_X = 6;
     private static final int SPAWN_OFFSET_Z = 6;
+    private static final int FIELD_NOTES_OFFSET_X = 2;
     private static final double SEARCH_RADIUS = 48.0D;
 
     private FabricCedarRangerProvisioningRuntime() {}
 
     public static void register() {
-        ServerLifecycleEvents.SERVER_STARTED.register(FabricCedarRangerProvisioningRuntime::ensureProvisioned);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            ensureProvisioned(server);
+            ensureFieldNotesProvisioned(server);
+        });
     }
 
     static VillagerEntity ensureProvisioned(MinecraftServer server) {
@@ -73,7 +79,34 @@ public final class FabricCedarRangerProvisioningRuntime {
         return ranger;
     }
 
-    private static BlockPos findStandingPosition(ServerWorld world, BlockPos preferred) {
+    static BlockPos ensureFieldNotesProvisioned(MinecraftServer server) {
+        ServerWorld world = server.getOverworld();
+        BlockPos anchor = fieldNotesAnchor(world);
+        BlockPos marker = anchor.down();
+        if (!world.getBlockState(marker).isOf(Blocks.GOLD_BLOCK)) {
+            world.setBlockState(marker, Blocks.GOLD_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+        }
+        if (!world.getBlockState(anchor).isOf(Blocks.LECTERN)) {
+            world.setBlockState(anchor, Blocks.LECTERN.getDefaultState(), Block.NOTIFY_ALL);
+        }
+        return anchor;
+    }
+
+    static boolean isCanonicalFieldNotes(World world, BlockPos anchor) {
+        if (world == null || anchor == null || !world.getRegistryKey().equals(World.OVERWORLD)) return false;
+        BlockPos expected = fieldNotesAnchor(world);
+        return anchor.equals(expected)
+                && world.getBlockState(anchor).isOf(Blocks.LECTERN)
+                && world.getBlockState(anchor.down()).isOf(Blocks.GOLD_BLOCK);
+    }
+
+    static BlockPos fieldNotesAnchor(World world) {
+        BlockPos spawn = world.getSpawnPos();
+        BlockPos rangerTarget = findStandingPosition(world, spawn.add(SPAWN_OFFSET_X, 0, SPAWN_OFFSET_Z));
+        return rangerTarget.add(FIELD_NOTES_OFFSET_X, 0, 0);
+    }
+
+    private static BlockPos findStandingPosition(World world, BlockPos preferred) {
         for (int dy = 4; dy >= -4; dy--) {
             BlockPos candidate = preferred.add(0, dy, 0);
             if (!world.getBlockState(candidate).isAir()) continue;
