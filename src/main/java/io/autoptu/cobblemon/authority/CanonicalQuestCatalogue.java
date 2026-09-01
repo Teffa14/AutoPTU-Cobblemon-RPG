@@ -15,6 +15,41 @@ public final class CanonicalQuestCatalogue {
                     "Cedar Field Notes",
                     "The Cedar Ranger asked you to begin a field journal for Cedar Meadow.",
                     "Return after observing the meadow lookout and feeding group."
+            ),
+            new Quest(
+                    "marea-market-shortfall",
+                    "ouros.npc.ivo_serrat",
+                    "The Thin Delivery Season",
+                    "Ivo Serrat wants evidence before Puerto Bruma turns several uneven deliveries into one convenient story.",
+                    "Visit Loma Clara and Estacion Mirador, then compare what each place can actually establish."
+            ),
+            new Quest(
+                    "marea-route-field-check",
+                    "ouros.npc.mara_veyra",
+                    "Reading the Sendero",
+                    "Mara Veyra wants a direct route observation separated from rumor about the deliveries.",
+                    "Inspect Sendero del Vidrio and its seasonal crossing."
+            ),
+            new Quest(
+                    "marea-mirador-observations",
+                    "ouros.npc.nerea_sol",
+                    "What the Station Can Actually Say",
+                    "Nerea Sol needs a field-aware reader to distinguish station observations from conclusions people attach to them.",
+                    "Visit the Mirador transect trailhead and Tideglass Archive so current observations and preserved records can be compared."
+            ),
+            new Quest(
+                    "marea-tideglass-comparison",
+                    "ouros.npc.taro_min",
+                    "The Record Is Not the Cause",
+                    "Taro Min wants a current observation paired with an older source instead of letting one archive entry become the answer.",
+                    "Visit the Loma Clara cooperative storehouse and Estacion Mirador before returning to the archive."
+            ),
+            new Quest(
+                    "marea-battle-yard-introduction",
+                    "ouros.npc.sela_orrin",
+                    "Measure the Change",
+                    "Sela Orrin wants the Battle Yard to remember progression through repeatable evidence, not reputation alone.",
+                    "Visit the Bruma Battle Yard and review your current Trainer record before requesting an audited spar."
             )
     ));
 
