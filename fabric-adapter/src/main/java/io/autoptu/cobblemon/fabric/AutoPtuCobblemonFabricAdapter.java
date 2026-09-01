@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.fabric.admin.FabricRpgVisualProofRuntime;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleCameraRuntime;
@@ -157,6 +158,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         VisibleWildPokemonEncounterRuntime.register();
         CedarMeadowRuntime.register();
         MareaInteriorRuntime.register();
+        FabricRpgVisualProofRuntime.register();
         OurosSignatureBuildRuntime.register();
         OurosBuildManifestExportRuntime.registerIfEnabled();
         OurosGrandPalaceV4ManifestExportRuntime.registerIfEnabled();
