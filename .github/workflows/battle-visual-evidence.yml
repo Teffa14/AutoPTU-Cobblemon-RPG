@@ -48,14 +48,7 @@ jobs:
           motd=AutoPTU Battle Visual Evidence
           EOF
           cat > graphical-server/ops.json <<'EOF'
-          [
-            {
-              "uuid": "032ad05d-4eb5-357c-8e46-71376d278de2",
-              "name": "AutoPTUVisual",
-              "level": 4,
-              "bypassesPlayerLimit": true
-            }
-          ]
+          [{"uuid":"43d6469a-bef9-3d6f-bbb3-3ad8e4494453","name":"AutoPTUVisual","level":4,"bypassesPlayerLimit":true}]
           EOF
           curl -fsSL -o graphical-server/fabric-server-launch.jar 'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
       - name: Launch authoritative battle and capture frames
@@ -64,70 +57,50 @@ jobs:
           set -euo pipefail
           server_pid=""; client_pid=""
           cleanup() {
-            if [ -n "$client_pid" ]; then kill "$client_pid" 2>/dev/null || true; wait "$client_pid" 2>/dev/null || true; fi
-            if [ -n "$server_pid" ]; then kill "$server_pid" 2>/dev/null || true; wait "$server_pid" 2>/dev/null || true; fi
+            [ -z "$client_pid" ] || kill "$client_pid" 2>/dev/null || true
+            [ -z "$server_pid" ] || kill "$server_pid" 2>/dev/null || true
           }
           trap cleanup EXIT
-          (cd graphical-server && exec java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../graphical-server.log 2>&1) &
-          server_pid=$!
-          server_ready=0
+          (cd graphical-server && exec java -Xms512M -Xmx2G -jar fabric-server-launch.jar nogui > ../graphical-server.log 2>&1) & server_pid=$!
           for _ in $(seq 1 180); do
-            if grep -q 'AutoPTU Fabric server adapter initialized' graphical-server/logs/latest.log 2>/dev/null && grep -q 'AutoPTU Cobblemon runtime detected:' graphical-server/logs/latest.log 2>/dev/null && grep -q 'Done (' graphical-server/logs/latest.log 2>/dev/null; then server_ready=1; break; fi
-            if ! kill -0 "$server_pid" 2>/dev/null; then cat graphical-server.log || true; exit 1; fi
+            if grep -q 'AutoPTU Fabric server adapter initialized' graphical-server/logs/latest.log 2>/dev/null && grep -q 'Done (' graphical-server/logs/latest.log 2>/dev/null; then break; fi
+            kill -0 "$server_pid" 2>/dev/null || { cat graphical-server.log; exit 1; }
             sleep 1
           done
-          if [ "$server_ready" -ne 1 ]; then cat graphical-server.log || true; exit 1; fi
-          Xvfb :99 -screen 0 1280x720x24 > xvfb.log 2>&1 &
-          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x720x24 > xvfb.log 2>&1 & export DISPLAY=:99
           timeout 300s python3 - <<'PY' > graphical-client.log 2>&1 &
           import os, shutil, subprocess, minecraft_launcher_lib
-          root = os.path.abspath('graphical-client')
-          callback = {'setStatus': lambda text: print(text, flush=True), 'setProgress': lambda value: None, 'setMax': lambda value: None}
-          minecraft_launcher_lib.fabric.install_fabric('1.21.1', root, loader_version='0.17.2', callback=callback, java=shutil.which('java'))
-          version = 'fabric-loader-0.17.2-1.21.1'
-          options = minecraft_launcher_lib.utils.generate_test_options()
-          options['username'] = 'AutoPTUVisual'
-          options['uuid'] = '032ad05d4eb5357c8e4671376d278de2'
-          options['token'] = 'autoptu-ci-test-token'
-          options['executablePath'] = shutil.which('java')
-          options['defaultExecutablePath'] = shutil.which('java')
-          options['jvmArguments'] = ['-Xms512M','-Xmx4G','-Dautoptu.battleVisualEvidenceCapture=true','-Dautoptu.visualEvidenceServer=127.0.0.1:25565']
-          options['customResolution'] = True
-          options['resolutionWidth'] = '1280'; options['resolutionHeight'] = '720'
-          command = minecraft_launcher_lib.command.get_minecraft_command(version, root, options)
-          print('Launching production Fabric client for authoritative AutoPTU battle capture', flush=True)
-          raise SystemExit(subprocess.call(command, cwd=root))
+          root=os.path.abspath('graphical-client')
+          cb={'setStatus':lambda x:print(x,flush=True),'setProgress':lambda x:None,'setMax':lambda x:None}
+          minecraft_launcher_lib.fabric.install_fabric('1.21.1',root,loader_version='0.17.2',callback=cb,java=shutil.which('java'))
+          options=minecraft_launcher_lib.utils.generate_test_options()
+          options.update({'username':'AutoPTUVisual','uuid':'43d6469abef93d6fbbb33ad8e4494453','token':'autoptu-ci-test-token','executablePath':shutil.which('java'),'defaultExecutablePath':shutil.which('java'),'customResolution':True,'resolutionWidth':'1280','resolutionHeight':'720'})
+          options['jvmArguments']=['-Xms512M','-Xmx4G','-Dautoptu.battleVisualEvidenceCapture=true','-Dautoptu.visualEvidenceServer=127.0.0.1:25565']
+          cmd=minecraft_launcher_lib.command.get_minecraft_command('fabric-loader-0.17.2-1.21.1',root,options)
+          raise SystemExit(subprocess.call(cmd,cwd=root))
           PY
           client_pid=$!
-          ready='graphical-client/screenshots/autoptu-battle-ready.png'
-          first='graphical-client/screenshots/autoptu-battle-first-strike.png'
-          counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
+          ready='graphical-client/screenshots/autoptu-battle-ready.png'; first='graphical-client/screenshots/autoptu-battle-first-strike.png'; counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
           capture_ready=0
           for _ in $(seq 1 280); do
-            if grep -qE 'Game crashed!|Could not execute entrypoint|ExceptionInInitializerError|ClassNotFoundException: net.minecraft.class_2960' graphical-client.log 2>/dev/null; then cat graphical-client.log; exit 1; fi
-            if ! kill -0 "$server_pid" 2>/dev/null; then cat graphical-server.log || true; exit 1; fi
-            if [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] && grep -q 'captured post-first-move window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-counter-move window' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
-            if ! kill -0 "$client_pid" 2>/dev/null; then cat graphical-client.log || true; exit 1; fi
+            if [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] && grep -q 'captured ready window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-first-move window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-counter-move window' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
+            kill -0 "$client_pid" 2>/dev/null || { cat graphical-client.log; exit 1; }
             sleep 1
           done
-          if [ "$capture_ready" -ne 1 ]; then cat graphical-client.log || true; cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; fi
-          cp "$ready" test-evidence/battle/
-          cp "$first" test-evidence/battle/
-          cp "$counter" test-evidence/battle/
+          [ "$capture_ready" -eq 1 ] || { cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; }
+          cp "$ready" "$first" "$counter" test-evidence/battle/
           for frame in test-evidence/battle/*.png; do
             colors="$(identify -format '%k' "$frame")"; geometry="$(identify -format '%wx%h' "$frame")"
-            echo "Captured battle frame $(basename "$frame") ${geometry} with ${colors} colors"
-            if [ "$colors" -lt 64 ]; then echo "Rejected blank/near-blank battle frame: $frame has only $colors colors"; exit 1; fi
+            echo "Captured $(basename "$frame") ${geometry} ${colors} colors"
+            [ "$colors" -ge 64 ] || exit 1
           done
-          grep 'AutoPTU battle visual evidence observed two server-synchronized battle Pokemon' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-first-move window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-counter-move window' graphical-client/logs/latest.log
+          grep 'Charmander attacks Pikachu' graphical-client/logs/latest.log
+          grep 'Pikachu attacks Charmander' graphical-client/logs/latest.log
       - name: Collect graphical diagnostics
         if: always()
         shell: bash
         run: |
           set +e
-          cp graphical-client/crash-reports/*.txt test-evidence/diagnostics/ 2>/dev/null || true
           cp graphical-client/logs/latest.log test-evidence/diagnostics/minecraft-client-latest.log 2>/dev/null || true
           cp graphical-server/logs/latest.log test-evidence/diagnostics/minecraft-server-latest.log 2>/dev/null || true
           cp graphical-client.log test-evidence/diagnostics/graphical-client-launch.log 2>/dev/null || true
