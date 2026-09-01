@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "io.autoptu.cobblemon.fabric.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "BattleDetachedCameraMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
