@@ -15,6 +15,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
+import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -113,7 +114,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 return ActionResult.SUCCESS;
             }
             if (object.kind() == CanonicalWorldInteractionService.Kind.DOOR
-                    && world.getBlockState(object.anchor()).getBlock() instanceof DoorBlock) {
+                    && isSupportedDoor(world.getBlockState(object.anchor()).getBlock())) {
                 var eventService = new CanonicalWorldEventObjectService(
                         FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
                         FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(serverPlayer.getServer())
@@ -125,9 +126,9 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 }
                 projectDoorState(world, object.anchor(), event.state());
                 if (event.newlyActivated()) {
-                    serverPlayer.sendMessage(Text.literal("The Ouros door opens and its state is now persistent."), false);
+                    serverPlayer.sendMessage(Text.literal("The Ouros passage opens and its state is now persistent."), false);
                 } else {
-                    serverPlayer.sendMessage(Text.literal("The Ouros door is already open."), false);
+                    serverPlayer.sendMessage(Text.literal("The Ouros passage is already open."), false);
                 }
                 return ActionResult.SUCCESS;
             }
@@ -203,9 +204,15 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
                 || !CanonicalWorldEventObjectService.DOOR_EVENT_KEY.equals(canonicalState.eventKey())) return;
         BlockState current = world.getBlockState(anchor);
-        if (!(current.getBlock() instanceof DoorBlock)) return;
-        if (current.get(DoorBlock.OPEN)) return;
-        world.setBlockState(anchor, current.with(DoorBlock.OPEN, true), Block.NOTIFY_ALL);
+        if (current.getBlock() instanceof DoorBlock) {
+            if (current.get(DoorBlock.OPEN)) return;
+            world.setBlockState(anchor, current.with(DoorBlock.OPEN, true), Block.NOTIFY_ALL);
+            return;
+        }
+        if (current.getBlock() instanceof TrapdoorBlock) {
+            if (current.get(TrapdoorBlock.OPEN)) return;
+            world.setBlockState(anchor, current.with(TrapdoorBlock.OPEN, true), Block.NOTIFY_ALL);
+        }
     }
 
     static Optional<AuthoredObject> authoredObject(World world, BlockPos clicked) {
@@ -236,6 +243,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
     private static BlockPos markerFor(World world, BlockPos clicked, CanonicalWorldInteractionService.Kind kind) {
         if (world.getBlockState(clicked.down()).isOf(Blocks.GOLD_BLOCK)) return clicked.down();
         if (kind == CanonicalWorldInteractionService.Kind.DOOR
+                && world.getBlockState(clicked).getBlock() instanceof DoorBlock
                 && world.getBlockState(clicked.down(2)).isOf(Blocks.GOLD_BLOCK)) return clicked.down(2);
         return null;
     }
@@ -243,10 +251,14 @@ public final class FabricCanonicalWorldInteractionRuntime {
     private static CanonicalWorldInteractionService.Kind kindOf(Block block) {
         if (block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) return CanonicalWorldInteractionService.Kind.CHEST;
         if (block == Blocks.LEVER || block == Blocks.STONE_BUTTON || block == Blocks.OAK_BUTTON) return CanonicalWorldInteractionService.Kind.SWITCH;
-        if (block == Blocks.OAK_DOOR || block == Blocks.IRON_DOOR) return CanonicalWorldInteractionService.Kind.DOOR;
+        if (isSupportedDoor(block)) return CanonicalWorldInteractionService.Kind.DOOR;
         if (block == Blocks.LECTERN) return CanonicalWorldInteractionService.Kind.TERMINAL;
         if (block == Blocks.RESPAWN_ANCHOR) return CanonicalWorldInteractionService.Kind.SHRINE;
         return null;
+    }
+
+    private static boolean isSupportedDoor(Block block) {
+        return block instanceof DoorBlock || block instanceof TrapdoorBlock;
     }
 
     record AuthoredObject(String objectId, CanonicalWorldInteractionService.Kind kind, BlockPos anchor) {}
