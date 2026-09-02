@@ -40,9 +40,13 @@ public final class FabricTrainerRecordRuntime {
             source.sendError(Text.literal("AutoPTU Trainer records must be requested by an authenticated player."));
             return 0;
         }
+        return review(player);
+    }
+
+    static int review(ServerPlayerEntity player) {
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
         if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
-            source.sendError(Text.literal("Canonical Trainer state is not loaded."));
+            player.sendMessage(Text.literal("Canonical Trainer state is not loaded."), false);
             return 0;
         }
         var snapshot = new CanonicalTrainerRecordQueryService(
