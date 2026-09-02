@@ -28,6 +28,7 @@ public final class CanonicalQuestObjectiveCatalogue {
 
             new Objective("marea-tideglass-comparison", "visit-storehouse", "location:ouros.marea.loma_storehouse", "Visit the Loma Clara cooperative storehouse."),
             new Objective("marea-tideglass-comparison", "visit-mirador", "location:ouros.marea.estacion_mirador", "Visit Estacion Mirador before treating archive records as a current explanation."),
+            new Objective("marea-tideglass-comparison", "return-to-taro", npcTalkedEvent("ouros.npc.taro_min"), "Return to Taro Min at Tideglass Archive after checking the current observations."),
 
             new Objective("marea-battle-yard-introduction", "visit-yard", "location:ouros.marea.bruma_battle_yard", "Visit the Bruma Battle Yard."),
             new Objective("marea-battle-yard-introduction", "review-trainer-record", "rpg:trainer_record_reviewed", "Review your current canonical Trainer record before a future audited spar.")
