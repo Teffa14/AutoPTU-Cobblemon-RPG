@@ -24,8 +24,10 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             var encounter = firstMareaEncounter();
-            PokemonEntity actor = MareaVisibleWildPokemonRuntime.actorForEncounter(
-                    server.getOverworld(), encounter.canonicalEncounterId());
+            // Re-enter the same production reconciliation path to obtain the actor under test. This
+            // avoids coupling the smoke to entity-index visibility timing immediately after startup;
+            // the subsequent replacement still has to come from the periodic normal-world policy.
+            PokemonEntity actor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
             if (actor == null || !VisibleWildPokemonEncounterRuntime.isBound(actor.getUuid())) {
                 throw new IllegalStateException("Marea presence smoke requires the normal bound actor at startup");
             }
