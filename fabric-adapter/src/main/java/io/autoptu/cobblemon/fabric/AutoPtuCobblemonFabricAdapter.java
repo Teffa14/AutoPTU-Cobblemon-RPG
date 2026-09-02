@@ -20,6 +20,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricCanonicalWorldInteractionRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCareStatusRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCedarRangerProvisioningRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCedarRangerProvisioningRuntimeSmoke;
+import io.autoptu.cobblemon.fabric.rpg.FabricCedarServiceYardRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftIngredientDepositRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingAssessmentRuntime;
 import io.autoptu.cobblemon.fabric.rpg.FabricCraftingCommandRuntime;
@@ -138,6 +139,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricNpcRelationshipRuntime.register();
         FabricNpcDialogueRuntime.register();
         FabricCedarRangerProvisioningRuntime.register();
+        FabricCedarServiceYardRuntime.register();
         FabricCedarRangerProvisioningRuntimeSmoke.registerIfEnabled();
         FabricNpcDialogueRuntimeSmoke.registerIfEnabled();
         FabricGymLeagueRegistrationRuntime.register();
