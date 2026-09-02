@@ -33,6 +33,7 @@ public final class MareaInteriorRuntime {
     private MareaInteriorRuntime() {}
 
     public static void register() {
+        MareaVisibleWildPokemonRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("ouros")
                         .then(CommandManager.literal("world")
