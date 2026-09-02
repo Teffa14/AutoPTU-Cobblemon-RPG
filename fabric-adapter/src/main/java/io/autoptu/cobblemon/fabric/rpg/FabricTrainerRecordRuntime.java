@@ -14,14 +14,17 @@ import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Read-only Minecraft surface for durable server-owned Trainer records. */
 public final class FabricTrainerRecordRuntime {
     private static final String RECORD_REVIEW_EVENT = "rpg:trainer_record_reviewed";
+    private static final AtomicBoolean REGISTERED = new AtomicBoolean(false);
 
     private FabricTrainerRecordRuntime() {}
 
     public static void register() {
+        if (!REGISTERED.compareAndSet(false, true)) return;
         FabricWorldStoryRuntime.register();
         FabricTrainerProfileRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
