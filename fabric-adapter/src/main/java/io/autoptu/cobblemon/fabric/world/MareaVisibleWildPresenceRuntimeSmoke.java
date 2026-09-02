@@ -107,6 +107,9 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             synchronized (PROBES) { PROBES.remove(server); }
             LOGGER.info("AutoPTU live Marea multi-population reconciliation smoke passed: lower shelf {} -> {}, sibling {}, crossing {}",
                     probe.removedUuid(), replacement.getUuid(), stable.getUuid(), crossing.getUuid());
+            // Preserve the historical gate marker while the stronger multi-population smoke remains
+            // the source of truth for the behavior validated above.
+            LOGGER.info("AutoPTU live Marea wild presence reconciliation smoke passed");
             return;
         }
 
