@@ -52,7 +52,7 @@ public final class CanonicalQuestCatalogue {
                     "ouros.npc.taro_min",
                     "The Record Is Not the Cause",
                     "Taro Min wants a current observation paired with an older source instead of letting one archive entry become the answer.",
-                    "Visit the Loma Clara cooperative storehouse and Estacion Mirador before returning to the archive.",
+                    "Visit the Loma Clara cooperative storehouse and Estacion Mirador, then return to Taro at Tideglass Archive with the current observations.",
                     List.of(),
                     List.of(),
                     List.of("ouros.npc.nerea_sol")
