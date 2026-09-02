@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
+import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -45,6 +46,16 @@ public final class VisibleWildPokemonEncounterRuntime {
                 return ActionResult.PASS;
             }
             if (serverPlayer.squaredDistanceTo(entity) > MAX_INTERACTION_DISTANCE_SQUARED) {
+                return ActionResult.FAIL;
+            }
+
+            // A surviving Minecraft UUID correlation is never sufficient encounter authority. The complete
+            // server-authored WILD blueprint must still be present in this world's canonical registry at the
+            // moment the player interacts. This intentionally fails closed before any durable reservation.
+            var blueprintRegistry = FabricCanonicalPlayerStoreRuntime
+                    .requireWildEncounterBlueprintRegistry(serverPlayer.getServer());
+            if (blueprintRegistry.resolve(binding.canonicalEncounterId()).isEmpty()) {
+                serverPlayer.sendMessage(Text.literal("That wild encounter is not ready."), true);
                 return ActionResult.FAIL;
             }
 

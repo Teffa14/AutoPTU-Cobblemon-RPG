@@ -14,6 +14,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * First normal Marea visible-wild projection.
@@ -23,6 +25,7 @@ import net.minecraft.util.math.Box;
  * a correlation tag. Its Pokemon payload is never read back as PTU authority.</p>
  */
 public final class MareaVisibleWildPokemonRuntime {
+    private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
     private static final String WILD_MARKER_TAG = "ouros:visible-wild";
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
@@ -31,12 +34,15 @@ public final class MareaVisibleWildPokemonRuntime {
     private MareaVisibleWildPokemonRuntime() {}
 
     /**
-     * Restores blueprint publication and UUID correlation for already-saved authored actors before
-     * normal post-start player interaction. Missing actors are not spawned during lifecycle recovery;
-     * the explicit Marea build/provisioning path owns first reveal.
+     * Provisions the currently authored Marea visible-wild slice on normal server startup. Existing
+     * persistent actors are reused and rebound; a missing actor is revealed only after its complete
+     * canonical WILD blueprint has been published into this world's server-owned registry.
      */
     public static void register() {
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> restoreExisting(server.getOverworld()));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            int visible = ensureProjected(server.getOverworld());
+            LOGGER.info("AutoPTU normal Marea visible wild actors ready: {}", visible);
+        });
     }
 
     /** Ensures every currently authored first-slice Marea encounter has a published blueprint and actor. */
@@ -58,6 +64,9 @@ public final class MareaVisibleWildPokemonRuntime {
         publishBeforeReveal(world, encounter.canonicalEncounterId());
 
         BlockPos anchor = presentationAnchor(encounter);
+        // Normal lifecycle provisioning must be able to find a persistent actor after restart even when
+        // the authored Marea chunk was not already in a player's ticket set.
+        world.getChunk(anchor);
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
@@ -90,19 +99,6 @@ public final class MareaVisibleWildPokemonRuntime {
         if (!world.spawnEntity(entity)) return null;
         bind(entity, encounter);
         return entity;
-    }
-
-    private static void restoreExisting(ServerWorld world) {
-        for (var encounter : CanonicalWildEncounterCatalogue.DEFAULT.encounters()) {
-            if (!encounter.siteId().startsWith("ouros.marea.")) continue;
-            BlockPos anchor = presentationAnchor(encounter);
-            PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
-            if (existing == null) continue;
-
-            // Saved Minecraft actors cannot become usable until this world's canonical registry is rebuilt.
-            publishBeforeReveal(world, encounter.canonicalEncounterId());
-            bind(existing, encounter);
-        }
     }
 
     private static void bind(
