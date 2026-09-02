@@ -21,7 +21,7 @@ public final class CanonicalQuestCatalogue {
                     "cedar-ranger",
                     "The Patient Approach",
                     "The Cedar Ranger has a follow-up brief for Trainers who chose to observe the meadow before approaching.",
-                    "Compare what you noticed before contact with what changed after you entered the meadow.",
+                    "Revisit the Ranger's field-notes lectern after your first approach and compare it with what you observed before contact.",
                     List.of(),
                     List.of("cedar_meadow_observe_first")
             ),
