@@ -134,19 +134,27 @@ final class CanonicalQuestObjectiveServiceTest {
         ).accept("player-1", "ouros.npc.taro_min", "marea-tideglass-comparison");
         assertTrue(acceptance.newlyAccepted());
 
+        var objectiveRepository = new FileCanonicalQuestObjectiveRepository(tempDir);
         var service = new CanonicalQuestObjectiveService(
                 CanonicalQuestObjectiveCatalogue.DEFAULT,
                 journals,
-                new FileCanonicalQuestObjectiveRepository(tempDir)
+                objectiveRepository
         );
+        String talkEvent = CanonicalQuestObjectiveCatalogue.npcTalkedEvent("ouros.npc.taro_min");
+
+        assertFalse(service.observe("player-1", talkEvent).changed());
+        assertEquals(0L, objectiveRepository.findOrCreate("player-1").revision());
+
         assertTrue(service.observe("player-1", "location:ouros.marea.loma_storehouse").changed());
+        assertFalse(service.observe("player-1", talkEvent).changed());
+        assertEquals(1L, service.inspectQuest("player-1", "marea-tideglass-comparison").completedCount());
+
         assertTrue(service.observe("player-1", "location:ouros.marea.estacion_mirador").changed());
         var beforeReturn = service.inspectQuest("player-1", "marea-tideglass-comparison");
         assertEquals(2L, beforeReturn.completedCount());
         assertEquals(3L, beforeReturn.totalCount());
         assertFalse(beforeReturn.complete());
 
-        String talkEvent = CanonicalQuestObjectiveCatalogue.npcTalkedEvent("ouros.npc.taro_min");
         var returned = service.observe("player-1", talkEvent);
         assertTrue(returned.changed());
         assertTrue(returned.updates().stream().anyMatch(update ->
