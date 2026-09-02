@@ -17,6 +17,7 @@ public final class FabricTrainerSummaryRuntime {
     private FabricTrainerSummaryRuntime() {}
 
     public static void register() {
+        FabricTrainerRecordRuntime.register();
         FabricTrainerProgressionRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
