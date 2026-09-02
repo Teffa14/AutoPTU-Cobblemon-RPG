@@ -53,6 +53,41 @@ final class CanonicalQuestObjectiveServiceTest {
     }
 
     @Test
+    void patientApproachAdvancesFromThePhysicalFieldNotesEventAfterStoryUnlockAndPersists() {
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var story = new FileCanonicalWorldStoryRepository(tempDir);
+        new CanonicalWorldStoryService(CanonicalWorldStoryCatalogue.DEFAULT, story)
+                .choose("player-1", "cedar-meadow-approach", "observe-first");
+        var acceptance = new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals, story)
+                .accept("player-1", "cedar-ranger", "cedar-observer-brief");
+        assertTrue(acceptance.newlyAccepted());
+
+        var service = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                journals,
+                new FileCanonicalQuestObjectiveRepository(tempDir)
+        );
+        var reviewed = service.observe("player-1", CanonicalQuestObjectiveCatalogue.AUTHORED_QUEST_OBJECT_INSPECTED_EVENT);
+        assertTrue(reviewed.changed());
+        assertTrue(reviewed.updates().stream().anyMatch(update ->
+                update.objective().questId().equals("cedar-observer-brief")
+                        && update.objective().objectiveId().equals("review-field-notes")
+                        && update.questProgress().complete()));
+
+        assertFalse(service.observe("player-1", CanonicalQuestObjectiveCatalogue.AUTHORED_QUEST_OBJECT_INSPECTED_EVENT).changed());
+
+        var reopened = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                new FileCanonicalQuestJournalRepository(tempDir),
+                new FileCanonicalQuestObjectiveRepository(tempDir)
+        );
+        var persisted = reopened.inspectQuest("player-1", "cedar-observer-brief");
+        assertEquals(1L, persisted.completedCount());
+        assertEquals(1L, persisted.totalCount());
+        assertTrue(persisted.complete());
+    }
+
+    @Test
     void physicalNpcTalkEventAdvancesOnlyTheAcceptedAuthoredQuestAndPersists() {
         var journals = new FileCanonicalQuestJournalRepository(tempDir);
         var objectives = new FileCanonicalQuestObjectiveRepository(tempDir);
