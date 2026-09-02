@@ -8,6 +8,7 @@ import java.util.Objects;
 /** Server-authored quest objective bindings. Event keys describe RPG world observations only. */
 public final class CanonicalQuestObjectiveCatalogue {
     public static final String AUTHORED_QUEST_OBJECT_INSPECTED_EVENT = "rpg:authored_quest_object_inspected";
+    private static final String NPC_TALK_EVENT_PREFIX = "rpg:npc_talked:";
 
     public static final CanonicalQuestObjectiveCatalogue DEFAULT = new CanonicalQuestObjectiveCatalogue(List.of(
             new Objective("cedar-field-notes", "observe-lookout", "cedar_meadow:lookout_watching", "Observe the meadow lookout notice your approach."),
@@ -22,6 +23,7 @@ public final class CanonicalQuestObjectiveCatalogue {
 
             new Objective("marea-mirador-observations", "visit-transect", "location:ouros.marea.mirador_transect", "Visit the Mirador transect trailhead."),
             new Objective("marea-mirador-observations", "visit-tideglass", "location:ouros.marea.tideglass_archive", "Visit Tideglass Archive to compare current observations with preserved records."),
+            new Objective("marea-mirador-observations", "consult-taro", npcTalkedEvent("ouros.npc.taro_min"), "Talk with Taro Min at Tideglass Archive about what the preserved record can and cannot establish."),
 
             new Objective("marea-tideglass-comparison", "visit-storehouse", "location:ouros.marea.loma_storehouse", "Visit the Loma Clara cooperative storehouse."),
             new Objective("marea-tideglass-comparison", "visit-mirador", "location:ouros.marea.estacion_mirador", "Visit Estacion Mirador before treating archive records as a current explanation."),
@@ -58,6 +60,10 @@ public final class CanonicalQuestObjectiveCatalogue {
         if (eventKey == null || eventKey.isBlank()) return List.of();
         String normalized = eventKey.trim();
         return objectives.stream().filter(objective -> objective.eventKey().equals(normalized)).toList();
+    }
+
+    public static String npcTalkedEvent(String npcId) {
+        return NPC_TALK_EVENT_PREFIX + requireText(npcId, "npcId");
     }
 
     public record Objective(String questId, String objectiveId, String eventKey, String description) {
