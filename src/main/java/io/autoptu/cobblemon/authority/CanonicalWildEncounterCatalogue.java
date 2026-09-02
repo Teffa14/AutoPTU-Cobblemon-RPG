@@ -22,29 +22,38 @@ public final class CanonicalWildEncounterCatalogue {
             "ouros.marea.encounter.sendero_lower_shelf.fletchling.1";
     public static final String MAREA_CROSSING_FLETCHLING_ID =
             "ouros.marea.encounter.sendero_crossing.fletchling.0";
+    public static final String MAREA_CROSSING_SECOND_FLETCHLING_ID =
+            "ouros.marea.encounter.sendero_crossing.fletchling.1";
 
     public static final CanonicalWildEncounterCatalogue DEFAULT = new CanonicalWildEncounterCatalogue(List.of(
             mareaFletchling(
                     MAREA_FIRST_FLETCHLING_ID,
-                    "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
+                    CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
                     "ouros.marea.sendero_vidrio",
                     "ouros.marea.sendero_vidrio",
                     "lower_shelf_first_slice_v1",
                     3, 1, 3),
             mareaFletchling(
                     MAREA_SECOND_FLETCHLING_ID,
-                    "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
+                    CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
                     "ouros.marea.sendero_vidrio",
                     "ouros.marea.sendero_vidrio",
                     "lower_shelf_second_slice_v1",
                     8, 1, -2),
             mareaFletchling(
                     MAREA_CROSSING_FLETCHLING_ID,
-                    "ouros.marea.wild.sendero_crossing.fletchling.v1",
+                    CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID,
                     "ouros.marea.sendero_crossing",
                     "ouros.marea.sendero_vidrio",
                     "seasonal_crossing_first_slice_v1",
-                    2, 1, 1)
+                    2, 1, 1),
+            mareaFletchling(
+                    MAREA_CROSSING_SECOND_FLETCHLING_ID,
+                    CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID,
+                    "ouros.marea.sendero_crossing",
+                    "ouros.marea.sendero_vidrio",
+                    "seasonal_crossing_second_slice_v1",
+                    -4, 1, 5)
     ));
 
     private final Map<String, EncounterDefinition> encounters;
