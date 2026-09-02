@@ -40,6 +40,8 @@ import java.util.UUID;
 public final class FabricNpcDialogueRuntime {
     static final String NPC_TAG_PREFIX = "autoptu:npc:";
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 25.0D;
+    private static final String SELA_ORRIN_NPC_ID = "ouros.npc.sela_orrin";
+    private static final String SELA_RECORDS_OPTION_ID = "records";
 
     private FabricNpcDialogueRuntime() {}
 
@@ -139,7 +141,12 @@ public final class FabricNpcDialogueRuntime {
             }
             displayedText = option.response();
             String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-            if (option.questId() != null) {
+            if (isSelaRecordReview(option)) {
+                int reviewed = FabricTrainerRecordRuntime.review(player);
+                displayedText = reviewed == 1
+                        ? "I pulled your canonical Trainer record. Compare it with where you started, then decide what actually changed."
+                        : "Your canonical Trainer record is not available yet.";
+            } else if (option.questId() != null) {
                 handleQuestOption(playerId, option.questId());
             } else if (option.challengeId() != null) {
                 var service = new CanonicalTrainerChallengeRequestService(
@@ -153,6 +160,10 @@ public final class FabricNpcDialogueRuntime {
                         : "Challenge unavailable: " + result.detail();
             }
             refresh();
+        }
+
+        private boolean isSelaRecordReview(CanonicalNpcDialogueCatalogue.Option option) {
+            return SELA_ORRIN_NPC_ID.equals(dialogue.npcId()) && SELA_RECORDS_OPTION_ID.equals(option.optionId());
         }
 
         private void handleQuestOption(String playerId, String questId) {
