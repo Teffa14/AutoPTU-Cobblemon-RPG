@@ -23,7 +23,7 @@ import java.util.Set;
  *
  * Blocks, villager bodies and named Pokemon bodies are presentation. Canonical NPC identity,
  * partner identity, quests and location state remain server-owned. Minecraft entity loss, AI
- * movement or Cobblemon payload state cannot rewrite NPC or partner history.
+ * movement or Cobblemon payload state cannot rewrite NPC, partner or wild encounter history.
  */
 public final class MareaInteriorRuntime {
     private static final String NPC_TAG_PREFIX = "autoptu:npc:";
@@ -51,9 +51,12 @@ public final class MareaInteriorRuntime {
         MareaInteriorBuilder.BuildResult result = MareaInteriorBuilder.build(world);
         int spawned = spawnResidents(world);
         int projectedPartners = projectPartners(world);
+        // This call publishes each complete canonical WILD blueprint before its Cobblemon actor can appear.
+        int projectedWilds = MareaVisibleWildPokemonRuntime.ensureProjected(world);
         source.sendFeedback(() -> Text.literal("Marea Interior built at fixed Ouros coordinates. Sites: "
                 + result.builtSiteIds().size() + "; canonical resident actors created: " + spawned
-                + "; named partner Pokemon projected: " + projectedPartners + "."), false);
+                + "; named partner Pokemon projected: " + projectedPartners
+                + "; canonical visible wilds projected: " + projectedWilds + "."), false);
         source.sendFeedback(() -> Text.literal("Use /ouros world marea_interior visit to enter Puerto Bruma."), false);
         return 1;
     }
