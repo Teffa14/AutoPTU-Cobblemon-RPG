@@ -28,7 +28,13 @@ public final class CanonicalQuestObjectiveCatalogue {
 
             new Objective("marea-tideglass-comparison", "visit-storehouse", "location:ouros.marea.loma_storehouse", "Visit the Loma Clara cooperative storehouse."),
             new Objective("marea-tideglass-comparison", "visit-mirador", "location:ouros.marea.estacion_mirador", "Visit Estacion Mirador before treating archive records as a current explanation."),
-            new Objective("marea-tideglass-comparison", "return-to-taro", npcTalkedEvent("ouros.npc.taro_min"), "Return to Taro Min at Tideglass Archive after checking the current observations."),
+            new Objective(
+                    "marea-tideglass-comparison",
+                    "return-to-taro",
+                    npcTalkedEvent("ouros.npc.taro_min"),
+                    "Return to Taro Min at Tideglass Archive after checking the current observations.",
+                    List.of("visit-storehouse", "visit-mirador")
+            ),
 
             new Objective("marea-battle-yard-introduction", "visit-yard", "location:ouros.marea.bruma_battle_yard", "Visit the Bruma Battle Yard."),
             new Objective("marea-battle-yard-introduction", "review-trainer-record", "rpg:trainer_record_reviewed", "Review your current canonical Trainer record before a future audited spar.")
@@ -46,6 +52,17 @@ public final class CanonicalQuestObjectiveCatalogue {
             String identity = objective.questId() + "\u0000" + objective.objectiveId();
             if (!identities.add(identity)) throw new IllegalArgumentException("duplicate quest objective: " + objective.questId() + "/" + objective.objectiveId());
             mutable.computeIfAbsent(objective.questId(), ignored -> new java.util.ArrayList<>()).add(objective);
+        }
+        for (Objective objective : objectives) {
+            for (String requiredObjectiveId : objective.requiredObjectiveIds()) {
+                String requiredIdentity = objective.questId() + "\u0000" + requiredObjectiveId;
+                if (!identities.contains(requiredIdentity)) {
+                    throw new IllegalArgumentException("unknown required quest objective: " + objective.questId() + "/" + requiredObjectiveId);
+                }
+                if (requiredObjectiveId.equals(objective.objectiveId())) {
+                    throw new IllegalArgumentException("quest objective cannot require itself: " + objective.questId() + "/" + objective.objectiveId());
+                }
+            }
         }
         LinkedHashMap<String, List<Objective>> frozen = new LinkedHashMap<>();
         mutable.forEach((questId, values) -> frozen.put(questId, List.copyOf(values)));
@@ -68,12 +85,27 @@ public final class CanonicalQuestObjectiveCatalogue {
         return NPC_TALK_EVENT_PREFIX + requireText(npcId, "npcId");
     }
 
-    public record Objective(String questId, String objectiveId, String eventKey, String description) {
+    public record Objective(
+            String questId,
+            String objectiveId,
+            String eventKey,
+            String description,
+            List<String> requiredObjectiveIds
+    ) {
+        public Objective(String questId, String objectiveId, String eventKey, String description) {
+            this(questId, objectiveId, eventKey, description, List.of());
+        }
+
         public Objective {
             questId = requireText(questId, "questId");
             objectiveId = requireText(objectiveId, "objectiveId");
             eventKey = requireText(eventKey, "eventKey");
             description = requireText(description, "description");
+            Objects.requireNonNull(requiredObjectiveIds, "requiredObjectiveIds");
+            requiredObjectiveIds = requiredObjectiveIds.stream()
+                    .map(value -> requireText(value, "requiredObjectiveId"))
+                    .distinct()
+                    .toList();
         }
     }
 
