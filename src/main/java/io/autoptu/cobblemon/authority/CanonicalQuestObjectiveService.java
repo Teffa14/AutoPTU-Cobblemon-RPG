@@ -40,7 +40,7 @@ public final class CanonicalQuestObjectiveService {
     }
 
     private static boolean prerequisitesComplete(
-            FileCanonicalQuestObjectiveRepository.State current,
+            FileCanonicalQuestObjectiveRepository.ObjectiveState current,
             CanonicalQuestObjectiveCatalogue.Objective objective
     ) {
         return objective.requiredObjectiveIds().stream().allMatch(requiredObjectiveId ->
