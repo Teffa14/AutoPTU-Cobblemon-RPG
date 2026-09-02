@@ -32,6 +32,7 @@ public final class VisibleWildPokemonEncounterRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
     private static final WorldEncounterTriggerRequestService REQUESTS = new WorldEncounterTriggerRequestService();
     private static final Map<UUID, Binding> BINDINGS = new ConcurrentHashMap<>();
+    private static final Map<String, UUID> ENTITY_BY_ENCOUNTER = new ConcurrentHashMap<>();
     private static final Map<MinecraftServer, PersistentWorldEncounterPartyHandoffService> HANDOFFS =
             new IdentityHashMap<>();
 
@@ -42,17 +43,11 @@ public final class VisibleWildPokemonEncounterRuntime {
             if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) {
                 return ActionResult.PASS;
             }
-            if (!(entity instanceof PokemonEntity)) {
-                return ActionResult.PASS;
-            }
+            if (!(entity instanceof PokemonEntity)) return ActionResult.PASS;
 
             Binding binding = BINDINGS.get(entity.getUuid());
-            if (binding == null) {
-                return ActionResult.PASS;
-            }
-            if (serverPlayer.squaredDistanceTo(entity) > MAX_INTERACTION_DISTANCE_SQUARED) {
-                return ActionResult.FAIL;
-            }
+            if (binding == null) return ActionResult.PASS;
+            if (serverPlayer.squaredDistanceTo(entity) > MAX_INTERACTION_DISTANCE_SQUARED) return ActionResult.FAIL;
 
             var blueprintRegistry = FabricCanonicalPlayerStoreRuntime
                     .requireWildEncounterBlueprintRegistry(serverPlayer.getServer());
@@ -64,22 +59,13 @@ public final class VisibleWildPokemonEncounterRuntime {
             String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(serverPlayer.getUuid());
             String dimensionId = serverPlayer.getServerWorld().getRegistryKey().getValue().toString();
             WorldEncounterTriggerRequestService.Decision decision = REQUESTS.requestBoundEncounter(
-                    binding.canonicalEncounterId(),
-                    canonicalPlayerId,
-                    entity.getUuidAsString(),
-                    binding.zoneId(),
-                    binding.contextId(),
-                    dimensionId,
-                    entity.getBlockX(),
-                    entity.getBlockY(),
-                    entity.getBlockZ(),
-                    serverPlayer.getServer().getTicks()
-            );
+                    binding.canonicalEncounterId(), canonicalPlayerId, entity.getUuidAsString(),
+                    binding.zoneId(), binding.contextId(), dimensionId,
+                    entity.getBlockX(), entity.getBlockY(), entity.getBlockZ(), serverPlayer.getServer().getTicks());
 
             PersistentWorldEncounterPartyHandoffService.Decision handoff =
                     handoffService(serverPlayer.getServer(), blueprintRegistry).reserve(decision.request());
-            if (!handoff.ready()
-                    || handoff.reservation() == null
+            if (!handoff.ready() || handoff.reservation() == null
                     || !handoff.reservation().canonicalEncounterId().equals(decision.request().canonicalEncounterId())) {
                 if (decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED) {
                     REQUESTS.clearForPlayer(canonicalPlayerId);
@@ -88,27 +74,22 @@ public final class VisibleWildPokemonEncounterRuntime {
                 return ActionResult.FAIL;
             }
 
-            if (decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED) {
-                serverPlayer.sendMessage(Text.literal("Your party is locked in for the wild encounter."), true);
-            } else {
-                serverPlayer.sendMessage(Text.literal("Your pending wild encounter remains locked to the same party handoff."), true);
-            }
-
+            serverPlayer.sendMessage(Text.literal(
+                    decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED
+                            ? "Your party is locked in for the wild encounter."
+                            : "Your pending wild encounter remains locked to the same party handoff."), true);
             return ActionResult.SUCCESS;
         });
     }
 
     private static PersistentWorldEncounterPartyHandoffService handoffService(
             MinecraftServer server,
-            io.autoptu.cobblemon.fabric.battle.CanonicalWildEncounterBlueprintSource blueprintSource
-    ) {
+            io.autoptu.cobblemon.fabric.battle.CanonicalWildEncounterBlueprintSource blueprintSource) {
         Objects.requireNonNull(server, "server");
         synchronized (HANDOFFS) {
             return HANDOFFS.computeIfAbsent(server, ignored -> new PersistentWorldEncounterPartyHandoffService(
                     FabricCanonicalPlayerStoreRuntime.requireRepository(server),
-                    FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(server),
-                    blueprintSource
-            ));
+                    FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(server), blueprintSource));
         }
     }
 
@@ -123,46 +104,40 @@ public final class VisibleWildPokemonEncounterRuntime {
 
     public static void clearServerHandoffs(MinecraftServer server) {
         if (server == null) return;
-        synchronized (HANDOFFS) {
-            HANDOFFS.remove(server);
-        }
+        synchronized (HANDOFFS) { HANDOFFS.remove(server); }
     }
 
     public static void bindRequestRepository(WorldEncounterTriggerRequestRepository repository) {
         REQUESTS.useRepository(Objects.requireNonNull(repository, "repository"));
     }
 
-    public static void resetRequestRepository() {
-        REQUESTS.resetRepository();
-    }
+    public static void resetRequestRepository() { REQUESTS.resetRepository(); }
 
-    public static void bind(
-            PokemonEntity presentationEntity,
-            String canonicalEncounterId,
-            String zoneId,
-            String contextId
-    ) {
+    public static void bind(PokemonEntity presentationEntity, String canonicalEncounterId, String zoneId, String contextId) {
         if (presentationEntity == null) throw new IllegalArgumentException("presentationEntity is required");
-        BINDINGS.put(
-                presentationEntity.getUuid(),
-                new Binding(
-                        requireId(canonicalEncounterId, "canonicalEncounterId"),
-                        requireId(zoneId, "zoneId"),
-                        requireId(contextId, "contextId")
-                )
-        );
+        String encounterId = requireId(canonicalEncounterId, "canonicalEncounterId");
+        Binding binding = new Binding(encounterId, requireId(zoneId, "zoneId"), requireId(contextId, "contextId"));
+        UUID currentUuid = presentationEntity.getUuid();
+        UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
+        if (previousUuid != null && !previousUuid.equals(currentUuid)) BINDINGS.remove(previousUuid);
+        BINDINGS.put(currentUuid, binding);
     }
 
     public static boolean unbind(UUID entityUuid) {
-        return entityUuid != null && BINDINGS.remove(entityUuid) != null;
+        if (entityUuid == null) return false;
+        Binding removed = BINDINGS.remove(entityUuid);
+        if (removed == null) return false;
+        ENTITY_BY_ENCOUNTER.remove(removed.canonicalEncounterId(), entityUuid);
+        return true;
     }
 
-    public static WorldEncounterTriggerRequestService requests() {
-        return REQUESTS;
-    }
+    public static WorldEncounterTriggerRequestService requests() { return REQUESTS; }
 
-    static boolean isBound(UUID entityUuid) {
-        return entityUuid != null && BINDINGS.containsKey(entityUuid);
+    static boolean isBound(UUID entityUuid) { return entityUuid != null && BINDINGS.containsKey(entityUuid); }
+
+    static Optional<UUID> boundEntityUuid(String canonicalEncounterId) {
+        if (canonicalEncounterId == null || canonicalEncounterId.isBlank()) return Optional.empty();
+        return Optional.ofNullable(ENTITY_BY_ENCOUNTER.get(canonicalEncounterId.strip()));
     }
 
     static Optional<Binding> binding(UUID entityUuid) {
