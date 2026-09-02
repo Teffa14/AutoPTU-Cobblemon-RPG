@@ -18,41 +18,30 @@ import net.minecraft.util.math.Box;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * First normal Marea visible-wild projection.
- *
- * <p>The complete canonical PTU blueprint is published to the active world's create-only registry
- * before a Cobblemon PokemonEntity is revealed. The entity carries only species presentation and
- * a correlation tag. Its Pokemon payload is never read back as PTU authority.</p>
- */
+/** First normal Marea visible-wild projection backed only by canonical AutoPTU state. */
 public final class MareaVisibleWildPokemonRuntime {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
     private static final String WILD_MARKER_TAG = "ouros:visible-wild";
     private static final int PRESENCE_RECONCILE_INTERVAL_TICKS = 100;
+    private static final int HABITAT_LEASH_RADIUS_BLOCKS = 32;
+    private static final int HABITAT_SEARCH_RADIUS_BLOCKS = 48;
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
             new MareaCanonicalWildEncounterBlueprintSource();
 
     private MareaVisibleWildPokemonRuntime() {}
 
-    /**
-     * Provisions the currently authored Marea visible-wild slice on normal server startup and keeps
-     * that authored presence reconciled while the server runs. Reconciliation may recreate only a
-     * presentation actor whose complete canonical blueprint already exists in the trusted catalogue;
-     * it never authors a new encounter, species, level, stat, move, status, Ability or PTU outcome.
-     */
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             int visible = ensureProjected(server.getOverworld());
             LOGGER.info("AutoPTU normal Marea visible wild actors ready: {}", visible);
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (server.getTicks() % PRESENCE_RECONCILE_INTERVAL_TICKS != 0) return;
-            ensureProjected(server.getOverworld());
+            keepProjectedActorsInHabitat(server.getOverworld());
+            if (server.getTicks() % PRESENCE_RECONCILE_INTERVAL_TICKS == 0) ensureProjected(server.getOverworld());
         });
     }
 
-    /** Ensures every currently authored first-slice Marea encounter has a published blueprint and actor. */
     public static int ensureProjected(ServerWorld world) {
         if (world == null) throw new IllegalArgumentException("world is required");
         int visible = 0;
@@ -63,46 +52,30 @@ public final class MareaVisibleWildPokemonRuntime {
         return visible;
     }
 
-    static PokemonEntity ensureProjected(
-            ServerWorld world,
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
-    ) {
-        // Authority is established before either finding/rebinding or revealing a presentation actor.
+    static PokemonEntity ensureProjected(ServerWorld world, CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
         publishBeforeReveal(world, encounter.canonicalEncounterId());
-
         BlockPos anchor = presentationAnchor(encounter);
-        // Lifecycle provisioning and reconciliation must find a persistent actor even when its authored
-        // Marea chunk was not already in a player's ticket set.
-        world.getChunk(anchor);
+        loadHabitatChunks(world, anchor);
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
+            keepInHabitat(existing, anchor);
             return existing;
         }
 
         enforceProjectionContentGate(encounter);
         Species species = PokemonSpecies.INSTANCE.getByName(encounter.speciesId());
         if (species == null) {
-            throw new IllegalStateException("Cobblemon official species unavailable for Marea wild actor: "
-                    + encounter.speciesId());
+            throw new IllegalStateException("Cobblemon official species unavailable for Marea wild actor: " + encounter.speciesId());
         }
 
-        // Species is supplied only so Cobblemon can render the correct official model. Canonical level,
-        // HP, stats, moves, Ability, statuses and battle state remain exclusively in the published blueprint.
         Pokemon pokemon = new Pokemon();
         pokemon.setSpecies(species);
         PokemonEntity entity = new PokemonEntity(world, pokemon, CobblemonEntities.POKEMON);
-        entity.refreshPositionAndAngles(
-                anchor.getX() + 0.5D,
-                anchor.getY(),
-                anchor.getZ() + 0.5D,
-                180.0F,
-                0.0F
-        );
+        entity.refreshPositionAndAngles(anchor.getX() + 0.5D, anchor.getY(), anchor.getZ() + 0.5D, 180.0F, 0.0F);
         entity.setPersistent();
         entity.addCommandTag(WILD_TAG_PREFIX + encounter.canonicalEncounterId());
         entity.addCommandTag(WILD_MARKER_TAG);
-
         if (!world.spawnEntity(entity)) return null;
         bind(entity, encounter);
         return entity;
@@ -113,33 +86,50 @@ public final class MareaVisibleWildPokemonRuntime {
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
         if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
         BlockPos anchor = presentationAnchor(encounter);
-        world.getChunk(anchor);
+        loadHabitatChunks(world, anchor);
         return findExisting(world, encounter.canonicalEncounterId(), anchor);
     }
 
-    static int presenceReconcileIntervalTicks() {
-        return PRESENCE_RECONCILE_INTERVAL_TICKS;
+    static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
+
+    private static void keepProjectedActorsInHabitat(ServerWorld world) {
+        for (var encounter : CanonicalWildEncounterCatalogue.DEFAULT.encounters()) {
+            if (!encounter.siteId().startsWith("ouros.marea.")) continue;
+            var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
+            if (boundUuid.isEmpty()) continue;
+            var loaded = world.getEntity(boundUuid.get());
+            if (loaded instanceof PokemonEntity pokemonEntity) keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+        }
     }
 
-    private static void bind(
-            PokemonEntity entity,
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
-    ) {
-        VisibleWildPokemonEncounterRuntime.bind(
-                entity,
-                encounter.canonicalEncounterId(),
-                encounter.zoneId(),
-                encounter.contextId()
-        );
+    private static void keepInHabitat(PokemonEntity entity, BlockPos anchor) {
+        double centerX = anchor.getX() + 0.5D;
+        double centerZ = anchor.getZ() + 0.5D;
+        double dx = entity.getX() - centerX;
+        double dz = entity.getZ() - centerZ;
+        if (dx * dx + dz * dz <= (double) HABITAT_LEASH_RADIUS_BLOCKS * HABITAT_LEASH_RADIUS_BLOCKS) return;
+        entity.requestTeleport(centerX, anchor.getY(), centerZ);
+    }
+
+    private static void loadHabitatChunks(ServerWorld world, BlockPos anchor) {
+        int minChunkX = Math.floorDiv(anchor.getX() - HABITAT_SEARCH_RADIUS_BLOCKS, 16);
+        int maxChunkX = Math.floorDiv(anchor.getX() + HABITAT_SEARCH_RADIUS_BLOCKS, 16);
+        int minChunkZ = Math.floorDiv(anchor.getZ() - HABITAT_SEARCH_RADIUS_BLOCKS, 16);
+        int maxChunkZ = Math.floorDiv(anchor.getZ() + HABITAT_SEARCH_RADIUS_BLOCKS, 16);
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) world.getChunk(chunkX, chunkZ);
+        }
+    }
+
+    private static void bind(PokemonEntity entity, CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+        VisibleWildPokemonEncounterRuntime.bind(entity, encounter.canonicalEncounterId(), encounter.zoneId(), encounter.contextId());
     }
 
     private static void enforceProjectionContentGate(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
         if (encounter.speciesStatus() != CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL) {
             throw new IllegalStateException("ordinary Marea projection refuses non-official species content");
         }
-        if (encounter.fusion()) {
-            throw new IllegalStateException("ordinary Marea projection refuses fusion content");
-        }
+        if (encounter.fusion()) throw new IllegalStateException("ordinary Marea projection refuses fusion content");
         if (!"standard".equals(encounter.formId())) {
             throw new IllegalStateException("first Marea wild projection supports only the approved standard form");
         }
@@ -148,36 +138,25 @@ public final class MareaVisibleWildPokemonRuntime {
     private static void publishBeforeReveal(ServerWorld world, String canonicalEncounterId) {
         var registry = FabricCanonicalPlayerStoreRuntime.requireWildEncounterBlueprintRegistry(world.getServer());
         if (registry.resolve(canonicalEncounterId).isPresent()) return;
-
         boolean published = ServerOwnedWildEncounterBlueprintPublisher
-                .fromWorldRuntime(world.getServer(), BLUEPRINT_SOURCE)
-                .publish(canonicalEncounterId);
+                .fromWorldRuntime(world.getServer(), BLUEPRINT_SOURCE).publish(canonicalEncounterId);
         if (!published || registry.resolve(canonicalEncounterId).isEmpty()) {
-            throw new IllegalStateException("canonical Marea wild blueprint must exist before actor reveal: "
-                    + canonicalEncounterId);
+            throw new IllegalStateException("canonical Marea wild blueprint must exist before actor reveal: " + canonicalEncounterId);
         }
     }
 
     private static BlockPos presentationAnchor(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
         var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild encounter site: "
-                        + encounter.siteId()));
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild encounter site: " + encounter.siteId()));
         return new BlockPos(site.x(), site.y(), site.z()).add(
-                encounter.presentationOffsetX(),
-                encounter.presentationOffsetY(),
-                encounter.presentationOffsetZ()
-        );
+                encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
     }
 
     private static PokemonEntity findExisting(ServerWorld world, String canonicalEncounterId, BlockPos anchor) {
         String tag = WILD_TAG_PREFIX + canonicalEncounterId;
-        return world.getEntitiesByClass(
-                        PokemonEntity.class,
-                        new Box(anchor).expand(96.0D, 48.0D, 96.0D),
-                        entity -> entity.getCommandTags().contains(tag)
-                )
-                .stream()
-                .findFirst()
-                .orElse(null);
+        return world.getEntitiesByClass(PokemonEntity.class,
+                        new Box(anchor).expand(HABITAT_SEARCH_RADIUS_BLOCKS, 24.0D, HABITAT_SEARCH_RADIUS_BLOCKS),
+                        entity -> entity.getCommandTags().contains(tag))
+                .stream().findFirst().orElse(null);
     }
 }
