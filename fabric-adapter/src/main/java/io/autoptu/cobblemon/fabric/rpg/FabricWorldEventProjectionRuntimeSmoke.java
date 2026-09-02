@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
+import net.minecraft.block.FenceGateBlock;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.block.TrapdoorBlock;
@@ -39,10 +40,12 @@ public final class FabricWorldEventProjectionRuntimeSmoke {
         BlockPos switchAnchor = shrineAnchor.east(2);
         BlockPos doorAnchor = shrineAnchor.east(4);
         BlockPos trapdoorAnchor = shrineAnchor.east(6);
+        BlockPos fenceGateAnchor = shrineAnchor.east(8);
         BlockState originalShrine = world.getBlockState(shrineAnchor);
         BlockState originalSwitch = world.getBlockState(switchAnchor);
         BlockState originalDoor = world.getBlockState(doorAnchor);
         BlockState originalTrapdoor = world.getBlockState(trapdoorAnchor);
+        BlockState originalFenceGate = world.getBlockState(fenceGateAnchor);
         var activatedShrine = new FileCanonicalWorldEventObjectRepository.State(
                 "minecraft:overworld:smoke-shrine",
                 CanonicalWorldEventObjectService.SHRINE_EVENT_KEY,
@@ -132,6 +135,20 @@ public final class FabricWorldEventProjectionRuntimeSmoke {
                 throw new IllegalStateException("replayed canonical trapdoor projection was not idempotent");
             }
 
+            world.setBlockState(
+                    fenceGateAnchor,
+                    Blocks.OAK_FENCE_GATE.getDefaultState().with(FenceGateBlock.OPEN, false),
+                    Block.NOTIFY_ALL
+            );
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, fenceGateAnchor, activatedDoor);
+            if (!world.getBlockState(fenceGateAnchor).get(FenceGateBlock.OPEN)) {
+                throw new IllegalStateException("activated canonical fence gate did not project to open Minecraft state");
+            }
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, fenceGateAnchor, activatedDoor);
+            if (!world.getBlockState(fenceGateAnchor).get(FenceGateBlock.OPEN)) {
+                throw new IllegalStateException("replayed canonical fence gate projection was not idempotent");
+            }
+
             world.setBlockState(doorAnchor, Blocks.STONE.getDefaultState(), Block.NOTIFY_ALL);
             FabricCanonicalWorldInteractionRuntime.projectDoorState(world, doorAnchor, activatedDoor);
             if (!world.getBlockState(doorAnchor).isOf(Blocks.STONE)) {
@@ -143,6 +160,7 @@ public final class FabricWorldEventProjectionRuntimeSmoke {
             world.setBlockState(switchAnchor, originalSwitch, Block.NOTIFY_ALL);
             world.setBlockState(doorAnchor, originalDoor, Block.NOTIFY_ALL);
             world.setBlockState(trapdoorAnchor, originalTrapdoor, Block.NOTIFY_ALL);
+            world.setBlockState(fenceGateAnchor, originalFenceGate, Block.NOTIFY_ALL);
         }
     }
 }
