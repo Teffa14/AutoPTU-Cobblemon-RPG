@@ -17,16 +17,19 @@ import net.minecraft.block.FenceGateBlock;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.block.TrapdoorBlock;
+import net.minecraft.block.enums.BlockFace;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.Optional;
@@ -197,7 +200,20 @@ public final class FabricCanonicalWorldInteractionRuntime {
         BlockState current = world.getBlockState(anchor);
         if (!current.isOf(Blocks.LEVER)) return;
         if (current.get(LeverBlock.POWERED)) return;
-        world.setBlockState(anchor, current.with(LeverBlock.POWERED, true), Block.NOTIFY_ALL);
+        BlockState powered = current.with(LeverBlock.POWERED, true);
+        world.setBlockState(anchor, powered, Block.NOTIFY_ALL);
+        world.updateNeighborsAlways(anchor, current.getBlock());
+        world.updateNeighborsAlways(leverAttachmentPosition(powered, anchor), current.getBlock());
+    }
+
+    static BlockPos leverAttachmentPosition(BlockState state, BlockPos anchor) {
+        BlockFace face = state.get(Properties.BLOCK_FACE);
+        Direction outward = switch (face) {
+            case FLOOR -> Direction.UP;
+            case CEILING -> Direction.DOWN;
+            case WALL -> state.get(Properties.HORIZONTAL_FACING);
+        };
+        return anchor.offset(outward.getOpposite());
     }
 
     static void projectDoorState(World world, BlockPos anchor, FileCanonicalWorldEventObjectRepository.State canonicalState) {
