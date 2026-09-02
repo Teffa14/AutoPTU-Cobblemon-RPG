@@ -39,11 +39,13 @@ public final class CanonicalWorldEventObjectService {
         String object = objectId.trim();
         if (players.findPlayer(owner).isEmpty()) return Decision.rejected("canonical Trainer is not loaded");
 
+        var persisted = events.find(object);
+        if (persisted.isPresent() && !eventKey.equals(persisted.orElseThrow().eventKey())) {
+            return Decision.rejected("world object already belongs to another canonical event");
+        }
+
         for (int attempt = 0; attempt < 2; attempt++) {
             var current = events.findOrCreate(object, eventKey);
-            if (!eventKey.equals(current.eventKey())) {
-                return Decision.rejected("world object already belongs to another canonical event");
-            }
             var result = events.activate(object, eventKey, current.revision());
             if (result.status() == FileCanonicalWorldEventObjectRepository.Status.ACTIVATED) {
                 return new Decision(true, true, result.state(), activatedDetail);
