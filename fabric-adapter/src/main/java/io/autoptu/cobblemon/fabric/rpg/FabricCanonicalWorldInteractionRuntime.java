@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
+import net.minecraft.block.FenceGateBlock;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.block.TrapdoorBlock;
@@ -212,6 +213,11 @@ public final class FabricCanonicalWorldInteractionRuntime {
         if (current.getBlock() instanceof TrapdoorBlock) {
             if (current.get(TrapdoorBlock.OPEN)) return;
             world.setBlockState(anchor, current.with(TrapdoorBlock.OPEN, true), Block.NOTIFY_ALL);
+            return;
+        }
+        if (current.getBlock() instanceof FenceGateBlock) {
+            if (current.get(FenceGateBlock.OPEN)) return;
+            world.setBlockState(anchor, current.with(FenceGateBlock.OPEN, true), Block.NOTIFY_ALL);
         }
     }
 
@@ -258,7 +264,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
     }
 
     private static boolean isSupportedDoor(Block block) {
-        return block instanceof DoorBlock || block instanceof TrapdoorBlock;
+        return block instanceof DoorBlock || block instanceof TrapdoorBlock || block instanceof FenceGateBlock;
     }
 
     record AuthoredObject(String objectId, CanonicalWorldInteractionService.Kind kind, BlockPos anchor) {}
