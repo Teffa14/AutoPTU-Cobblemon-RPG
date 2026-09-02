@@ -5,6 +5,7 @@ import java.util.Objects;
 /** Server authority boundary for durable authored world-event object activation. */
 public final class CanonicalWorldEventObjectService {
     public static final String SHRINE_EVENT_KEY = "ouros_shrine_awakened";
+    public static final String SWITCH_EVENT_KEY = "ouros_switch_latched";
 
     private final CanonicalStateRepository players;
     private final FileCanonicalWorldEventObjectRepository events;
@@ -18,6 +19,20 @@ public final class CanonicalWorldEventObjectService {
     }
 
     public Decision activateShrine(String playerId, String objectId) {
+        return activate(playerId, objectId, SHRINE_EVENT_KEY, "world event activated", "world event already active");
+    }
+
+    public Decision activateSwitch(String playerId, String objectId) {
+        return activate(playerId, objectId, SWITCH_EVENT_KEY, "world switch latched", "world switch already latched");
+    }
+
+    private Decision activate(
+            String playerId,
+            String objectId,
+            String eventKey,
+            String activatedDetail,
+            String alreadyActiveDetail
+    ) {
         if (playerId == null || playerId.isBlank()) return Decision.rejected("playerId is required");
         if (objectId == null || objectId.isBlank()) return Decision.rejected("objectId is required");
         String owner = playerId.trim();
@@ -25,13 +40,16 @@ public final class CanonicalWorldEventObjectService {
         if (players.findPlayer(owner).isEmpty()) return Decision.rejected("canonical Trainer is not loaded");
 
         for (int attempt = 0; attempt < 2; attempt++) {
-            var current = events.findOrCreate(object, SHRINE_EVENT_KEY);
-            var result = events.activate(object, SHRINE_EVENT_KEY, current.revision());
+            var current = events.findOrCreate(object, eventKey);
+            if (!eventKey.equals(current.eventKey())) {
+                return Decision.rejected("world object already belongs to another canonical event");
+            }
+            var result = events.activate(object, eventKey, current.revision());
             if (result.status() == FileCanonicalWorldEventObjectRepository.Status.ACTIVATED) {
-                return new Decision(true, true, result.state(), "world event activated");
+                return new Decision(true, true, result.state(), activatedDetail);
             }
             if (result.status() == FileCanonicalWorldEventObjectRepository.Status.ALREADY_ACTIVE) {
-                return new Decision(true, false, result.state(), "world event already active");
+                return new Decision(true, false, result.state(), alreadyActiveDetail);
             }
         }
         return Decision.rejected("world event object changed concurrently");
