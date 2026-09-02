@@ -68,6 +68,7 @@ public final class CanonicalNpcDialogueCatalogue {
                     List.of(
                             new Option("yard", "What is the Battle Yard?", "A local training and battle institution. It is not a Gym just because people fight here, and I do not hand out invented badges."),
                             new Option("measure-change", "How do I start here?", "See the yard, review your Trainer record, then come back. If we spar later, AutoPTU will own every legal action and result.", "marea-battle-yard-introduction"),
+                            new Option("records", "Review my Trainer record.", "I will pull the canonical record the server has for you. We compare what is recorded; we do not invent battle history."),
                             new Option("delivery", "Can battling help the delivery problem?", "It can help if a real field situation requires a battle. Winning a match does not explain missing produce."),
                             new Option("rook", "Tell me about Rook.", "Rook is my Falinks partner. His effective battle level can grow with serious challengers, but his identity and our history do not reroll every encounter.")
                     )
