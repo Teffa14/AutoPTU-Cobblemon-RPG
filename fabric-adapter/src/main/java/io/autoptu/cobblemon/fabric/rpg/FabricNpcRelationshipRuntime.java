@@ -2,6 +2,8 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalNpcDialogueCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalNpcRelationshipService;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -10,7 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 
-/** Records durable RPG relationship contact from the normal physical NPC interaction path. */
+/** Records durable RPG relationship contact and authored quest progress from the normal physical NPC interaction path. */
 public final class FabricNpcRelationshipRuntime {
     private FabricNpcRelationshipRuntime() {}
 
@@ -39,6 +41,18 @@ public final class FabricNpcRelationshipRuntime {
                         .orElse(npcId);
                 serverPlayer.sendMessage(Text.literal(
                         "Relationship established: " + name + " — reputation " + result.relationship().reputation()), false);
+            }
+
+            var objectiveEvent = new CanonicalQuestObjectiveService(
+                    CanonicalQuestObjectiveCatalogue.DEFAULT,
+                    FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(serverPlayer.getServer()),
+                    FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(serverPlayer.getServer())
+            ).observe(playerId, CanonicalQuestObjectiveCatalogue.npcTalkedEvent(npcId));
+            if (objectiveEvent.changed()) {
+                String name = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue(npcId)
+                        .map(CanonicalNpcDialogueCatalogue.Dialogue::displayName)
+                        .orElse(npcId);
+                serverPlayer.sendMessage(Text.literal("Quest updated: you spoke with " + name + "."), false);
             }
             return ActionResult.PASS;
         });
