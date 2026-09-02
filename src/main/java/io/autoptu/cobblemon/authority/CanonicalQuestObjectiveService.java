@@ -27,6 +27,7 @@ public final class CanonicalQuestObjectiveService {
             if (!journal.entries().containsKey(objective.questId())) continue;
             for (int attempt = 0; attempt < 4; attempt++) {
                 var current = progress.findOrCreate(playerId);
+                if (!prerequisitesComplete(current, objective)) break;
                 var result = progress.complete(playerId, objective.questId(), objective.objectiveId(), current.revision());
                 if (result.status() == FileCanonicalQuestObjectiveRepository.CompleteStatus.STALE_REVISION) continue;
                 boolean newlyCompleted = result.status() == FileCanonicalQuestObjectiveRepository.CompleteStatus.COMPLETED;
@@ -36,6 +37,17 @@ public final class CanonicalQuestObjectiveService {
             }
         }
         return new EventResult(List.copyOf(updates));
+    }
+
+    private static boolean prerequisitesComplete(
+            FileCanonicalQuestObjectiveRepository.State current,
+            CanonicalQuestObjectiveCatalogue.Objective objective
+    ) {
+        return objective.requiredObjectiveIds().stream().allMatch(requiredObjectiveId ->
+                current.completedObjectives().contains(
+                        FileCanonicalQuestObjectiveRepository.key(objective.questId(), requiredObjectiveId)
+                )
+        );
     }
 
     public QuestProgress inspectQuest(String playerId, String questId) {
