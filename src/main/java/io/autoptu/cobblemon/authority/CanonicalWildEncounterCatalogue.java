@@ -20,10 +20,31 @@ public final class CanonicalWildEncounterCatalogue {
             "ouros.marea.encounter.sendero_lower_shelf.fletchling.0";
     public static final String MAREA_SECOND_FLETCHLING_ID =
             "ouros.marea.encounter.sendero_lower_shelf.fletchling.1";
+    public static final String MAREA_CROSSING_FLETCHLING_ID =
+            "ouros.marea.encounter.sendero_crossing.fletchling.0";
 
     public static final CanonicalWildEncounterCatalogue DEFAULT = new CanonicalWildEncounterCatalogue(List.of(
-            mareaFletchling(MAREA_FIRST_FLETCHLING_ID, "lower_shelf_first_slice_v1", 3, 1, 3),
-            mareaFletchling(MAREA_SECOND_FLETCHLING_ID, "lower_shelf_second_slice_v1", 8, 1, -2)
+            mareaFletchling(
+                    MAREA_FIRST_FLETCHLING_ID,
+                    "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
+                    "ouros.marea.sendero_vidrio",
+                    "ouros.marea.sendero_vidrio",
+                    "lower_shelf_first_slice_v1",
+                    3, 1, 3),
+            mareaFletchling(
+                    MAREA_SECOND_FLETCHLING_ID,
+                    "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
+                    "ouros.marea.sendero_vidrio",
+                    "ouros.marea.sendero_vidrio",
+                    "lower_shelf_second_slice_v1",
+                    8, 1, -2),
+            mareaFletchling(
+                    MAREA_CROSSING_FLETCHLING_ID,
+                    "ouros.marea.wild.sendero_crossing.fletchling.v1",
+                    "ouros.marea.sendero_crossing",
+                    "ouros.marea.sendero_vidrio",
+                    "seasonal_crossing_first_slice_v1",
+                    2, 1, 1)
     ));
 
     private final Map<String, EncounterDefinition> encounters;
@@ -50,8 +71,19 @@ public final class CanonicalWildEncounterCatalogue {
         return List.copyOf(encounters.values());
     }
 
+    public List<EncounterDefinition> encountersForPopulation(String populationId) {
+        if (populationId == null || populationId.isBlank()) return List.of();
+        String normalized = populationId.strip();
+        return encounters.values().stream()
+                .filter(encounter -> normalized.equals(encounter.populationId()))
+                .toList();
+    }
+
     private static EncounterDefinition mareaFletchling(
             String canonicalEncounterId,
+            String populationId,
+            String siteId,
+            String zoneId,
             String contextId,
             int presentationOffsetX,
             int presentationOffsetY,
@@ -59,9 +91,9 @@ public final class CanonicalWildEncounterCatalogue {
     ) {
         return new EncounterDefinition(
                 canonicalEncounterId,
-                "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
-                "ouros.marea.sendero_vidrio",
-                "ouros.marea.sendero_vidrio",
+                populationId,
+                siteId,
+                zoneId,
                 contextId,
                 1,
                 presentationOffsetX,
