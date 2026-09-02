@@ -19,7 +19,8 @@ import java.util.List;
  *
  * The yard owns only Minecraft placement/presentation. Every facility keeps using its existing
  * server-owned RPG service boundary, while Cobblemon blocks remain presentation/identity surfaces.
- * Existing non-air world blocks are never overwritten.
+ * Existing non-air world blocks are never overwritten. Each facility has a small authored fallback
+ * set so normal terrain or another server provisioner cannot silently remove part of the service yard.
  */
 public final class FabricCedarServiceYardRuntime {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cedar-service-yard");
@@ -36,37 +37,27 @@ public final class FabricCedarServiceYardRuntime {
         BlockPos anchor = findStandingPosition(world, spawn);
 
         List<Facility> facilities = List.of(
-                new Facility("healing_machine", -8, 6, CobblemonBlocks.HEALING_MACHINE.getDefaultState()),
-                new Facility("pc", -6, 6, CobblemonBlocks.PC.getDefaultState()),
-                new Facility("recovery_bed", -4, 6, FabricRpgContent.PTU_RECOVERY_BED.getDefaultState()),
-                new Facility("cedar_mart", -2, 6, FabricRpgContent.CEDAR_MART_COUNTER.getDefaultState()),
-                new Facility("item_storage", -8, 9, FabricRpgContent.ITEM_STORAGE_TERMINAL.getDefaultState()),
-                new Facility("crafting", -6, 9, FabricRpgContent.CRAFTING_WORKSTATION.getDefaultState()),
-                new Facility("field_camp", -4, 9, FabricRpgContent.FIELD_CAMP.getDefaultState()),
-                new Facility("league_desk", -2, 9, FabricRpgContent.GYM_LEAGUE_REGISTRATION_DESK.getDefaultState()),
-                new Facility("mailbox", -8, 12, FabricRpgContent.OUROS_MAILBOX.getDefaultState()),
-                new Facility("fast_travel", -6, 12, Blocks.LODESTONE.getDefaultState())
+                facility("healing_machine", CobblemonBlocks.HEALING_MACHINE.getDefaultState(), -8, 6),
+                facility("pc", CobblemonBlocks.PC.getDefaultState(), -6, 6),
+                facility("recovery_bed", FabricRpgContent.PTU_RECOVERY_BED.getDefaultState(), -4, 6),
+                facility("cedar_mart", FabricRpgContent.CEDAR_MART_COUNTER.getDefaultState(), -2, 6),
+                facility("item_storage", FabricRpgContent.ITEM_STORAGE_TERMINAL.getDefaultState(), -8, 9),
+                facility("crafting", FabricRpgContent.CRAFTING_WORKSTATION.getDefaultState(), -6, 9),
+                facility("field_camp", FabricRpgContent.FIELD_CAMP.getDefaultState(), -4, 9),
+                facility("league_desk", FabricRpgContent.GYM_LEAGUE_REGISTRATION_DESK.getDefaultState(), -2, 9),
+                facility("mailbox", FabricRpgContent.OUROS_MAILBOX.getDefaultState(), -8, 12),
+                facility("fast_travel", Blocks.LODESTONE.getDefaultState(), -6, 12)
         );
 
         int placed = 0;
         int present = 0;
         int blocked = 0;
         for (Facility facility : facilities) {
-            BlockPos pos = anchor.add(facility.offsetX(), 0, facility.offsetZ());
-            BlockState current = world.getBlockState(pos);
-            if (current.isOf(facility.state().getBlock())) {
-                present++;
-                continue;
-            }
-            if (!current.isAir()) {
-                blocked++;
-                LOGGER.warn("Cedar service yard left occupied block unchanged for {} at {}", facility.id(), pos);
-                continue;
-            }
-            if (world.setBlockState(pos, facility.state(), Block.NOTIFY_ALL)) {
-                placed++;
-            } else {
-                blocked++;
+            Placement placement = ensureFacility(world, anchor, facility);
+            switch (placement) {
+                case PLACED -> placed++;
+                case PRESENT -> present++;
+                case BLOCKED -> blocked++;
             }
         }
 
@@ -77,6 +68,37 @@ public final class FabricCedarServiceYardRuntime {
     public static BlockPos viewingPosition(MinecraftServer server) {
         BlockPos anchor = findStandingPosition(server.getOverworld(), server.getOverworld().getSpawnPos());
         return anchor.add(-5, 1, 1);
+    }
+
+    private static Placement ensureFacility(ServerWorld world, BlockPos anchor, Facility facility) {
+        for (Offset candidate : facility.candidates()) {
+            BlockPos pos = anchor.add(candidate.x(), 0, candidate.z());
+            if (world.getBlockState(pos).isOf(facility.state().getBlock())) {
+                return Placement.PRESENT;
+            }
+        }
+        for (Offset candidate : facility.candidates()) {
+            BlockPos pos = anchor.add(candidate.x(), 0, candidate.z());
+            if (!world.getBlockState(pos).isAir()) continue;
+            if (world.setBlockState(pos, facility.state(), Block.NOTIFY_ALL)) {
+                if (!candidate.equals(facility.candidates().getFirst())) {
+                    LOGGER.info("Cedar service yard used authored fallback for {} at {}", facility.id(), pos);
+                }
+                return Placement.PLACED;
+            }
+        }
+        LOGGER.warn("Cedar service yard found no free authored slot for {}", facility.id());
+        return Placement.BLOCKED;
+    }
+
+    private static Facility facility(String id, BlockState state, int preferredX, int preferredZ) {
+        return new Facility(id, state, List.of(
+                new Offset(preferredX, preferredZ),
+                new Offset(preferredX - 1, preferredZ),
+                new Offset(preferredX + 1, preferredZ),
+                new Offset(preferredX, preferredZ + 1),
+                new Offset(preferredX, preferredZ - 1)
+        ));
     }
 
     private static BlockPos findStandingPosition(World world, BlockPos preferred) {
@@ -90,7 +112,11 @@ public final class FabricCedarServiceYardRuntime {
         return preferred;
     }
 
-    private record Facility(String id, int offsetX, int offsetZ, BlockState state) {}
+    private enum Placement { PLACED, PRESENT, BLOCKED }
+
+    private record Offset(int x, int z) {}
+
+    private record Facility(String id, BlockState state, List<Offset> candidates) {}
 
     public record ProvisioningResult(BlockPos anchor, int expected, int placed, int present, int blocked) {
         public boolean complete() {
