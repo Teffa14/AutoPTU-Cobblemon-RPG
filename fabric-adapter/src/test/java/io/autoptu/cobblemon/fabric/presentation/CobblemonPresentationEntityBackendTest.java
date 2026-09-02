@@ -27,9 +27,20 @@ class CobblemonPresentationEntityBackendTest {
         assertTrue(methodNames.contains("relocate"));
         assertTrue(methodNames.contains("animateMove"));
         assertTrue(methodNames.contains("projectDisplayedHealth"));
+        assertTrue(methodNames.contains("authoritativeHpNameplate"));
         assertTrue(methodNames.contains("showCue"));
         assertTrue(methodNames.contains("statusSkipText"));
-        assertEquals(6, methodNames.stream().distinct().count());
+        assertEquals(7, methodNames.stream().distinct().count());
+    }
+
+    @Test
+    void authoritativeHpNameplateMirrorsExactEngineHpWithoutInference() {
+        assertEquals("PTU HP 37", CobblemonPresentationEntityBackend.authoritativeHpNameplate(37));
+        assertEquals("PTU HP 0", CobblemonPresentationEntityBackend.authoritativeHpNameplate(0));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonPresentationEntityBackend.authoritativeHpNameplate(-1)
+        );
     }
 
     @Test
