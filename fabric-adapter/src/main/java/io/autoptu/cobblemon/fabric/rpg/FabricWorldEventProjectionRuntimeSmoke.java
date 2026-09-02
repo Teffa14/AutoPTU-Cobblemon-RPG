@@ -6,8 +6,10 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.DoorBlock;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
+import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -35,8 +37,12 @@ public final class FabricWorldEventProjectionRuntimeSmoke {
         ServerWorld world = server.getOverworld();
         BlockPos shrineAnchor = world.getSpawnPos().up(36);
         BlockPos switchAnchor = shrineAnchor.east(2);
+        BlockPos doorAnchor = shrineAnchor.east(4);
+        BlockPos trapdoorAnchor = shrineAnchor.east(6);
         BlockState originalShrine = world.getBlockState(shrineAnchor);
         BlockState originalSwitch = world.getBlockState(switchAnchor);
+        BlockState originalDoor = world.getBlockState(doorAnchor);
+        BlockState originalTrapdoor = world.getBlockState(trapdoorAnchor);
         var activatedShrine = new FileCanonicalWorldEventObjectRepository.State(
                 "minecraft:overworld:smoke-shrine",
                 CanonicalWorldEventObjectService.SHRINE_EVENT_KEY,
@@ -46,6 +52,12 @@ public final class FabricWorldEventProjectionRuntimeSmoke {
         var activatedSwitch = new FileCanonicalWorldEventObjectRepository.State(
                 "minecraft:overworld:smoke-switch",
                 CanonicalWorldEventObjectService.SWITCH_EVENT_KEY,
+                FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED,
+                1L
+        );
+        var activatedDoor = new FileCanonicalWorldEventObjectRepository.State(
+                "minecraft:overworld:smoke-door",
+                CanonicalWorldEventObjectService.DOOR_EVENT_KEY,
                 FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED,
                 1L
         );
@@ -91,10 +103,46 @@ public final class FabricWorldEventProjectionRuntimeSmoke {
             if (!world.getBlockState(switchAnchor).isOf(Blocks.STONE)) {
                 throw new IllegalStateException("world-event projection mutated a non-switch block");
             }
+
+            world.setBlockState(
+                    doorAnchor,
+                    Blocks.OAK_DOOR.getDefaultState().with(DoorBlock.OPEN, false),
+                    Block.NOTIFY_ALL
+            );
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, doorAnchor, activatedDoor);
+            if (!world.getBlockState(doorAnchor).get(DoorBlock.OPEN)) {
+                throw new IllegalStateException("activated canonical door did not project to open Minecraft state");
+            }
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, doorAnchor, activatedDoor);
+            if (!world.getBlockState(doorAnchor).get(DoorBlock.OPEN)) {
+                throw new IllegalStateException("replayed canonical door projection was not idempotent");
+            }
+
+            world.setBlockState(
+                    trapdoorAnchor,
+                    Blocks.OAK_TRAPDOOR.getDefaultState().with(TrapdoorBlock.OPEN, false),
+                    Block.NOTIFY_ALL
+            );
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, trapdoorAnchor, activatedDoor);
+            if (!world.getBlockState(trapdoorAnchor).get(TrapdoorBlock.OPEN)) {
+                throw new IllegalStateException("activated canonical trapdoor did not project to open Minecraft state");
+            }
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, trapdoorAnchor, activatedDoor);
+            if (!world.getBlockState(trapdoorAnchor).get(TrapdoorBlock.OPEN)) {
+                throw new IllegalStateException("replayed canonical trapdoor projection was not idempotent");
+            }
+
+            world.setBlockState(doorAnchor, Blocks.STONE.getDefaultState(), Block.NOTIFY_ALL);
+            FabricCanonicalWorldInteractionRuntime.projectDoorState(world, doorAnchor, activatedDoor);
+            if (!world.getBlockState(doorAnchor).isOf(Blocks.STONE)) {
+                throw new IllegalStateException("world-event projection mutated a non-door block");
+            }
             LOGGER.info(SUCCESS_LOG);
         } finally {
             world.setBlockState(shrineAnchor, originalShrine, Block.NOTIFY_ALL);
             world.setBlockState(switchAnchor, originalSwitch, Block.NOTIFY_ALL);
+            world.setBlockState(doorAnchor, originalDoor, Block.NOTIFY_ALL);
+            world.setBlockState(trapdoorAnchor, originalTrapdoor, Block.NOTIFY_ALL);
         }
     }
 }
