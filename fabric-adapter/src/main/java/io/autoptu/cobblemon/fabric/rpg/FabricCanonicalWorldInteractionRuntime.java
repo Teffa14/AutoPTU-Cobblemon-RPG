@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -91,6 +92,25 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 }
                 return ActionResult.SUCCESS;
             }
+            if (object.kind() == CanonicalWorldInteractionService.Kind.SWITCH
+                    && world.getBlockState(object.anchor()).isOf(Blocks.LEVER)) {
+                var eventService = new CanonicalWorldEventObjectService(
+                        FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
+                        FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(serverPlayer.getServer())
+                );
+                var event = eventService.activateSwitch(playerId, object.objectId());
+                if (!event.allowed()) {
+                    serverPlayer.sendMessage(Text.literal("Ouros switch denied: " + event.detail()), true);
+                    return ActionResult.FAIL;
+                }
+                projectSwitchState(world, object.anchor(), event.state());
+                if (event.newlyActivated()) {
+                    serverPlayer.sendMessage(Text.literal("The Ouros switch locks into place. Its world state is now persistent."), false);
+                } else {
+                    serverPlayer.sendMessage(Text.literal("The Ouros switch is already latched."), false);
+                }
+                return ActionResult.SUCCESS;
+            }
             if (object.kind() == CanonicalWorldInteractionService.Kind.SHRINE) {
                 var eventService = new CanonicalWorldEventObjectService(
                         FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
@@ -122,16 +142,17 @@ public final class FabricCanonicalWorldInteractionRuntime {
     static void reconcilePersistedWorldEvents(MinecraftServer server) {
         var repository = FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(server);
         for (var state : repository.findAll()) {
-            if (state.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
-                    || !CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(state.eventKey())) {
-                continue;
-            }
+            if (state.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED) continue;
             Optional<WorldObjectPosition> position = parseWorldObjectPosition(state.objectId());
             if (position.isEmpty()) continue;
             WorldObjectPosition object = position.orElseThrow();
             ServerWorld world = server.getWorld(object.worldKey());
             if (world == null || !world.getBlockState(object.marker()).isOf(Blocks.GOLD_BLOCK)) continue;
-            projectShrineState(world, object.marker().up(), state);
+            if (CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(state.eventKey())) {
+                projectShrineState(world, object.marker().up(), state);
+            } else if (CanonicalWorldEventObjectService.SWITCH_EVENT_KEY.equals(state.eventKey())) {
+                projectSwitchState(world, object.marker().up(), state);
+            }
         }
     }
 
@@ -143,6 +164,16 @@ public final class FabricCanonicalWorldInteractionRuntime {
         if (!current.isOf(Blocks.RESPAWN_ANCHOR)) return;
         if (current.get(RespawnAnchorBlock.CHARGES) == ACTIVATED_SHRINE_CHARGES) return;
         world.setBlockState(anchor, current.with(RespawnAnchorBlock.CHARGES, ACTIVATED_SHRINE_CHARGES), Block.NOTIFY_ALL);
+    }
+
+    static void projectSwitchState(World world, BlockPos anchor, FileCanonicalWorldEventObjectRepository.State canonicalState) {
+        if (canonicalState == null
+                || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
+                || !CanonicalWorldEventObjectService.SWITCH_EVENT_KEY.equals(canonicalState.eventKey())) return;
+        BlockState current = world.getBlockState(anchor);
+        if (!current.isOf(Blocks.LEVER)) return;
+        if (current.get(LeverBlock.POWERED)) return;
+        world.setBlockState(anchor, current.with(LeverBlock.POWERED, true), Block.NOTIFY_ALL);
     }
 
     static Optional<AuthoredObject> authoredObject(World world, BlockPos clicked) {
