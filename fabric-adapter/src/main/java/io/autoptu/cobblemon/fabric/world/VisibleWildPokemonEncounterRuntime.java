@@ -1,16 +1,19 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.fabric.battle.PersistentWorldEncounterPartyHandoffService;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestRepository;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +32,8 @@ public final class VisibleWildPokemonEncounterRuntime {
     private static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
     private static final WorldEncounterTriggerRequestService REQUESTS = new WorldEncounterTriggerRequestService();
     private static final Map<UUID, Binding> BINDINGS = new ConcurrentHashMap<>();
+    private static final Map<MinecraftServer, PersistentWorldEncounterPartyHandoffService> HANDOFFS =
+            new IdentityHashMap<>();
 
     private VisibleWildPokemonEncounterRuntime() {}
 
@@ -49,9 +54,6 @@ public final class VisibleWildPokemonEncounterRuntime {
                 return ActionResult.FAIL;
             }
 
-            // A surviving Minecraft UUID correlation is never sufficient encounter authority. The complete
-            // server-authored WILD blueprint must still be present in this world's canonical registry at the
-            // moment the player interacts. This intentionally fails closed before any durable reservation.
             var blueprintRegistry = FabricCanonicalPlayerStoreRuntime
                     .requireWildEncounterBlueprintRegistry(serverPlayer.getServer());
             if (blueprintRegistry.resolve(binding.canonicalEncounterId()).isEmpty()) {
@@ -74,24 +76,62 @@ public final class VisibleWildPokemonEncounterRuntime {
                     serverPlayer.getServer().getTicks()
             );
 
-            if (decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED) {
-                serverPlayer.sendMessage(Text.literal("You approach the wild Pokemon."), true);
-            } else {
-                serverPlayer.sendMessage(Text.literal("Your pending wild encounter is still reserved."), true);
+            PersistentWorldEncounterPartyHandoffService.Decision handoff =
+                    handoffService(serverPlayer.getServer(), blueprintRegistry).reserve(decision.request());
+            if (!handoff.ready()
+                    || handoff.reservation() == null
+                    || !handoff.reservation().canonicalEncounterId().equals(decision.request().canonicalEncounterId())) {
+                if (decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED) {
+                    REQUESTS.clearForPlayer(canonicalPlayerId);
+                }
+                serverPlayer.sendMessage(Text.literal("Your party cannot enter this encounter yet."), true);
+                return ActionResult.FAIL;
             }
 
-            // Consume registered wild-actor interaction so Cobblemon gameplay logic cannot become
-            // encounter or battle authority for this actor.
+            if (decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED) {
+                serverPlayer.sendMessage(Text.literal("Your party is locked in for the wild encounter."), true);
+            } else {
+                serverPlayer.sendMessage(Text.literal("Your pending wild encounter remains locked to the same party handoff."), true);
+            }
+
             return ActionResult.SUCCESS;
         });
     }
 
-    /** Binds the long-lived encounter facade to the current server world's durable session store. */
+    private static PersistentWorldEncounterPartyHandoffService handoffService(
+            MinecraftServer server,
+            io.autoptu.cobblemon.fabric.battle.CanonicalWildEncounterBlueprintSource blueprintSource
+    ) {
+        Objects.requireNonNull(server, "server");
+        synchronized (HANDOFFS) {
+            return HANDOFFS.computeIfAbsent(server, ignored -> new PersistentWorldEncounterPartyHandoffService(
+                    FabricCanonicalPlayerStoreRuntime.requireRepository(server),
+                    FabricCanonicalPlayerStoreRuntime.requireEncounterProfileRepository(server),
+                    blueprintSource
+            ));
+        }
+    }
+
+    public static Optional<io.autoptu.cobblemon.fabric.battle.WorldEncounterPartyHandoffService.Reservation>
+    handoffForPlayer(MinecraftServer server, String canonicalPlayerId) {
+        if (server == null || canonicalPlayerId == null || canonicalPlayerId.isBlank()) return Optional.empty();
+        synchronized (HANDOFFS) {
+            PersistentWorldEncounterPartyHandoffService service = HANDOFFS.get(server);
+            return service == null ? Optional.empty() : service.findByPlayerId(canonicalPlayerId);
+        }
+    }
+
+    public static void clearServerHandoffs(MinecraftServer server) {
+        if (server == null) return;
+        synchronized (HANDOFFS) {
+            HANDOFFS.remove(server);
+        }
+    }
+
     public static void bindRequestRepository(WorldEncounterTriggerRequestRepository repository) {
         REQUESTS.useRepository(Objects.requireNonNull(repository, "repository"));
     }
 
-    /** Releases the stopped world's repository without carrying requests into another world. */
     public static void resetRequestRepository() {
         REQUESTS.resetRepository();
     }
