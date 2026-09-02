@@ -18,38 +18,12 @@ import java.util.Set;
 public final class CanonicalWildEncounterCatalogue {
     public static final String MAREA_FIRST_FLETCHLING_ID =
             "ouros.marea.encounter.sendero_lower_shelf.fletchling.0";
+    public static final String MAREA_SECOND_FLETCHLING_ID =
+            "ouros.marea.encounter.sendero_lower_shelf.fletchling.1";
 
     public static final CanonicalWildEncounterCatalogue DEFAULT = new CanonicalWildEncounterCatalogue(List.of(
-            new EncounterDefinition(
-                    MAREA_FIRST_FLETCHLING_ID,
-                    "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
-                    "ouros.marea.sendero_vidrio",
-                    "ouros.marea.sendero_vidrio",
-                    "lower_shelf_first_slice_v1",
-                    1,
-                    3,
-                    1,
-                    3,
-                    "fletchling",
-                    "standard",
-                    SpeciesStatus.OFFICIAL,
-                    false,
-                    "OUROS-CANON-APPROVED",
-                    "ouros.vertical_slice.ptu_1_05.fletchling_v1",
-                    5,
-                    Set.of("guster", "underdog"),
-                    Set.of(),
-                    new CanonicalStatusState(List.of()),
-                    new CanonicalCombatStats(8, 6, 6, 6, 9),
-                    new CanonicalHealth(39, 39),
-                    new CanonicalMoveLoadout(List.of("tackle", "growl")),
-                    new CanonicalBaseMovement(3, 0, 5, 1, 1),
-                    new CanonicalBattleTraits(List.of("normal", "flying"), List.of("big-pecks")),
-                    new CanonicalAccuracyEvasion(0, 1, 1, 1),
-                    new CanonicalInjuryState(0),
-                    null,
-                    0L
-            )
+            mareaFletchling(MAREA_FIRST_FLETCHLING_ID, "lower_shelf_first_slice_v1", 3, 1, 3),
+            mareaFletchling(MAREA_SECOND_FLETCHLING_ID, "lower_shelf_second_slice_v1", 8, 1, -2)
     ));
 
     private final Map<String, EncounterDefinition> encounters;
@@ -74,6 +48,45 @@ public final class CanonicalWildEncounterCatalogue {
 
     public List<EncounterDefinition> encounters() {
         return List.copyOf(encounters.values());
+    }
+
+    private static EncounterDefinition mareaFletchling(
+            String canonicalEncounterId,
+            String contextId,
+            int presentationOffsetX,
+            int presentationOffsetY,
+            int presentationOffsetZ
+    ) {
+        return new EncounterDefinition(
+                canonicalEncounterId,
+                "ouros.marea.wild.sendero_lower_shelf.fletchling.v1",
+                "ouros.marea.sendero_vidrio",
+                "ouros.marea.sendero_vidrio",
+                contextId,
+                1,
+                presentationOffsetX,
+                presentationOffsetY,
+                presentationOffsetZ,
+                "fletchling",
+                "standard",
+                SpeciesStatus.OFFICIAL,
+                false,
+                "OUROS-CANON-APPROVED",
+                "ouros.vertical_slice.ptu_1_05.fletchling_v1",
+                5,
+                Set.of("guster", "underdog"),
+                Set.of(),
+                new CanonicalStatusState(List.of()),
+                new CanonicalCombatStats(8, 6, 6, 6, 9),
+                new CanonicalHealth(39, 39),
+                new CanonicalMoveLoadout(List.of("tackle", "growl")),
+                new CanonicalBaseMovement(3, 0, 5, 1, 1),
+                new CanonicalBattleTraits(List.of("normal", "flying"), List.of("big-pecks")),
+                new CanonicalAccuracyEvasion(0, 1, 1, 1),
+                new CanonicalInjuryState(0),
+                null,
+                0L
+        );
     }
 
     public enum SpeciesStatus {
@@ -139,7 +152,6 @@ public final class CanonicalWildEncounterCatalogue {
                     : heldItemInstanceId.strip();
             if (revision < 0) throw new IllegalArgumentException("revision must be >= 0");
 
-            // Ouros project invariant: fusions do not enter normal content/import pipelines.
             if (fusion) {
                 throw new IllegalArgumentException("Pokemon fusions are prohibited by the active Ouros project invariant");
             }
