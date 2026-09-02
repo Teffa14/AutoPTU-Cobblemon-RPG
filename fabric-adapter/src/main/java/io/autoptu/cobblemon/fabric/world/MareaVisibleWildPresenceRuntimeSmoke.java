@@ -12,7 +12,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Dedicated-server smoke proving that the normal WORLD-013 presence policy repairs a lost actor. */
+/** Dedicated-server smoke for normal WORLD-013 habitat presence and replacement cleanup. */
 public final class MareaVisibleWildPresenceRuntimeSmoke {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String ENABLE_PROPERTY = "autoptu.liveMareaWildPresenceSmoke";
@@ -24,58 +24,51 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             var encounter = firstMareaEncounter();
-            // Re-enter the same production reconciliation path to obtain the actor under test. This
-            // avoids coupling the smoke to entity-index visibility timing immediately after startup;
-            // the subsequent replacement still has to come from the periodic normal-world policy.
             PokemonEntity actor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
             if (actor == null || !VisibleWildPokemonEncounterRuntime.isBound(actor.getUuid())) {
                 throw new IllegalStateException("Marea presence smoke requires the normal bound actor at startup");
             }
-            UUID removedUuid = actor.getUuid();
-            VisibleWildPokemonEncounterRuntime.unbind(removedUuid);
+
+            UUID originalUuid = actor.getUuid();
+            actor.requestTeleport(actor.getX() + 20.0D, actor.getY(), actor.getZ() + 20.0D);
+            PokemonEntity reused = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
+            if (reused == null || !originalUuid.equals(reused.getUuid())) {
+                throw new IllegalStateException("Marea presence reconciliation duplicated a roaming actor");
+            }
+
+            // Deliberately discard without unbinding. Production replacement must evict the stale UUID
+            // when the canonical encounter is rebound to its newly-created presentation actor.
             actor.discard();
             synchronized (PROBES) {
-                PROBES.put(server, new Probe(
-                        encounter.canonicalEncounterId(),
-                        removedUuid,
-                        server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L
-                ));
+                PROBES.put(server, new Probe(encounter.canonicalEncounterId(), originalUuid,
+                        server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L));
             }
-            LOGGER.info("AutoPTU live Marea wild presence smoke removed actor {}", removedUuid);
+            LOGGER.info("AutoPTU live Marea wild presence smoke discarded bound actor {} without manual unbind", originalUuid);
         });
         ServerTickEvents.END_SERVER_TICK.register(MareaVisibleWildPresenceRuntimeSmoke::verify);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
-            synchronized (PROBES) {
-                PROBES.remove(server);
-            }
+            synchronized (PROBES) { PROBES.remove(server); }
         });
     }
 
     private static void verify(MinecraftServer server) {
         Probe probe;
-        synchronized (PROBES) {
-            probe = PROBES.get(server);
-        }
+        synchronized (PROBES) { probe = PROBES.get(server); }
         if (probe == null) return;
 
-        PokemonEntity actor = MareaVisibleWildPokemonRuntime.actorForEncounter(
-                server.getOverworld(), probe.canonicalEncounterId());
-        if (actor != null
-                && !actor.getUuid().equals(probe.removedUuid())
-                && VisibleWildPokemonEncounterRuntime.isBound(actor.getUuid())) {
-            synchronized (PROBES) {
-                PROBES.remove(server);
-            }
+        PokemonEntity actor = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.canonicalEncounterId());
+        if (actor != null && !actor.getUuid().equals(probe.removedUuid())
+                && VisibleWildPokemonEncounterRuntime.isBound(actor.getUuid())
+                && !VisibleWildPokemonEncounterRuntime.isBound(probe.removedUuid())) {
+            synchronized (PROBES) { PROBES.remove(server); }
             LOGGER.info("AutoPTU live Marea wild presence reconciliation smoke passed: {} -> {}",
                     probe.removedUuid(), actor.getUuid());
             return;
         }
 
         if (server.getTicks() > probe.deadlineTick()) {
-            synchronized (PROBES) {
-                PROBES.remove(server);
-            }
-            throw new IllegalStateException("Marea presence reconciliation did not restore a bound actor before deadline");
+            synchronized (PROBES) { PROBES.remove(server); }
+            throw new IllegalStateException("Marea presence reconciliation did not restore one clean bound actor before deadline");
         }
     }
 
