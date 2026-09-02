@@ -15,6 +15,7 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint"
     ],
     "client": [
+      "io.autoptu.cobblemon.fabric.client.FabricBattleHpOverlayClient",
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleVisualEvidenceClient"
     ]
