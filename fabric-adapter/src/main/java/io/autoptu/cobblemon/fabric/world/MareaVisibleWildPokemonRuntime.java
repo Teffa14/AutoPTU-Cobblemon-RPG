@@ -11,6 +11,7 @@ import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSo
 import io.autoptu.cobblemon.fabric.battle.ServerOwnedWildEncounterBlueprintPublisher;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -28,20 +29,26 @@ public final class MareaVisibleWildPokemonRuntime {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
     private static final String WILD_MARKER_TAG = "ouros:visible-wild";
+    private static final int PRESENCE_RECONCILE_INTERVAL_TICKS = 100;
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
             new MareaCanonicalWildEncounterBlueprintSource();
 
     private MareaVisibleWildPokemonRuntime() {}
 
     /**
-     * Provisions the currently authored Marea visible-wild slice on normal server startup. Existing
-     * persistent actors are reused and rebound; a missing actor is revealed only after its complete
-     * canonical WILD blueprint has been published into this world's server-owned registry.
+     * Provisions the currently authored Marea visible-wild slice on normal server startup and keeps
+     * that authored presence reconciled while the server runs. Reconciliation may recreate only a
+     * presentation actor whose complete canonical blueprint already exists in the trusted catalogue;
+     * it never authors a new encounter, species, level, stat, move, status, Ability or PTU outcome.
      */
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             int visible = ensureProjected(server.getOverworld());
             LOGGER.info("AutoPTU normal Marea visible wild actors ready: {}", visible);
+        });
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (server.getTicks() % PRESENCE_RECONCILE_INTERVAL_TICKS != 0) return;
+            ensureProjected(server.getOverworld());
         });
     }
 
@@ -64,8 +71,8 @@ public final class MareaVisibleWildPokemonRuntime {
         publishBeforeReveal(world, encounter.canonicalEncounterId());
 
         BlockPos anchor = presentationAnchor(encounter);
-        // Normal lifecycle provisioning must be able to find a persistent actor after restart even when
-        // the authored Marea chunk was not already in a player's ticket set.
+        // Lifecycle provisioning and reconciliation must find a persistent actor even when its authored
+        // Marea chunk was not already in a player's ticket set.
         world.getChunk(anchor);
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
@@ -99,6 +106,19 @@ public final class MareaVisibleWildPokemonRuntime {
         if (!world.spawnEntity(entity)) return null;
         bind(entity, encounter);
         return entity;
+    }
+
+    static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
+        if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
+        var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
+        if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
+        BlockPos anchor = presentationAnchor(encounter);
+        world.getChunk(anchor);
+        return findExisting(world, encounter.canonicalEncounterId(), anchor);
+    }
+
+    static int presenceReconcileIntervalTicks() {
+        return PRESENCE_RECONCILE_INTERVAL_TICKS;
     }
 
     private static void bind(
@@ -153,7 +173,7 @@ public final class MareaVisibleWildPokemonRuntime {
         String tag = WILD_TAG_PREFIX + canonicalEncounterId;
         return world.getEntitiesByClass(
                         PokemonEntity.class,
-                        new Box(anchor).expand(24.0D, 12.0D, 24.0D),
+                        new Box(anchor).expand(96.0D, 48.0D, 96.0D),
                         entity -> entity.getCommandTags().contains(tag)
                 )
                 .stream()
