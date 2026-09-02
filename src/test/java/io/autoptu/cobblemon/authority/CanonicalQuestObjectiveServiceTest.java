@@ -121,6 +121,59 @@ final class CanonicalQuestObjectiveServiceTest {
     }
 
     @Test
+    void tideglassComparisonRequiresReturningToPhysicalTaroAfterCurrentObservations() {
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var relationships = new FileCanonicalNpcRelationshipRepository(tempDir);
+        new CanonicalNpcRelationshipService(CanonicalNpcDialogueCatalogue.DEFAULT, relationships)
+                .observeContact("player-1", "ouros.npc.nerea_sol");
+        var acceptance = new CanonicalQuestJournalService(
+                CanonicalQuestCatalogue.DEFAULT,
+                journals,
+                null,
+                relationships
+        ).accept("player-1", "ouros.npc.taro_min", "marea-tideglass-comparison");
+        assertTrue(acceptance.newlyAccepted());
+
+        var objectiveRepository = new FileCanonicalQuestObjectiveRepository(tempDir);
+        var service = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                journals,
+                objectiveRepository
+        );
+        String talkEvent = CanonicalQuestObjectiveCatalogue.npcTalkedEvent("ouros.npc.taro_min");
+
+        assertFalse(service.observe("player-1", talkEvent).changed());
+        assertEquals(0L, objectiveRepository.findOrCreate("player-1").revision());
+
+        assertTrue(service.observe("player-1", "location:ouros.marea.loma_storehouse").changed());
+        assertFalse(service.observe("player-1", talkEvent).changed());
+        assertEquals(1L, service.inspectQuest("player-1", "marea-tideglass-comparison").completedCount());
+
+        assertTrue(service.observe("player-1", "location:ouros.marea.estacion_mirador").changed());
+        var beforeReturn = service.inspectQuest("player-1", "marea-tideglass-comparison");
+        assertEquals(2L, beforeReturn.completedCount());
+        assertEquals(3L, beforeReturn.totalCount());
+        assertFalse(beforeReturn.complete());
+
+        var returned = service.observe("player-1", talkEvent);
+        assertTrue(returned.changed());
+        assertTrue(returned.updates().stream().anyMatch(update ->
+                update.objective().questId().equals("marea-tideglass-comparison")
+                        && update.objective().objectiveId().equals("return-to-taro")
+                        && update.questProgress().complete()));
+        assertFalse(service.observe("player-1", talkEvent).changed());
+
+        var reopened = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                new FileCanonicalQuestJournalRepository(tempDir),
+                new FileCanonicalQuestObjectiveRepository(tempDir)
+        );
+        var persisted = reopened.inspectQuest("player-1", "marea-tideglass-comparison");
+        assertEquals(3L, persisted.completedCount());
+        assertTrue(persisted.complete());
+    }
+
+    @Test
     void unknownWorldEventsDoNotMutateProgress() {
         var journals = new FileCanonicalQuestJournalRepository(tempDir);
         new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals)
