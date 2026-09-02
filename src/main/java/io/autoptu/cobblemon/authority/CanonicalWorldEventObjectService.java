@@ -6,6 +6,7 @@ import java.util.Objects;
 public final class CanonicalWorldEventObjectService {
     public static final String SHRINE_EVENT_KEY = "ouros_shrine_awakened";
     public static final String SWITCH_EVENT_KEY = "ouros_switch_latched";
+    public static final String DOOR_EVENT_KEY = "ouros_door_opened";
 
     private final CanonicalStateRepository players;
     private final FileCanonicalWorldEventObjectRepository events;
@@ -24,6 +25,10 @@ public final class CanonicalWorldEventObjectService {
 
     public Decision activateSwitch(String playerId, String objectId) {
         return activate(playerId, objectId, SWITCH_EVENT_KEY, "world switch latched", "world switch already latched");
+    }
+
+    public Decision activateDoor(String playerId, String objectId) {
+        return activate(playerId, objectId, DOOR_EVENT_KEY, "world door opened", "world door already open");
     }
 
     private Decision activate(
