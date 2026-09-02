@@ -26,6 +26,16 @@ class CanonicalNpcDialogueCatalogueTest {
     }
 
     @Test
+    void selaExposesPhysicalTrainerRecordReviewOption() {
+        var dialogue = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue("ouros.npc.sela_orrin").orElseThrow();
+        var records = dialogue.option("records").orElseThrow();
+
+        assertEquals("Review my Trainer record.", records.label());
+        assertNull(records.questId());
+        assertNull(records.challengeId());
+    }
+
+    @Test
     void duplicateNpcIdsFailClosed() {
         var option = new CanonicalNpcDialogueCatalogue.Option("hello", "Hello", "Hello there.");
         var dialogue = new CanonicalNpcDialogueCatalogue.Dialogue("npc", "NPC", "Opening", List.of(option));
