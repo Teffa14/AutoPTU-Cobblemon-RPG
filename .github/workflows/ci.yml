@@ -5,7 +5,52 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
+  plan-bookkeeping:
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feat/svc-018-persistent-switch' && !contains(github.event.pull_request.head.sha, 'never') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/svc-018-persistent-switch
+          fetch-depth: 0
+      - name: Reconcile canonical RPG plan exactly once
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = p.read_text()
+          if 'PR #452 / production head `a03f605705f619cc9942b33a8e16010e9b797c5d`' in text:
+              print('plan already reconciled')
+              raise SystemExit(0)
+          replacements = {
+            "| SVC-010 | LIVE/PARTIAL | `canAcceptQuest(player, quest)` — PR #258 validates that the quest is server-authored, is offered by the revalidated canonical NPC and is not trusted from client metadata. PR #445 / production head `f41b19e0c36aa79610e6f82382fdf591b13205cc` adds server-authored required-accepted-quest prerequisites, projects locked/eligible state in physical NPC dialogue, and rechecks the durable journal immediately before acceptance so stale or unmet requests cannot mutate quest state. PR #446 / production head `48ab29537884d77a3d163ba6e2d669ea87b9637e` adds server-authored required story-flag prerequisites, projects the locked/eligible state in the physical Cedar Ranger dialogue, rechecks durable world-story state immediately before quest mutation, and routes both dialogue projection and acceptance through the lifecycle-managed world-scoped canonical story repository. Relationship and faction prerequisite predicates remain follow-up work. |": "| SVC-010 | LIVE/PARTIAL | `canAcceptQuest(player, quest)` — PR #258 validates that the quest is server-authored, is offered by the revalidated canonical NPC and is not trusted from client metadata. PR #445 / production head `f41b19e0c36aa79610e6f82382fdf591b13205cc` adds server-authored required-accepted-quest prerequisites. PR #446 / production head `48ab29537884d77a3d163ba6e2d669ea87b9637e` adds server-authored required story-flag prerequisites. PR #447 / merge `1873613bb0319152cd59151d328f912ebb813041` adds required-met-NPC relationship prerequisites and revalidates durable relationship state at the physical quest giver before journal mutation. Faction-reputation prerequisite predicates remain follow-up work. |",
+            "| SVC-011 | LIVE/PARTIAL | `canAdvanceQuest(player, event)` — PR #380 / merge `69d752d06941cf49250e34f6385df90110515789` advances only accepted server-authored objectives from known server-observed event keys. Broader quest event/prerequisite policy remains follow-up work. |": "| SVC-011 | LIVE/PARTIAL | `canAdvanceQuest(player, event)` — PR #380 / merge `69d752d06941cf49250e34f6385df90110515789` advances only accepted server-authored objectives from known server-observed event keys. PR #448 / merge `6f660dd2197b5c0cc878f2d0d18d96a173818b03` adds physical canonical NPC-contact objective events. PR #449 / merge `6132af627d9f7b7bd577cf9045c94e8d64ced2de` advances Patient Approach from the canonical field-notes lectern. PR #450 / merge `23b4075dc4e919d9039825ad3966e120fae6f8f1` advances Trainer-record review from Sela Orrin using durable canonical records. PR #451 / merge `9293df487d5b988bc1af276b02d9026a11d08769` adds authored objective prerequisites so the Tideglass comparison requires both location observations before the physical return to Taro. Additional authored event/prerequisite types remain follow-up work. |",
+            "| SVC-018 | LIVE/PARTIAL | Persistent world-object mutation/idempotency — PR #417 / implementation head `44b3b3c62a5a699e572f6309ce9ad803f6250a78`; the existing atomic revisioned world-event object aggregate is now consumed by Fabric to project ACTIVATED shrine state into the physical world idempotently. The projection reuses canonical persisted state, ignores non-shrine blocks and creates no PTU legality, progression, reward or battle outcome. Additional authored mutation types remain follow-up work. |": "| SVC-018 | LIVE/PARTIAL | Persistent world-object mutation/idempotency — PR #417 / implementation head `44b3b3c62a5a699e572f6309ce9ad803f6250a78` projects ACTIVATED shrine state. PR #452 / production head `a03f605705f619cc9942b33a8e16010e9b797c5d` adds server-owned durable lever, door, trapdoor and fence-gate activation, restart reconciliation, idempotent replay and correct lever redstone-neighbor propagation without PTU inference. Additional authored mutation types remain follow-up work. |",
+            "| WORLD-024 | LIVE/PARTIAL | Persistent world-event objects — PR #368 / merge `5d1910dfe25458da26fadfb2230e2b4ac5a5f165` persists world-scoped DORMANT -> ACTIVATED state exactly once. PR #417 / implementation head `44b3b3c62a5a699e572f6309ce9ad803f6250a78` now projects the durable activated shrine state back into the physical Respawn Anchor as a fully charged visible state on authorized interaction, idempotently and without PTU inference. Additional authored world-event object types remain follow-up work. |": "| WORLD-024 | LIVE/PARTIAL | Persistent world-event objects — PR #368 / merge `5d1910dfe25458da26fadfb2230e2b4ac5a5f165` persists world-scoped DORMANT -> ACTIVATED state exactly once. PR #417 / implementation head `44b3b3c62a5a699e572f6309ce9ad803f6250a78` projects durable shrine activation. PR #452 / production head `a03f605705f619cc9942b33a8e16010e9b797c5d` extends the same canonical world-event projection to authored levers, doors, trapdoors and fence gates, including restart replay and lever redstone propagation. Additional authored world-event object types remain follow-up work. |",
+            "| RPG-003 | LIVE/PARTIAL | Quest objective event processing — PR #380 / merge `69d752d06941cf49250e34f6385df90110515789` persists owner-scoped objective progress from server-observed Cedar Meadow events and exposes it in the quest journal. Additional authored objective event types remain follow-up work. |": "| RPG-003 | LIVE/PARTIAL | Quest objective event processing — PR #380 / merge `69d752d06941cf49250e34f6385df90110515789` persists owner-scoped objective progress from server-observed Cedar Meadow events. PRs #448-#451 extend that same authority boundary to physical NPC contact, field-note review, Trainer-record review and ordered location/return objectives. Additional authored objective event types remain follow-up work. |",
+          }
+          for old, new in replacements.items():
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected one exact plan row, got {count}: {old[:90]}')
+              text = text.replace(old, new)
+          p.write_text(text)
+      - name: Commit canonical plan reconciliation
+        run: |
+          if git diff --quiet -- MINECRAFT_RPG_TOOLING_PLAN.md; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git diff --cached --check
+          git commit -m "Docs: reconcile shipped RPG slices [plan-bookkeeping]"
+          git push origin HEAD:feat/svc-018-persistent-switch
+
   test:
     runs-on: ubuntu-latest
     steps:
