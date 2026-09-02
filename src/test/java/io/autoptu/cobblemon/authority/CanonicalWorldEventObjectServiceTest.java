@@ -68,6 +68,33 @@ final class CanonicalWorldEventObjectServiceTest {
     }
 
     @Test
+    void opensAuthoredDoorOnceAndPersistsAcrossRepositoryReopen() {
+        var players = new FileVersionedCanonicalStateRepository(tempDir);
+        assertTrue(players.createPlayerIfAbsent(new CanonicalPlayerState(
+                "player-1", Set.of(), Map.of(), Set.of(), 0L)));
+        var events = new FileCanonicalWorldEventObjectRepository(tempDir);
+        var service = new CanonicalWorldEventObjectService(players, events);
+        String objectId = "minecraft:overworld:16:64:10";
+
+        var first = service.activateDoor("player-1", objectId);
+        assertTrue(first.allowed());
+        assertTrue(first.newlyActivated());
+        assertEquals(CanonicalWorldEventObjectService.DOOR_EVENT_KEY, first.state().eventKey());
+        assertEquals(FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED, first.state().phase());
+        assertEquals(1L, first.state().revision());
+
+        var repeat = service.activateDoor("player-1", objectId);
+        assertTrue(repeat.allowed());
+        assertFalse(repeat.newlyActivated());
+        assertEquals(1L, repeat.state().revision());
+
+        var reopened = new FileCanonicalWorldEventObjectRepository(tempDir).find(objectId).orElseThrow();
+        assertEquals(CanonicalWorldEventObjectService.DOOR_EVENT_KEY, reopened.eventKey());
+        assertEquals(FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED, reopened.phase());
+        assertEquals(1L, reopened.revision());
+    }
+
+    @Test
     void refusesToReuseWorldObjectForDifferentCanonicalEvent() {
         var players = new FileVersionedCanonicalStateRepository(tempDir);
         assertTrue(players.createPlayerIfAbsent(new CanonicalPlayerState(
