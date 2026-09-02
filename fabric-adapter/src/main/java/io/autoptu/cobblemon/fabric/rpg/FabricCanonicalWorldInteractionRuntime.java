@@ -12,17 +12,24 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.DoorBlock;
+import net.minecraft.block.FenceGateBlock;
+import net.minecraft.block.LeverBlock;
 import net.minecraft.block.RespawnAnchorBlock;
+import net.minecraft.block.TrapdoorBlock;
+import net.minecraft.block.enums.BlockFace;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.Optional;
@@ -91,6 +98,44 @@ public final class FabricCanonicalWorldInteractionRuntime {
                 }
                 return ActionResult.SUCCESS;
             }
+            if (object.kind() == CanonicalWorldInteractionService.Kind.SWITCH
+                    && world.getBlockState(object.anchor()).isOf(Blocks.LEVER)) {
+                var eventService = new CanonicalWorldEventObjectService(
+                        FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
+                        FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(serverPlayer.getServer())
+                );
+                var event = eventService.activateSwitch(playerId, object.objectId());
+                if (!event.allowed()) {
+                    serverPlayer.sendMessage(Text.literal("Ouros switch denied: " + event.detail()), true);
+                    return ActionResult.FAIL;
+                }
+                projectSwitchState(world, object.anchor(), event.state());
+                if (event.newlyActivated()) {
+                    serverPlayer.sendMessage(Text.literal("The Ouros switch locks into place. Its world state is now persistent."), false);
+                } else {
+                    serverPlayer.sendMessage(Text.literal("The Ouros switch is already latched."), false);
+                }
+                return ActionResult.SUCCESS;
+            }
+            if (object.kind() == CanonicalWorldInteractionService.Kind.DOOR
+                    && isSupportedDoor(world.getBlockState(object.anchor()).getBlock())) {
+                var eventService = new CanonicalWorldEventObjectService(
+                        FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
+                        FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(serverPlayer.getServer())
+                );
+                var event = eventService.activateDoor(playerId, object.objectId());
+                if (!event.allowed()) {
+                    serverPlayer.sendMessage(Text.literal("Ouros door denied: " + event.detail()), true);
+                    return ActionResult.FAIL;
+                }
+                projectDoorState(world, object.anchor(), event.state());
+                if (event.newlyActivated()) {
+                    serverPlayer.sendMessage(Text.literal("The Ouros passage opens and its state is now persistent."), false);
+                } else {
+                    serverPlayer.sendMessage(Text.literal("The Ouros passage is already open."), false);
+                }
+                return ActionResult.SUCCESS;
+            }
             if (object.kind() == CanonicalWorldInteractionService.Kind.SHRINE) {
                 var eventService = new CanonicalWorldEventObjectService(
                         FabricCanonicalPlayerStoreRuntime.requireRepository(serverPlayer.getServer()),
@@ -122,16 +167,19 @@ public final class FabricCanonicalWorldInteractionRuntime {
     static void reconcilePersistedWorldEvents(MinecraftServer server) {
         var repository = FabricCanonicalPlayerStoreRuntime.requireWorldEventObjectRepository(server);
         for (var state : repository.findAll()) {
-            if (state.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
-                    || !CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(state.eventKey())) {
-                continue;
-            }
+            if (state.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED) continue;
             Optional<WorldObjectPosition> position = parseWorldObjectPosition(state.objectId());
             if (position.isEmpty()) continue;
             WorldObjectPosition object = position.orElseThrow();
             ServerWorld world = server.getWorld(object.worldKey());
             if (world == null || !world.getBlockState(object.marker()).isOf(Blocks.GOLD_BLOCK)) continue;
-            projectShrineState(world, object.marker().up(), state);
+            if (CanonicalWorldEventObjectService.SHRINE_EVENT_KEY.equals(state.eventKey())) {
+                projectShrineState(world, object.marker().up(), state);
+            } else if (CanonicalWorldEventObjectService.SWITCH_EVENT_KEY.equals(state.eventKey())) {
+                projectSwitchState(world, object.marker().up(), state);
+            } else if (CanonicalWorldEventObjectService.DOOR_EVENT_KEY.equals(state.eventKey())) {
+                projectDoorState(world, object.marker().up(), state);
+            }
         }
     }
 
@@ -143,6 +191,50 @@ public final class FabricCanonicalWorldInteractionRuntime {
         if (!current.isOf(Blocks.RESPAWN_ANCHOR)) return;
         if (current.get(RespawnAnchorBlock.CHARGES) == ACTIVATED_SHRINE_CHARGES) return;
         world.setBlockState(anchor, current.with(RespawnAnchorBlock.CHARGES, ACTIVATED_SHRINE_CHARGES), Block.NOTIFY_ALL);
+    }
+
+    static void projectSwitchState(World world, BlockPos anchor, FileCanonicalWorldEventObjectRepository.State canonicalState) {
+        if (canonicalState == null
+                || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
+                || !CanonicalWorldEventObjectService.SWITCH_EVENT_KEY.equals(canonicalState.eventKey())) return;
+        BlockState current = world.getBlockState(anchor);
+        if (!current.isOf(Blocks.LEVER)) return;
+        if (current.get(LeverBlock.POWERED)) return;
+        BlockState powered = current.with(LeverBlock.POWERED, true);
+        world.setBlockState(anchor, powered, Block.NOTIFY_ALL);
+        world.updateNeighborsAlways(anchor, current.getBlock());
+        world.updateNeighborsAlways(leverAttachmentPosition(powered, anchor), current.getBlock());
+    }
+
+    static BlockPos leverAttachmentPosition(BlockState state, BlockPos anchor) {
+        BlockFace face = state.get(Properties.BLOCK_FACE);
+        Direction outward = switch (face) {
+            case FLOOR -> Direction.UP;
+            case CEILING -> Direction.DOWN;
+            case WALL -> state.get(Properties.HORIZONTAL_FACING);
+        };
+        return anchor.offset(outward.getOpposite());
+    }
+
+    static void projectDoorState(World world, BlockPos anchor, FileCanonicalWorldEventObjectRepository.State canonicalState) {
+        if (canonicalState == null
+                || canonicalState.phase() != FileCanonicalWorldEventObjectRepository.Phase.ACTIVATED
+                || !CanonicalWorldEventObjectService.DOOR_EVENT_KEY.equals(canonicalState.eventKey())) return;
+        BlockState current = world.getBlockState(anchor);
+        if (current.getBlock() instanceof DoorBlock) {
+            if (current.get(DoorBlock.OPEN)) return;
+            world.setBlockState(anchor, current.with(DoorBlock.OPEN, true), Block.NOTIFY_ALL);
+            return;
+        }
+        if (current.getBlock() instanceof TrapdoorBlock) {
+            if (current.get(TrapdoorBlock.OPEN)) return;
+            world.setBlockState(anchor, current.with(TrapdoorBlock.OPEN, true), Block.NOTIFY_ALL);
+            return;
+        }
+        if (current.getBlock() instanceof FenceGateBlock) {
+            if (current.get(FenceGateBlock.OPEN)) return;
+            world.setBlockState(anchor, current.with(FenceGateBlock.OPEN, true), Block.NOTIFY_ALL);
+        }
     }
 
     static Optional<AuthoredObject> authoredObject(World world, BlockPos clicked) {
@@ -173,6 +265,7 @@ public final class FabricCanonicalWorldInteractionRuntime {
     private static BlockPos markerFor(World world, BlockPos clicked, CanonicalWorldInteractionService.Kind kind) {
         if (world.getBlockState(clicked.down()).isOf(Blocks.GOLD_BLOCK)) return clicked.down();
         if (kind == CanonicalWorldInteractionService.Kind.DOOR
+                && world.getBlockState(clicked).getBlock() instanceof DoorBlock
                 && world.getBlockState(clicked.down(2)).isOf(Blocks.GOLD_BLOCK)) return clicked.down(2);
         return null;
     }
@@ -180,10 +273,14 @@ public final class FabricCanonicalWorldInteractionRuntime {
     private static CanonicalWorldInteractionService.Kind kindOf(Block block) {
         if (block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) return CanonicalWorldInteractionService.Kind.CHEST;
         if (block == Blocks.LEVER || block == Blocks.STONE_BUTTON || block == Blocks.OAK_BUTTON) return CanonicalWorldInteractionService.Kind.SWITCH;
-        if (block == Blocks.OAK_DOOR || block == Blocks.IRON_DOOR) return CanonicalWorldInteractionService.Kind.DOOR;
+        if (isSupportedDoor(block)) return CanonicalWorldInteractionService.Kind.DOOR;
         if (block == Blocks.LECTERN) return CanonicalWorldInteractionService.Kind.TERMINAL;
         if (block == Blocks.RESPAWN_ANCHOR) return CanonicalWorldInteractionService.Kind.SHRINE;
         return null;
+    }
+
+    private static boolean isSupportedDoor(Block block) {
+        return block instanceof DoorBlock || block instanceof TrapdoorBlock || block instanceof FenceGateBlock;
     }
 
     record AuthoredObject(String objectId, CanonicalWorldInteractionService.Kind kind, BlockPos anchor) {}
