@@ -45,7 +45,7 @@ public final class CanonicalQuestCatalogue {
                     "ouros.npc.nerea_sol",
                     "What the Station Can Actually Say",
                     "Nerea Sol needs a field-aware reader to distinguish station observations from conclusions people attach to them.",
-                    "Visit the Mirador transect trailhead and Tideglass Archive so current observations and preserved records can be compared."
+                    "Visit the Mirador transect trailhead, then go to Tideglass Archive and speak with Taro Min about what the preserved record can and cannot establish."
             ),
             new Quest(
                     "marea-tideglass-comparison",
