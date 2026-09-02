@@ -14,36 +14,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CanonicalWildEncounterCatalogueTest {
     @Test
     void mareaWildCatalogueHasTwoPopulationsBackedByTheApprovedCompleteFletchlingProfile() {
-        var first = CanonicalWildEncounterCatalogue.DEFAULT
-                .encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID)
-                .orElseThrow();
-        var second = CanonicalWildEncounterCatalogue.DEFAULT
-                .encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID)
-                .orElseThrow();
-        var crossing = CanonicalWildEncounterCatalogue.DEFAULT
-                .encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID)
-                .orElseThrow();
+        var first = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID).orElseThrow();
+        var second = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID).orElseThrow();
+        var crossing = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID).orElseThrow();
+        var crossingSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID).orElseThrow();
 
-        assertEquals(3, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
-        assertNotEquals(first.canonicalEncounterId(), second.canonicalEncounterId());
-        assertNotEquals(second.canonicalEncounterId(), crossing.canonicalEncounterId());
-        assertEquals(first.populationId(), second.populationId());
-        assertNotEquals(first.populationId(), crossing.populationId());
+        assertEquals(4, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
         assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(first.populationId()).size());
-        assertEquals(1, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(crossing.populationId()).size());
-        assertNotEquals(first.contextId(), second.contextId());
-        assertNotEquals(second.contextId(), crossing.contextId());
-        assertNotEquals(first.siteId(), crossing.siteId());
-        assertEquals("ouros.marea.sendero_crossing", crossing.siteId());
+        assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(crossing.populationId()).size());
+        assertEquals(first.populationId(), second.populationId());
+        assertEquals(crossing.populationId(), crossingSecond.populationId());
+        assertNotEquals(first.populationId(), crossing.populationId());
+        assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.populations().size());
+        assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.members(
+                CanonicalWildPopulationCatalogue.DEFAULT.population(first.populationId()).orElseThrow()).size());
+        assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.members(
+                CanonicalWildPopulationCatalogue.DEFAULT.population(crossing.populationId()).orElseThrow()).size());
 
         assertCompleteApprovedMareaFletchling(first);
         assertCompleteApprovedMareaFletchling(second);
         assertCompleteApprovedMareaFletchling(crossing);
+        assertCompleteApprovedMareaFletchling(crossingSecond);
     }
 
-    private static void assertCompleteApprovedMareaFletchling(
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
-    ) {
+    private static void assertCompleteApprovedMareaFletchling(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
         assertTrue(encounter.populationId().startsWith("ouros.marea.wild."));
         assertTrue(encounter.siteId().startsWith("ouros.marea."));
         assertTrue(CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId()).isPresent());
@@ -69,52 +63,18 @@ class CanonicalWildEncounterCatalogueTest {
 
     @Test
     void unofficialContentNeedsExceptionalOurosApprovalAndFusionsFailClosed() {
-        assertThrows(IllegalArgumentException.class, () -> definition(
-                CanonicalWildEncounterCatalogue.SpeciesStatus.UNOFFICIAL,
-                false,
-                "OUROS-CANON-APPROVED"
-        ));
-        assertThrows(IllegalArgumentException.class, () -> definition(
-                CanonicalWildEncounterCatalogue.SpeciesStatus.UNOFFICIAL,
-                true,
-                "OUROS-APPROVED"
-        ));
+        assertThrows(IllegalArgumentException.class, () -> definition(CanonicalWildEncounterCatalogue.SpeciesStatus.UNOFFICIAL, false, "OUROS-CANON-APPROVED"));
+        assertThrows(IllegalArgumentException.class, () -> definition(CanonicalWildEncounterCatalogue.SpeciesStatus.UNOFFICIAL, true, "OUROS-APPROVED"));
     }
 
-    private static CanonicalWildEncounterCatalogue.EncounterDefinition definition(
-            CanonicalWildEncounterCatalogue.SpeciesStatus speciesStatus,
-            boolean fusion,
-            String authorization
-    ) {
+    private static CanonicalWildEncounterCatalogue.EncounterDefinition definition(CanonicalWildEncounterCatalogue.SpeciesStatus speciesStatus, boolean fusion, String authorization) {
         return new CanonicalWildEncounterCatalogue.EncounterDefinition(
-                "test.encounter",
-                "test.population",
-                "ouros.marea.sendero_vidrio",
-                "test.zone",
-                "test.context",
-                1,
-                0,
-                1,
-                0,
-                "test-species",
-                "standard",
-                speciesStatus,
-                fusion,
-                authorization,
-                "test.profile",
-                5,
-                Set.of(),
-                Set.of(),
-                new CanonicalStatusState(List.of()),
-                new CanonicalCombatStats(1, 1, 1, 1, 1),
-                new CanonicalHealth(1, 1),
-                new CanonicalMoveLoadout(List.of("tackle")),
-                new CanonicalBaseMovement(1, 0, 0, 0, 0),
-                new CanonicalBattleTraits(List.of("normal"), List.of()),
-                new CanonicalAccuracyEvasion(0, 0, 0, 0),
-                new CanonicalInjuryState(0),
-                null,
-                0L
+                "test.encounter", "test.population", "ouros.marea.sendero_vidrio", "test.zone", "test.context", 1,
+                0, 1, 0, "test-species", "standard", speciesStatus, fusion, authorization, "test.profile", 5,
+                Set.of(), Set.of(), new CanonicalStatusState(List.of()), new CanonicalCombatStats(1, 1, 1, 1, 1),
+                new CanonicalHealth(1, 1), new CanonicalMoveLoadout(List.of("tackle")), new CanonicalBaseMovement(1, 0, 0, 0, 0),
+                new CanonicalBattleTraits(List.of("normal"), List.of()), new CanonicalAccuracyEvasion(0, 0, 0, 0),
+                new CanonicalInjuryState(0), null, 0L
         );
     }
 }
