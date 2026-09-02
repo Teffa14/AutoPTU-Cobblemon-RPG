@@ -162,6 +162,7 @@ public final class FabricCanonicalPlayerStoreRuntime {
     }
 
     private static void stop(MinecraftServer server) {
+        VisibleWildPokemonEncounterRuntime.clearServerHandoffs(server);
         VisibleWildPokemonEncounterRuntime.resetRequestRepository();
         synchronized (STORES) { STORES.remove(server); }
     }
