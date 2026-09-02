@@ -53,6 +53,39 @@ final class CanonicalQuestObjectiveServiceTest {
     }
 
     @Test
+    void physicalNpcTalkEventAdvancesOnlyTheAcceptedAuthoredQuestAndPersists() {
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var objectives = new FileCanonicalQuestObjectiveRepository(tempDir);
+        var service = new CanonicalQuestObjectiveService(CanonicalQuestObjectiveCatalogue.DEFAULT, journals, objectives);
+        String eventKey = CanonicalQuestObjectiveCatalogue.npcTalkedEvent("ouros.npc.taro_min");
+
+        assertFalse(service.observe("player-1", eventKey).changed());
+        assertEquals(0L, objectives.findOrCreate("player-1").revision());
+
+        new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals)
+                .accept("player-1", "ouros.npc.nerea_sol", "marea-mirador-observations");
+
+        var contact = service.observe("player-1", eventKey);
+        assertTrue(contact.changed());
+        assertEquals("consult-taro", contact.updates().getFirst().objective().objectiveId());
+        assertEquals(1L, contact.updates().getFirst().questProgress().completedCount());
+        assertEquals(3L, contact.updates().getFirst().questProgress().totalCount());
+        assertFalse(contact.updates().getFirst().questProgress().complete());
+
+        assertFalse(service.observe("player-1", eventKey).changed());
+
+        var reopened = new CanonicalQuestObjectiveService(
+                CanonicalQuestObjectiveCatalogue.DEFAULT,
+                new FileCanonicalQuestJournalRepository(tempDir),
+                new FileCanonicalQuestObjectiveRepository(tempDir)
+        );
+        var persisted = reopened.inspectQuest("player-1", "marea-mirador-observations");
+        assertEquals(1L, persisted.completedCount());
+        assertTrue(persisted.objectives().stream()
+                .anyMatch(value -> value.objective().objectiveId().equals("consult-taro") && value.completed()));
+    }
+
+    @Test
     void unknownWorldEventsDoNotMutateProgress() {
         var journals = new FileCanonicalQuestJournalRepository(tempDir);
         new CanonicalQuestJournalService(CanonicalQuestCatalogue.DEFAULT, journals)
