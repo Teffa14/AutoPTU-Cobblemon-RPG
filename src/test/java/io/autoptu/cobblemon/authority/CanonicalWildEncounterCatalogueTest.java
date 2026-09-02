@@ -7,16 +7,35 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CanonicalWildEncounterCatalogueTest {
     @Test
-    void firstMareaWildIsCompleteOfficialStandardFletchlingAtCanonicalSenderoSite() {
-        var encounter = CanonicalWildEncounterCatalogue.DEFAULT
+    void mareaWildPopulationHasDistinctCompleteOfficialFletchlingsAtCanonicalSenderoSite() {
+        var first = CanonicalWildEncounterCatalogue.DEFAULT
                 .encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID)
                 .orElseThrow();
+        var second = CanonicalWildEncounterCatalogue.DEFAULT
+                .encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID)
+                .orElseThrow();
 
+        assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
+        assertNotEquals(first.canonicalEncounterId(), second.canonicalEncounterId());
+        assertNotEquals(first.contextId(), second.contextId());
+        assertNotEquals(
+                List.of(first.presentationOffsetX(), first.presentationOffsetY(), first.presentationOffsetZ()),
+                List.of(second.presentationOffsetX(), second.presentationOffsetY(), second.presentationOffsetZ())
+        );
+        assertEquals(first.populationId(), second.populationId());
+        assertCompleteApprovedMareaFletchling(first);
+        assertCompleteApprovedMareaFletchling(second);
+    }
+
+    private static void assertCompleteApprovedMareaFletchling(
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
+    ) {
         assertEquals("ouros.marea.wild.sendero_lower_shelf.fletchling.v1", encounter.populationId());
         assertEquals("ouros.marea.sendero_vidrio", encounter.siteId());
         assertTrue(CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId()).isPresent());
@@ -46,7 +65,6 @@ class CanonicalWildEncounterCatalogueTest {
                 false,
                 "OUROS-CANON-APPROVED"
         ));
-        // Even an exceptional ordinary content authorization cannot bypass the project-level fusion ban.
         assertThrows(IllegalArgumentException.class, () -> definition(
                 CanonicalWildEncounterCatalogue.SpeciesStatus.UNOFFICIAL,
                 true,
