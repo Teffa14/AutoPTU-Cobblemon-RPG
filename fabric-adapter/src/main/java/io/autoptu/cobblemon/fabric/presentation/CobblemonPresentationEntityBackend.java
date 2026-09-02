@@ -19,8 +19,8 @@ import java.util.Objects;
  * This class never reads the entity to make PTU decisions. Every value received here is an
  * already-authoritative presentation output. Cobblemon native HP is deliberately not used as a
  * mirror of PTU HP: the two systems use different HP scales, and this backend currently receives
- * authoritative current HP but not authoritative max HP. Exact PTU HP remains in AutoPTU-owned
- * state/HUD/nameplate projections. Until the presentation contract carries max HP, mutating native
+ * authoritative current HP but not authoritative max HP. Exact PTU HP is therefore rendered as a
+ * presentation-only nameplate. Until the presentation contract carries max HP, mutating native
  * Cobblemon HP would either clamp the value or manufacture a native faint that AutoPTU did not emit.
  */
 public final class CobblemonPresentationEntityBackend
@@ -70,7 +70,8 @@ public final class CobblemonPresentationEntityBackend
         // Do not write it into Pokemon.currentHealth and do not infer a ratio without authoritative
         // max HP. In particular, targetHp == 0 is NOT permission to trigger Cobblemon faint/death;
         // faint presentation remains blocked until AutoPTU emits an explicit semantic faint contract.
-        // The exact PTU value is projected separately by AutoPTU-owned battle UI/nameplate surfaces.
+        entity.setCustomName(Text.literal(authoritativeHpNameplate(targetHp)));
+        entity.setCustomNameVisible(true);
 
         // Damage is already authoritative upstream. Fabric only mirrors that committed result with
         // generic audiovisual impact feedback. Zero-damage projections stay presentation-neutral.
@@ -95,6 +96,11 @@ public final class CobblemonPresentationEntityBackend
                     1.15F
             );
         }
+    }
+
+    static String authoritativeHpNameplate(int targetHp) {
+        if (targetHp < 0) throw new IllegalArgumentException("targetHp cannot be negative");
+        return "PTU HP " + targetHp;
     }
 
     @Override
