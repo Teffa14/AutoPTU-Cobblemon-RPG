@@ -13,25 +13,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CanonicalWildEncounterCatalogueTest {
     @Test
-    void mareaWildCatalogueHasThreePopulationsBackedByTheApprovedCompleteFletchlingProfile() {
+    void mareaWildCatalogueHasFourPopulationsBackedByTheApprovedCompleteFletchlingProfile() {
         var first = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID).orElseThrow();
         var second = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID).orElseThrow();
         var crossing = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID).orElseThrow();
         var crossingSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID).orElseThrow();
         var mirador = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID).orElseThrow();
         var miradorSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID).orElseThrow();
+        var windbreak = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_FLETCHLING_ID).orElseThrow();
+        var windbreakSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_SECOND_FLETCHLING_ID).orElseThrow();
 
-        assertEquals(6, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
+        assertEquals(8, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
         assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(first.populationId()).size());
         assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(crossing.populationId()).size());
         assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(mirador.populationId()).size());
+        assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(windbreak.populationId()).size());
         assertEquals(first.populationId(), second.populationId());
         assertEquals(crossing.populationId(), crossingSecond.populationId());
         assertEquals(mirador.populationId(), miradorSecond.populationId());
+        assertEquals(windbreak.populationId(), windbreakSecond.populationId());
         assertNotEquals(first.populationId(), crossing.populationId());
         assertNotEquals(first.populationId(), mirador.populationId());
+        assertNotEquals(first.populationId(), windbreak.populationId());
         assertNotEquals(crossing.populationId(), mirador.populationId());
-        assertEquals(3, CanonicalWildPopulationCatalogue.DEFAULT.populations().size());
+        assertNotEquals(crossing.populationId(), windbreak.populationId());
+        assertNotEquals(mirador.populationId(), windbreak.populationId());
+        assertEquals(4, CanonicalWildPopulationCatalogue.DEFAULT.populations().size());
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.members(population).size());
         }
@@ -42,6 +49,8 @@ class CanonicalWildEncounterCatalogueTest {
         assertCompleteApprovedMareaFletchling(crossingSecond, "ouros.marea.sendero_vidrio");
         assertCompleteApprovedMareaFletchling(mirador, "ouros.marea.estacion_mirador");
         assertCompleteApprovedMareaFletchling(miradorSecond, "ouros.marea.estacion_mirador");
+        assertCompleteApprovedMareaFletchling(windbreak, "ouros.marea.loma_clara");
+        assertCompleteApprovedMareaFletchling(windbreakSecond, "ouros.marea.loma_clara");
     }
 
     private static void assertCompleteApprovedMareaFletchling(
