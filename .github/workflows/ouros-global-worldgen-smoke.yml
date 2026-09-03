@@ -102,14 +102,13 @@ jobs:
             status=1
           fi
 
-          for mod in cobblemon terralith tectonic lithostitched; do
-            if find "$server_dir/mods" -maxdepth 1 -type f -printf '%f\n' | grep -qi "$mod"; then
-              echo "PASS runtime mod $mod" | tee -a "$validation"
-            else
-              echo "FAIL runtime mod $mod" | tee -a "$validation"
-              status=1
-            fi
-          done
+          # These are the exact frozen Gradle runtime artifacts. Modrinth Maven
+          # artifacts retain project/version hashes as filenames, so substring
+          # checks such as grep 'terralith' are not valid evidence.
+          record_check 'runtime mod cobblemon 1.7.3' test -f "$server_dir/mods/fabric-1.7.3+1.21.1.jar"
+          record_check 'runtime mod lithostitched 1.7.7' test -f "$server_dir/mods/XaDC71GB-UrEAYvpA.jar"
+          record_check 'runtime mod terralith 2.6.2' test -f "$server_dir/mods/8oi3bsk5-eWDLFabb.jar"
+          record_check 'runtime mod tectonic 3.0.1' test -f "$server_dir/mods/lWDHr9jE-WDwMnQJ5.jar"
 
           find "$server_dir/mods" -maxdepth 1 -type f -printf '%f\n' | sort > "$server_dir/evidence/runtime-mods.txt"
           find "$server_dir/world" -maxdepth 3 -type f -printf '%P\n' 2>/dev/null | sort > "$server_dir/evidence/world-files.txt"
