@@ -35,9 +35,9 @@ public final class MareaVisibleWildPokemonRuntime {
 
     public static void register() {
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-            if (!(entity instanceof PokemonEntity pokemonEntity) || !(world instanceof ServerWorld serverWorld)) return;
+            if (!(entity instanceof PokemonEntity pokemonEntity)) return;
             canonicalEncounterFor(pokemonEntity).ifPresent(encounter -> {
-                publishBeforeReveal(serverWorld, encounter.canonicalEncounterId());
+                publishBeforeReveal(world, encounter.canonicalEncounterId());
                 bind(pokemonEntity, encounter);
             });
         });
