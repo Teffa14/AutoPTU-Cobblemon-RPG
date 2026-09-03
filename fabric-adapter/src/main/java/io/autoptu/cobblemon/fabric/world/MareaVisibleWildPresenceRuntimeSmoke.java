@@ -26,11 +26,12 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             verifyAuthoredPresenceFootprints();
+            verifyAuthoredRoamingFootprints();
             int proximityProjected = MareaVisibleWildPokemonRuntime.reconcileActivePopulations(server.getOverworld());
             if (proximityProjected != 0) {
                 throw new IllegalStateException("Marea presence policy must keep authored habitats dormant without players");
             }
-            LOGGER.info("AutoPTU live Marea authored presence-footprint smoke verified four habitat policies and dormant habitats without players");
+            LOGGER.info("AutoPTU live Marea authored habitat-policy smoke verified four presence and roaming footprints plus dormant habitats without players");
 
             int projected = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld());
             var encounters = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
@@ -53,6 +54,8 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             if (Set.copyOf(actors.values().stream().map(PokemonEntity::getUuid).toList()).size() != encounters.size()) {
                 throw new IllegalStateException("Marea population smoke requires eight distinct canonical actors");
             }
+
+            verifyCrossingRoamingEnforcement(server, actors);
 
             var replacedEntry = actors.entrySet().iterator().next();
             String replacedEncounterId = replacedEntry.getKey();
@@ -79,13 +82,21 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
 
     private static void verifyAuthoredPresenceFootprints() {
         var catalogue = CanonicalWildPopulationCatalogue.DEFAULT;
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, 48, 24, 56);
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID, 40, 24, 40);
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID, 48, 28, 48);
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID, 40, 24, 44);
+        assertPresenceFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, 48, 24, 56);
+        assertPresenceFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID, 40, 24, 40);
+        assertPresenceFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID, 48, 28, 48);
+        assertPresenceFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID, 40, 24, 44);
     }
 
-    private static void assertFootprint(
+    private static void verifyAuthoredRoamingFootprints() {
+        var catalogue = CanonicalWildPopulationCatalogue.DEFAULT;
+        assertRoamingFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, 28, 10, 34);
+        assertRoamingFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID, 20, 8, 20);
+        assertRoamingFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID, 26, 12, 26);
+        assertRoamingFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID, 22, 10, 26);
+    }
+
+    private static void assertPresenceFootprint(
             CanonicalWildPopulationCatalogue catalogue,
             String populationId,
             int x,
@@ -101,6 +112,55 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (!footprint.containsOffset(x, y, z) || footprint.containsOffset(x + 1.0D, 0.0D, 0.0D)) {
             throw new IllegalStateException("Marea presence footprint boundary semantics failed for " + populationId);
         }
+    }
+
+    private static void assertRoamingFootprint(
+            CanonicalWildPopulationCatalogue catalogue,
+            String populationId,
+            int x,
+            int y,
+            int z
+    ) {
+        var population = catalogue.population(populationId)
+                .orElseThrow(() -> new IllegalStateException("missing Marea population policy: " + populationId));
+        var footprint = population.roamingFootprint();
+        if (footprint.halfExtentXBlocks() != x || footprint.halfExtentYBlocks() != y || footprint.halfExtentZBlocks() != z) {
+            throw new IllegalStateException("unexpected authored Marea roaming footprint for " + populationId);
+        }
+        if (!footprint.containsOffset(x, y, z) || footprint.containsOffset(x + 1.0D, 0.0D, 0.0D)) {
+            throw new IllegalStateException("Marea roaming footprint boundary semantics failed for " + populationId);
+        }
+    }
+
+    private static void verifyCrossingRoamingEnforcement(
+            MinecraftServer server,
+            Map<String, PokemonEntity> actors
+    ) {
+        var crossing = CanonicalWildPopulationCatalogue.DEFAULT
+                .population(CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID)
+                .orElseThrow(() -> new IllegalStateException("missing Marea crossing population"));
+        var encounter = CanonicalWildPopulationCatalogue.DEFAULT.members(crossing).getFirst();
+        PokemonEntity actor = actors.get(encounter.canonicalEncounterId());
+        if (actor == null) throw new IllegalStateException("missing Marea crossing actor for roaming smoke");
+        UUID originalUuid = actor.getUuid();
+        double anchorX = actor.getX();
+        double anchorY = actor.getY();
+        double anchorZ = actor.getZ();
+
+        // Crossing authors a 20-block X roaming half-extent. Moving 25 blocks would have remained
+        // inside the old global 32-block leash; the authored policy must return it to its encounter anchor.
+        actor.requestTeleport(anchorX + 25.0D, anchorY, anchorZ);
+        PokemonEntity reconciled = MareaVisibleWildPokemonRuntime.actorForEncounter(
+                server.getOverworld(), encounter.canonicalEncounterId());
+        if (reconciled == null
+                || !reconciled.getUuid().equals(originalUuid)
+                || Math.abs(reconciled.getX() - anchorX) > 0.01D
+                || Math.abs(reconciled.getY() - anchorY) > 0.01D
+                || Math.abs(reconciled.getZ() - anchorZ) > 0.01D
+                || !hasExactBinding(reconciled, encounter.canonicalEncounterId())) {
+            throw new IllegalStateException("Marea authored roaming policy did not return the crossing actor without changing identity");
+        }
+        LOGGER.info("AutoPTU live Marea authored roaming enforcement smoke passed for crossing population: entity={}", originalUuid);
     }
 
     private static void verify(MinecraftServer server) {
