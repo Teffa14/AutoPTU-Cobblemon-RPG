@@ -25,14 +25,12 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
     public static void registerIfEnabled() {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            if (MareaVisibleWildPokemonRuntime.habitatActivationRadiusBlocks() != 96) {
-                throw new IllegalStateException("Marea proximity smoke requires the authored 96-block activation radius");
-            }
+            verifyAuthoredPresenceFootprints();
             int proximityProjected = MareaVisibleWildPokemonRuntime.reconcileActivePopulations(server.getOverworld());
             if (proximityProjected != 0) {
-                throw new IllegalStateException("Marea proximity policy must keep authored habitats dormant without players");
+                throw new IllegalStateException("Marea presence policy must keep authored habitats dormant without players");
             }
-            LOGGER.info("AutoPTU live Marea proximity activation smoke verified 96-block policy and dormant habitats without players");
+            LOGGER.info("AutoPTU live Marea authored presence-footprint smoke verified four habitat policies and dormant habitats without players");
 
             int projected = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld());
             var encounters = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
@@ -77,6 +75,32 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         });
         ServerTickEvents.END_SERVER_TICK.register(MareaVisibleWildPresenceRuntimeSmoke::verify);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> { synchronized (PROBES) { PROBES.remove(server); } });
+    }
+
+    private static void verifyAuthoredPresenceFootprints() {
+        var catalogue = CanonicalWildPopulationCatalogue.DEFAULT;
+        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, 48, 24, 56);
+        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID, 40, 24, 40);
+        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID, 48, 28, 48);
+        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID, 40, 24, 44);
+    }
+
+    private static void assertFootprint(
+            CanonicalWildPopulationCatalogue catalogue,
+            String populationId,
+            int x,
+            int y,
+            int z
+    ) {
+        var population = catalogue.population(populationId)
+                .orElseThrow(() -> new IllegalStateException("missing Marea population policy: " + populationId));
+        var footprint = population.presenceFootprint();
+        if (footprint.halfExtentXBlocks() != x || footprint.halfExtentYBlocks() != y || footprint.halfExtentZBlocks() != z) {
+            throw new IllegalStateException("unexpected authored Marea presence footprint for " + populationId);
+        }
+        if (!footprint.containsOffset(x, y, z) || footprint.containsOffset(x + 1.0D, 0.0D, 0.0D)) {
+            throw new IllegalStateException("Marea presence footprint boundary semantics failed for " + populationId);
+        }
     }
 
     private static void verify(MinecraftServer server) {

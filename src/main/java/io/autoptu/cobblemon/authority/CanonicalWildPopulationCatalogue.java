@@ -10,7 +10,7 @@ import java.util.Optional;
  * Server-authored visible-wild population policy.
  *
  * <p>This catalogue owns only world presence: which already-complete canonical encounter members
- * belong to a visible population and therefore must be projected into the normal world. It never
+ * belong to a visible population and where that population becomes physically present. It never
  * derives species, level, stats, moves, HP, abilities or battle legality. Those facts stay frozen
  * in {@link CanonicalWildEncounterCatalogue} and are consumed by the battle handoff unchanged.</p>
  */
@@ -32,7 +32,8 @@ public final class CanonicalWildPopulationCatalogue {
                     List.of(
                             CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID
-                    )
+                    ),
+                    new PresenceFootprint(48, 24, 56)
             ),
             new PopulationDefinition(
                     MAREA_CROSSING_POPULATION_ID,
@@ -41,7 +42,8 @@ public final class CanonicalWildPopulationCatalogue {
                     List.of(
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID
-                    )
+                    ),
+                    new PresenceFootprint(40, 24, 40)
             ),
             new PopulationDefinition(
                     MAREA_MIRADOR_TRANSECT_POPULATION_ID,
@@ -50,7 +52,8 @@ public final class CanonicalWildPopulationCatalogue {
                     List.of(
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID
-                    )
+                    ),
+                    new PresenceFootprint(48, 28, 48)
             ),
             new PopulationDefinition(
                     MAREA_LOMA_WINDBREAK_POPULATION_ID,
@@ -59,7 +62,8 @@ public final class CanonicalWildPopulationCatalogue {
                     List.of(
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_SECOND_FLETCHLING_ID
-                    )
+                    ),
+                    new PresenceFootprint(40, 24, 44)
             )
     ));
 
@@ -121,7 +125,8 @@ public final class CanonicalWildPopulationCatalogue {
             String populationId,
             String siteId,
             String zoneId,
-            List<String> encounterIds
+            List<String> encounterIds,
+            PresenceFootprint presenceFootprint
     ) {
         public PopulationDefinition {
             populationId = requireText(populationId, "populationId");
@@ -129,6 +134,27 @@ public final class CanonicalWildPopulationCatalogue {
             zoneId = requireText(zoneId, "zoneId");
             encounterIds = encounterIds == null ? List.of() : List.copyOf(encounterIds);
             encounterIds.forEach(id -> requireText(id, "encounterId"));
+            presenceFootprint = Objects.requireNonNull(presenceFootprint, "presenceFootprint");
+        }
+
+        /** Compatibility constructor for tests/tools; production populations should author the footprint explicitly. */
+        public PopulationDefinition(String populationId, String siteId, String zoneId, List<String> encounterIds) {
+            this(populationId, siteId, zoneId, encounterIds, new PresenceFootprint(96, 96, 96));
+        }
+    }
+
+    /** Axis-aligned Minecraft-world activation footprint around the population's canonical site anchor. */
+    public record PresenceFootprint(int halfExtentXBlocks, int halfExtentYBlocks, int halfExtentZBlocks) {
+        public PresenceFootprint {
+            if (halfExtentXBlocks <= 0 || halfExtentYBlocks <= 0 || halfExtentZBlocks <= 0) {
+                throw new IllegalArgumentException("presence footprint extents must be positive");
+            }
+        }
+
+        public boolean containsOffset(double dx, double dy, double dz) {
+            return Math.abs(dx) <= halfExtentXBlocks
+                    && Math.abs(dy) <= halfExtentYBlocks
+                    && Math.abs(dz) <= halfExtentZBlocks;
         }
     }
 
