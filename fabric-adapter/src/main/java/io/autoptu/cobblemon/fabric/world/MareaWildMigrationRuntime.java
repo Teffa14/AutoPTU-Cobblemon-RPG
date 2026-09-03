@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -14,6 +15,7 @@ import net.minecraft.util.math.BlockPos;
 /** Applies the canonical Marea migration timeline to the existing visible-wild actors. */
 public final class MareaWildMigrationRuntime implements ModInitializer {
     private static final String POPULATION_ID = CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID;
+    private static final int RECOVERY_CHUNK_RADIUS = 1;
 
     @Override
     public void onInitialize() {
@@ -42,7 +44,7 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
 
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-            PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
+            PokemonEntity actor = recoverBoundActor(world, encounter);
             if (actor == null) actor = MareaVisibleWildPokemonRuntime.ensureProjected(world, encounter);
             if (actor == null) continue;
 
@@ -61,6 +63,42 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
             visible++;
         }
         return visible;
+    }
+
+    /**
+     * Recovers the existing persistent presentation actor before any replacement is allowed.
+     *
+     * <p>Migration can activate a stopover while the actor's authored-home chunk is unloaded. The
+     * canonical encounter binding still points at the persisted UUID, so loading a bounded chunk
+     * envelope around the authored home lets Minecraft restore that exact entity before projection
+     * moves it. Only if no bound actor exists after that bounded recovery may the normal visible-wild
+     * reconciler create a replacement.</p>
+     */
+    static PokemonEntity recoverBoundActor(
+            ServerWorld world,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
+    ) {
+        PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
+        if (actor != null) return actor;
+        if (VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId()).isEmpty()) return null;
+
+        BlockPos home = canonicalHomeAnchor(encounter);
+        int homeChunkX = Math.floorDiv(home.getX(), 16);
+        int homeChunkZ = Math.floorDiv(home.getZ(), 16);
+        for (int x = homeChunkX - RECOVERY_CHUNK_RADIUS; x <= homeChunkX + RECOVERY_CHUNK_RADIUS; x++) {
+            for (int z = homeChunkZ - RECOVERY_CHUNK_RADIUS; z <= homeChunkZ + RECOVERY_CHUNK_RADIUS; z++) {
+                world.getChunk(x, z);
+            }
+        }
+        return loadedActor(world, encounter.canonicalEncounterId());
+    }
+
+    static BlockPos canonicalHomeAnchor(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+        if (encounter == null) throw new IllegalArgumentException("encounter is required");
+        var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild encounter home site: " + encounter.siteId()));
+        return new BlockPos(site.x(), site.y(), site.z()).add(
+                encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
     }
 
     private static int setMembersActive(
