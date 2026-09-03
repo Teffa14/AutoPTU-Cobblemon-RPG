@@ -48,6 +48,10 @@ public final class MareaVisibleWildPokemonRuntime {
             if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return;
             publishBeforeReveal(world, encounter.get().canonicalEncounterId());
             bind(pokemonEntity, encounter.get());
+            setPopulationProjectionActive(
+                    pokemonEntity,
+                    hasPlayerInsidePresenceFootprint(world, populationFor(encounter.get()))
+            );
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
             if (!(entity instanceof PokemonEntity pokemonEntity)) return;
@@ -96,6 +100,7 @@ public final class MareaVisibleWildPokemonRuntime {
         if (existing != null) {
             bind(existing, encounter);
             keepInHabitat(existing, encounter);
+            setPopulationProjectionActive(existing, true);
             return existing;
         }
 
@@ -115,6 +120,7 @@ public final class MareaVisibleWildPokemonRuntime {
         entity.addCommandTag(WILD_MARKER_TAG);
         if (!world.spawnEntity(entity)) return null;
         bind(entity, encounter);
+        setPopulationProjectionActive(entity, true);
         return entity;
     }
 
@@ -143,7 +149,11 @@ public final class MareaVisibleWildPokemonRuntime {
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            if (!hasPlayerInsidePresenceFootprint(world, population)) continue;
+            boolean active = hasPlayerInsidePresenceFootprint(world, population);
+            if (!active) {
+                hibernateLoadedPopulation(world, population);
+                continue;
+            }
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) {
@@ -158,6 +168,7 @@ public final class MareaVisibleWildPokemonRuntime {
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
                     keepInHabitat(pokemonEntity, encounter);
+                    setPopulationProjectionActive(pokemonEntity, true);
                     visible++;
                 }
                 // Ordinary persistent chunk unload preserves the canonical UUID binding. A later chunk
@@ -166,6 +177,32 @@ public final class MareaVisibleWildPokemonRuntime {
             }
         }
         return visible;
+    }
+
+    private static void hibernateLoadedPopulation(
+            ServerWorld world,
+            CanonicalWildPopulationCatalogue.PopulationDefinition population
+    ) {
+        for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+            var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
+            if (boundUuid.isEmpty()) continue;
+            var loaded = world.getEntity(boundUuid.get());
+            if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
+                setPopulationProjectionActive(pokemonEntity, false);
+            }
+        }
+    }
+
+    private static void setPopulationProjectionActive(PokemonEntity entity, boolean active) {
+        entity.setInvisible(!active);
+        VisibleWildPokemonEncounterRuntime.setInteractionActive(entity.getUuid(), active);
+    }
+
+    private static CanonicalWildPopulationCatalogue.PopulationDefinition populationFor(
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
+    ) {
+        return CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild population policy: " + encounter.populationId()));
     }
 
     private static boolean hasPlayerInsidePresenceFootprint(
@@ -206,9 +243,7 @@ public final class MareaVisibleWildPokemonRuntime {
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
     ) {
         BlockPos anchor = presentationAnchor(encounter);
-        int leashRadiusBlocks = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild population policy: " + encounter.populationId()))
-                .habitatLeashRadiusBlocks();
+        int leashRadiusBlocks = populationFor(encounter).habitatLeashRadiusBlocks();
         double centerX = anchor.getX() + 0.5D;
         double centerZ = anchor.getZ() + 0.5D;
         double dx = entity.getX() - centerX;
