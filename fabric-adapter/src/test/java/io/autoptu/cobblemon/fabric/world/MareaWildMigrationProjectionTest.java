@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,5 +37,20 @@ class MareaWildMigrationProjectionTest {
         var second = MareaWildMigrationProjection.projectedSiteId(migrating, 100_000L);
         assertEquals(first, second);
         assertEquals(resident.siteId(), MareaWildMigrationProjection.projectedSiteId(resident, 100_000L).orElseThrow());
+    }
+
+    @Test
+    void recoveryAnchorUsesCanonicalHomeSiteAndAuthoredPresentationOffset() {
+        var population = CanonicalWildPopulationCatalogue.DEFAULT
+                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
+                .orElseThrow();
+        var encounter = CanonicalWildPopulationCatalogue.DEFAULT.members(population).getFirst();
+        var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId()).orElseThrow();
+
+        var anchor = MareaWildMigrationRuntime.canonicalHomeAnchor(encounter);
+
+        assertEquals(site.x() + encounter.presentationOffsetX(), anchor.getX());
+        assertEquals(site.y() + encounter.presentationOffsetY(), anchor.getY());
+        assertEquals(site.z() + encounter.presentationOffsetZ(), anchor.getZ());
     }
 }
