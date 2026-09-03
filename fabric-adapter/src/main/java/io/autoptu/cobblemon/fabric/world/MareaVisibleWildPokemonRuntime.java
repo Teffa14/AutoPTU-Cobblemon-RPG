@@ -27,7 +27,6 @@ public final class MareaVisibleWildPokemonRuntime {
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
     private static final String WILD_MARKER_TAG = "ouros:visible-wild";
     private static final int PRESENCE_RECONCILE_INTERVAL_TICKS = 100;
-    private static final int HABITAT_LEASH_RADIUS_BLOCKS = 32;
     private static final int HABITAT_SEARCH_RADIUS_BLOCKS = 48;
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
             new MareaCanonicalWildEncounterBlueprintSource();
@@ -96,7 +95,7 @@ public final class MareaVisibleWildPokemonRuntime {
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
-            keepInHabitat(existing, anchor);
+            keepInHabitat(existing, encounter);
             return existing;
         }
 
@@ -128,7 +127,7 @@ public final class MareaVisibleWildPokemonRuntime {
         if (boundUuid.isPresent()) {
             var loaded = world.getEntity(boundUuid.get());
             if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                keepInHabitat(pokemonEntity, encounter);
                 return pokemonEntity;
             }
             return null;
@@ -158,7 +157,7 @@ public final class MareaVisibleWildPokemonRuntime {
                 }
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                    keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                    keepInHabitat(pokemonEntity, encounter);
                     visible++;
                 }
                 // Ordinary persistent chunk unload preserves the canonical UUID binding. A later chunk
@@ -202,12 +201,19 @@ public final class MareaVisibleWildPokemonRuntime {
         return world != null && world.getServer() != null && world == world.getServer().getOverworld();
     }
 
-    private static void keepInHabitat(PokemonEntity entity, BlockPos anchor) {
+    private static void keepInHabitat(
+            PokemonEntity entity,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
+    ) {
+        BlockPos anchor = presentationAnchor(encounter);
+        int leashRadiusBlocks = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild population policy: " + encounter.populationId()))
+                .habitatLeashRadiusBlocks();
         double centerX = anchor.getX() + 0.5D;
         double centerZ = anchor.getZ() + 0.5D;
         double dx = entity.getX() - centerX;
         double dz = entity.getZ() - centerZ;
-        if (dx * dx + dz * dz <= (double) HABITAT_LEASH_RADIUS_BLOCKS * HABITAT_LEASH_RADIUS_BLOCKS) return;
+        if (dx * dx + dz * dz <= (double) leashRadiusBlocks * leashRadiusBlocks) return;
         entity.requestTeleport(centerX, anchor.getY(), centerZ);
     }
 
