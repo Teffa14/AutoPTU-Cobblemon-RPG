@@ -17,6 +17,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +34,7 @@ public final class VisibleWildPokemonEncounterRuntime {
     private static final WorldEncounterTriggerRequestService REQUESTS = new WorldEncounterTriggerRequestService();
     private static final Map<UUID, Binding> BINDINGS = new ConcurrentHashMap<>();
     private static final Map<String, UUID> ENTITY_BY_ENCOUNTER = new ConcurrentHashMap<>();
+    private static final Set<UUID> INTERACTION_ACTIVE = ConcurrentHashMap.newKeySet();
     private static final Map<MinecraftServer, PersistentWorldEncounterPartyHandoffService> HANDOFFS =
             new IdentityHashMap<>();
 
@@ -47,6 +49,7 @@ public final class VisibleWildPokemonEncounterRuntime {
 
             Binding binding = BINDINGS.get(entity.getUuid());
             if (binding == null) return ActionResult.PASS;
+            if (!INTERACTION_ACTIVE.contains(entity.getUuid())) return ActionResult.FAIL;
             if (serverPlayer.squaredDistanceTo(entity) > MAX_INTERACTION_DISTANCE_SQUARED) return ActionResult.FAIL;
 
             var blueprintRegistry = FabricCanonicalPlayerStoreRuntime
@@ -119,12 +122,17 @@ public final class VisibleWildPokemonEncounterRuntime {
         Binding binding = new Binding(encounterId, requireId(zoneId, "zoneId"), requireId(contextId, "contextId"));
         UUID currentUuid = presentationEntity.getUuid();
         UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
-        if (previousUuid != null && !previousUuid.equals(currentUuid)) BINDINGS.remove(previousUuid);
+        if (previousUuid != null && !previousUuid.equals(currentUuid)) {
+            BINDINGS.remove(previousUuid);
+            INTERACTION_ACTIVE.remove(previousUuid);
+        }
         BINDINGS.put(currentUuid, binding);
+        INTERACTION_ACTIVE.add(currentUuid);
     }
 
     public static boolean unbind(UUID entityUuid) {
         if (entityUuid == null) return false;
+        INTERACTION_ACTIVE.remove(entityUuid);
         Binding removed = BINDINGS.remove(entityUuid);
         if (removed == null) return false;
         ENTITY_BY_ENCOUNTER.remove(removed.canonicalEncounterId(), entityUuid);
@@ -134,6 +142,16 @@ public final class VisibleWildPokemonEncounterRuntime {
     public static WorldEncounterTriggerRequestService requests() { return REQUESTS; }
 
     static boolean isBound(UUID entityUuid) { return entityUuid != null && BINDINGS.containsKey(entityUuid); }
+
+    static boolean isInteractionActive(UUID entityUuid) {
+        return entityUuid != null && INTERACTION_ACTIVE.contains(entityUuid);
+    }
+
+    static void setInteractionActive(UUID entityUuid, boolean active) {
+        if (entityUuid == null || !BINDINGS.containsKey(entityUuid)) return;
+        if (active) INTERACTION_ACTIVE.add(entityUuid);
+        else INTERACTION_ACTIVE.remove(entityUuid);
+    }
 
     static Optional<UUID> boundEntityUuid(String canonicalEncounterId) {
         if (canonicalEncounterId == null || canonicalEncounterId.isBlank()) return Optional.empty();
