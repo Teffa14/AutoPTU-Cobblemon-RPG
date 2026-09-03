@@ -74,7 +74,7 @@ public final class MareaWildHabitatCueEntrypoint implements ModInitializer {
     private static boolean containsPlayer(
             ServerPlayerEntity player,
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
-            CanonicalWorldMapCatalogue.SiteDefinition site
+            CanonicalWorldMapCatalogue.Site site
     ) {
         double dx = player.getX() - (site.x() + 0.5D);
         double dy = player.getY() - site.y();
@@ -85,7 +85,7 @@ public final class MareaWildHabitatCueEntrypoint implements ModInitializer {
     private static void announce(
             ServerPlayerEntity player,
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
-            CanonicalWorldMapCatalogue.SiteDefinition site
+            CanonicalWorldMapCatalogue.Site site
     ) {
         int visibleMembers = CanonicalWildPopulationCatalogue.DEFAULT.members(population).size();
         player.sendMessage(Text.literal(
