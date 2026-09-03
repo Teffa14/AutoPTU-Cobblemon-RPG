@@ -18,6 +18,7 @@ import java.util.UUID;
 public final class MareaVisibleWildPresenceRuntimeSmoke {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String ENABLE_PROPERTY = "autoptu.liveMareaWildPresenceSmoke";
+    private static final int MAX_RECONCILIATION_CHECKS = 5;
     private static final Map<MinecraftServer, Probe> PROBES = new IdentityHashMap<>();
 
     private MareaVisibleWildPresenceRuntimeSmoke() {}
@@ -55,12 +56,15 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                 if (!encounterId.equals(replacedEncounterId)) stableBindings.put(encounterId, actor.getUuid());
             });
             replacedEntry.getValue().discard();
+            int interval = MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks();
+            long nextCheckTick = nextReconciliationObservationTick(server.getTicks(), interval);
             synchronized (PROBES) {
                 PROBES.put(server, new Probe(
                         replacedEncounterId,
                         removedUuid,
                         Map.copyOf(stableBindings),
-                        server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L
+                        nextCheckTick,
+                        0
                 ));
             }
             LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving five canonical actors",
@@ -73,7 +77,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
     private static void verify(MinecraftServer server) {
         Probe probe;
         synchronized (PROBES) { probe = PROBES.get(server); }
-        if (probe == null) return;
+        if (probe == null || server.getTicks() < probe.nextCheckTick()) return;
 
         PokemonEntity replacement = MareaVisibleWildPokemonRuntime.actorForEncounter(
                 server.getOverworld(), probe.replacedEncounterId());
@@ -89,10 +93,26 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             LOGGER.info("AutoPTU live Marea wild presence reconciliation smoke passed");
             return;
         }
-        if (server.getTicks() > probe.deadlineTick()) {
+
+        int completedChecks = probe.completedChecks() + 1;
+        if (completedChecks >= MAX_RECONCILIATION_CHECKS) {
             synchronized (PROBES) { PROBES.remove(server); }
             throw new IllegalStateException("Marea population policy reconciliation did not restore one member while preserving the other five");
         }
+        synchronized (PROBES) {
+            PROBES.put(server, new Probe(
+                    probe.replacedEncounterId(),
+                    probe.removedUuid(),
+                    probe.stableBindings(),
+                    probe.nextCheckTick() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks(),
+                    completedChecks
+            ));
+        }
+    }
+
+    private static long nextReconciliationObservationTick(long currentTick, int interval) {
+        if (interval <= 0) throw new IllegalArgumentException("interval must be positive");
+        return ((currentTick / interval) + 1L) * interval + 1L;
     }
 
     private static boolean stableActorsPreserved(MinecraftServer server, Probe probe) {
@@ -123,6 +143,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             String replacedEncounterId,
             UUID removedUuid,
             Map<String, UUID> stableBindings,
-            long deadlineTick
+            long nextCheckTick,
+            int completedChecks
     ) {}
 }
