@@ -107,6 +107,16 @@ public final class VisibleWildPokemonEncounterRuntime {
         synchronized (HANDOFFS) { HANDOFFS.remove(server); }
     }
 
+    /**
+     * Clears process-local presentation identity at a Minecraft server/save lifecycle boundary.
+     * Canonical encounter requests and RPG persistence live in world-scoped repositories; these
+     * UUID bindings must never leak from one integrated-server save into another in the same JVM.
+     */
+    public static void clearServerPresentationBindings() {
+        BINDINGS.clear();
+        ENTITY_BY_ENCOUNTER.clear();
+    }
+
     public static void bindRequestRepository(WorldEncounterTriggerRequestRepository repository) {
         REQUESTS.useRepository(Objects.requireNonNull(repository, "repository"));
     }
