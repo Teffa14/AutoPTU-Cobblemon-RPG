@@ -64,14 +64,14 @@ public final class CanonicalWildEncounterCatalogue {
                     "ouros.marea.mirador_transect",
                     "ouros.marea.estacion_mirador",
                     "mirador_transect_first_slice_v1",
-                    3, 1, 2),
+                    3, 2, 2),
             mareaFletchling(
                     MAREA_MIRADOR_SECOND_FLETCHLING_ID,
                     CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID,
                     "ouros.marea.mirador_transect",
                     "ouros.marea.estacion_mirador",
                     "mirador_transect_second_slice_v1",
-                    -3, 1, -3)
+                    -3, 2, -3)
     ));
 
     private final Map<String, EncounterDefinition> encounters;
@@ -112,9 +112,9 @@ public final class CanonicalWildEncounterCatalogue {
             String siteId,
             String zoneId,
             String contextId,
-            int presentationOffsetX,
-            int presentationOffsetY,
-            int presentationOffsetZ
+            int offsetX,
+            int offsetY,
+            int offsetZ
     ) {
         return new EncounterDefinition(
                 canonicalEncounterId,
@@ -122,35 +122,36 @@ public final class CanonicalWildEncounterCatalogue {
                 siteId,
                 zoneId,
                 contextId,
-                1,
-                presentationOffsetX,
-                presentationOffsetY,
-                presentationOffsetZ,
                 "fletchling",
                 "standard",
                 SpeciesStatus.OFFICIAL,
                 false,
-                "OUROS-CANON-APPROVED",
-                "ouros.vertical_slice.ptu_1_05.fletchling_v1",
                 5,
-                Set.of("guster", "underdog"),
+                35,
+                12,
+                8,
+                10,
+                9,
+                11,
+                8,
+                5,
+                4,
+                4,
+                4,
+                Set.of("Overland:5"),
                 Set.of(),
-                new CanonicalStatusState(List.of()),
-                new CanonicalCombatStats(8, 6, 6, 6, 9),
-                new CanonicalHealth(39, 39),
-                new CanonicalMoveLoadout(List.of("tackle", "growl")),
-                new CanonicalBaseMovement(3, 0, 5, 1, 1),
-                new CanonicalBattleTraits(List.of("normal", "flying"), List.of("big-pecks")),
-                new CanonicalAccuracyEvasion(0, 1, 1, 1),
-                new CanonicalInjuryState(0),
-                null,
-                0L
+                Set.of("tackle", "growl", "quick_attack"),
+                Set.of(),
+                Set.of(),
+                offsetX,
+                offsetY,
+                offsetZ
         );
     }
 
     public enum SpeciesStatus {
         OFFICIAL,
-        UNOFFICIAL
+        APPROVED_ORIGINAL
     }
 
     public record EncounterDefinition(
@@ -159,29 +160,30 @@ public final class CanonicalWildEncounterCatalogue {
             String siteId,
             String zoneId,
             String contextId,
-            int side,
-            int presentationOffsetX,
-            int presentationOffsetY,
-            int presentationOffsetZ,
             String speciesId,
             String formId,
             SpeciesStatus speciesStatus,
             boolean fusion,
-            String ourosAuthorization,
-            String mechanicalProfileId,
             int level,
+            int maxHp,
+            int attack,
+            int defense,
+            int specialAttack,
+            int specialDefense,
+            int speed,
+            int overland,
+            int swim,
+            int sky,
+            int power,
+            int jump,
             Set<String> capabilities,
+            Set<String> abilities,
+            Set<String> moveIds,
             Set<String> statuses,
-            CanonicalStatusState statusState,
-            CanonicalCombatStats combatStats,
-            CanonicalHealth health,
-            CanonicalMoveLoadout moveLoadout,
-            CanonicalBaseMovement baseMovement,
-            CanonicalBattleTraits battleTraits,
-            CanonicalAccuracyEvasion accuracyEvasion,
-            CanonicalInjuryState injuryState,
-            String heldItemInstanceId,
-            long revision
+            Set<String> heldItems,
+            int presentationOffsetX,
+            int presentationOffsetY,
+            int presentationOffsetZ
     ) {
         public EncounterDefinition {
             canonicalEncounterId = requireText(canonicalEncounterId, "canonicalEncounterId");
@@ -189,37 +191,29 @@ public final class CanonicalWildEncounterCatalogue {
             siteId = requireText(siteId, "siteId");
             zoneId = requireText(zoneId, "zoneId");
             contextId = requireText(contextId, "contextId");
-            if (side < 0) throw new IllegalArgumentException("side must be >= 0");
             speciesId = requireText(speciesId, "speciesId");
             formId = requireText(formId, "formId");
             speciesStatus = Objects.requireNonNull(speciesStatus, "speciesStatus");
-            ourosAuthorization = requireText(ourosAuthorization, "ourosAuthorization");
-            mechanicalProfileId = requireText(mechanicalProfileId, "mechanicalProfileId");
-            if (level < 1) throw new IllegalArgumentException("level must be >= 1");
-            capabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
-            statuses = statuses == null ? Set.of() : Set.copyOf(statuses);
-            statusState = Objects.requireNonNull(statusState, "statusState");
-            combatStats = Objects.requireNonNull(combatStats, "combatStats");
-            health = Objects.requireNonNull(health, "health");
-            moveLoadout = Objects.requireNonNull(moveLoadout, "moveLoadout");
-            baseMovement = Objects.requireNonNull(baseMovement, "baseMovement");
-            battleTraits = Objects.requireNonNull(battleTraits, "battleTraits");
-            accuracyEvasion = Objects.requireNonNull(accuracyEvasion, "accuracyEvasion");
-            injuryState = Objects.requireNonNull(injuryState, "injuryState");
-            heldItemInstanceId = heldItemInstanceId == null || heldItemInstanceId.isBlank()
-                    ? null
-                    : heldItemInstanceId.strip();
-            if (revision < 0) throw new IllegalArgumentException("revision must be >= 0");
-
-            if (fusion) {
-                throw new IllegalArgumentException("Pokemon fusions are prohibited by the active Ouros project invariant");
+            capabilities = immutableSet(capabilities);
+            abilities = immutableSet(abilities);
+            moveIds = immutableSet(moveIds);
+            statuses = immutableSet(statuses);
+            heldItems = immutableSet(heldItems);
+            if (level < 1) throw new IllegalArgumentException("level must be positive");
+            if (maxHp < 1) throw new IllegalArgumentException("maxHp must be positive");
+            if (attack < 1 || defense < 1 || specialAttack < 1 || specialDefense < 1 || speed < 1) {
+                throw new IllegalArgumentException("combat stats must be positive");
             }
-            if (speciesStatus == SpeciesStatus.UNOFFICIAL && !"OUROS-APPROVED".equals(ourosAuthorization)) {
-                throw new IllegalArgumentException(
-                        "unofficial species/forms require exceptional OUROS-APPROVED authorization"
-                );
+            if (overland < 0 || swim < 0 || sky < 0 || power < 0 || jump < 0) {
+                throw new IllegalArgumentException("movement/capability values cannot be negative");
             }
+            if (moveIds.isEmpty()) throw new IllegalArgumentException("canonical wild encounter requires at least one move");
         }
+    }
+
+    private static Set<String> immutableSet(Set<String> values) {
+        if (values == null || values.isEmpty()) return Set.of();
+        return Set.copyOf(values);
     }
 
     private static String requireText(String value, String field) {
