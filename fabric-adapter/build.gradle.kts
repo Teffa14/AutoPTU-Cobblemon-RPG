@@ -59,24 +59,24 @@ val productionSmokeMods by configurations.creating {
 dependencies {
     minecraft("com.mojang:minecraft:1.21.1")
     mappings("net.fabricmc:yarn:1.21.1+build.3:v2")
-    modImplementation("net.fabricmc:fabric-loader:0.17.2")
+    modImplementation("net.fabricmc:fabric-loader:0.18.2")
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
     modImplementation("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
     modImplementation("com.cobblemon:fabric:1.7.3+1.21.1")
 
     // Frozen Ouros Overworld substrate for Minecraft 1.21.1.
     // Use Modrinth project/version IDs rather than display slugs so CI resolves the exact files.
-    // Lithostitched 1.6.1 Fabric 1.21.1 = XaDC71GB:uGT59zm8
+    // Lithostitched 1.7.7 Fabric 1.21.1 = XaDC71GB:UrEAYvpA
     // Terralith 2.6.2 Fabric 1.21.1 = 8oi3bsk5:eWDLFabb
     // Tectonic 3.0.1 Fabric 1.21.1 = lWDHr9jE:WDwMnQJ5
-    modRuntimeOnly("maven.modrinth:XaDC71GB:uGT59zm8")
+    modRuntimeOnly("maven.modrinth:XaDC71GB:UrEAYvpA")
     modRuntimeOnly("maven.modrinth:8oi3bsk5:eWDLFabb")
     modRuntimeOnly("maven.modrinth:lWDHr9jE:WDwMnQJ5")
 
     productionSmokeMods("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
     productionSmokeMods("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
     productionSmokeMods("com.cobblemon:fabric:1.7.3+1.21.1")
-    productionSmokeMods("maven.modrinth:XaDC71GB:uGT59zm8")
+    productionSmokeMods("maven.modrinth:XaDC71GB:UrEAYvpA")
     productionSmokeMods("maven.modrinth:8oi3bsk5:eWDLFabb")
     productionSmokeMods("maven.modrinth:lWDHr9jE:WDwMnQJ5")
 
