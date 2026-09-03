@@ -1,0 +1,51 @@
+name: WORLD-013 plan bookkeeping once
+
+on:
+  push:
+    branches:
+      - feat/world-013-mirador-population
+    paths:
+      - '.github/workflows/world-013-plan-bookkeeping-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/world-013-mirador-population
+          fetch-depth: 0
+      - name: Record shipped WORLD-013 slice and remove this one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          marker = '| WORLD-013 | NEXT/PARTIAL |'
+          lines = text.splitlines()
+          matches = [i for i, line in enumerate(lines) if line.startswith(marker)]
+          if len(matches) != 1:
+              raise SystemExit(f'expected exactly one WORLD-013 row, found {len(matches)}')
+          i = matches[0]
+          line = lines[i]
+          record = " PR #464 / production head `0657a472dc26e5a6ae369627dff0ea97121dcada` adds the third server-authored Marea population at `ouros.marea.mirador_transect`, bringing normal startup to six independently-bound visible Fletchling actors across three populations while reusing only the approved complete PTU profile. Presence identity is now lifecycle-aware: ordinary chunk unload preserves the canonical UUID binding, Fabric destructive unload (`DISCARDED`/`KILLED`) releases only that actor, and the server restores only the released member; the dedicated Fabric + Cobblemon smoke proves one discarded actor receives a new binding while the other five remain exact. The Mirador presentation offsets place both actors above the authored stone platform."
+          if 'PR #464 / production head' not in line:
+              if not line.endswith(' |'):
+                  raise SystemExit('WORLD-013 row does not end with table delimiter')
+              line = line[:-2] + record + ' |'
+          lines[i] = line
+          path.write_text('\n'.join(lines) + ('\n' if text.endswith('\n') else ''))
+          PY
+          rm .github/workflows/world-013-plan-bookkeeping-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/world-013-plan-bookkeeping-once.yml
+          git diff --cached --check
+          git commit -m 'docs: record WORLD-013 Mirador ecology slice'
+          git push origin HEAD:feat/world-013-mirador-population
