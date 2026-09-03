@@ -24,6 +24,10 @@ public final class CanonicalWildEncounterCatalogue {
             "ouros.marea.encounter.sendero_crossing.fletchling.0";
     public static final String MAREA_CROSSING_SECOND_FLETCHLING_ID =
             "ouros.marea.encounter.sendero_crossing.fletchling.1";
+    public static final String MAREA_MIRADOR_FLETCHLING_ID =
+            "ouros.marea.encounter.mirador_transect.fletchling.0";
+    public static final String MAREA_MIRADOR_SECOND_FLETCHLING_ID =
+            "ouros.marea.encounter.mirador_transect.fletchling.1";
 
     public static final CanonicalWildEncounterCatalogue DEFAULT = new CanonicalWildEncounterCatalogue(List.of(
             mareaFletchling(
@@ -53,7 +57,21 @@ public final class CanonicalWildEncounterCatalogue {
                     "ouros.marea.sendero_crossing",
                     "ouros.marea.sendero_vidrio",
                     "seasonal_crossing_second_slice_v1",
-                    -4, 1, 5)
+                    -4, 1, 5),
+            mareaFletchling(
+                    MAREA_MIRADOR_FLETCHLING_ID,
+                    CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID,
+                    "ouros.marea.mirador_transect",
+                    "ouros.marea.estacion_mirador",
+                    "mirador_transect_first_slice_v1",
+                    3, 2, 2),
+            mareaFletchling(
+                    MAREA_MIRADOR_SECOND_FLETCHLING_ID,
+                    CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID,
+                    "ouros.marea.mirador_transect",
+                    "ouros.marea.estacion_mirador",
+                    "mirador_transect_second_slice_v1",
+                    -3, 2, -3)
     ));
 
     private final Map<String, EncounterDefinition> encounters;
