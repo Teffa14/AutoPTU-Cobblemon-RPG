@@ -45,23 +45,51 @@ def read_chunk_nbt(region_path: Path, sector_offset: int):
     return nbtlib.File.parse(io.BytesIO(payload))
 
 
-def decode_heightmap(values, count: int = 256, bits: int = 9):
+def infer_heightmap_bits(long_count: int, count: int = 256) -> int:
+    """Infer Mojang SimpleBitStorage width from the serialized long-array size.
+
+    Vanilla 1.21.1 overworld heightmaps normally use 9 bits. Tectonic can use a
+    taller dimension and therefore 10 bits. Inferring the width from the array
+    makes the evidence renderer follow the actual generated world contract.
+    """
+    candidates = []
+    for bits in range(1, 17):
+        values_per_long = 64 // bits
+        if values_per_long and math.ceil(count / values_per_long) == long_count:
+            candidates.append(bits)
+    if not candidates:
+        raise ValueError(f"cannot infer heightmap bit width from {long_count} longs")
+    # Heightmaps use the smallest bit width capable of the dimension height.
+    return min(candidates)
+
+
+def decode_heightmap(values, count: int = 256):
+    longs = [int(v) & ((1 << 64) - 1) for v in values]
+    bits = infer_heightmap_bits(len(longs), count)
     mask = (1 << bits) - 1
     values_per_long = 64 // bits
     out = []
-    longs = [int(v) & ((1 << 64) - 1) for v in values]
     for idx in range(count):
         long_idx = idx // values_per_long
         if long_idx >= len(longs):
             break
         shift = (idx % values_per_long) * bits
         out.append((longs[long_idx] >> shift) & mask)
-    return out
+    return out, bits
+
+
+def first_present(compound, *keys):
+    for key in keys:
+        value = compound.get(key)
+        if value is not None:
+            return value
+    return None
 
 
 def collect_chunks(region_dir: Path):
     chunks = {}
     errors = []
+    bit_widths = set()
     for region_path in sorted(region_dir.glob("r.*.*.mca")):
         try:
             _, rx_s, rz_s, _ = region_path.name.split(".")
@@ -89,22 +117,24 @@ def collect_chunks(region_dir: Path):
                 root = read_chunk_nbt(region_path, sector_offset)
                 if root is None:
                     continue
-                heightmaps = root.get("Heightmaps") or root.get("heightmaps")
+                heightmaps = first_present(root, "Heightmaps", "heightmaps")
                 if heightmaps is None:
                     continue
-                surface = (
-                    heightmaps.get("WORLD_SURFACE")
-                    or heightmaps.get("WORLD_SURFACE_WG")
-                    or heightmaps.get("MOTION_BLOCKING")
+                surface = first_present(
+                    heightmaps,
+                    "WORLD_SURFACE",
+                    "WORLD_SURFACE_WG",
+                    "MOTION_BLOCKING",
                 )
                 if surface is None:
                     continue
-                decoded = decode_heightmap(surface)
+                decoded, bits = decode_heightmap(surface)
                 if len(decoded) == 256:
                     chunks[(cx, cz)] = decoded
+                    bit_widths.add(bits)
             except Exception as exc:  # keep evidence generation best-effort
                 errors.append(f"{region_path.name} chunk {cx},{cz}: {exc}")
-    return chunks, errors
+    return chunks, errors, bit_widths
 
 
 def png_chunk(chunk_type: bytes, data: bytes) -> bytes:
@@ -159,7 +189,7 @@ def main() -> int:
         )
         return 2
 
-    chunks, errors = collect_chunks(region_dir)
+    chunks, errors, bit_widths = collect_chunks(region_dir)
     if not chunks:
         (args.output / "render-error.txt").write_text(
             "No generated chunks with a readable surface heightmap were found.\n"
@@ -209,6 +239,7 @@ def main() -> int:
                 f"chunk_bounds={min_cx},{min_cz}..{max_cx},{max_cz}",
                 f"native_pixels={width}x{height}",
                 f"png_pixels={width * scale}x{height * scale}",
+                f"heightmap_bits={','.join(str(v) for v in sorted(bit_widths))}",
                 f"heightmap_raw_range={lo}..{hi}",
                 f"parse_warnings={len(errors)}",
             ]
