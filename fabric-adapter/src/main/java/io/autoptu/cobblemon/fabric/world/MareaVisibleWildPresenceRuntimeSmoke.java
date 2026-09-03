@@ -67,7 +67,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                         0
                 ));
             }
-            LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving five canonical actors",
+            LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving five canonical bindings",
                     removedUuid);
         });
         ServerTickEvents.END_SERVER_TICK.register(MareaVisibleWildPresenceRuntimeSmoke::verify);
@@ -79,17 +79,15 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         synchronized (PROBES) { probe = PROBES.get(server); }
         if (probe == null || server.getTicks() < probe.nextCheckTick()) return;
 
-        PokemonEntity replacement = MareaVisibleWildPokemonRuntime.actorForEncounter(
-                server.getOverworld(), probe.replacedEncounterId());
-        if (replacement != null
-                && !replacement.getUuid().equals(probe.removedUuid())
-                && hasExactBinding(replacement, probe.replacedEncounterId())
+        var replacementUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(probe.replacedEncounterId());
+        if (replacementUuid.isPresent()
+                && !replacementUuid.get().equals(probe.removedUuid())
                 && !VisibleWildPokemonEncounterRuntime.isBound(probe.removedUuid())
-                && stableActorsPreserved(server, probe)
-                && allCurrentActorsDistinct(server, probe, replacement)) {
+                && stableBindingsPreserved(probe)
+                && allBindingsDistinct(probe, replacementUuid.get())) {
             synchronized (PROBES) { PROBES.remove(server); }
-            LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, five stable actors preserved",
-                    probe.removedUuid(), replacement.getUuid());
+            LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, five stable bindings preserved",
+                    probe.removedUuid(), replacementUuid.get());
             LOGGER.info("AutoPTU live Marea wild presence reconciliation smoke passed");
             return;
         }
@@ -97,7 +95,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         int completedChecks = probe.completedChecks() + 1;
         if (completedChecks >= MAX_RECONCILIATION_CHECKS) {
             synchronized (PROBES) { PROBES.remove(server); }
-            throw new IllegalStateException("Marea population policy reconciliation did not restore one member while preserving the other five");
+            throw new IllegalStateException("Marea population policy reconciliation did not restore one member while preserving the other five bindings");
         }
         synchronized (PROBES) {
             PROBES.put(server, new Probe(
@@ -115,21 +113,21 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         return ((currentTick / interval) + 1L) * interval + 1L;
     }
 
-    private static boolean stableActorsPreserved(MinecraftServer server, Probe probe) {
+    private static boolean stableBindingsPreserved(Probe probe) {
         for (var stable : probe.stableBindings().entrySet()) {
-            PokemonEntity actor = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), stable.getKey());
-            if (actor == null || !actor.getUuid().equals(stable.getValue()) || !hasExactBinding(actor, stable.getKey())) return false;
+            var current = VisibleWildPokemonEncounterRuntime.boundEntityUuid(stable.getKey());
+            if (current.isEmpty() || !current.get().equals(stable.getValue())) return false;
+            if (!VisibleWildPokemonEncounterRuntime.binding(stable.getValue())
+                    .map(binding -> stable.getKey().equals(binding.canonicalEncounterId()))
+                    .orElse(false)) return false;
         }
         return true;
     }
 
-    private static boolean allCurrentActorsDistinct(MinecraftServer server, Probe probe, PokemonEntity replacement) {
+    private static boolean allBindingsDistinct(Probe probe, UUID replacementUuid) {
         var uuids = new java.util.HashSet<UUID>();
-        uuids.add(replacement.getUuid());
-        for (String encounterId : probe.stableBindings().keySet()) {
-            PokemonEntity actor = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), encounterId);
-            if (actor == null || !uuids.add(actor.getUuid())) return false;
-        }
+        uuids.add(replacementUuid);
+        uuids.addAll(probe.stableBindings().values());
         return uuids.size() == probe.stableBindings().size() + 1;
     }
 
