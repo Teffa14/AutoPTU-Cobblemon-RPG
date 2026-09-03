@@ -1,7 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,38 +26,45 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             int projected = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld());
-            if (projected < 4) throw new IllegalStateException("Marea population smoke requires four normal visible wild actors");
-
-            var first = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID).orElseThrow();
-            var second = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID).orElseThrow();
-            var crossing = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID).orElseThrow();
-            var crossingSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID).orElseThrow();
-
-            PokemonEntity firstActor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), first);
-            PokemonEntity secondActor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), second);
-            PokemonEntity crossingActor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), crossing);
-            PokemonEntity crossingSecondActor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), crossingSecond);
-            if (firstActor == null || secondActor == null || crossingActor == null || crossingSecondActor == null
-                    || Set.of(firstActor.getUuid(), secondActor.getUuid(), crossingActor.getUuid(), crossingSecondActor.getUuid()).size() != 4
-                    || !hasExactBinding(firstActor, first.canonicalEncounterId())
-                    || !hasExactBinding(secondActor, second.canonicalEncounterId())
-                    || !hasExactBinding(crossingActor, crossing.canonicalEncounterId())
-                    || !hasExactBinding(crossingSecondActor, crossingSecond.canonicalEncounterId())) {
-                throw new IllegalStateException("Marea population smoke requires four distinct actors with exact canonical bindings");
+            var encounters = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
+                    .filter(population -> population.siteId().startsWith("ouros.marea."))
+                    .flatMap(population -> CanonicalWildPopulationCatalogue.DEFAULT.members(population).stream())
+                    .toList();
+            if (projected != 6 || encounters.size() != 6) {
+                throw new IllegalStateException("Marea population smoke requires six normal visible wild actors");
             }
 
-            UUID originalFirstUuid = firstActor.getUuid();
-            UUID stableSecondUuid = secondActor.getUuid();
-            UUID stableCrossingUuid = crossingActor.getUuid();
-            UUID stableCrossingSecondUuid = crossingSecondActor.getUuid();
-            firstActor.discard();
+            LinkedHashMap<String, PokemonEntity> actors = new LinkedHashMap<>();
+            for (var encounter : encounters) {
+                PokemonEntity actor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
+                if (actor == null || !hasExactBinding(actor, encounter.canonicalEncounterId())) {
+                    throw new IllegalStateException("Marea population smoke requires exact canonical actor binding for "
+                            + encounter.canonicalEncounterId());
+                }
+                actors.put(encounter.canonicalEncounterId(), actor);
+            }
+            if (Set.copyOf(actors.values().stream().map(PokemonEntity::getUuid).toList()).size() != encounters.size()) {
+                throw new IllegalStateException("Marea population smoke requires six distinct canonical actors");
+            }
+
+            var replacedEntry = actors.entrySet().iterator().next();
+            String replacedEncounterId = replacedEntry.getKey();
+            UUID removedUuid = replacedEntry.getValue().getUuid();
+            LinkedHashMap<String, UUID> stableBindings = new LinkedHashMap<>();
+            actors.forEach((encounterId, actor) -> {
+                if (!encounterId.equals(replacedEncounterId)) stableBindings.put(encounterId, actor.getUuid());
+            });
+            replacedEntry.getValue().discard();
             synchronized (PROBES) {
-                PROBES.put(server, new Probe(first.canonicalEncounterId(), second.canonicalEncounterId(), crossing.canonicalEncounterId(),
-                        crossingSecond.canonicalEncounterId(), originalFirstUuid, stableSecondUuid, stableCrossingUuid,
-                        stableCrossingSecondUuid, server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L));
+                PROBES.put(server, new Probe(
+                        replacedEncounterId,
+                        removedUuid,
+                        Map.copyOf(stableBindings),
+                        server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L
+                ));
             }
-            LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving {}, {}, {}",
-                    originalFirstUuid, stableSecondUuid, stableCrossingUuid, stableCrossingSecondUuid);
+            LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving five canonical bindings",
+                    removedUuid);
         });
         ServerTickEvents.END_SERVER_TICK.register(MareaVisibleWildPresenceRuntimeSmoke::verify);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> { synchronized (PROBES) { PROBES.remove(server); } });
@@ -66,31 +74,44 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         Probe probe;
         synchronized (PROBES) { probe = PROBES.get(server); }
         if (probe == null) return;
-        PokemonEntity replacement = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.replacedEncounterId());
-        PokemonEntity stable = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.stableEncounterId());
-        PokemonEntity crossing = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.crossingEncounterId());
-        PokemonEntity crossingSecond = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.crossingSecondEncounterId());
-        if (replacement != null && stable != null && crossing != null && crossingSecond != null
-                && Set.of(replacement.getUuid(), stable.getUuid(), crossing.getUuid(), crossingSecond.getUuid()).size() == 4
+
+        PokemonEntity replacement = MareaVisibleWildPokemonRuntime.actorForEncounter(
+                server.getOverworld(), probe.replacedEncounterId());
+        if (replacement != null
                 && !replacement.getUuid().equals(probe.removedUuid())
-                && stable.getUuid().equals(probe.stableUuid())
-                && crossing.getUuid().equals(probe.crossingUuid())
-                && crossingSecond.getUuid().equals(probe.crossingSecondUuid())
                 && hasExactBinding(replacement, probe.replacedEncounterId())
-                && hasExactBinding(stable, probe.stableEncounterId())
-                && hasExactBinding(crossing, probe.crossingEncounterId())
-                && hasExactBinding(crossingSecond, probe.crossingSecondEncounterId())
-                && !VisibleWildPokemonEncounterRuntime.isBound(probe.removedUuid())) {
+                && !VisibleWildPokemonEncounterRuntime.isBound(probe.removedUuid())
+                && stableBindingsPreserved(probe)
+                && allBindingsDistinct(probe, replacement.getUuid())) {
             synchronized (PROBES) { PROBES.remove(server); }
-            LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, stable {}, crossing {}, crossing sibling {}",
-                    probe.removedUuid(), replacement.getUuid(), stable.getUuid(), crossing.getUuid(), crossingSecond.getUuid());
+            LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, five stable bindings preserved",
+                    probe.removedUuid(), replacement.getUuid());
             LOGGER.info("AutoPTU live Marea wild presence reconciliation smoke passed");
             return;
         }
         if (server.getTicks() > probe.deadlineTick()) {
             synchronized (PROBES) { PROBES.remove(server); }
-            throw new IllegalStateException("Marea population policy reconciliation did not restore one member while preserving the other three");
+            throw new IllegalStateException(
+                    "Marea population policy reconciliation did not restore one member while preserving the other five bindings");
         }
+    }
+
+    private static boolean stableBindingsPreserved(Probe probe) {
+        for (var stable : probe.stableBindings().entrySet()) {
+            var current = VisibleWildPokemonEncounterRuntime.boundEntityUuid(stable.getKey());
+            if (current.isEmpty() || !current.get().equals(stable.getValue())) return false;
+            if (!VisibleWildPokemonEncounterRuntime.binding(stable.getValue())
+                    .map(binding -> stable.getKey().equals(binding.canonicalEncounterId()))
+                    .orElse(false)) return false;
+        }
+        return true;
+    }
+
+    private static boolean allBindingsDistinct(Probe probe, UUID replacementUuid) {
+        var uuids = new java.util.HashSet<UUID>();
+        uuids.add(replacementUuid);
+        uuids.addAll(probe.stableBindings().values());
+        return uuids.size() == probe.stableBindings().size() + 1;
     }
 
     private static boolean hasExactBinding(PokemonEntity actor, String canonicalEncounterId) {
@@ -99,7 +120,10 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                 .orElse(false);
     }
 
-    private record Probe(String replacedEncounterId, String stableEncounterId, String crossingEncounterId,
-                         String crossingSecondEncounterId, UUID removedUuid, UUID stableUuid, UUID crossingUuid,
-                         UUID crossingSecondUuid, long deadlineTick) {}
+    private record Probe(
+            String replacedEncounterId,
+            UUID removedUuid,
+            Map<String, UUID> stableBindings,
+            long deadlineTick
+    ) {}
 }
