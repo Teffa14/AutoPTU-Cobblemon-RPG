@@ -24,14 +24,13 @@ import java.util.UUID;
  * encounter, roll RNG or provide any PTU battle fact.</p>
  */
 public final class MareaWildHabitatCueRuntime {
-    private static final int CHECK_INTERVAL_TICKS = 20;
     private static final Map<MinecraftServer, Map<UUID, Set<String>>> INSIDE_POPULATIONS = new IdentityHashMap<>();
 
     private MareaWildHabitatCueRuntime() {}
 
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (server.getTicks() % CHECK_INTERVAL_TICKS != 0) return;
+            if (server.getTicks() % MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() != 0) return;
             reconcile(server.getOverworld());
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
@@ -55,7 +54,7 @@ public final class MareaWildHabitatCueRuntime {
             Set<String> current = new HashSet<>();
             for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
                 if (!population.siteId().startsWith("ouros.marea.")) continue;
-                if (!containsPlayer(world, player, population)) continue;
+                if (!containsPlayer(player, population)) continue;
                 current.add(population.populationId());
                 if (!previous.contains(population.populationId())) announce(player, population);
             }
@@ -65,7 +64,6 @@ public final class MareaWildHabitatCueRuntime {
     }
 
     private static boolean containsPlayer(
-            ServerWorld world,
             ServerPlayerEntity player,
             CanonicalWildPopulationCatalogue.PopulationDefinition population
     ) {
