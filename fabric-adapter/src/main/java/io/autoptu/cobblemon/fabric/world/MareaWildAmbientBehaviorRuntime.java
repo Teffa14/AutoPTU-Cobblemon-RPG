@@ -1,0 +1,126 @@
+package io.autoptu.cobblemon.fabric.world;
+
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Minecraft-only ambient presentation for canonical Marea roaming actors.
+ *
+ * This runtime consumes only server-observed player proximity plus authored presentation thresholds.
+ * It never reads Cobblemon Pokemon gameplay payload, PTU stats, HP, moves, statuses, abilities,
+ * battle state, encounter legality, RNG or results. Combat authority remains entirely upstream.
+ */
+public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
+    private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final AmbientPokemonBehaviorController.Profile MAREA_ROAMING_PROFILE =
+            new AmbientPokemonBehaviorController.Profile(14.0D, 7.0D, 3, 5);
+    private static final Map<MinecraftServer, Map<UUID, AmbientPokemonBehaviorController>> CONTROLLERS =
+            new IdentityHashMap<>();
+
+    @Override
+    public void onInitialize() {
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (server.getTicks() % UPDATE_INTERVAL_TICKS != 0) return;
+            update(server);
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            synchronized (CONTROLLERS) {
+                CONTROLLERS.remove(server);
+            }
+        });
+    }
+
+    static void update(MinecraftServer server) {
+        if (server == null) return;
+        ServerWorld world = server.getOverworld();
+        Map<UUID, AmbientPokemonBehaviorController> controllers = controllersFor(server);
+        var liveActors = new java.util.HashSet<UUID>();
+
+        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
+            if (!population.siteId().startsWith("ouros.marea.")) continue;
+            for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+                var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
+                if (boundUuid.isEmpty()) continue;
+                var entity = world.getEntity(boundUuid.get());
+                if (!(entity instanceof PokemonEntity actor) || actor.isRemoved()) continue;
+                if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid()) || actor.isInvisible()) continue;
+
+                liveActors.add(actor.getUuid());
+                var nearest = nearestPlayer(world, actor);
+                AmbientPokemonBehaviorController controller = controllers.computeIfAbsent(
+                        actor.getUuid(), ignored -> new AmbientPokemonBehaviorController(MAREA_ROAMING_PROFILE));
+                var state = controller.update(
+                        nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(actor.squaredDistanceTo(nearest)),
+                        nearest != null
+                );
+                applyPresentation(actor, nearest, state);
+            }
+        }
+
+        controllers.keySet().removeIf(uuid -> !liveActors.contains(uuid));
+    }
+
+    private static ServerPlayerEntity nearestPlayer(ServerWorld world, PokemonEntity actor) {
+        ServerPlayerEntity nearest = null;
+        double nearestDistance = Double.POSITIVE_INFINITY;
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            if (player.isSpectator()) continue;
+            double distance = actor.squaredDistanceTo(player);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = player;
+            }
+        }
+        return nearest;
+    }
+
+    private static void applyPresentation(
+            PokemonEntity actor,
+            ServerPlayerEntity nearest,
+            AmbientPokemonBehaviorController.State state
+    ) {
+        if (nearest == null) return;
+        double dx = nearest.getX() - actor.getX();
+        double dz = nearest.getZ() - actor.getZ();
+        float towardPlayerYaw = (float) (Math.toDegrees(Math.atan2(-dx, dz)));
+
+        if (state == AmbientPokemonBehaviorController.State.WATCHING) {
+            actor.setYaw(towardPlayerYaw);
+            return;
+        }
+
+        if (state == AmbientPokemonBehaviorController.State.ALARMED) {
+            actor.setYaw(towardPlayerYaw + 180.0F);
+            double length = Math.sqrt(dx * dx + dz * dz);
+            if (length > 0.001D) {
+                double fleeSpeed = 0.08D;
+                actor.addVelocity((-dx / length) * fleeSpeed, 0.0D, (-dz / length) * fleeSpeed);
+                actor.velocityModified = true;
+            }
+        }
+    }
+
+    static int controllerCount(MinecraftServer server) {
+        synchronized (CONTROLLERS) {
+            var controllers = CONTROLLERS.get(server);
+            return controllers == null ? 0 : controllers.size();
+        }
+    }
+
+    private static Map<UUID, AmbientPokemonBehaviorController> controllersFor(MinecraftServer server) {
+        synchronized (CONTROLLERS) {
+            return CONTROLLERS.computeIfAbsent(server, ignored -> new HashMap<>());
+        }
+    }
+}
