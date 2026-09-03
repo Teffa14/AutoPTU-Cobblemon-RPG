@@ -81,6 +81,11 @@ public final class FabricCanonicalPlayerStoreRuntime {
         ServerLifecycleEvents.SERVER_STOPPED.register(FabricCanonicalPlayerStoreRuntime::stop);
     }
 
+    public static boolean storesAvailable(MinecraftServer server) {
+        if (server == null) return false;
+        synchronized (STORES) { return STORES.containsKey(server); }
+    }
+
     public static FileVersionedCanonicalStateRepository requireRepository(MinecraftServer server) { return requireStores(server).players(); }
     public static FileCanonicalPlayerEncounterProfileRepository requireEncounterProfileRepository(MinecraftServer server) { return requireStores(server).encounterProfiles(); }
     public static FileCanonicalPokemonRepository requirePokemonRepository(MinecraftServer server) { return requireStores(server).pokemon(); }
