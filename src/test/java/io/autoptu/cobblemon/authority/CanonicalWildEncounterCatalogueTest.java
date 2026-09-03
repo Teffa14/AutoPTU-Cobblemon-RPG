@@ -13,35 +13,45 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CanonicalWildEncounterCatalogueTest {
     @Test
-    void mareaWildCatalogueHasTwoPopulationsBackedByTheApprovedCompleteFletchlingProfile() {
+    void mareaWildCatalogueHasThreePopulationsBackedByTheApprovedCompleteFletchlingProfile() {
         var first = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID).orElseThrow();
         var second = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID).orElseThrow();
         var crossing = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID).orElseThrow();
         var crossingSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID).orElseThrow();
+        var mirador = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID).orElseThrow();
+        var miradorSecond = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID).orElseThrow();
 
-        assertEquals(4, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
+        assertEquals(6, CanonicalWildEncounterCatalogue.DEFAULT.encounters().size());
         assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(first.populationId()).size());
         assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(crossing.populationId()).size());
+        assertEquals(2, CanonicalWildEncounterCatalogue.DEFAULT.encountersForPopulation(mirador.populationId()).size());
         assertEquals(first.populationId(), second.populationId());
         assertEquals(crossing.populationId(), crossingSecond.populationId());
+        assertEquals(mirador.populationId(), miradorSecond.populationId());
         assertNotEquals(first.populationId(), crossing.populationId());
-        assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.populations().size());
-        assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.members(
-                CanonicalWildPopulationCatalogue.DEFAULT.population(first.populationId()).orElseThrow()).size());
-        assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.members(
-                CanonicalWildPopulationCatalogue.DEFAULT.population(crossing.populationId()).orElseThrow()).size());
+        assertNotEquals(first.populationId(), mirador.populationId());
+        assertNotEquals(crossing.populationId(), mirador.populationId());
+        assertEquals(3, CanonicalWildPopulationCatalogue.DEFAULT.populations().size());
+        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
+            assertEquals(2, CanonicalWildPopulationCatalogue.DEFAULT.members(population).size());
+        }
 
-        assertCompleteApprovedMareaFletchling(first);
-        assertCompleteApprovedMareaFletchling(second);
-        assertCompleteApprovedMareaFletchling(crossing);
-        assertCompleteApprovedMareaFletchling(crossingSecond);
+        assertCompleteApprovedMareaFletchling(first, "ouros.marea.sendero_vidrio");
+        assertCompleteApprovedMareaFletchling(second, "ouros.marea.sendero_vidrio");
+        assertCompleteApprovedMareaFletchling(crossing, "ouros.marea.sendero_vidrio");
+        assertCompleteApprovedMareaFletchling(crossingSecond, "ouros.marea.sendero_vidrio");
+        assertCompleteApprovedMareaFletchling(mirador, "ouros.marea.estacion_mirador");
+        assertCompleteApprovedMareaFletchling(miradorSecond, "ouros.marea.estacion_mirador");
     }
 
-    private static void assertCompleteApprovedMareaFletchling(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+    private static void assertCompleteApprovedMareaFletchling(
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
+            String expectedZoneId
+    ) {
         assertTrue(encounter.populationId().startsWith("ouros.marea.wild."));
         assertTrue(encounter.siteId().startsWith("ouros.marea."));
         assertTrue(CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId()).isPresent());
-        assertEquals("ouros.marea.sendero_vidrio", encounter.zoneId());
+        assertEquals(expectedZoneId, encounter.zoneId());
         assertEquals("fletchling", encounter.speciesId());
         assertEquals("standard", encounter.formId());
         assertEquals(CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL, encounter.speciesStatus());
