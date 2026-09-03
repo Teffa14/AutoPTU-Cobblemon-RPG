@@ -15,7 +15,6 @@ import net.minecraft.util.math.BlockPos;
 /** Applies the canonical Marea migration timeline to the existing visible-wild actors. */
 public final class MareaWildMigrationRuntime implements ModInitializer {
     private static final String POPULATION_ID = CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID;
-    private static final int RECOVERY_CHUNK_RADIUS = 1;
 
     @Override
     public void onInitialize() {
@@ -69,10 +68,10 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
      * Recovers the existing persistent presentation actor before any replacement is allowed.
      *
      * <p>Migration can activate a stopover while the actor's authored-home chunk is unloaded. The
-     * canonical encounter binding still points at the persisted UUID, so loading a bounded chunk
-     * envelope around the authored home lets Minecraft restore that exact entity before projection
-     * moves it. Only if no bound actor exists after that bounded recovery may the normal visible-wild
-     * reconciler create a replacement.</p>
+     * canonical encounter binding still points at the persisted UUID, so loading the bounded chunk
+     * envelope covered by the population's authored habitat leash lets Minecraft restore that exact
+     * entity before projection moves it. Only if no bound actor exists after that recovery may the
+     * normal visible-wild reconciler create a replacement.</p>
      */
     static PokemonEntity recoverBoundActor(
             ServerWorld world,
@@ -83,10 +82,16 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
         if (VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId()).isEmpty()) return null;
 
         BlockPos home = canonicalHomeAnchor(encounter);
-        int homeChunkX = Math.floorDiv(home.getX(), 16);
-        int homeChunkZ = Math.floorDiv(home.getZ(), 16);
-        for (int x = homeChunkX - RECOVERY_CHUNK_RADIUS; x <= homeChunkX + RECOVERY_CHUNK_RADIUS; x++) {
-            for (int z = homeChunkZ - RECOVERY_CHUNK_RADIUS; z <= homeChunkZ + RECOVERY_CHUNK_RADIUS; z++) {
+        int leash = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "missing canonical wild population for recovery: " + encounter.populationId()))
+                .habitatLeashRadiusBlocks();
+        int minChunkX = Math.floorDiv(home.getX() - leash, 16);
+        int maxChunkX = Math.floorDiv(home.getX() + leash, 16);
+        int minChunkZ = Math.floorDiv(home.getZ() - leash, 16);
+        int maxChunkZ = Math.floorDiv(home.getZ() + leash, 16);
+        for (int x = minChunkX; x <= maxChunkX; x++) {
+            for (int z = minChunkZ; z <= maxChunkZ; z++) {
                 world.getChunk(x, z);
             }
         }
