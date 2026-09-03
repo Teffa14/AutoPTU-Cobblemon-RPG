@@ -39,7 +39,7 @@ jobs:
 
           curl -fsSL \
             -o "$server_dir/fabric-server-launch.jar" \
-            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
 
           (
             cd "$server_dir"
@@ -80,11 +80,12 @@ jobs:
           {
             echo 'world_id=ouros-global-v1'
             echo 'minecraft=1.21.1'
+            echo 'fabric_loader=0.18.2'
             echo 'cobblemon=1.7.3'
             echo 'seed=OUROS_GLOBAL_V1_2026_09_03'
             echo 'terralith=2.6.2'
             echo 'tectonic=3.0.1-fabric-1.21.1'
-            echo 'lithostitched=1.6.1-fabric-1.21.1'
+            echo 'lithostitched=1.7.7-fabric-1.21.1'
             echo "generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "git_sha=$GITHUB_SHA"
           } > "$server_dir/world/OUROS_WORLD_MANIFEST.txt"
