@@ -27,7 +27,6 @@ public final class MareaVisibleWildPokemonRuntime {
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
     private static final String WILD_MARKER_TAG = "ouros:visible-wild";
     private static final int PRESENCE_RECONCILE_INTERVAL_TICKS = 100;
-    private static final int HABITAT_ACTIVATION_RADIUS_BLOCKS = 96;
     private static final int HABITAT_LEASH_RADIUS_BLOCKS = 32;
     private static final int HABITAT_SEARCH_RADIUS_BLOCKS = 48;
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
@@ -47,8 +46,6 @@ public final class MareaVisibleWildPokemonRuntime {
                         pokemonEntity.getUuid(), world.getRegistryKey().getValue());
                 return;
             }
-            // Persisted entities can load while the server is still constructing worlds. Canonical stores
-            // are installed at SERVER_STARTED. Never touch the registry before that lifecycle boundary.
             if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return;
             publishBeforeReveal(world, encounter.get().canonicalEncounterId());
             bind(pokemonEntity, encounter.get());
@@ -76,7 +73,7 @@ public final class MareaVisibleWildPokemonRuntime {
 
     /**
      * Explicitly projects every authored Marea member. This remains the admin/smoke bootstrap surface;
-     * normal gameplay uses player-proximity activation through {@link #reconcileActivePopulations}.
+     * normal gameplay uses player presence inside each population's authored footprint.
      */
     public static int ensureProjected(ServerWorld world) {
         if (world == null) throw new IllegalArgumentException("world is required");
@@ -140,7 +137,6 @@ public final class MareaVisibleWildPokemonRuntime {
     }
 
     static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
-    static int habitatActivationRadiusBlocks() { return HABITAT_ACTIVATION_RADIUS_BLOCKS; }
 
     static int reconcileActivePopulations(ServerWorld world) {
         if (world == null || !isCanonicalMareaWorld(world)) return 0;
@@ -148,15 +144,15 @@ public final class MareaVisibleWildPokemonRuntime {
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            if (!hasNearbyPlayer(world, population.siteId())) continue;
+            if (!hasPlayerInsidePresenceFootprint(world, population)) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) {
                     PokemonEntity replacement = ensureProjected(world, encounter);
                     if (replacement != null) {
                         visible++;
-                        LOGGER.info("AutoPTU Marea wild presence activated/restored canonical member: encounter={} entity={}",
-                                encounter.canonicalEncounterId(), replacement.getUuid());
+                        LOGGER.info("AutoPTU Marea wild presence activated/restored canonical member: population={} encounter={} entity={}",
+                                population.populationId(), encounter.canonicalEncounterId(), replacement.getUuid());
                     }
                     continue;
                 }
@@ -166,23 +162,26 @@ public final class MareaVisibleWildPokemonRuntime {
                     visible++;
                 }
                 // Ordinary persistent chunk unload preserves the canonical UUID binding. A later chunk
-                // load rebinds the same actor through ENTITY_LOAD; proximity activation never invents a
-                // replacement merely because the authored chunk is currently unloaded.
+                // load rebinds the same actor through ENTITY_LOAD; authored presence never invents a
+                // replacement merely because the habitat chunk is currently unloaded.
             }
         }
         return visible;
     }
 
-    private static boolean hasNearbyPlayer(ServerWorld world, String siteId) {
-        var site = CanonicalWorldMapCatalogue.DEFAULT.site(siteId)
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + siteId));
-        double radiusSquared = (double) HABITAT_ACTIVATION_RADIUS_BLOCKS * HABITAT_ACTIVATION_RADIUS_BLOCKS;
+    private static boolean hasPlayerInsidePresenceFootprint(
+            ServerWorld world,
+            CanonicalWildPopulationCatalogue.PopulationDefinition population
+    ) {
+        var site = CanonicalWorldMapCatalogue.DEFAULT.site(population.siteId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + population.siteId()));
+        var footprint = population.presenceFootprint();
         for (var player : world.getPlayers()) {
             if (player.isSpectator()) continue;
             double dx = player.getX() - (site.x() + 0.5D);
             double dy = player.getY() - site.y();
             double dz = player.getZ() - (site.z() + 0.5D);
-            if (dx * dx + dy * dy + dz * dz <= radiusSquared) return true;
+            if (footprint.containsOffset(dx, dy, dz)) return true;
         }
         return false;
     }
