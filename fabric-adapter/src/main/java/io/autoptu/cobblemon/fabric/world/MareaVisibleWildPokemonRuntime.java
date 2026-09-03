@@ -15,11 +15,17 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /** Normal Marea visible-wild projection backed only by canonical AutoPTU population and encounter state. */
 public final class MareaVisibleWildPokemonRuntime {
@@ -30,6 +36,7 @@ public final class MareaVisibleWildPokemonRuntime {
     private static final int HABITAT_SEARCH_RADIUS_BLOCKS = 48;
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
             new MareaCanonicalWildEncounterBlueprintSource();
+    private static final Map<MinecraftServer, Set<String>> ACTIVE_POPULATIONS = new IdentityHashMap<>();
 
     private MareaVisibleWildPokemonRuntime() {}
 
@@ -50,7 +57,7 @@ public final class MareaVisibleWildPokemonRuntime {
             bind(pokemonEntity, encounter.get());
             setPopulationProjectionActive(
                     pokemonEntity,
-                    hasPlayerInsidePresenceFootprint(world, populationFor(encounter.get()))
+                    shouldPopulationBeActive(world, populationFor(encounter.get()))
             );
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
@@ -65,9 +72,11 @@ public final class MareaVisibleWildPokemonRuntime {
             }
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            clearPopulationActivity(server);
             int visible = reconcileActivePopulations(server.getOverworld());
             LOGGER.info("AutoPTU normal Marea visible wild actors ready: {}", visible);
         });
+        ServerLifecycleEvents.SERVER_STOPPED.register(MareaVisibleWildPokemonRuntime::clearPopulationActivity);
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.getTicks() % PRESENCE_RECONCILE_INTERVAL_TICKS != 0) return;
             reconcileActivePopulations(server.getOverworld());
@@ -149,7 +158,13 @@ public final class MareaVisibleWildPokemonRuntime {
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            boolean active = hasPlayerInsidePresenceFootprint(world, population);
+            boolean wasActive = isPopulationMarkedActive(world.getServer(), population.populationId());
+            boolean active = hasPlayerInsideFootprint(
+                    world,
+                    population,
+                    wasActive ? population.retentionFootprint() : population.presenceFootprint()
+            );
+            setPopulationMarkedActive(world.getServer(), population.populationId(), active);
             if (!active) {
                 hibernateLoadedPopulation(world, population);
                 continue;
@@ -179,6 +194,17 @@ public final class MareaVisibleWildPokemonRuntime {
         return visible;
     }
 
+    private static boolean shouldPopulationBeActive(
+            ServerWorld world,
+            CanonicalWildPopulationCatalogue.PopulationDefinition population
+    ) {
+        boolean wasActive = isPopulationMarkedActive(world.getServer(), population.populationId());
+        var footprint = wasActive ? population.retentionFootprint() : population.presenceFootprint();
+        boolean active = hasPlayerInsideFootprint(world, population, footprint);
+        setPopulationMarkedActive(world.getServer(), population.populationId(), active);
+        return active;
+    }
+
     private static void hibernateLoadedPopulation(
             ServerWorld world,
             CanonicalWildPopulationCatalogue.PopulationDefinition population
@@ -205,13 +231,13 @@ public final class MareaVisibleWildPokemonRuntime {
                 .orElseThrow(() -> new IllegalStateException("missing canonical wild population policy: " + encounter.populationId()));
     }
 
-    private static boolean hasPlayerInsidePresenceFootprint(
+    private static boolean hasPlayerInsideFootprint(
             ServerWorld world,
-            CanonicalWildPopulationCatalogue.PopulationDefinition population
+            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            CanonicalWildPopulationCatalogue.PresenceFootprint footprint
     ) {
         var site = CanonicalWorldMapCatalogue.DEFAULT.site(population.siteId())
                 .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + population.siteId()));
-        var footprint = population.presenceFootprint();
         for (var player : world.getPlayers()) {
             if (player.isSpectator()) continue;
             double dx = player.getX() - (site.x() + 0.5D);
@@ -220,6 +246,28 @@ public final class MareaVisibleWildPokemonRuntime {
             if (footprint.containsOffset(dx, dy, dz)) return true;
         }
         return false;
+    }
+
+    private static boolean isPopulationMarkedActive(MinecraftServer server, String populationId) {
+        synchronized (ACTIVE_POPULATIONS) {
+            var active = ACTIVE_POPULATIONS.get(server);
+            return active != null && active.contains(populationId);
+        }
+    }
+
+    private static void setPopulationMarkedActive(MinecraftServer server, String populationId, boolean active) {
+        synchronized (ACTIVE_POPULATIONS) {
+            Set<String> populations = ACTIVE_POPULATIONS.computeIfAbsent(server, ignored -> new HashSet<>());
+            if (active) populations.add(populationId);
+            else populations.remove(populationId);
+            if (populations.isEmpty()) ACTIVE_POPULATIONS.remove(server);
+        }
+    }
+
+    private static void clearPopulationActivity(MinecraftServer server) {
+        synchronized (ACTIVE_POPULATIONS) {
+            ACTIVE_POPULATIONS.remove(server);
+        }
     }
 
     private static java.util.Optional<CanonicalWildEncounterCatalogue.EncounterDefinition> canonicalEncounterFor(

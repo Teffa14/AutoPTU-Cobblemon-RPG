@@ -10,10 +10,11 @@ import java.util.Optional;
  * Server-authored visible-wild population policy.
  *
  * <p>This catalogue owns only world presence: which already-complete canonical encounter members
- * belong to a visible population, where that population becomes physically present, and how far
- * its projected actors may roam from their authored presentation anchors. It never derives species,
- * level, stats, moves, HP, abilities or battle legality. Those facts stay frozen in
- * {@link CanonicalWildEncounterCatalogue} and are consumed by the battle handoff unchanged.</p>
+ * belong to a visible population, where that population becomes physically present, how long an
+ * already-active population remains retained near its habitat, and how far its projected actors may
+ * roam from their authored presentation anchors. It never derives species, level, stats, moves, HP,
+ * abilities or battle legality. Those facts stay frozen in {@link CanonicalWildEncounterCatalogue}
+ * and are consumed by the battle handoff unchanged.</p>
  */
 public final class CanonicalWildPopulationCatalogue {
     public static final String MAREA_LOWER_SHELF_POPULATION_ID =
@@ -35,6 +36,7 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID
                     ),
                     new PresenceFootprint(48, 24, 56),
+                    new PresenceFootprint(60, 30, 68),
                     28
             ),
             new PopulationDefinition(
@@ -46,6 +48,7 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID
                     ),
                     new PresenceFootprint(40, 24, 40),
+                    new PresenceFootprint(52, 30, 52),
                     22
             ),
             new PopulationDefinition(
@@ -57,6 +60,7 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID
                     ),
                     new PresenceFootprint(48, 28, 48),
+                    new PresenceFootprint(60, 34, 60),
                     30
             ),
             new PopulationDefinition(
@@ -68,6 +72,7 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_SECOND_FLETCHLING_ID
                     ),
                     new PresenceFootprint(40, 24, 44),
+                    new PresenceFootprint(52, 30, 56),
                     24
             )
     ));
@@ -132,6 +137,7 @@ public final class CanonicalWildPopulationCatalogue {
             String zoneId,
             List<String> encounterIds,
             PresenceFootprint presenceFootprint,
+            PresenceFootprint retentionFootprint,
             int habitatLeashRadiusBlocks
     ) {
         public PopulationDefinition {
@@ -141,6 +147,10 @@ public final class CanonicalWildPopulationCatalogue {
             encounterIds = encounterIds == null ? List.of() : List.copyOf(encounterIds);
             encounterIds.forEach(id -> requireText(id, "encounterId"));
             presenceFootprint = Objects.requireNonNull(presenceFootprint, "presenceFootprint");
+            retentionFootprint = Objects.requireNonNull(retentionFootprint, "retentionFootprint");
+            if (!retentionFootprint.containsFootprint(presenceFootprint)) {
+                throw new IllegalArgumentException("retention footprint must contain the authored activation footprint");
+            }
             if (habitatLeashRadiusBlocks <= 0) {
                 throw new IllegalArgumentException("habitat leash radius must be positive");
             }
@@ -152,10 +162,18 @@ public final class CanonicalWildPopulationCatalogue {
 
         /** Compatibility constructor for tests/tools; production populations should author world-presence policy explicitly. */
         public PopulationDefinition(String populationId, String siteId, String zoneId, List<String> encounterIds) {
-            this(populationId, siteId, zoneId, encounterIds, new PresenceFootprint(96, 96, 96), 32);
+            this(
+                    populationId,
+                    siteId,
+                    zoneId,
+                    encounterIds,
+                    new PresenceFootprint(96, 96, 96),
+                    new PresenceFootprint(96, 96, 96),
+                    32
+            );
         }
 
-        /** Compatibility constructor for footprint-aware callers predating authored habitat leash policy. */
+        /** Compatibility constructor for footprint-aware callers predating authored retention/leash policy. */
         public PopulationDefinition(
                 String populationId,
                 String siteId,
@@ -163,11 +181,23 @@ public final class CanonicalWildPopulationCatalogue {
                 List<String> encounterIds,
                 PresenceFootprint presenceFootprint
         ) {
-            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, 32);
+            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, presenceFootprint, 32);
+        }
+
+        /** Compatibility constructor for callers that already author activation footprint and leash. */
+        public PopulationDefinition(
+                String populationId,
+                String siteId,
+                String zoneId,
+                List<String> encounterIds,
+                PresenceFootprint presenceFootprint,
+                int habitatLeashRadiusBlocks
+        ) {
+            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, presenceFootprint, habitatLeashRadiusBlocks);
         }
     }
 
-    /** Axis-aligned Minecraft-world activation footprint around the population's canonical site anchor. */
+    /** Axis-aligned Minecraft-world footprint around the population's canonical site anchor. */
     public record PresenceFootprint(int halfExtentXBlocks, int halfExtentYBlocks, int halfExtentZBlocks) {
         public PresenceFootprint {
             if (halfExtentXBlocks <= 0 || halfExtentYBlocks <= 0 || halfExtentZBlocks <= 0) {
@@ -179,6 +209,13 @@ public final class CanonicalWildPopulationCatalogue {
             return Math.abs(dx) <= halfExtentXBlocks
                     && Math.abs(dy) <= halfExtentYBlocks
                     && Math.abs(dz) <= halfExtentZBlocks;
+        }
+
+        public boolean containsFootprint(PresenceFootprint inner) {
+            Objects.requireNonNull(inner, "inner");
+            return halfExtentXBlocks >= inner.halfExtentXBlocks
+                    && halfExtentYBlocks >= inner.halfExtentYBlocks
+                    && halfExtentZBlocks >= inner.halfExtentZBlocks;
         }
     }
 

@@ -62,7 +62,7 @@ jobs:
           EOF
           curl -fsSL \
             -o graphical-server/fabric-server-launch.jar \
-            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
       - name: Launch authoritative server and capture RPG scene
         shell: bash
         run: |
@@ -124,11 +124,11 @@ jobs:
           minecraft_launcher_lib.fabric.install_fabric(
               '1.21.1',
               root,
-              loader_version='0.17.2',
+              loader_version='0.18.2',
               callback=callback,
               java=shutil.which('java'),
           )
-          version = 'fabric-loader-0.17.2-1.21.1'
+          version = 'fabric-loader-0.18.2-1.21.1'
           options = minecraft_launcher_lib.utils.generate_test_options()
           options['username'] = 'AutoPTUVisual'
           options['uuid'] = '43d6469abef93d6fbbb33ad8e4494453'
