@@ -54,6 +54,27 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                 throw new IllegalStateException("Marea population smoke requires eight distinct canonical actors");
             }
 
+            if (MareaVisibleWildPokemonRuntime.reconcileActivePopulations(server.getOverworld()) != 0) {
+                throw new IllegalStateException("Marea hibernation smoke requires zero active actors without players");
+            }
+            for (var actor : actors.values()) {
+                if (!actor.isInvisible() || VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) {
+                    throw new IllegalStateException("inactive Marea populations must hibernate loaded actors without releasing bindings");
+                }
+            }
+            for (var encounter : encounters) {
+                PokemonEntity reactivated = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
+                PokemonEntity original = actors.get(encounter.canonicalEncounterId());
+                if (reactivated == null || original == null || !reactivated.getUuid().equals(original.getUuid())
+                        || reactivated.isInvisible()
+                        || !VisibleWildPokemonEncounterRuntime.isInteractionActive(reactivated.getUuid())
+                        || !hasExactBinding(reactivated, encounter.canonicalEncounterId())) {
+                    throw new IllegalStateException("Marea population reactivation must preserve canonical actor identity for "
+                            + encounter.canonicalEncounterId());
+                }
+            }
+            LOGGER.info("AutoPTU live Marea hibernation smoke preserved eight actor UUIDs/bindings across dormant/reactivated projection");
+
             var replacedEntry = actors.entrySet().iterator().next();
             String replacedEncounterId = replacedEntry.getKey();
             UUID removedUuid = replacedEntry.getValue().getUuid();
