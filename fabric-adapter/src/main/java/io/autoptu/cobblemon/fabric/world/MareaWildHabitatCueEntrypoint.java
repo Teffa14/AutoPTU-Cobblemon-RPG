@@ -54,11 +54,16 @@ public final class MareaWildHabitatCueEntrypoint implements ModInitializer {
             Set<String> current = new HashSet<>();
             for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
                 if (!population.siteId().startsWith("ouros.marea.")) continue;
-                if (!containsPlayer(player, population)) continue;
+                var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+                if (projectedSiteId.isEmpty()) continue;
+                var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
+                        .orElseThrow(() -> new IllegalStateException(
+                                "missing projected canonical wild population site: " + projectedSiteId.get()));
+                if (!containsPlayer(player, population, site)) continue;
 
                 current.add(population.populationId());
                 if (!previous.contains(population.populationId())) {
-                    announce(player, population);
+                    announce(player, population, site);
                 }
             }
             remember(world.getServer(), player.getUuid(), current);
@@ -68,10 +73,9 @@ public final class MareaWildHabitatCueEntrypoint implements ModInitializer {
 
     private static boolean containsPlayer(
             ServerPlayerEntity player,
-            CanonicalWildPopulationCatalogue.PopulationDefinition population
+            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            CanonicalWorldMapCatalogue.SiteDefinition site
     ) {
-        var site = CanonicalWorldMapCatalogue.DEFAULT.site(population.siteId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + population.siteId()));
         double dx = player.getX() - (site.x() + 0.5D);
         double dy = player.getY() - site.y();
         double dz = player.getZ() - (site.z() + 0.5D);
@@ -80,10 +84,9 @@ public final class MareaWildHabitatCueEntrypoint implements ModInitializer {
 
     private static void announce(
             ServerPlayerEntity player,
-            CanonicalWildPopulationCatalogue.PopulationDefinition population
+            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            CanonicalWorldMapCatalogue.SiteDefinition site
     ) {
-        var site = CanonicalWorldMapCatalogue.DEFAULT.site(population.siteId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + population.siteId()));
         int visibleMembers = CanonicalWildPopulationCatalogue.DEFAULT.members(population).size();
         player.sendMessage(Text.literal(
                 "Wild habitat — " + site.displayName() + " · " + visibleMembers + " roaming Pokemon"
