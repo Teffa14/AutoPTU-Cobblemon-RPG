@@ -59,7 +59,11 @@ public final class MareaVisibleWildPokemonRuntime {
         publishBeforeReveal(world, encounter.canonicalEncounterId());
         BlockPos anchor = presentationAnchor(encounter);
         loadHabitatChunks(world, anchor);
-        evictRemovedBinding(world, encounter.canonicalEncounterId());
+
+        // A bound UUID can temporarily be absent from ServerWorld's live entity index while its
+        // chunk is unloaded. Search the canonical tagged actor after loading the authored habitat
+        // before deciding that the binding is stale. This prevents unloaded persistent actors from
+        // being mistaken for losses and duplicated by the presence reconciler.
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
@@ -67,6 +71,7 @@ public final class MareaVisibleWildPokemonRuntime {
             return existing;
         }
 
+        evictMissingBinding(encounter.canonicalEncounterId());
         enforceProjectionContentGate(encounter);
         Species species = PokemonSpecies.INSTANCE.getByName(encounter.speciesId());
         if (species == null) {
@@ -91,8 +96,14 @@ public final class MareaVisibleWildPokemonRuntime {
         if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
         BlockPos anchor = presentationAnchor(encounter);
         loadHabitatChunks(world, anchor);
-        evictRemovedBinding(world, encounter.canonicalEncounterId());
-        return findExisting(world, encounter.canonicalEncounterId(), anchor);
+        PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
+        if (existing != null) {
+            bind(existing, encounter);
+            keepInHabitat(existing, anchor);
+            return existing;
+        }
+        evictMissingBinding(encounter.canonicalEncounterId());
+        return null;
     }
 
     static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
@@ -114,15 +125,10 @@ public final class MareaVisibleWildPokemonRuntime {
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
                     keepInHabitat(pokemonEntity, presentationAnchor(encounter));
-                    continue;
                 }
-
-                VisibleWildPokemonEncounterRuntime.unbind(boundUuid.get());
-                PokemonEntity replacement = ensureProjected(world, encounter);
-                if (replacement != null) {
-                    LOGGER.info("AutoPTU Marea wild presence replaced missing actor: encounter={} old={} new={}",
-                            encounter.canonicalEncounterId(), boundUuid.get(), replacement.getUuid());
-                }
+                // A null lookup is not proof of loss: persistent entities leave the live UUID index
+                // when their chunk unloads. The 100-tick reconciliation loads the authored habitat,
+                // searches the canonical tag, and only then replaces a genuinely missing actor.
             }
         }
     }
@@ -150,11 +156,9 @@ public final class MareaVisibleWildPokemonRuntime {
         VisibleWildPokemonEncounterRuntime.bind(entity, encounter.canonicalEncounterId(), encounter.zoneId(), encounter.contextId());
     }
 
-    private static void evictRemovedBinding(ServerWorld world, String canonicalEncounterId) {
-        var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(canonicalEncounterId);
-        if (boundUuid.isEmpty()) return;
-        var entity = world.getEntity(boundUuid.get());
-        if (entity == null || entity.isRemoved()) VisibleWildPokemonEncounterRuntime.unbind(boundUuid.get());
+    private static void evictMissingBinding(String canonicalEncounterId) {
+        VisibleWildPokemonEncounterRuntime.boundEntityUuid(canonicalEncounterId)
+                .ifPresent(VisibleWildPokemonEncounterRuntime::unbind);
     }
 
     private static void enforceProjectionContentGate(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
