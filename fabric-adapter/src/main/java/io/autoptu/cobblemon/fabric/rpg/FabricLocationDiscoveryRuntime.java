@@ -4,6 +4,8 @@ import io.autoptu.cobblemon.authority.CanonicalLocationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalLocationDiscoveryService;
 import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalQuestObjectiveService;
+import io.autoptu.cobblemon.authority.CanonicalWorldExplorationProgressService;
+import io.autoptu.cobblemon.authority.CanonicalWorldHierarchyCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -20,7 +22,7 @@ import java.util.Map;
 /**
  * Observes authenticated players entering server-authored location footprints and persists discovery.
  * Player coordinates, location identity and progression truth never come from a client payload.
- * Marea Interior uses fixed CanonicalWorldMapCatalogue anchors; legacy locations may still use spawn.
+ * Authored sites use fixed CanonicalWorldMapCatalogue anchors; legacy locations may still use spawn.
  */
 public final class FabricLocationDiscoveryRuntime {
     private static final int CHECK_INTERVAL_TICKS = 20;
@@ -41,8 +43,10 @@ public final class FabricLocationDiscoveryRuntime {
                     FabricCanonicalPlayerStoreRuntime.requireQuestJournalRepository(server),
                     FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(server)
             );
+            var exploration = new CanonicalWorldExplorationProgressService(CanonicalWorldHierarchyCatalogue.DEFAULT);
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                observePlayer(player, discovery, objectives);
+                if (player.isSpectator()) continue;
+                observePlayer(player, discovery, objectives, exploration);
             }
         });
     }
@@ -62,7 +66,8 @@ public final class FabricLocationDiscoveryRuntime {
     private static void observePlayer(
             ServerPlayerEntity player,
             CanonicalLocationDiscoveryService discovery,
-            CanonicalQuestObjectiveService objectives
+            CanonicalQuestObjectiveService objectives,
+            CanonicalWorldExplorationProgressService exploration
     ) {
         ServerWorld world = player.getServerWorld();
         String dimensionId = world.getRegistryKey().getValue().toString();
@@ -75,9 +80,26 @@ public final class FabricLocationDiscoveryRuntime {
             var decision = discovery.observe(playerId, location.id());
             if (decision.allowed() && decision.newlyDiscovered()) {
                 player.sendMessage(Text.literal("Discovered: " + decision.location().displayName()), false);
+                sendExplorationProgress(player, playerId, location.id(), exploration);
             }
             observeQuestEvent(player, playerId, location.id(), objectives);
         }
+    }
+
+    private static void sendExplorationProgress(
+            ServerPlayerEntity player,
+            String playerId,
+            String locationId,
+            CanonicalWorldExplorationProgressService exploration
+    ) {
+        boolean represented = CanonicalWorldHierarchyCatalogue.DEFAULT.nodes().stream()
+                .anyMatch(node -> locationId.equals(node.canonicalSiteId()));
+        if (!represented) return;
+        var state = FabricCanonicalPlayerStoreRuntime.requireLocationDiscoveryRepository(player.getServer())
+                .findOrCreate(playerId);
+        var progress = exploration.nearestProgressForLocation(locationId, state.locationIds());
+        String suffix = progress.complete() ? " - COMPLETE" : "";
+        player.sendMessage(Text.literal("Exploration: " + progress.compactLabel() + suffix), true);
     }
 
     private static BlockPos anchor(ServerWorld world, String locationId) {
