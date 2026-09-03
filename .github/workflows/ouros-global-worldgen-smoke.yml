@@ -1,0 +1,103 @@
+name: Ouros Global Worldgen Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fabric-adapter/**'
+      - 'worldgen/ouros-global-v1/**'
+      - '.github/workflows/ouros-global-worldgen-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-world:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Build runtime mod set
+        run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
+
+      - name: Materialize Ouros Global V1
+        shell: bash
+        run: |
+          set -euo pipefail
+          server_dir="$PWD/ouros-global-runtime"
+          mkdir -p "$server_dir/mods" "$server_dir/config"
+          cp fabric-adapter/build/production-smoke/mods/*.jar "$server_dir/mods/"
+          cp worldgen/ouros-global-v1/server.properties "$server_dir/server.properties"
+          cp worldgen/ouros-global-v1/tectonic.json "$server_dir/config/tectonic.json"
+          printf 'eula=true\n' > "$server_dir/eula.txt"
+
+          curl -fsSL \
+            -o "$server_dir/fabric-server-launch.jar" \
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+
+          (
+            cd "$server_dir"
+            exec java -Xms1G -Xmx3G -jar fabric-server-launch.jar nogui > ../ouros-global-worldgen.log 2>&1
+          ) &
+          server_pid=$!
+
+          ready=0
+          for _ in $(seq 1 240); do
+            latest="$server_dir/logs/latest.log"
+            if grep -q 'Done (' "$latest" 2>/dev/null; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat ouros-global-worldgen.log || true
+            cat "$server_dir/logs/latest.log" 2>/dev/null || true
+            exit 1
+          fi
+
+          test -f "$server_dir/world/level.dat"
+          test -d "$server_dir/world/region"
+          test -n "$(find "$server_dir/world/region" -name 'r.*.*.mca' -print -quit)"
+          ls "$server_dir/mods" | grep -i 'cobblemon'
+          ls "$server_dir/mods" | grep -i 'terralith'
+          ls "$server_dir/mods" | grep -i 'tectonic'
+          ls "$server_dir/mods" | grep -i 'lithostitched'
+
+          kill "$server_pid" 2>/dev/null || true
+          wait "$server_pid" 2>/dev/null || true
+
+          {
+            echo 'world_id=ouros-global-v1'
+            echo 'minecraft=1.21.1'
+            echo 'cobblemon=1.7.3'
+            echo 'seed=OUROS_GLOBAL_V1_2026_09_03'
+            echo 'terralith=2.6.2'
+            echo 'tectonic=3.0.1-fabric-1.21.1'
+            echo 'lithostitched=1.6.1-fabric-1.21.1'
+            echo "generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "git_sha=$GITHUB_SHA"
+          } > "$server_dir/world/OUROS_WORLD_MANIFEST.txt"
+
+      - name: Upload generated world seed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ouros-global-v1-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            ouros-global-runtime/world/**
+            ouros-global-runtime/config/tectonic.json
+            ouros-global-runtime/server.properties
+            ouros-global-runtime/logs/latest.log
+            ouros-global-worldgen.log
