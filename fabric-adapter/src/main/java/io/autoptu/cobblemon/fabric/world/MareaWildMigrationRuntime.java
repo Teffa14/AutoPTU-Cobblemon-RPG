@@ -32,13 +32,13 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
                 .orElseThrow(() -> new IllegalStateException("missing migrating Marea population: " + POPULATION_ID));
         var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
         if (projectedSiteId.isEmpty()) {
-            return setMembersActive(world, population, false, null);
+            return setMembersActive(world, population, false);
         }
 
         var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
                 .orElseThrow(() -> new IllegalStateException("missing migration projection site: " + projectedSiteId.get()));
         boolean active = hasPlayerInside(world, site.x(), site.y(), site.z(), population.presenceFootprint());
-        if (!active) return setMembersActive(world, population, false, null);
+        if (!active) return setMembersActive(world, population, false);
 
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
@@ -66,8 +66,7 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
     private static int setMembersActive(
             ServerWorld world,
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
-            boolean active,
-            BlockPos ignored
+            boolean active
     ) {
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
