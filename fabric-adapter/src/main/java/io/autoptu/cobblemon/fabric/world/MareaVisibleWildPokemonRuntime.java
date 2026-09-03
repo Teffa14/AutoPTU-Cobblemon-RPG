@@ -59,6 +59,7 @@ public final class MareaVisibleWildPokemonRuntime {
         publishBeforeReveal(world, encounter.canonicalEncounterId());
         BlockPos anchor = presentationAnchor(encounter);
         loadHabitatChunks(world, anchor);
+        evictRemovedBinding(world, encounter.canonicalEncounterId());
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
@@ -90,6 +91,7 @@ public final class MareaVisibleWildPokemonRuntime {
         if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
         BlockPos anchor = presentationAnchor(encounter);
         loadHabitatChunks(world, anchor);
+        evictRemovedBinding(world, encounter.canonicalEncounterId());
         return findExisting(world, encounter.canonicalEncounterId(), anchor);
     }
 
@@ -102,7 +104,11 @@ public final class MareaVisibleWildPokemonRuntime {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
-                if (loaded instanceof PokemonEntity pokemonEntity) keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
+                    keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                } else {
+                    VisibleWildPokemonEncounterRuntime.unbind(boundUuid.get());
+                }
             }
         }
     }
@@ -128,6 +134,13 @@ public final class MareaVisibleWildPokemonRuntime {
 
     private static void bind(PokemonEntity entity, CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
         VisibleWildPokemonEncounterRuntime.bind(entity, encounter.canonicalEncounterId(), encounter.zoneId(), encounter.contextId());
+    }
+
+    private static void evictRemovedBinding(ServerWorld world, String canonicalEncounterId) {
+        var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(canonicalEncounterId);
+        if (boundUuid.isEmpty()) return;
+        var entity = world.getEntity(boundUuid.get());
+        if (entity == null || entity.isRemoved()) VisibleWildPokemonEncounterRuntime.unbind(boundUuid.get());
     }
 
     private static void enforceProjectionContentGate(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
@@ -161,7 +174,7 @@ public final class MareaVisibleWildPokemonRuntime {
         String tag = WILD_TAG_PREFIX + canonicalEncounterId;
         return world.getEntitiesByClass(PokemonEntity.class,
                         new Box(anchor).expand(HABITAT_SEARCH_RADIUS_BLOCKS, 24.0D, HABITAT_SEARCH_RADIUS_BLOCKS),
-                        entity -> entity.getCommandTags().contains(tag))
+                        entity -> !entity.isRemoved() && entity.getCommandTags().contains(tag))
                 .stream().findFirst().orElse(null);
     }
 }
