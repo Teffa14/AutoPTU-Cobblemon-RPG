@@ -65,18 +65,20 @@ dependencies {
     modImplementation("com.cobblemon:fabric:1.7.3+1.21.1")
 
     // Frozen Ouros Overworld substrate for Minecraft 1.21.1.
-    // Tectonic v3 owns continent/terrain scale and includes Terralith compatibility.
-    // Terralith owns biome diversity. Lithostitched is required by both current 1.21.1 releases.
-    modRuntimeOnly("maven.modrinth:lithostitched:1.6.1-fabric-1.21.1")
-    modRuntimeOnly("maven.modrinth:terralith:2.6.2")
-    modRuntimeOnly("maven.modrinth:tectonic:3.0.1-fabric-1.21.1")
+    // Use Modrinth project/version IDs rather than display slugs so CI resolves the exact files.
+    // Lithostitched 1.6.1 Fabric 1.21.1 = XaDC71GB:uGT59zm8
+    // Terralith 2.6.2 Fabric 1.21.1 = 8oi3bsk5:eWDLFabb
+    // Tectonic 3.0.1 Fabric 1.21.1 = lWDHr9jE:WDwMnQJ5
+    modRuntimeOnly("maven.modrinth:XaDC71GB:uGT59zm8")
+    modRuntimeOnly("maven.modrinth:8oi3bsk5:eWDLFabb")
+    modRuntimeOnly("maven.modrinth:lWDHr9jE:WDwMnQJ5")
 
     productionSmokeMods("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
     productionSmokeMods("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
     productionSmokeMods("com.cobblemon:fabric:1.7.3+1.21.1")
-    productionSmokeMods("maven.modrinth:lithostitched:1.6.1-fabric-1.21.1")
-    productionSmokeMods("maven.modrinth:terralith:2.6.2")
-    productionSmokeMods("maven.modrinth:tectonic:3.0.1-fabric-1.21.1")
+    productionSmokeMods("maven.modrinth:XaDC71GB:uGT59zm8")
+    productionSmokeMods("maven.modrinth:8oi3bsk5:eWDLFabb")
+    productionSmokeMods("maven.modrinth:lWDHr9jE:WDwMnQJ5")
 
     implementation(project(":"))
 
