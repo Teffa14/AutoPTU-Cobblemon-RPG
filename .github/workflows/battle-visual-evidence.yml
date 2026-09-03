@@ -50,7 +50,7 @@ jobs:
           cat > graphical-server/ops.json <<'EOF'
           [{"uuid":"43d6469a-bef9-3d6f-bbb3-3ad8e4494453","name":"AutoPTUVisual","level":4,"bypassesPlayerLimit":true}]
           EOF
-          curl -fsSL -o graphical-server/fabric-server-launch.jar 'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+          curl -fsSL -o graphical-server/fabric-server-launch.jar 'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
       - name: Launch authoritative battle and capture frames
         shell: bash
         run: |
@@ -72,11 +72,11 @@ jobs:
           import os, shutil, subprocess, minecraft_launcher_lib
           root=os.path.abspath('graphical-client')
           cb={'setStatus':lambda x:print(x,flush=True),'setProgress':lambda x:None,'setMax':lambda x:None}
-          minecraft_launcher_lib.fabric.install_fabric('1.21.1',root,loader_version='0.17.2',callback=cb,java=shutil.which('java'))
+          minecraft_launcher_lib.fabric.install_fabric('1.21.1',root,loader_version='0.18.2',callback=cb,java=shutil.which('java'))
           options=minecraft_launcher_lib.utils.generate_test_options()
           options.update({'username':'AutoPTUVisual','uuid':'43d6469abef93d6fbbb33ad8e4494453','token':'autoptu-ci-test-token','executablePath':shutil.which('java'),'defaultExecutablePath':shutil.which('java'),'customResolution':True,'resolutionWidth':'1280','resolutionHeight':'720'})
           options['jvmArguments']=['-Xms512M','-Xmx4G','-Dautoptu.battleVisualEvidenceCapture=true','-Dautoptu.visualEvidenceServer=127.0.0.1:25565']
-          cmd=minecraft_launcher_lib.command.get_minecraft_command('fabric-loader-0.17.2-1.21.1',root,options)
+          cmd=minecraft_launcher_lib.command.get_minecraft_command('fabric-loader-0.18.2-1.21.1',root,options)
           raise SystemExit(subprocess.call(cmd,cwd=root))
           PY
           client_pid=$!
