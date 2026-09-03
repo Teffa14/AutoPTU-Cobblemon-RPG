@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 import io.autoptu.cobblemon.fabric.battle.ServerOwnedWildEncounterBlueprintPublisher;
@@ -18,7 +19,7 @@ import net.minecraft.util.math.Box;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** First normal Marea visible-wild projection backed only by canonical AutoPTU state. */
+/** Normal Marea visible-wild projection backed only by canonical AutoPTU population and encounter state. */
 public final class MareaVisibleWildPokemonRuntime {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
@@ -45,9 +46,11 @@ public final class MareaVisibleWildPokemonRuntime {
     public static int ensureProjected(ServerWorld world) {
         if (world == null) throw new IllegalArgumentException("world is required");
         int visible = 0;
-        for (var encounter : CanonicalWildEncounterCatalogue.DEFAULT.encounters()) {
-            if (!encounter.siteId().startsWith("ouros.marea.")) continue;
-            if (ensureProjected(world, encounter) != null) visible++;
+        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
+            if (!population.siteId().startsWith("ouros.marea.")) continue;
+            for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+                if (ensureProjected(world, encounter) != null) visible++;
+            }
         }
         return visible;
     }
@@ -93,12 +96,14 @@ public final class MareaVisibleWildPokemonRuntime {
     static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
 
     private static void keepProjectedActorsInHabitat(ServerWorld world) {
-        for (var encounter : CanonicalWildEncounterCatalogue.DEFAULT.encounters()) {
-            if (!encounter.siteId().startsWith("ouros.marea.")) continue;
-            var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
-            if (boundUuid.isEmpty()) continue;
-            var loaded = world.getEntity(boundUuid.get());
-            if (loaded instanceof PokemonEntity pokemonEntity) keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
+            if (!population.siteId().startsWith("ouros.marea.")) continue;
+            for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+                var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
+                if (boundUuid.isEmpty()) continue;
+                var loaded = world.getEntity(boundUuid.get());
+                if (loaded instanceof PokemonEntity pokemonEntity) keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+            }
         }
     }
 
@@ -131,7 +136,7 @@ public final class MareaVisibleWildPokemonRuntime {
         }
         if (encounter.fusion()) throw new IllegalStateException("ordinary Marea projection refuses fusion content");
         if (!"standard".equals(encounter.formId())) {
-            throw new IllegalStateException("first Marea wild projection supports only the approved standard form");
+            throw new IllegalStateException("Marea wild projection supports only the approved standard form");
         }
     }
 
