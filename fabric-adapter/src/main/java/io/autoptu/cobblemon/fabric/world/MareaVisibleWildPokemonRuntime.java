@@ -14,6 +14,7 @@ import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -36,18 +37,30 @@ public final class MareaVisibleWildPokemonRuntime {
     public static void register() {
         ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
             if (!(entity instanceof PokemonEntity pokemonEntity)) return;
-            canonicalEncounterFor(pokemonEntity).ifPresent(encounter -> {
-                publishBeforeReveal(world, encounter.canonicalEncounterId());
-                bind(pokemonEntity, encounter);
-            });
+            var encounter = canonicalEncounterFor(pokemonEntity);
+            if (encounter.isEmpty()) return;
+            if (!isCanonicalMareaWorld(world)) {
+                VisibleWildPokemonEncounterRuntime.unbind(pokemonEntity.getUuid());
+                pokemonEntity.discard();
+                LOGGER.warn("AutoPTU rejected Marea wild actor outside canonical Overworld: entity={} dimension={}",
+                        pokemonEntity.getUuid(), world.getRegistryKey().getValue());
+                return;
+            }
+            // Persisted entities can load while the server is still constructing worlds. The canonical
+            // stores are installed at SERVER_STARTED; that callback will re-publish/rebind every authored
+            // Marea actor. Never touch the registry before that lifecycle boundary exists.
+            if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return;
+            publishBeforeReveal(world, encounter.get().canonicalEncounterId());
+            bind(pokemonEntity, encounter.get());
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
             if (!(entity instanceof PokemonEntity pokemonEntity)) return;
             if (canonicalEncounterFor(pokemonEntity).isEmpty()) return;
             var reason = pokemonEntity.getRemovalReason();
-            if (reason != null && reason.shouldDestroy()) {
+            if (reason == null) return;
+            if (reason.shouldDestroy() || reason == Entity.RemovalReason.CHANGED_DIMENSION) {
                 VisibleWildPokemonEncounterRuntime.unbind(pokemonEntity.getUuid());
-                LOGGER.info("AutoPTU Marea wild actor destroyed; canonical presence released: entity={} reason={}",
+                LOGGER.info("AutoPTU Marea wild actor released canonical presence: entity={} reason={}",
                         pokemonEntity.getUuid(), reason);
             }
         });
@@ -60,6 +73,7 @@ public final class MareaVisibleWildPokemonRuntime {
 
     public static int ensureProjected(ServerWorld world) {
         if (world == null) throw new IllegalArgumentException("world is required");
+        if (!isCanonicalMareaWorld(world)) throw new IllegalArgumentException("Marea projection requires the canonical Overworld");
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
@@ -71,6 +85,7 @@ public final class MareaVisibleWildPokemonRuntime {
     }
 
     static PokemonEntity ensureProjected(ServerWorld world, CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+        if (!isCanonicalMareaWorld(world)) throw new IllegalArgumentException("Marea projection requires the canonical Overworld");
         publishBeforeReveal(world, encounter.canonicalEncounterId());
         BlockPos anchor = presentationAnchor(encounter);
         loadHabitatChunks(world, anchor);
@@ -102,6 +117,7 @@ public final class MareaVisibleWildPokemonRuntime {
 
     static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
         if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
+        if (!isCanonicalMareaWorld(world)) return null;
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
         if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
         var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
@@ -119,6 +135,7 @@ public final class MareaVisibleWildPokemonRuntime {
     static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
 
     private static void keepProjectedActorsInHabitat(ServerWorld world) {
+        if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
@@ -136,7 +153,7 @@ public final class MareaVisibleWildPokemonRuntime {
                     keepInHabitat(pokemonEntity, presentationAnchor(encounter));
                 }
                 // Persistent chunk unload preserves the canonical UUID binding. ENTITY_UNLOAD releases
-                // identity only when Minecraft reports destructive removal.
+                // identity only for destructive removal or a dimension transfer away from Marea.
             }
         }
     }
@@ -151,6 +168,10 @@ public final class MareaVisibleWildPokemonRuntime {
             if (encounter.isPresent() && encounter.get().siteId().startsWith("ouros.marea.")) return encounter;
         }
         return java.util.Optional.empty();
+    }
+
+    private static boolean isCanonicalMareaWorld(ServerWorld world) {
+        return world != null && world.getServer() != null && world == world.getServer().getOverworld();
     }
 
     private static void keepInHabitat(PokemonEntity entity, BlockPos anchor) {
