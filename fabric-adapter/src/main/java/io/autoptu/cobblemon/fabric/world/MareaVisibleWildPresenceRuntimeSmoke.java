@@ -25,12 +25,12 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
     public static void registerIfEnabled() {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            verifyAuthoredPresenceFootprints();
+            verifyAuthoredHabitatPolicies();
             int proximityProjected = MareaVisibleWildPokemonRuntime.reconcileActivePopulations(server.getOverworld());
             if (proximityProjected != 0) {
                 throw new IllegalStateException("Marea presence policy must keep authored habitats dormant without players");
             }
-            LOGGER.info("AutoPTU live Marea authored presence-footprint smoke verified four habitat policies and dormant habitats without players");
+            LOGGER.info("AutoPTU live Marea authored habitat-policy smoke verified four presence footprints, four leash radii, and dormant habitats without players");
 
             int projected = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld());
             var encounters = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
@@ -53,6 +53,27 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             if (Set.copyOf(actors.values().stream().map(PokemonEntity::getUuid).toList()).size() != encounters.size()) {
                 throw new IllegalStateException("Marea population smoke requires eight distinct canonical actors");
             }
+
+            if (MareaVisibleWildPokemonRuntime.reconcileActivePopulations(server.getOverworld()) != 0) {
+                throw new IllegalStateException("Marea hibernation smoke requires zero active actors without players");
+            }
+            for (var actor : actors.values()) {
+                if (!actor.isInvisible() || VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) {
+                    throw new IllegalStateException("inactive Marea populations must hibernate loaded actors without releasing bindings");
+                }
+            }
+            for (var encounter : encounters) {
+                PokemonEntity reactivated = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
+                PokemonEntity original = actors.get(encounter.canonicalEncounterId());
+                if (reactivated == null || original == null || !reactivated.getUuid().equals(original.getUuid())
+                        || reactivated.isInvisible()
+                        || !VisibleWildPokemonEncounterRuntime.isInteractionActive(reactivated.getUuid())
+                        || !hasExactBinding(reactivated, encounter.canonicalEncounterId())) {
+                    throw new IllegalStateException("Marea population reactivation must preserve canonical actor identity for "
+                            + encounter.canonicalEncounterId());
+                }
+            }
+            LOGGER.info("AutoPTU live Marea hibernation smoke preserved eight actor UUIDs/bindings across dormant/reactivated projection");
 
             var replacedEntry = actors.entrySet().iterator().next();
             String replacedEncounterId = replacedEntry.getKey();
@@ -77,20 +98,21 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> { synchronized (PROBES) { PROBES.remove(server); } });
     }
 
-    private static void verifyAuthoredPresenceFootprints() {
+    private static void verifyAuthoredHabitatPolicies() {
         var catalogue = CanonicalWildPopulationCatalogue.DEFAULT;
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, 48, 24, 56);
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID, 40, 24, 40);
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID, 48, 28, 48);
-        assertFootprint(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID, 40, 24, 44);
+        assertHabitatPolicy(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, 48, 24, 56, 28);
+        assertHabitatPolicy(catalogue, CanonicalWildPopulationCatalogue.MAREA_CROSSING_POPULATION_ID, 40, 24, 40, 22);
+        assertHabitatPolicy(catalogue, CanonicalWildPopulationCatalogue.MAREA_MIRADOR_TRANSECT_POPULATION_ID, 48, 28, 48, 30);
+        assertHabitatPolicy(catalogue, CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID, 40, 24, 44, 24);
     }
 
-    private static void assertFootprint(
+    private static void assertHabitatPolicy(
             CanonicalWildPopulationCatalogue catalogue,
             String populationId,
             int x,
             int y,
-            int z
+            int z,
+            int leashRadiusBlocks
     ) {
         var population = catalogue.population(populationId)
                 .orElseThrow(() -> new IllegalStateException("missing Marea population policy: " + populationId));
@@ -98,8 +120,14 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (footprint.halfExtentXBlocks() != x || footprint.halfExtentYBlocks() != y || footprint.halfExtentZBlocks() != z) {
             throw new IllegalStateException("unexpected authored Marea presence footprint for " + populationId);
         }
+        if (population.habitatLeashRadiusBlocks() != leashRadiusBlocks) {
+            throw new IllegalStateException("unexpected authored Marea habitat leash for " + populationId);
+        }
         if (!footprint.containsOffset(x, y, z) || footprint.containsOffset(x + 1.0D, 0.0D, 0.0D)) {
             throw new IllegalStateException("Marea presence footprint boundary semantics failed for " + populationId);
+        }
+        if (leashRadiusBlocks > footprint.halfExtentXBlocks() || leashRadiusBlocks > footprint.halfExtentZBlocks()) {
+            throw new IllegalStateException("Marea habitat leash must remain inside presence footprint for " + populationId);
         }
     }
 

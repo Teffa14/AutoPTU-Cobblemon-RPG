@@ -10,9 +10,10 @@ import java.util.Optional;
  * Server-authored visible-wild population policy.
  *
  * <p>This catalogue owns only world presence: which already-complete canonical encounter members
- * belong to a visible population and where that population becomes physically present. It never
- * derives species, level, stats, moves, HP, abilities or battle legality. Those facts stay frozen
- * in {@link CanonicalWildEncounterCatalogue} and are consumed by the battle handoff unchanged.</p>
+ * belong to a visible population, where that population becomes physically present, and how far
+ * its projected actors may roam from their authored presentation anchors. It never derives species,
+ * level, stats, moves, HP, abilities or battle legality. Those facts stay frozen in
+ * {@link CanonicalWildEncounterCatalogue} and are consumed by the battle handoff unchanged.</p>
  */
 public final class CanonicalWildPopulationCatalogue {
     public static final String MAREA_LOWER_SHELF_POPULATION_ID =
@@ -33,7 +34,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(48, 24, 56)
+                    new PresenceFootprint(48, 24, 56),
+                    28
             ),
             new PopulationDefinition(
                     MAREA_CROSSING_POPULATION_ID,
@@ -43,7 +45,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(40, 24, 40)
+                    new PresenceFootprint(40, 24, 40),
+                    22
             ),
             new PopulationDefinition(
                     MAREA_MIRADOR_TRANSECT_POPULATION_ID,
@@ -53,7 +56,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(48, 28, 48)
+                    new PresenceFootprint(48, 28, 48),
+                    30
             ),
             new PopulationDefinition(
                     MAREA_LOMA_WINDBREAK_POPULATION_ID,
@@ -63,7 +67,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(40, 24, 44)
+                    new PresenceFootprint(40, 24, 44),
+                    24
             )
     ));
 
@@ -126,7 +131,8 @@ public final class CanonicalWildPopulationCatalogue {
             String siteId,
             String zoneId,
             List<String> encounterIds,
-            PresenceFootprint presenceFootprint
+            PresenceFootprint presenceFootprint,
+            int habitatLeashRadiusBlocks
     ) {
         public PopulationDefinition {
             populationId = requireText(populationId, "populationId");
@@ -135,11 +141,29 @@ public final class CanonicalWildPopulationCatalogue {
             encounterIds = encounterIds == null ? List.of() : List.copyOf(encounterIds);
             encounterIds.forEach(id -> requireText(id, "encounterId"));
             presenceFootprint = Objects.requireNonNull(presenceFootprint, "presenceFootprint");
+            if (habitatLeashRadiusBlocks <= 0) {
+                throw new IllegalArgumentException("habitat leash radius must be positive");
+            }
+            if (habitatLeashRadiusBlocks > presenceFootprint.halfExtentXBlocks()
+                    || habitatLeashRadiusBlocks > presenceFootprint.halfExtentZBlocks()) {
+                throw new IllegalArgumentException("habitat leash radius must fit inside the authored presence footprint");
+            }
         }
 
-        /** Compatibility constructor for tests/tools; production populations should author the footprint explicitly. */
+        /** Compatibility constructor for tests/tools; production populations should author world-presence policy explicitly. */
         public PopulationDefinition(String populationId, String siteId, String zoneId, List<String> encounterIds) {
-            this(populationId, siteId, zoneId, encounterIds, new PresenceFootprint(96, 96, 96));
+            this(populationId, siteId, zoneId, encounterIds, new PresenceFootprint(96, 96, 96), 32);
+        }
+
+        /** Compatibility constructor for footprint-aware callers predating authored habitat leash policy. */
+        public PopulationDefinition(
+                String populationId,
+                String siteId,
+                String zoneId,
+                List<String> encounterIds,
+                PresenceFootprint presenceFootprint
+        ) {
+            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, 32);
         }
     }
 
