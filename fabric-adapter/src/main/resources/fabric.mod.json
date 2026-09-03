@@ -13,7 +13,8 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricLeagueRegistrationEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint",
-      "io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueEntrypoint"
+      "io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueEntrypoint",
+      "io.autoptu.cobblemon.fabric.world.MareaWildMigrationRuntime"
     ],
     "client": [
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
