@@ -12,7 +12,8 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricNurseryEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricLeagueRegistrationEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint",
-      "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint"
+      "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint",
+      "io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueEntrypoint"
     ],
     "client": [
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
