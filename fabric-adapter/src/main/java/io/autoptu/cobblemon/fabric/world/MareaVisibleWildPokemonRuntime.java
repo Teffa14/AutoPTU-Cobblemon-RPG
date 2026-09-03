@@ -125,10 +125,18 @@ public final class MareaVisibleWildPokemonRuntime {
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
                     keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                    continue;
                 }
-                // A null lookup is not proof of loss: persistent entities leave the live UUID index
-                // when their chunk unloads. The 100-tick reconciliation loads the authored habitat,
-                // searches the canonical tag, and only then replaces a genuinely missing actor.
+
+                // A null UUID lookup can mean either an unloaded persistent actor or a real loss.
+                // Re-enter the canonical reconciliation boundary instead of unbinding here: it loads
+                // the habitat and searches the authored encounter tag first, preserving an unloaded
+                // actor when present and replacing only a genuinely missing member.
+                PokemonEntity reconciled = ensureProjected(world, encounter);
+                if (reconciled != null && !reconciled.getUuid().equals(boundUuid.get())) {
+                    LOGGER.info("AutoPTU Marea wild presence replaced missing actor: encounter={} old={} new={}",
+                            encounter.canonicalEncounterId(), boundUuid.get(), reconciled.getUuid());
+                }
             }
         }
     }
