@@ -25,11 +25,14 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
     public static void registerIfEnabled() {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            if (MareaVisibleWildPokemonRuntime.habitatActivationRadiusBlocks() != 96) {
+                throw new IllegalStateException("Marea proximity smoke requires the authored 96-block activation radius");
+            }
             int proximityProjected = MareaVisibleWildPokemonRuntime.reconcileActivePopulations(server.getOverworld());
             if (proximityProjected != 0) {
                 throw new IllegalStateException("Marea proximity policy must keep authored habitats dormant without players");
             }
-            LOGGER.info("AutoPTU live Marea proximity activation smoke verified dormant habitats without players");
+            LOGGER.info("AutoPTU live Marea proximity activation smoke verified 96-block policy and dormant habitats without players");
 
             int projected = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld());
             var encounters = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
