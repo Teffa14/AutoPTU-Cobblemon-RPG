@@ -53,4 +53,20 @@ class MareaWildMigrationProjectionTest {
         assertEquals(site.y() + encounter.presentationOffsetY(), anchor.getY());
         assertEquals(site.z() + encounter.presentationOffsetZ(), anchor.getZ());
     }
+
+    @Test
+    void activeMigrationUsesRetentionFootprintToAvoidEdgeFlicker() {
+        var population = CanonicalWildPopulationCatalogue.DEFAULT
+                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
+                .orElseThrow();
+
+        assertEquals(
+                population.presenceFootprint(),
+                MareaWildMigrationRuntime.activityFootprint(population, false)
+        );
+        assertEquals(
+                population.retentionFootprint(),
+                MareaWildMigrationRuntime.activityFootprint(population, true)
+        );
+    }
 }
