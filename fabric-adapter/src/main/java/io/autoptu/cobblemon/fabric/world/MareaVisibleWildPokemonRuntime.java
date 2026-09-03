@@ -102,7 +102,15 @@ public final class MareaVisibleWildPokemonRuntime {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
-                if (boundUuid.isEmpty()) continue;
+                if (boundUuid.isEmpty()) {
+                    PokemonEntity replacement = ensureProjected(world, encounter);
+                    if (replacement != null) {
+                        LOGGER.info("AutoPTU Marea wild presence restored unbound canonical member: encounter={} new={}",
+                                encounter.canonicalEncounterId(), replacement.getUuid());
+                    }
+                    continue;
+                }
+
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
                     keepInHabitat(pokemonEntity, presentationAnchor(encounter));
