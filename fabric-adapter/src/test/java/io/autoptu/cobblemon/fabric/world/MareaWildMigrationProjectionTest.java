@@ -69,4 +69,20 @@ class MareaWildMigrationProjectionTest {
                 MareaWildMigrationRuntime.activityFootprint(population, true)
         );
     }
+
+    @Test
+    void unifiedPresenceReconcilerUsesProjectedStopoverAnchorWithoutChangingEncounterIdentity() {
+        var population = CanonicalWildPopulationCatalogue.DEFAULT
+                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
+                .orElseThrow();
+        var encounter = CanonicalWildPopulationCatalogue.DEFAULT.members(population).getFirst();
+        var stopover = CanonicalWorldMapCatalogue.DEFAULT.site(STOPOVER_SITE).orElseThrow();
+
+        var anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, STOPOVER_SITE);
+
+        assertEquals(stopover.x() + encounter.presentationOffsetX(), anchor.getX());
+        assertEquals(stopover.y() + encounter.presentationOffsetY(), anchor.getY());
+        assertEquals(stopover.z() + encounter.presentationOffsetZ(), anchor.getZ());
+        assertEquals(HOME_SITE, encounter.siteId());
+    }
 }
