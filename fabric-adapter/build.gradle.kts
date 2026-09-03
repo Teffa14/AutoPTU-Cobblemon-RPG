@@ -16,6 +16,7 @@ repositories {
     maven("https://maven.fabricmc.net/")
     maven("https://maven.impactdev.net/repository/development/")
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
+    maven("https://api.modrinth.com/maven")
 }
 
 java {
@@ -63,9 +64,19 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
     modImplementation("com.cobblemon:fabric:1.7.3+1.21.1")
 
+    // Frozen Ouros Overworld substrate for Minecraft 1.21.1.
+    // Tectonic v3 owns continent/terrain scale and includes Terralith compatibility.
+    // Terralith owns biome diversity. Lithostitched is required by both current 1.21.1 releases.
+    modRuntimeOnly("maven.modrinth:lithostitched:1.6.1-fabric-1.21.1")
+    modRuntimeOnly("maven.modrinth:terralith:2.6.2")
+    modRuntimeOnly("maven.modrinth:tectonic:3.0.1-fabric-1.21.1")
+
     productionSmokeMods("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
     productionSmokeMods("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
     productionSmokeMods("com.cobblemon:fabric:1.7.3+1.21.1")
+    productionSmokeMods("maven.modrinth:lithostitched:1.6.1-fabric-1.21.1")
+    productionSmokeMods("maven.modrinth:terralith:2.6.2")
+    productionSmokeMods("maven.modrinth:tectonic:3.0.1-fabric-1.21.1")
 
     implementation(project(":"))
 
@@ -80,6 +91,7 @@ dependencies {
 tasks.named("compileJava") {
     dependsOn(preparePinnedAutoPtuJava)
 }
+
 tasks.named("remapJar") {
     dependsOn(preparePinnedAutoPtuJava)
 }
