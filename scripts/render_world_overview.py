@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Render a top-down surface-height overview from a generated Minecraft Anvil world.
+"""Render verifiable top-down overviews from a generated Minecraft Anvil world.
 
-This is evidence, not a cartographic mockup: every output pixel comes from
-WORLD_SURFACE heightmaps stored in generated .mca chunks.
+The color image is derived from the actual top surface block in every generated
+column. A grayscale height image is kept as diagnostic evidence.
 """
 from __future__ import annotations
 
 import argparse
+import csv
 import io
 import math
 import struct
 import sys
 import zlib
+from collections import Counter
 from pathlib import Path
 
 try:
@@ -46,12 +48,6 @@ def read_chunk_nbt(region_path: Path, sector_offset: int):
 
 
 def infer_heightmap_bits(long_count: int, count: int = 256) -> int:
-    """Infer Mojang SimpleBitStorage width from the serialized long-array size.
-
-    Vanilla 1.21.1 overworld heightmaps normally use 9 bits. Tectonic can use a
-    taller dimension and therefore 10 bits. Inferring the width from the array
-    makes the evidence renderer follow the actual generated world contract.
-    """
     candidates = []
     for bits in range(1, 17):
         values_per_long = 64 // bits
@@ -59,15 +55,13 @@ def infer_heightmap_bits(long_count: int, count: int = 256) -> int:
             candidates.append(bits)
     if not candidates:
         raise ValueError(f"cannot infer heightmap bit width from {long_count} longs")
-    # Heightmaps use the smallest bit width capable of the dimension height.
     return min(candidates)
 
 
-def decode_heightmap(values, count: int = 256):
-    longs = [int(v) & ((1 << 64) - 1) for v in values]
-    bits = infer_heightmap_bits(len(longs), count)
+def decode_packed(values, count: int, bits: int):
     mask = (1 << bits) - 1
     values_per_long = 64 // bits
+    longs = [int(v) & ((1 << 64) - 1) for v in values]
     out = []
     for idx in range(count):
         long_idx = idx // values_per_long
@@ -75,7 +69,12 @@ def decode_heightmap(values, count: int = 256):
             break
         shift = (idx % values_per_long) * bits
         out.append((longs[long_idx] >> shift) & mask)
-    return out, bits
+    return out
+
+
+def decode_heightmap(values, count: int = 256):
+    bits = infer_heightmap_bits(len(values), count)
+    return decode_packed(values, count, bits), bits
 
 
 def first_present(compound, *keys):
@@ -86,10 +85,101 @@ def first_present(compound, *keys):
     return None
 
 
+def section_surface_lookup(sections):
+    lookup = {}
+    for section in sections:
+        try:
+            lookup[int(section["Y"])] = section
+        except (KeyError, TypeError, ValueError):
+            continue
+    return lookup
+
+
+def block_name_at(sections_by_y, x: int, y: int, z: int) -> str | None:
+    section = sections_by_y.get(y // 16)
+    if section is None:
+        return None
+    states = first_present(section, "block_states", "BlockStates")
+    if states is None:
+        return None
+    palette = first_present(states, "palette", "Palette")
+    if palette is None or len(palette) == 0:
+        return None
+    if len(palette) == 1:
+        return str(first_present(palette[0], "Name", "name"))
+
+    data = first_present(states, "data", "Data")
+    if data is None:
+        return None
+    bits = max(4, (len(palette) - 1).bit_length())
+    values_per_long = 64 // bits
+    local_y = y % 16
+    index = (local_y << 8) | (z << 4) | x
+    long_idx = index // values_per_long
+    if long_idx >= len(data):
+        return None
+    raw = int(data[long_idx]) & ((1 << 64) - 1)
+    palette_index = (raw >> ((index % values_per_long) * bits)) & ((1 << bits) - 1)
+    if palette_index >= len(palette):
+        return None
+    return str(first_present(palette[palette_index], "Name", "name"))
+
+
+def surface_color(block_name: str | None):
+    if not block_name:
+        return (20, 20, 24)
+    name = block_name.lower()
+    bare = name.split(":", 1)[-1]
+
+    if "water" in bare or bare in {"kelp", "kelp_plant", "seagrass", "tall_seagrass"}:
+        return (45, 105, 170)
+    if "lava" in bare or "magma" in bare:
+        return (220, 92, 34)
+    if "snow" in bare:
+        return (236, 242, 244)
+    if "ice" in bare:
+        return (157, 205, 225)
+    if any(token in bare for token in ("grass", "moss", "leaves", "leaf", "fern", "vine", "azalea", "lily", "crop")):
+        return (87, 139, 70)
+    if bare in {"cactus", "bamboo", "sugar_cane"} or "sapling" in bare:
+        return (76, 132, 66)
+    if "sand" in bare and "red_sand" not in bare:
+        return (214, 197, 139)
+    if "red_sand" in bare or "terracotta" in bare:
+        return (178, 103, 65)
+    if "mud" in bare:
+        return (101, 84, 74)
+    if any(token in bare for token in ("dirt", "podzol", "farmland", "rooted")):
+        return (119, 87, 61)
+    if "mycelium" in bare:
+        return (111, 91, 112)
+    if any(token in bare for token in ("log", "wood", "stem", "hyphae", "planks")):
+        return (126, 95, 61)
+    if any(token in bare for token in ("stone", "deepslate", "tuff", "gravel", "ore", "cobble", "basalt", "blackstone")):
+        return (124, 126, 125)
+    if "granite" in bare:
+        return (151, 112, 96)
+    if "diorite" in bare:
+        return (181, 181, 176)
+    if "andesite" in bare:
+        return (130, 132, 131)
+    if "clay" in bare:
+        return (145, 151, 160)
+    if "brick" in bare:
+        return (151, 83, 68)
+    if "air" in bare:
+        return (12, 12, 16)
+
+    seed = zlib.crc32(name.encode("utf-8"))
+    return (90 + (seed & 31), 92 + ((seed >> 5) & 31), 88 + ((seed >> 10) & 31))
+
+
 def collect_chunks(region_dir: Path):
     chunks = {}
     errors = []
     bit_widths = set()
+    block_counts = Counter()
+
     for region_path in sorted(region_dir.glob("r.*.*.mca")):
         try:
             _, rx_s, rz_s, _ = region_path.name.split(".")
@@ -118,23 +208,40 @@ def collect_chunks(region_dir: Path):
                 if root is None:
                     continue
                 heightmaps = first_present(root, "Heightmaps", "heightmaps")
-                if heightmaps is None:
+                sections = first_present(root, "sections", "Sections")
+                if heightmaps is None or sections is None or len(sections) == 0:
                     continue
-                surface = first_present(
-                    heightmaps,
-                    "WORLD_SURFACE",
-                    "WORLD_SURFACE_WG",
-                    "MOTION_BLOCKING",
-                )
+                surface = first_present(heightmaps, "WORLD_SURFACE", "WORLD_SURFACE_WG", "MOTION_BLOCKING")
                 if surface is None:
                     continue
                 decoded, bits = decode_heightmap(surface)
-                if len(decoded) == 256:
-                    chunks[(cx, cz)] = decoded
-                    bit_widths.add(bits)
-            except Exception as exc:  # keep evidence generation best-effort
+                if len(decoded) != 256:
+                    continue
+
+                sections_by_y = section_surface_lookup(sections)
+                min_y = min(sections_by_y) * 16
+                columns = []
+                for idx, raw_height in enumerate(decoded):
+                    lx = idx % 16
+                    lz = idx // 16
+                    top_y = min_y + int(raw_height) - 1
+                    block_name = block_name_at(sections_by_y, lx, top_y, lz)
+                    if block_name is None or block_name.endswith(":air"):
+                        for fallback_y in range(top_y - 1, top_y - 9, -1):
+                            candidate = block_name_at(sections_by_y, lx, fallback_y, lz)
+                            if candidate and not candidate.endswith(":air"):
+                                top_y = fallback_y
+                                block_name = candidate
+                                break
+                    columns.append((top_y, block_name))
+                    block_counts[block_name or "<unknown>"] += 1
+
+                chunks[(cx, cz)] = columns
+                bit_widths.add(bits)
+            except Exception as exc:
                 errors.append(f"{region_path.name} chunk {cx},{cz}: {exc}")
-    return chunks, errors, bit_widths
+
+    return chunks, errors, bit_widths, block_counts
 
 
 def png_chunk(chunk_type: bytes, data: bytes) -> bytes:
@@ -146,13 +253,14 @@ def png_chunk(chunk_type: bytes, data: bytes) -> bytes:
     )
 
 
-def write_png(path: Path, width: int, height: int, rows):
+def write_png(path: Path, width: int, height: int, rows, rgb: bool = False):
     raw = bytearray()
     for row in rows:
-        raw.append(0)  # filter type 0
+        raw.append(0)
         raw.extend(row)
     signature = b"\x89PNG\r\n\x1a\n"
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)  # grayscale
+    color_type = 2 if rgb else 0
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, color_type, 0, 0, 0)
     path.write_bytes(
         signature
         + png_chunk(b"IHDR", ihdr)
@@ -161,17 +269,23 @@ def write_png(path: Path, width: int, height: int, rows):
     )
 
 
-def nearest_scale(rows, factor: int):
+def nearest_scale(rows, factor: int, channels: int = 1):
     if factor <= 1:
         return rows
     scaled = []
     for row in rows:
         expanded = bytearray()
-        for value in row:
-            expanded.extend([value] * factor)
+        for offset in range(0, len(row), channels):
+            pixel = row[offset : offset + channels]
+            for _ in range(factor):
+                expanded.extend(pixel)
         for _ in range(factor):
             scaled.append(bytes(expanded))
     return scaled
+
+
+def clamp_channel(value: float) -> int:
+    return max(0, min(255, round(value)))
 
 
 def main() -> int:
@@ -184,16 +298,13 @@ def main() -> int:
     region_dir = args.world / "region"
     args.output.mkdir(parents=True, exist_ok=True)
     if not region_dir.is_dir():
-        (args.output / "render-error.txt").write_text(
-            f"Region directory not found: {region_dir}\n", encoding="utf-8"
-        )
+        (args.output / "render-error.txt").write_text(f"Region directory not found: {region_dir}\n", encoding="utf-8")
         return 2
 
-    chunks, errors, bit_widths = collect_chunks(region_dir)
+    chunks, errors, bit_widths, block_counts = collect_chunks(region_dir)
     if not chunks:
         (args.output / "render-error.txt").write_text(
-            "No generated chunks with a readable surface heightmap were found.\n"
-            + "\n".join(errors),
+            "No generated chunks with a readable surface heightmap were found.\n" + "\n".join(errors),
             encoding="utf-8",
         )
         return 3
@@ -204,44 +315,78 @@ def main() -> int:
     max_cz = max(cz for _, cz in chunks)
     width = (max_cx - min_cx + 1) * 16
     height = (max_cz - min_cz + 1) * 16
-
     if width * height > 100_000_000:
         raise SystemExit(f"Refusing unexpectedly huge sparse canvas: {width}x{height}")
 
-    surface_values = [v for heights in chunks.values() for v in heights]
+    surface_values = [y for columns in chunks.values() for y, _ in columns]
     lo = min(surface_values)
     hi = max(surface_values)
     span = max(1, hi - lo)
-    rows = [bytearray([0] * width) for _ in range(height)]
+    height_rows = [bytearray([0] * width) for _ in range(height)]
+    color_rows = [bytearray([0] * (width * 3)) for _ in range(height)]
 
-    for (cx, cz), heights in chunks.items():
+    for (cx, cz), columns in chunks.items():
         ox = (cx - min_cx) * 16
         oz = (cz - min_cz) * 16
-        for idx, value in enumerate(heights):
+        for idx, (surface_y, block_name) in enumerate(columns):
             lx = idx % 16
             lz = idx // 16
-            # Keep ungenerated/background pixels black; generated surface is 32..255.
-            shade = 32 + round((value - lo) * 223 / span)
-            rows[oz + lz][ox + lx] = shade
+            px = ox + lx
+            pz = oz + lz
+            normalized = (surface_y - lo) / span
+            height_rows[pz][px] = 32 + round(normalized * 223)
+
+            base = surface_color(block_name)
+            relief = 0.80 + normalized * 0.28
+            if lx > 0:
+                west_y = columns[idx - 1][0]
+                if surface_y - west_y >= 3:
+                    relief *= 1.07
+                elif west_y - surface_y >= 3:
+                    relief *= 0.90
+            rgb = tuple(clamp_channel(channel * relief) for channel in base)
+            start = px * 3
+            color_rows[pz][start : start + 3] = bytes(rgb)
 
     scale = max(1, args.scale)
-    rendered = nearest_scale(rows, scale)
-    out_png = args.output / "ouros-global-world-surface.png"
-    write_png(out_png, width * scale, height * scale, rendered)
+    write_png(
+        args.output / "ouros-global-world-surface.png",
+        width * scale,
+        height * scale,
+        nearest_scale(height_rows, scale),
+        rgb=False,
+    )
+    color_png = args.output / "ouros-global-world-surface-color.png"
+    write_png(
+        color_png,
+        width * scale,
+        height * scale,
+        nearest_scale(color_rows, scale, channels=3),
+        rgb=True,
+    )
+
+    counts_path = args.output / "ouros-global-world-surface-blocks.csv"
+    with counts_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(["surface_block", "columns"])
+        writer.writerows(block_counts.most_common())
 
     manifest = args.output / "ouros-global-world-surface.txt"
     manifest.write_text(
         "\n".join(
             [
-                "source=generated Minecraft Anvil WORLD_SURFACE heightmap",
+                "source=generated Minecraft Anvil WORLD_SURFACE heightmap + top surface block states",
                 f"region_dir={region_dir}",
                 f"generated_chunks={len(chunks)}",
                 f"chunk_bounds={min_cx},{min_cz}..{max_cx},{max_cz}",
                 f"native_pixels={width}x{height}",
                 f"png_pixels={width * scale}x{height * scale}",
                 f"heightmap_bits={','.join(str(v) for v in sorted(bit_widths))}",
-                f"heightmap_raw_range={lo}..{hi}",
+                f"surface_y_range={lo}..{hi}",
+                f"unique_surface_blocks={len(block_counts)}",
                 f"parse_warnings={len(errors)}",
+                "primary_render=ouros-global-world-surface-color.png",
+                "diagnostic_render=ouros-global-world-surface.png",
             ]
         )
         + "\n",
@@ -251,7 +396,7 @@ def main() -> int:
         (args.output / "render-warnings.txt").write_text("\n".join(errors) + "\n", encoding="utf-8")
 
     print(manifest.read_text(encoding="utf-8"), end="")
-    print(f"render={out_png}")
+    print(f"render={color_png}")
     return 0
 
 
