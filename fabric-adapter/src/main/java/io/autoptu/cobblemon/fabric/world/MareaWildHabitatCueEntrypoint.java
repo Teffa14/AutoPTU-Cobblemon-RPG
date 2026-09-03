@@ -82,10 +82,11 @@ public final class MareaWildHabitatCueEntrypoint implements ModInitializer {
             ServerPlayerEntity player,
             CanonicalWildPopulationCatalogue.PopulationDefinition population
     ) {
-        String habitat = population.siteId().substring(population.siteId().lastIndexOf('.') + 1)
-                .replace('_', ' ');
+        var site = CanonicalWorldMapCatalogue.DEFAULT.site(population.siteId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + population.siteId()));
+        int visibleMembers = CanonicalWildPopulationCatalogue.DEFAULT.members(population).size();
         player.sendMessage(Text.literal(
-                "Wild habitat: " + habitat + " · visible Pokemon nearby: " + population.encounterIds().size()
+                "Wild habitat — " + site.displayName() + " · " + visibleMembers + " roaming Pokemon"
         ), true);
     }
 
