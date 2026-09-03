@@ -6,6 +6,7 @@ on:
     paths:
       - 'fabric-adapter/**'
       - 'worldgen/ouros-global-v1/**'
+      - 'scripts/render_world_overview.py'
       - '.github/workflows/ouros-global-worldgen-smoke.yml'
   workflow_dispatch:
 
@@ -29,9 +30,9 @@ jobs:
       - name: Materialize Ouros Global V1
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           server_dir="$PWD/ouros-global-runtime"
-          mkdir -p "$server_dir/mods" "$server_dir/config"
+          mkdir -p "$server_dir/mods" "$server_dir/config" "$server_dir/evidence"
           cp fabric-adapter/build/production-smoke/mods/*.jar "$server_dir/mods/"
           cp worldgen/ouros-global-v1/server.properties "$server_dir/server.properties"
           cp worldgen/ouros-global-v1/tectonic.json "$server_dir/config/tectonic.json"
@@ -40,12 +41,22 @@ jobs:
           curl -fsSL \
             -o "$server_dir/fabric-server-launch.jar" \
             'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
+          if [ "$?" -ne 0 ]; then
+            echo 'FAIL fabric server download' | tee "$server_dir/evidence/validation.txt"
+            exit 1
+          fi
 
           (
             cd "$server_dir"
             exec java -Xms1G -Xmx3G -jar fabric-server-launch.jar nogui > ../ouros-global-worldgen.log 2>&1
           ) &
           server_pid=$!
+
+          cleanup() {
+            kill "$server_pid" 2>/dev/null || true
+            wait "$server_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
 
           ready=0
           for _ in $(seq 1 240); do
@@ -60,22 +71,48 @@ jobs:
             sleep 1
           done
 
-          if [ "$ready" -ne 1 ]; then
-            cat ouros-global-worldgen.log || true
-            cat "$server_dir/logs/latest.log" 2>/dev/null || true
-            exit 1
+          validation="$server_dir/evidence/validation.txt"
+          : > "$validation"
+          status=0
+
+          record_check() {
+            local label="$1"
+            shift
+            if "$@"; then
+              echo "PASS $label" | tee -a "$validation"
+            else
+              echo "FAIL $label" | tee -a "$validation"
+              status=1
+            fi
+          }
+
+          if [ "$ready" -eq 1 ]; then
+            echo 'PASS server reached Done state' | tee -a "$validation"
+          else
+            echo 'FAIL server did not reach Done state' | tee -a "$validation"
+            status=1
           fi
 
-          test -f "$server_dir/world/level.dat"
-          test -d "$server_dir/world/region"
-          test -n "$(find "$server_dir/world/region" -name 'r.*.*.mca' -print -quit)"
-          ls "$server_dir/mods" | grep -i 'cobblemon'
-          ls "$server_dir/mods" | grep -i 'terralith'
-          ls "$server_dir/mods" | grep -i 'tectonic'
-          ls "$server_dir/mods" | grep -i 'lithostitched'
+          record_check 'world/level.dat exists' test -f "$server_dir/world/level.dat"
+          record_check 'world/region exists' test -d "$server_dir/world/region"
+          if find "$server_dir/world/region" -name 'r.*.*.mca' -print -quit 2>/dev/null | grep -q .; then
+            echo 'PASS at least one Anvil region exists' | tee -a "$validation"
+          else
+            echo 'FAIL no Anvil region exists' | tee -a "$validation"
+            status=1
+          fi
 
-          kill "$server_pid" 2>/dev/null || true
-          wait "$server_pid" 2>/dev/null || true
+          for mod in cobblemon terralith tectonic lithostitched; do
+            if find "$server_dir/mods" -maxdepth 1 -type f -printf '%f\n' | grep -qi "$mod"; then
+              echo "PASS runtime mod $mod" | tee -a "$validation"
+            else
+              echo "FAIL runtime mod $mod" | tee -a "$validation"
+              status=1
+            fi
+          done
+
+          find "$server_dir/mods" -maxdepth 1 -type f -printf '%f\n' | sort > "$server_dir/evidence/runtime-mods.txt"
+          find "$server_dir/world" -maxdepth 3 -type f -printf '%P\n' 2>/dev/null | sort > "$server_dir/evidence/world-files.txt"
 
           {
             echo 'world_id=ouros-global-v1'
@@ -88,9 +125,26 @@ jobs:
             echo 'lithostitched=1.7.7-fabric-1.21.1'
             echo "generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "git_sha=$GITHUB_SHA"
-          } > "$server_dir/world/OUROS_WORLD_MANIFEST.txt"
+          } > "$server_dir/evidence/OUROS_WORLD_MANIFEST.txt"
+          if [ -d "$server_dir/world" ]; then
+            cp "$server_dir/evidence/OUROS_WORLD_MANIFEST.txt" "$server_dir/world/OUROS_WORLD_MANIFEST.txt"
+          fi
 
-      - name: Upload generated world seed artifact
+          cleanup
+          trap - EXIT
+          exit "$status"
+
+      - name: Install overview renderer dependency
+        if: always()
+        run: python3 -m pip install --disable-pip-version-check nbtlib==2.0.4
+
+      - name: Render generated world overview
+        if: always()
+        continue-on-error: true
+        run: python3 scripts/render_world_overview.py ouros-global-runtime/world ouros-global-runtime/evidence --scale 3
+
+      - name: Upload generated world and visual evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ouros-global-v1-${{ github.sha }}
@@ -98,6 +152,7 @@ jobs:
           if-no-files-found: error
           path: |
             ouros-global-runtime/world/**
+            ouros-global-runtime/evidence/**
             ouros-global-runtime/config/tectonic.json
             ouros-global-runtime/server.properties
             ouros-global-runtime/logs/latest.log
