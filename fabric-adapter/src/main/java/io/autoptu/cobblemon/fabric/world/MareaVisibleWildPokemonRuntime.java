@@ -55,10 +55,7 @@ public final class MareaVisibleWildPokemonRuntime {
             if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return;
             publishBeforeReveal(world, encounter.get().canonicalEncounterId());
             bind(pokemonEntity, encounter.get());
-            setPopulationProjectionActive(
-                    pokemonEntity,
-                    shouldPopulationBeActive(world, populationFor(encounter.get()))
-            );
+            applyCurrentProjection(world, pokemonEntity, encounter.get());
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
             if (!(entity instanceof PokemonEntity pokemonEntity)) return;
@@ -142,12 +139,14 @@ public final class MareaVisibleWildPokemonRuntime {
         if (boundUuid.isPresent()) {
             var loaded = world.getEntity(boundUuid.get());
             if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                keepInHabitat(pokemonEntity, encounter);
+                applyCurrentProjection(world, pokemonEntity, encounter);
                 return pokemonEntity;
             }
             return null;
         }
-        return ensureProjected(world, encounter);
+        PokemonEntity actor = ensureProjected(world, encounter);
+        if (actor != null) applyCurrentProjection(world, actor, encounter);
+        return actor;
     }
 
     static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
@@ -158,10 +157,21 @@ public final class MareaVisibleWildPokemonRuntime {
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
+
+            var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+            if (projectedSiteId.isEmpty()) {
+                setPopulationMarkedActive(world.getServer(), population.populationId(), false);
+                hibernateLoadedPopulation(world, population);
+                continue;
+            }
+            var projectedSite = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "missing projected canonical wild population site: " + projectedSiteId.get()));
+
             boolean wasActive = isPopulationMarkedActive(world.getServer(), population.populationId());
             boolean active = hasPlayerInsideFootprint(
                     world,
-                    population,
+                    projectedSite,
                     wasActive ? population.retentionFootprint() : population.presenceFootprint()
             );
             setPopulationMarkedActive(world.getServer(), population.populationId(), active);
@@ -170,39 +180,42 @@ public final class MareaVisibleWildPokemonRuntime {
                 continue;
             }
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-                var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
-                if (boundUuid.isEmpty()) {
-                    PokemonEntity replacement = ensureProjected(world, encounter);
-                    if (replacement != null) {
-                        visible++;
-                        LOGGER.info("AutoPTU Marea wild presence activated/restored canonical member: population={} encounter={} entity={}",
-                                population.populationId(), encounter.canonicalEncounterId(), replacement.getUuid());
-                    }
-                    continue;
-                }
-                var loaded = world.getEntity(boundUuid.get());
-                if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                    keepInHabitat(pokemonEntity, encounter);
-                    setPopulationProjectionActive(pokemonEntity, true);
-                    visible++;
-                }
-                // Ordinary persistent chunk unload preserves the canonical UUID binding. A later chunk
-                // load rebinds the same actor through ENTITY_LOAD; authored presence never invents a
-                // replacement merely because the habitat chunk is currently unloaded.
+                PokemonEntity actor = MareaWildMigrationRuntime.recoverBoundActor(world, encounter);
+                if (actor == null) actor = ensureProjected(world, encounter);
+                if (actor == null) continue;
+
+                keepInProjectedHabitat(actor, encounter, projectedSiteId.get());
+                setPopulationProjectionActive(actor, true);
+                visible++;
             }
         }
         return visible;
     }
 
-    private static boolean shouldPopulationBeActive(
+    private static void applyCurrentProjection(
             ServerWorld world,
-            CanonicalWildPopulationCatalogue.PopulationDefinition population
+            PokemonEntity actor,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
     ) {
+        var population = populationFor(encounter);
+        var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+        if (projectedSiteId.isEmpty()) {
+            setPopulationMarkedActive(world.getServer(), population.populationId(), false);
+            setPopulationProjectionActive(actor, false);
+            return;
+        }
+        var projectedSite = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
+                .orElseThrow(() -> new IllegalStateException(
+                        "missing projected canonical wild population site: " + projectedSiteId.get()));
         boolean wasActive = isPopulationMarkedActive(world.getServer(), population.populationId());
-        var footprint = wasActive ? population.retentionFootprint() : population.presenceFootprint();
-        boolean active = hasPlayerInsideFootprint(world, population, footprint);
+        boolean active = hasPlayerInsideFootprint(
+                world,
+                projectedSite,
+                wasActive ? population.retentionFootprint() : population.presenceFootprint()
+        );
         setPopulationMarkedActive(world.getServer(), population.populationId(), active);
-        return active;
+        if (active) keepInProjectedHabitat(actor, encounter, projectedSiteId.get());
+        setPopulationProjectionActive(actor, active);
     }
 
     private static void hibernateLoadedPopulation(
@@ -233,11 +246,9 @@ public final class MareaVisibleWildPokemonRuntime {
 
     private static boolean hasPlayerInsideFootprint(
             ServerWorld world,
-            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            CanonicalWorldMapCatalogue.Site site,
             CanonicalWildPopulationCatalogue.PresenceFootprint footprint
     ) {
-        var site = CanonicalWorldMapCatalogue.DEFAULT.site(population.siteId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild population site: " + population.siteId()));
         for (var player : world.getPlayers()) {
             if (player.isSpectator()) continue;
             double dx = player.getX() - (site.x() + 0.5D);
@@ -290,7 +301,15 @@ public final class MareaVisibleWildPokemonRuntime {
             PokemonEntity entity,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
     ) {
-        BlockPos anchor = presentationAnchor(encounter);
+        keepInProjectedHabitat(entity, encounter, encounter.siteId());
+    }
+
+    static void keepInProjectedHabitat(
+            PokemonEntity entity,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
+            String projectedSiteId
+    ) {
+        BlockPos anchor = projectedPresentationAnchor(encounter, projectedSiteId);
         int leashRadiusBlocks = populationFor(encounter).habitatLeashRadiusBlocks();
         double centerX = anchor.getX() + 0.5D;
         double centerZ = anchor.getZ() + 0.5D;
@@ -340,8 +359,19 @@ public final class MareaVisibleWildPokemonRuntime {
     }
 
     private static BlockPos presentationAnchor(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
-        var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild encounter site: " + encounter.siteId()));
+        return projectedPresentationAnchor(encounter, encounter.siteId());
+    }
+
+    static BlockPos projectedPresentationAnchor(
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
+            String projectedSiteId
+    ) {
+        if (encounter == null) throw new IllegalArgumentException("encounter is required");
+        if (projectedSiteId == null || projectedSiteId.isBlank()) {
+            throw new IllegalArgumentException("projectedSiteId is required");
+        }
+        var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId)
+                .orElseThrow(() -> new IllegalStateException("missing projected canonical wild encounter site: " + projectedSiteId));
         return new BlockPos(site.x(), site.y(), site.z()).add(
                 encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
     }
