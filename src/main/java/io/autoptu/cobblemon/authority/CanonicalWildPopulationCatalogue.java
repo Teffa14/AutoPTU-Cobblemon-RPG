@@ -33,7 +33,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(48, 24, 56)
+                    new PresenceFootprint(48, 24, 56),
+                    new RoamingFootprint(28, 10, 34)
             ),
             new PopulationDefinition(
                     MAREA_CROSSING_POPULATION_ID,
@@ -43,7 +44,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(40, 24, 40)
+                    new PresenceFootprint(40, 24, 40),
+                    new RoamingFootprint(20, 8, 20)
             ),
             new PopulationDefinition(
                     MAREA_MIRADOR_TRANSECT_POPULATION_ID,
@@ -53,7 +55,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(48, 28, 48)
+                    new PresenceFootprint(48, 28, 48),
+                    new RoamingFootprint(26, 12, 26)
             ),
             new PopulationDefinition(
                     MAREA_LOMA_WINDBREAK_POPULATION_ID,
@@ -63,7 +66,8 @@ public final class CanonicalWildPopulationCatalogue {
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_SECOND_FLETCHLING_ID
                     ),
-                    new PresenceFootprint(40, 24, 44)
+                    new PresenceFootprint(40, 24, 44),
+                    new RoamingFootprint(22, 10, 26)
             )
     ));
 
@@ -126,7 +130,8 @@ public final class CanonicalWildPopulationCatalogue {
             String siteId,
             String zoneId,
             List<String> encounterIds,
-            PresenceFootprint presenceFootprint
+            PresenceFootprint presenceFootprint,
+            RoamingFootprint roamingFootprint
     ) {
         public PopulationDefinition {
             populationId = requireText(populationId, "populationId");
@@ -135,26 +140,63 @@ public final class CanonicalWildPopulationCatalogue {
             encounterIds = encounterIds == null ? List.of() : List.copyOf(encounterIds);
             encounterIds.forEach(id -> requireText(id, "encounterId"));
             presenceFootprint = Objects.requireNonNull(presenceFootprint, "presenceFootprint");
+            roamingFootprint = Objects.requireNonNull(roamingFootprint, "roamingFootprint");
+            if (roamingFootprint.halfExtentXBlocks() > presenceFootprint.halfExtentXBlocks()
+                    || roamingFootprint.halfExtentYBlocks() > presenceFootprint.halfExtentYBlocks()
+                    || roamingFootprint.halfExtentZBlocks() > presenceFootprint.halfExtentZBlocks()) {
+                throw new IllegalArgumentException("roaming footprint must fit inside presence footprint");
+            }
         }
 
-        /** Compatibility constructor for tests/tools; production populations should author the footprint explicitly. */
+        /** Compatibility constructor for tests/tools; production populations should author both footprints explicitly. */
+        public PopulationDefinition(
+                String populationId,
+                String siteId,
+                String zoneId,
+                List<String> encounterIds,
+                PresenceFootprint presenceFootprint
+        ) {
+            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, new RoamingFootprint(32, 16, 32));
+        }
+
+        /** Compatibility constructor for tests/tools; production populations should author the footprints explicitly. */
         public PopulationDefinition(String populationId, String siteId, String zoneId, List<String> encounterIds) {
-            this(populationId, siteId, zoneId, encounterIds, new PresenceFootprint(96, 96, 96));
+            this(populationId, siteId, zoneId, encounterIds, new PresenceFootprint(96, 96, 96), new RoamingFootprint(32, 16, 32));
         }
     }
 
     /** Axis-aligned Minecraft-world activation footprint around the population's canonical site anchor. */
     public record PresenceFootprint(int halfExtentXBlocks, int halfExtentYBlocks, int halfExtentZBlocks) {
         public PresenceFootprint {
-            if (halfExtentXBlocks <= 0 || halfExtentYBlocks <= 0 || halfExtentZBlocks <= 0) {
-                throw new IllegalArgumentException("presence footprint extents must be positive");
-            }
+            requirePositiveExtents(halfExtentXBlocks, halfExtentYBlocks, halfExtentZBlocks, "presence footprint");
         }
 
         public boolean containsOffset(double dx, double dy, double dz) {
-            return Math.abs(dx) <= halfExtentXBlocks
-                    && Math.abs(dy) <= halfExtentYBlocks
-                    && Math.abs(dz) <= halfExtentZBlocks;
+            return contains(halfExtentXBlocks, halfExtentYBlocks, halfExtentZBlocks, dx, dy, dz);
+        }
+    }
+
+    /**
+     * Minecraft presentation leash around each canonical encounter anchor.
+     * This is world ecology only and never grants or restricts PTU tactical movement.
+     */
+    public record RoamingFootprint(int halfExtentXBlocks, int halfExtentYBlocks, int halfExtentZBlocks) {
+        public RoamingFootprint {
+            requirePositiveExtents(halfExtentXBlocks, halfExtentYBlocks, halfExtentZBlocks, "roaming footprint");
+        }
+
+        public boolean containsOffset(double dx, double dy, double dz) {
+            return contains(halfExtentXBlocks, halfExtentYBlocks, halfExtentZBlocks, dx, dy, dz);
+        }
+    }
+
+    private static boolean contains(int x, int y, int z, double dx, double dy, double dz) {
+        return Math.abs(dx) <= x && Math.abs(dy) <= y && Math.abs(dz) <= z;
+    }
+
+    private static void requirePositiveExtents(int x, int y, int z, String field) {
+        if (x <= 0 || y <= 0 || z <= 0) {
+            throw new IllegalArgumentException(field + " extents must be positive");
         }
     }
 
