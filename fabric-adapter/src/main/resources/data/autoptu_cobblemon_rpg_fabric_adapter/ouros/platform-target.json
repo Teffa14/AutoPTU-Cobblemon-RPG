@@ -1,0 +1,5 @@
+{
+  "primaryMinecraftVersion": "1.20.1",
+  "distributionGoal": "java-modded-global",
+  "note": "Compatibility target metadata only. Runtime migration is incremental and must preserve server-authoritative RPG and AutoPTU battle contracts."
+}
