@@ -11,6 +11,7 @@ import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 import io.autoptu.cobblemon.fabric.battle.ServerOwnedWildEncounterBlueprintPublisher;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.world.ServerWorld;
@@ -33,14 +34,28 @@ public final class MareaVisibleWildPokemonRuntime {
     private MareaVisibleWildPokemonRuntime() {}
 
     public static void register() {
+        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (!(entity instanceof PokemonEntity pokemonEntity) || !(world instanceof ServerWorld serverWorld)) return;
+            canonicalEncounterFor(pokemonEntity).ifPresent(encounter -> {
+                publishBeforeReveal(serverWorld, encounter.canonicalEncounterId());
+                bind(pokemonEntity, encounter);
+            });
+        });
+        ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
+            if (!(entity instanceof PokemonEntity pokemonEntity)) return;
+            if (canonicalEncounterFor(pokemonEntity).isEmpty()) return;
+            var reason = pokemonEntity.getRemovalReason();
+            if (reason != null && reason.shouldDestroy()) {
+                VisibleWildPokemonEncounterRuntime.unbind(pokemonEntity.getUuid());
+                LOGGER.info("AutoPTU Marea wild actor destroyed; canonical presence released: entity={} reason={}",
+                        pokemonEntity.getUuid(), reason);
+            }
+        });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             int visible = ensureProjected(server.getOverworld());
             LOGGER.info("AutoPTU normal Marea visible wild actors ready: {}", visible);
         });
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            keepProjectedActorsInHabitat(server.getOverworld());
-            if (server.getTicks() % PRESENCE_RECONCILE_INTERVAL_TICKS == 0) ensureProjected(server.getOverworld());
-        });
+        ServerTickEvents.END_SERVER_TICK.register(server -> keepProjectedActorsInHabitat(server.getOverworld()));
     }
 
     public static int ensureProjected(ServerWorld world) {
@@ -60,10 +75,6 @@ public final class MareaVisibleWildPokemonRuntime {
         BlockPos anchor = presentationAnchor(encounter);
         loadHabitatChunks(world, anchor);
 
-        // A bound UUID can temporarily be absent from ServerWorld's live entity index while its
-        // chunk is unloaded. Search the canonical tagged actor after loading the authored habitat
-        // before deciding that the binding is stale. This prevents unloaded persistent actors from
-        // being mistaken for losses and duplicated by the presence reconciler.
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
@@ -94,16 +105,16 @@ public final class MareaVisibleWildPokemonRuntime {
         if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
         if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
-        BlockPos anchor = presentationAnchor(encounter);
-        loadHabitatChunks(world, anchor);
-        PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
-        if (existing != null) {
-            bind(existing, encounter);
-            keepInHabitat(existing, anchor);
-            return existing;
+        var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
+        if (boundUuid.isPresent()) {
+            var loaded = world.getEntity(boundUuid.get());
+            if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
+                keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                return pokemonEntity;
+            }
+            return null;
         }
-        evictMissingBinding(encounter.canonicalEncounterId());
-        return null;
+        return ensureProjected(world, encounter);
     }
 
     static int presenceReconcileIntervalTicks() { return PRESENCE_RECONCILE_INTERVAL_TICKS; }
@@ -116,7 +127,7 @@ public final class MareaVisibleWildPokemonRuntime {
                 if (boundUuid.isEmpty()) {
                     PokemonEntity replacement = ensureProjected(world, encounter);
                     if (replacement != null) {
-                        LOGGER.info("AutoPTU Marea wild presence restored unbound canonical member: encounter={} new={}",
+                        LOGGER.info("AutoPTU Marea wild presence restored canonical member: encounter={} new={}",
                                 encounter.canonicalEncounterId(), replacement.getUuid());
                     }
                     continue;
@@ -125,20 +136,23 @@ public final class MareaVisibleWildPokemonRuntime {
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
                     keepInHabitat(pokemonEntity, presentationAnchor(encounter));
-                    continue;
                 }
-
-                // A null UUID lookup can mean either an unloaded persistent actor or a real loss.
-                // Re-enter the canonical reconciliation boundary instead of unbinding here: it loads
-                // the habitat and searches the authored encounter tag first, preserving an unloaded
-                // actor when present and replacing only a genuinely missing member.
-                PokemonEntity reconciled = ensureProjected(world, encounter);
-                if (reconciled != null && !reconciled.getUuid().equals(boundUuid.get())) {
-                    LOGGER.info("AutoPTU Marea wild presence replaced missing actor: encounter={} old={} new={}",
-                            encounter.canonicalEncounterId(), boundUuid.get(), reconciled.getUuid());
-                }
+                // An unloaded persistent actor intentionally keeps its canonical UUID binding. The
+                // Fabric ENTITY_UNLOAD callback releases that identity only for destructive removal.
             }
         }
+    }
+
+    private static java.util.Optional<CanonicalWildEncounterCatalogue.EncounterDefinition> canonicalEncounterFor(
+            PokemonEntity entity) {
+        if (entity == null || !entity.getCommandTags().contains(WILD_MARKER_TAG)) return java.util.Optional.empty();
+        for (String tag : entity.getCommandTags()) {
+            if (!tag.startsWith(WILD_TAG_PREFIX)) continue;
+            String encounterId = tag.substring(WILD_TAG_PREFIX.length());
+            var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(encounterId);
+            if (encounter.isPresent() && encounter.get().siteId().startsWith("ouros.marea.")) return encounter;
+        }
+        return java.util.Optional.empty();
     }
 
     private static void keepInHabitat(PokemonEntity entity, BlockPos anchor) {
