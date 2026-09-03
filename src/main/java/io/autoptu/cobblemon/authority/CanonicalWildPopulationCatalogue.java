@@ -19,6 +19,8 @@ public final class CanonicalWildPopulationCatalogue {
             "ouros.marea.wild.sendero_lower_shelf.fletchling.v1";
     public static final String MAREA_CROSSING_POPULATION_ID =
             "ouros.marea.wild.sendero_crossing.fletchling.v1";
+    public static final String MAREA_MIRADOR_TRANSECT_POPULATION_ID =
+            "ouros.marea.wild.mirador_transect.fletchling.v1";
 
     public static final CanonicalWildPopulationCatalogue DEFAULT = new CanonicalWildPopulationCatalogue(List.of(
             new PopulationDefinition(
@@ -37,6 +39,15 @@ public final class CanonicalWildPopulationCatalogue {
                     List.of(
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID,
                             CanonicalWildEncounterCatalogue.MAREA_CROSSING_SECOND_FLETCHLING_ID
+                    )
+            ),
+            new PopulationDefinition(
+                    MAREA_MIRADOR_TRANSECT_POPULATION_ID,
+                    "ouros.marea.mirador_transect",
+                    "ouros.marea.estacion_mirador",
+                    List.of(
+                            CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID,
+                            CanonicalWildEncounterCatalogue.MAREA_MIRADOR_SECOND_FLETCHLING_ID
                     )
             )
     ));
