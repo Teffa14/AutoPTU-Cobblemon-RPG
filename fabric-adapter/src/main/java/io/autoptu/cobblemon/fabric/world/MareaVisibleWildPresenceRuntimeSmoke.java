@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Dedicated-server smoke for normal WORLD-013 habitat population presence and replacement cleanup. */
@@ -36,11 +37,12 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             PokemonEntity crossingActor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), crossing);
             PokemonEntity crossingSecondActor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), crossingSecond);
             if (firstActor == null || secondActor == null || crossingActor == null || crossingSecondActor == null
-                    || !VisibleWildPokemonEncounterRuntime.isBound(firstActor.getUuid())
-                    || !VisibleWildPokemonEncounterRuntime.isBound(secondActor.getUuid())
-                    || !VisibleWildPokemonEncounterRuntime.isBound(crossingActor.getUuid())
-                    || !VisibleWildPokemonEncounterRuntime.isBound(crossingSecondActor.getUuid())) {
-                throw new IllegalStateException("Marea population smoke requires four independently bound canonical actors");
+                    || Set.of(firstActor.getUuid(), secondActor.getUuid(), crossingActor.getUuid(), crossingSecondActor.getUuid()).size() != 4
+                    || !hasExactBinding(firstActor, first.canonicalEncounterId())
+                    || !hasExactBinding(secondActor, second.canonicalEncounterId())
+                    || !hasExactBinding(crossingActor, crossing.canonicalEncounterId())
+                    || !hasExactBinding(crossingSecondActor, crossingSecond.canonicalEncounterId())) {
+                throw new IllegalStateException("Marea population smoke requires four distinct actors with exact canonical bindings");
             }
 
             UUID originalFirstUuid = firstActor.getUuid();
@@ -69,11 +71,15 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         PokemonEntity crossing = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.crossingEncounterId());
         PokemonEntity crossingSecond = MareaVisibleWildPokemonRuntime.actorForEncounter(server.getOverworld(), probe.crossingSecondEncounterId());
         if (replacement != null && stable != null && crossing != null && crossingSecond != null
+                && Set.of(replacement.getUuid(), stable.getUuid(), crossing.getUuid(), crossingSecond.getUuid()).size() == 4
                 && !replacement.getUuid().equals(probe.removedUuid())
                 && stable.getUuid().equals(probe.stableUuid())
                 && crossing.getUuid().equals(probe.crossingUuid())
                 && crossingSecond.getUuid().equals(probe.crossingSecondUuid())
-                && VisibleWildPokemonEncounterRuntime.isBound(replacement.getUuid())
+                && hasExactBinding(replacement, probe.replacedEncounterId())
+                && hasExactBinding(stable, probe.stableEncounterId())
+                && hasExactBinding(crossing, probe.crossingEncounterId())
+                && hasExactBinding(crossingSecond, probe.crossingSecondEncounterId())
                 && !VisibleWildPokemonEncounterRuntime.isBound(probe.removedUuid())) {
             synchronized (PROBES) { PROBES.remove(server); }
             LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, stable {}, crossing {}, crossing sibling {}",
@@ -85,6 +91,12 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             synchronized (PROBES) { PROBES.remove(server); }
             throw new IllegalStateException("Marea population policy reconciliation did not restore one member while preserving the other three");
         }
+    }
+
+    private static boolean hasExactBinding(PokemonEntity actor, String canonicalEncounterId) {
+        return actor != null && VisibleWildPokemonEncounterRuntime.binding(actor.getUuid())
+                .map(binding -> canonicalEncounterId.equals(binding.canonicalEncounterId()))
+                .orElse(false);
     }
 
     private record Probe(String replacedEncounterId, String stableEncounterId, String crossingEncounterId,
