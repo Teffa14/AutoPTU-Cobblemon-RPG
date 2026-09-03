@@ -18,6 +18,7 @@ public final class CanonicalWorldMapCatalogue {
             new Site("ouros.marea.clinic", "Puerto Bruma Clinic", SiteKind.FACILITY, "minecraft:overworld", 2055, 72, 2066, 10.0D, "ouros.marea.puerto_bruma"),
             new Site("ouros.marea.sendero_vidrio", "Sendero del Vidrio", SiteKind.ROUTE, "minecraft:overworld", 2056, 77, 2120, 22.0D, null),
             new Site("ouros.marea.sendero_crossing", "Sendero Seasonal Crossing", SiteKind.ROUTE_POINT, "minecraft:overworld", 2072, 79, 2154, 12.0D, "ouros.marea.sendero_vidrio"),
+            new Site("ouros.marea.loma_windbreak", "Loma Clara Windbreak", SiteKind.ROUTE_POINT, "minecraft:overworld", 2060, 83, 2190, 14.0D, "ouros.marea.loma_clara"),
             new Site("ouros.marea.loma_clara", "Loma Clara", SiteKind.SETTLEMENT, "minecraft:overworld", 2048, 86, 2224, 44.0D, null),
             new Site("ouros.marea.loma_storehouse", "Loma Clara Cooperative Storehouse", SiteKind.FACILITY, "minecraft:overworld", 2038, 86, 2217, 10.0D, "ouros.marea.loma_clara"),
             new Site("ouros.marea.loma_communal_kitchen", "Loma Clara Communal Kitchen", SiteKind.FACILITY, "minecraft:overworld", 2058, 86, 2218, 10.0D, "ouros.marea.loma_clara"),

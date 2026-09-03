@@ -30,8 +30,8 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                     .filter(population -> population.siteId().startsWith("ouros.marea."))
                     .flatMap(population -> CanonicalWildPopulationCatalogue.DEFAULT.members(population).stream())
                     .toList();
-            if (projected != 6 || encounters.size() != 6) {
-                throw new IllegalStateException("Marea population smoke requires six normal visible wild actors");
+            if (projected != 8 || encounters.size() != 8) {
+                throw new IllegalStateException("Marea population smoke requires eight normal visible wild actors");
             }
 
             LinkedHashMap<String, PokemonEntity> actors = new LinkedHashMap<>();
@@ -44,7 +44,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                 actors.put(encounter.canonicalEncounterId(), actor);
             }
             if (Set.copyOf(actors.values().stream().map(PokemonEntity::getUuid).toList()).size() != encounters.size()) {
-                throw new IllegalStateException("Marea population smoke requires six distinct canonical actors");
+                throw new IllegalStateException("Marea population smoke requires eight distinct canonical actors");
             }
 
             var replacedEntry = actors.entrySet().iterator().next();
@@ -63,7 +63,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                         server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L
                 ));
             }
-            LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving five canonical bindings",
+            LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving seven canonical bindings",
                     removedUuid);
         });
         ServerTickEvents.END_SERVER_TICK.register(MareaVisibleWildPresenceRuntimeSmoke::verify);
@@ -84,7 +84,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                 && stableBindingsPreserved(probe)
                 && allBindingsDistinct(probe, replacement.getUuid())) {
             synchronized (PROBES) { PROBES.remove(server); }
-            LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, five stable bindings preserved",
+            LOGGER.info("AutoPTU live Marea population policy reconciliation smoke passed: {} -> {}, seven stable bindings preserved",
                     probe.removedUuid(), replacement.getUuid());
             LOGGER.info("AutoPTU live Marea wild presence reconciliation smoke passed");
             return;
@@ -92,7 +92,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         if (server.getTicks() > probe.deadlineTick()) {
             synchronized (PROBES) { PROBES.remove(server); }
             throw new IllegalStateException(
-                    "Marea population policy reconciliation did not restore one member while preserving the other five bindings");
+                    "Marea population policy reconciliation did not restore one member while preserving the other seven bindings");
         }
     }
 
