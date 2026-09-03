@@ -1,23 +1,30 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 /** Applies the canonical Marea migration timeline to the existing visible-wild actors. */
 public final class MareaWildMigrationRuntime implements ModInitializer {
     private static final String POPULATION_ID = CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID;
+    private static final Map<MinecraftServer, Boolean> ACTIVE_MIGRATION_PROJECTION = new IdentityHashMap<>();
 
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> reconcile(server.getOverworld()));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> ACTIVE_MIGRATION_PROJECTION.remove(server));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.getTicks() % MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() != 0) return;
             reconcile(server.getOverworld());
@@ -32,17 +39,26 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
                 .orElseThrow(() -> new IllegalStateException("missing migrating Marea population: " + POPULATION_ID));
         var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
         if (projectedSiteId.isEmpty()) {
+            setProjectionMarkedActive(world.getServer(), false);
             return setMembersActive(world, population, false);
         }
 
         var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
                 .orElseThrow(() -> new IllegalStateException("missing migration projection site: " + projectedSiteId.get()));
-        boolean active = hasPlayerInside(world, site.x(), site.y(), site.z(), population.presenceFootprint());
+        boolean wasActive = isProjectionMarkedActive(world.getServer());
+        boolean active = hasPlayerInside(
+                world,
+                site.x(),
+                site.y(),
+                site.z(),
+                activityFootprint(population, wasActive)
+        );
+        setProjectionMarkedActive(world.getServer(), active);
         if (!active) return setMembersActive(world, population, false);
 
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-            PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
+            PokemonEntity actor = recoverBoundActor(world, encounter);
             if (actor == null) actor = MareaVisibleWildPokemonRuntime.ensureProjected(world, encounter);
             if (actor == null) continue;
 
@@ -61,6 +77,69 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
             visible++;
         }
         return visible;
+    }
+
+    /**
+     * Recovers the existing persistent presentation actor before any replacement is allowed.
+     *
+     * <p>Migration can activate a stopover while the actor's authored-home chunk is unloaded. The
+     * canonical encounter binding still points at the persisted UUID, so loading the bounded chunk
+     * envelope covered by the population's authored habitat leash lets Minecraft restore that exact
+     * entity before projection moves it. Only if no bound actor exists after that recovery may the
+     * normal visible-wild reconciler create a replacement.</p>
+     */
+    static PokemonEntity recoverBoundActor(
+            ServerWorld world,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
+    ) {
+        PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
+        if (actor != null) return actor;
+        if (VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId()).isEmpty()) return null;
+
+        BlockPos home = canonicalHomeAnchor(encounter);
+        int leash = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "missing canonical wild population for recovery: " + encounter.populationId()))
+                .habitatLeashRadiusBlocks();
+        int minChunkX = Math.floorDiv(home.getX() - leash, 16);
+        int maxChunkX = Math.floorDiv(home.getX() + leash, 16);
+        int minChunkZ = Math.floorDiv(home.getZ() - leash, 16);
+        int maxChunkZ = Math.floorDiv(home.getZ() + leash, 16);
+        for (int x = minChunkX; x <= maxChunkX; x++) {
+            for (int z = minChunkZ; z <= maxChunkZ; z++) {
+                world.getChunk(x, z);
+            }
+        }
+        return loadedActor(world, encounter.canonicalEncounterId());
+    }
+
+    static BlockPos canonicalHomeAnchor(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+        if (encounter == null) throw new IllegalArgumentException("encounter is required");
+        var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild encounter home site: " + encounter.siteId()));
+        return new BlockPos(site.x(), site.y(), site.z()).add(
+                encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
+    }
+
+    static CanonicalWildPopulationCatalogue.PresenceFootprint activityFootprint(
+            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            boolean wasActive
+    ) {
+        if (population == null) throw new IllegalArgumentException("population is required");
+        return wasActive ? population.retentionFootprint() : population.presenceFootprint();
+    }
+
+    private static boolean isProjectionMarkedActive(MinecraftServer server) {
+        synchronized (ACTIVE_MIGRATION_PROJECTION) {
+            return Boolean.TRUE.equals(ACTIVE_MIGRATION_PROJECTION.get(server));
+        }
+    }
+
+    private static void setProjectionMarkedActive(MinecraftServer server, boolean active) {
+        synchronized (ACTIVE_MIGRATION_PROJECTION) {
+            if (active) ACTIVE_MIGRATION_PROJECTION.put(server, true);
+            else ACTIVE_MIGRATION_PROJECTION.remove(server);
+        }
     }
 
     private static int setMembersActive(
