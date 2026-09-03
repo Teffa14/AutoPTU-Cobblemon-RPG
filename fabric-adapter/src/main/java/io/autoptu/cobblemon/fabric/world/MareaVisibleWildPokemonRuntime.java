@@ -27,7 +27,6 @@ public final class MareaVisibleWildPokemonRuntime {
     private static final String WILD_TAG_PREFIX = "autoptu:wild-encounter:";
     private static final String WILD_MARKER_TAG = "ouros:visible-wild";
     private static final int PRESENCE_RECONCILE_INTERVAL_TICKS = 100;
-    private static final int HABITAT_LEASH_RADIUS_BLOCKS = 32;
     private static final int HABITAT_SEARCH_RADIUS_BLOCKS = 48;
     private static final MareaCanonicalWildEncounterBlueprintSource BLUEPRINT_SOURCE =
             new MareaCanonicalWildEncounterBlueprintSource();
@@ -49,6 +48,7 @@ public final class MareaVisibleWildPokemonRuntime {
             if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return;
             publishBeforeReveal(world, encounter.get().canonicalEncounterId());
             bind(pokemonEntity, encounter.get());
+            keepInAuthoredRoamingFootprint(pokemonEntity, encounter.get(), presentationAnchor(encounter.get()));
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
             if (!(entity instanceof PokemonEntity pokemonEntity)) return;
@@ -96,7 +96,7 @@ public final class MareaVisibleWildPokemonRuntime {
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
-            keepInHabitat(existing, anchor);
+            keepInAuthoredRoamingFootprint(existing, encounter, anchor);
             return existing;
         }
 
@@ -128,7 +128,7 @@ public final class MareaVisibleWildPokemonRuntime {
         if (boundUuid.isPresent()) {
             var loaded = world.getEntity(boundUuid.get());
             if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                keepInAuthoredRoamingFootprint(pokemonEntity, encounter, presentationAnchor(encounter));
                 return pokemonEntity;
             }
             return null;
@@ -158,7 +158,7 @@ public final class MareaVisibleWildPokemonRuntime {
                 }
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                    keepInHabitat(pokemonEntity, presentationAnchor(encounter));
+                    keepInAuthoredRoamingFootprint(pokemonEntity, encounter, presentationAnchor(encounter));
                     visible++;
                 }
                 // Ordinary persistent chunk unload preserves the canonical UUID binding. A later chunk
@@ -202,13 +202,24 @@ public final class MareaVisibleWildPokemonRuntime {
         return world != null && world.getServer() != null && world == world.getServer().getOverworld();
     }
 
-    private static void keepInHabitat(PokemonEntity entity, BlockPos anchor) {
+    private static void keepInAuthoredRoamingFootprint(
+            PokemonEntity entity,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
+            BlockPos anchor
+    ) {
+        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
+                .orElseThrow(() -> new IllegalStateException("missing canonical wild population: " + encounter.populationId()));
+        var footprint = population.roamingFootprint();
         double centerX = anchor.getX() + 0.5D;
+        double centerY = anchor.getY();
         double centerZ = anchor.getZ() + 0.5D;
         double dx = entity.getX() - centerX;
+        double dy = entity.getY() - centerY;
         double dz = entity.getZ() - centerZ;
-        if (dx * dx + dz * dz <= (double) HABITAT_LEASH_RADIUS_BLOCKS * HABITAT_LEASH_RADIUS_BLOCKS) return;
-        entity.requestTeleport(centerX, anchor.getY(), centerZ);
+        if (footprint.containsOffset(dx, dy, dz)) return;
+        entity.requestTeleport(centerX, centerY, centerZ);
+        LOGGER.debug("AutoPTU returned Marea wild actor to authored roaming footprint: population={} encounter={} entity={}",
+                population.populationId(), encounter.canonicalEncounterId(), entity.getUuid());
     }
 
     private static void loadHabitatChunks(ServerWorld world, BlockPos anchor) {
