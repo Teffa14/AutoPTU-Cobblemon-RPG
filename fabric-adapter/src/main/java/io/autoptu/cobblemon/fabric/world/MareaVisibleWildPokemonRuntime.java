@@ -106,8 +106,14 @@ public final class MareaVisibleWildPokemonRuntime {
                 var loaded = world.getEntity(boundUuid.get());
                 if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
                     keepInHabitat(pokemonEntity, presentationAnchor(encounter));
-                } else {
-                    VisibleWildPokemonEncounterRuntime.unbind(boundUuid.get());
+                    continue;
+                }
+
+                VisibleWildPokemonEncounterRuntime.unbind(boundUuid.get());
+                PokemonEntity replacement = ensureProjected(world, encounter);
+                if (replacement != null) {
+                    LOGGER.info("AutoPTU Marea wild presence replaced missing actor: encounter={} old={} new={}",
+                            encounter.canonicalEncounterId(), boundUuid.get(), replacement.getUuid());
                 }
             }
         }
