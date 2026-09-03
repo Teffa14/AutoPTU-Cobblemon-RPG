@@ -156,7 +156,7 @@ public final class CanonicalWildPopulationCatalogue {
                 List<String> encounterIds,
                 PresenceFootprint presenceFootprint
         ) {
-            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, new RoamingFootprint(32, 16, 32));
+            this(populationId, siteId, zoneId, encounterIds, presenceFootprint, compatibilityRoamingFootprint(presenceFootprint));
         }
 
         /** Compatibility constructor for tests/tools; production populations should author the footprints explicitly. */
@@ -188,6 +188,15 @@ public final class CanonicalWildPopulationCatalogue {
         public boolean containsOffset(double dx, double dy, double dz) {
             return contains(halfExtentXBlocks, halfExtentYBlocks, halfExtentZBlocks, dx, dy, dz);
         }
+    }
+
+    private static RoamingFootprint compatibilityRoamingFootprint(PresenceFootprint presenceFootprint) {
+        Objects.requireNonNull(presenceFootprint, "presenceFootprint");
+        return new RoamingFootprint(
+                Math.min(32, presenceFootprint.halfExtentXBlocks()),
+                Math.min(16, presenceFootprint.halfExtentYBlocks()),
+                Math.min(32, presenceFootprint.halfExtentZBlocks())
+        );
     }
 
     private static boolean contains(int x, int y, int z, double dx, double dy, double dz) {
