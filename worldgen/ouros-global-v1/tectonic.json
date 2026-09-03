@@ -1,0 +1,38 @@
+{
+  "biomes": {
+    "temperature_multiplier": 1.0,
+    "temperature_scale": 0.08,
+    "vegetation_multiplier": 1.0,
+    "vegetation_scale": 0.08
+  },
+  "continents": {
+    "continents_scale": 0.06,
+    "erosion_scale": 0.12,
+    "flat_terrain_skew": 0.1,
+    "jungle_pillars": true,
+    "ocean_offset": -0.72,
+    "ridge_scale": 0.12,
+    "river_lanterns": true,
+    "rolling_hills": true,
+    "underground_rivers": true
+  },
+  "general": {
+    "mod_enabled": true,
+    "snow_start_offset": 128
+  },
+  "global_terrain": {
+    "increased_height": true,
+    "lava_tunnels": true,
+    "vertical_scale": 1.6
+  },
+  "islands": {
+    "enabled": true,
+    "noise_scale": 0.06
+  },
+  "oceans": {
+    "deep_ocean_depth": -0.55,
+    "monument_offset": -30,
+    "ocean_depth": -0.32,
+    "remove_frozen_ocean_ice": false
+  }
+}
