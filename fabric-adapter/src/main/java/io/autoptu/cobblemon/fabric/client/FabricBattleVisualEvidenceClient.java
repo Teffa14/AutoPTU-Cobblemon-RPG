@@ -18,8 +18,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
-    private static final int[] FLAMETHROWER_CAPTURE_TICKS = {81, 84, 87, 90, 93, 96};
-    private static final int[] HYDRO_PUMP_CAPTURE_TICKS = {111, 114, 117, 120, 123, 126};
+    private static final int[] FLAMETHROWER_CAPTURE_TICKS = {82, 90, 98, 106, 114, 122, 130, 138};
+    private static final int[] HYDRO_PUMP_CAPTURE_TICKS = {162, 170, 178, 186, 194, 202, 210, 218};
     private static int ticksBeforeConnect;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
@@ -55,15 +55,12 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         }
 
         if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Send both required slash commands while chat is still enabled. Minecraft suppresses
-            // sendChatCommand when ChatVisibility.HIDDEN is already active.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
             LOGGER.info("AutoPTU battle visual evidence camera placed");
             return;
         }
 
-        // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
         if (cameraPlaced) sanitizeCaptureHud(client);
 
         if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
