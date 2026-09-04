@@ -115,6 +115,11 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         double centerX = anchor.getX() + 0.5D;
         double centerZ = anchor.getZ() + 0.5D;
 
+        // Native pathing is only a bounded bridge between ambient updates. Revoke any path from the
+        // previous update before re-evaluating authored CALM/rest/watch/alarm/recovery precedence.
+        // Collision steering may start a fresh leash-contained path later in this same server tick.
+        actor.getNavigation().stop();
+
         if (!insideHorizontalLeash(
                 actor.getX(),
                 actor.getZ(),
@@ -429,21 +434,16 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             double velocityX,
             double velocityZ
     ) {
-        if (actor == null) return false;
+        if (actor == null) throw new IllegalArgumentException("actor is required");
+        if (!Double.isFinite(velocityX) || !Double.isFinite(velocityZ)) {
+            throw new IllegalArgumentException("habitat impulse requires finite velocity");
+        }
         return insideHorizontalLeash(
                 actor.getX() + velocityX,
                 actor.getZ() + velocityZ,
                 centerX,
                 centerZ,
-                leashRadiusBlocks
-        );
-    }
-
-    static int controllerCount(MinecraftServer server) {
-        synchronized (CONTROLLERS) {
-            var controllers = CONTROLLERS.get(server);
-            return controllers == null ? 0 : controllers.size();
-        }
+                leashRadiusBlocks);
     }
 
     private static Map<UUID, AmbientPokemonBehaviorController> controllersFor(MinecraftServer server) {
