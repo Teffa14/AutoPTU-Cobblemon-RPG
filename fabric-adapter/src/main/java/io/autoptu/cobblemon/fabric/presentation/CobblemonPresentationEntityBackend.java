@@ -312,7 +312,7 @@ public final class CobblemonPresentationEntityBackend
             spawnOne(world, themed, point);
         }
         spawn(world, ParticleTypes.POOF, target, 14, 0.55D, 0.35D, 0.55D, 0.08D);
-        play(world, target, SoundEvents.ENTITY_GENERIC_EXPLODE, 0.75F, 1.25F);
+        play(world, target, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 0.75F, 1.25F);
     }
 
     private static void renderArc(
