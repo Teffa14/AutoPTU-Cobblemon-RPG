@@ -42,7 +42,7 @@ jobs:
 
           curl -fsSL \
             -o "$server_dir/fabric-server-launch.jar" \
-            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.0.3/server/jar'
 
           server_pid=""
           stop_server() {
