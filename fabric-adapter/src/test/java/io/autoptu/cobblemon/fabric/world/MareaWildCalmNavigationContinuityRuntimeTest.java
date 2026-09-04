@@ -66,6 +66,7 @@ final class MareaWildCalmNavigationContinuityRuntimeTest {
 
     @Test
     void activeRouteCollisionRevalidationRejectsNewWallAhead() {
+        // A flat height profile is insufficient once a remaining actor-sized node becomes occupied.
         assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(
                 1, false, true, false, true));
     }
