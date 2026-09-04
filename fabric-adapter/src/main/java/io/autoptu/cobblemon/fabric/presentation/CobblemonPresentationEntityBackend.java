@@ -169,39 +169,7 @@ public final class CobblemonPresentationEntityBackend
 
     @Override
     public void showCue(PokemonEntity entity, BattlePresentationCommand command) {
-        Objects.requireNonNull(entity, "entity");
-        Objects.requireNonNull(command, "command");
-
-        if (command.kind() != BattlePresentationCommand.Kind.STATUS_SKIP_CUE) {
-            // Other semantic cues stay accepted but presentation-neutral until their bounded UX
-            // slices ship. Minecraft must not invent meanings for generic upstream effects.
-            return;
-        }
-        if (!(entity.getWorld() instanceof ServerWorld serverWorld)) {
-            return;
-        }
-
-        // status_skip is already an authoritative AutoPTU-Java outcome. Fabric only mirrors that
-        // fact with a generic particle cue and nearby action-bar text. It never decides whether the
-        // status exists, whether an action is skipped, or what the status mechanically does.
-        serverWorld.spawnParticles(
-                ParticleTypes.EFFECT,
-                entity.getX(),
-                entity.getBodyY(0.75D),
-                entity.getZ(),
-                8,
-                0.35D,
-                0.25D,
-                0.35D,
-                0.02D
-        );
-
-        Text cueText = Text.literal(statusSkipText(command));
-        for (var player : serverWorld.getPlayers()) {
-            if (player.squaredDistanceTo(entity) <= 1024.0D) {
-                player.sendMessage(cueText, true);
-            }
-        }
+        BattleSemanticCueRenderer.render(entity, command);
     }
 
     static String statusSkipText(BattlePresentationCommand command) {
@@ -209,11 +177,7 @@ public final class CobblemonPresentationEntityBackend
         if (command.kind() != BattlePresentationCommand.Kind.STATUS_SKIP_CUE) {
             throw new IllegalArgumentException("STATUS_SKIP_CUE command is required");
         }
-
-        String status = displayValue(command.data().get("status"), "status");
-        String phase = displayValue(command.data().get("phase"), "phase");
-        String reason = displayValue(command.data().get("reason"), "authoritative skip");
-        return status + " · " + phase + " · " + reason;
+        return BattleSemanticCueRenderer.cueText(command);
     }
 
     private static void face(PokemonEntity attacker, PokemonEntity target) {
@@ -452,10 +416,5 @@ public final class CobblemonPresentationEntityBackend
 
     private static void play(ServerWorld world, Vec3d point, SoundEvent sound, float volume, float pitch) {
         world.playSound(null, point.x, point.y, point.z, sound, SoundCategory.PLAYERS, volume, pitch);
-    }
-
-    private static String displayValue(String value, String fallback) {
-        if (value == null || value.isBlank()) return fallback;
-        return value.strip();
     }
 }
