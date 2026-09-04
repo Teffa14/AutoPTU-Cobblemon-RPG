@@ -17,6 +17,10 @@ import java.util.Map;
 final class CobblemonMoveAnimationFallbackPlanner {
     private static final Map<BattleMoveAnimationProfile.Theme, List<String>> THEME_CANDIDATES = themeCandidates();
     private static final Map<BattleMoveAnimationProfile.Motion, List<String>> MOTION_CANDIDATES = motionCandidates();
+    private static final List<String> UNIVERSAL_NATIVE_CANDIDATES = List.of(
+            "tackle", "swift", "quickattack", "ember", "watergun", "thundershock",
+            "razorleaf", "shadowball", "rockthrow", "airslash", "aurasphere", "hyperbeam"
+    );
 
     private CobblemonMoveAnimationFallbackPlanner() {
     }
@@ -27,6 +31,10 @@ final class CobblemonMoveAnimationFallbackPlanner {
         LinkedHashSet<String> candidates = new LinkedHashSet<>();
         candidates.addAll(THEME_CANDIDATES.getOrDefault(profile.theme(), List.of()));
         candidates.addAll(MOTION_CANDIDATES.getOrDefault(profile.motion(), List.of()));
+        // Keep a conservative final native pool so an unknown/custom AutoPTU move still prefers a
+        // real Cobblemon model/particle/sound timeline over the project generic renderer whenever
+        // one of these common assets is loaded. The original mechanical move identity is untouched.
+        candidates.addAll(UNIVERSAL_NATIVE_CANDIDATES);
         candidates.remove(normalized);
 
         ArrayList<String> ordered = new ArrayList<>(candidates);
