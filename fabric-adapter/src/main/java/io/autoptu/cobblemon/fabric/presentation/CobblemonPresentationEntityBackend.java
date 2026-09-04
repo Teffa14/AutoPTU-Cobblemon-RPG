@@ -48,10 +48,29 @@ public final class CobblemonPresentationEntityBackend
         BattleMoveAnimationProfile profile = BattleMoveAnimationProfile.resolve(moveId);
         boolean hit = authoritativeFlag(command, "hit");
         boolean crit = authoritativeFlag(command, "crit");
-        if (!hit && crit) {
-            throw new IllegalArgumentException("authoritative miss cannot be critical");
+        int damage = authoritativeNonNegativeInt(command, "damage");
+        if (!hit && (crit || damage != 0)) {
+            throw new IllegalArgumentException("authoritative miss cannot be critical or contain damage");
         }
-        renderResolvedMove(attacker, target, profile, hit, crit);
+
+        face(attacker, target);
+        boolean renderedNative = CobblemonNativeMoveAnimationBridge.tryRender(
+                attacker,
+                target,
+                moveId,
+                hit,
+                damage
+        );
+        if (!renderedNative) {
+            renderResolvedMove(attacker, target, profile, hit, crit);
+            return;
+        }
+
+        // Native Cobblemon action effects do not own AutoPTU's critical-hit result. Preserve a small
+        // authoritative critical overlay without replacing or duplicating the native move timeline.
+        if (crit && target.getWorld() instanceof ServerWorld serverWorld) {
+            renderCritical(serverWorld, bodyPoint(target, 0.58D), profile);
+        }
     }
 
     private static void renderResolvedMove(
@@ -153,6 +172,22 @@ public final class CobblemonPresentationEntityBackend
             throw new IllegalArgumentException(key + " must be an authoritative boolean");
         }
         return Boolean.parseBoolean(value);
+    }
+
+    static int authoritativeNonNegativeInt(BattlePresentationCommand command, String key) {
+        Objects.requireNonNull(command, "command");
+        if (key == null || key.isBlank()) throw new IllegalArgumentException("key is required");
+        String value = command.data().get(key.strip());
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(key + " must be an authoritative integer");
+        }
+        try {
+            int parsed = Integer.parseInt(value);
+            if (parsed < 0) throw new IllegalArgumentException(key + " cannot be negative");
+            return parsed;
+        } catch (NumberFormatException error) {
+            throw new IllegalArgumentException(key + " must be an authoritative integer", error);
+        }
     }
 
     @Override
