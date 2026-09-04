@@ -36,8 +36,6 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final Map<MinecraftServer, Map<UUID, AmbientPokemonBehaviorController>> CONTROLLERS =
             new IdentityHashMap<>();
 
-    private MareaWildAmbientBehaviorRuntime() {}
-
     @Override
     public void onInitialize() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -175,9 +173,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
 
         double requestedX = (dx / distance) * CALM_WANDER_SPEED;
         double requestedZ = (dz / distance) * CALM_WANDER_SPEED;
-        if (!insideLeashAfterImpulse(actor, centerX, centerZ, leashRadiusBlocks, requestedX, requestedZ)) {
-            return;
-        }
+        if (!insideLeashAfterImpulse(actor, centerX, centerZ, leashRadiusBlocks, requestedX, requestedZ)) return;
         actor.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
         setAmbientHorizontalVelocity(actor, requestedX, requestedZ, CALM_WANDER_SPEED);
     }
