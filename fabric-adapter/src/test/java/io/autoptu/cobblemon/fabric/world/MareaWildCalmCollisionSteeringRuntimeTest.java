@@ -75,6 +75,14 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void calmNativeNavigationRequiresContinuousSurfaceAcrossEntirePath() {
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceProfile(64));
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceProfile(64, 65, 65, 66, 65, 64));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceProfile(64, 65, 68, 67));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceProfile(64, 61));
+    }
+
+    @Test
     void nativeNavigationPathMustRemainInsideAuthoredLeashAcrossTerrainHeightChanges() {
         Path safe = new Path(
                 List.of(new PathNode(10, 64, 20), new PathNode(14, 65, 20), new PathNode(16, 67, 20)),
@@ -109,5 +117,7 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
                         0.0D, 0.0D, 0, null));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceNeighborhood(64, 64, 64, 64));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceProfile());
     }
 }
