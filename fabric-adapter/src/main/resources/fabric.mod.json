@@ -10,6 +10,7 @@
       "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter",
       "io.autoptu.cobblemon.fabric.admin.FabricBattleEvidenceAdminRuntime",
       "io.autoptu.cobblemon.fabric.demo.BattleAnimationLabEntrypoint",
+      "io.autoptu.cobblemon.fabric.network.FabricBattleHudNetworkingEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricNurseryEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricLeagueRegistrationEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint",
@@ -18,6 +19,7 @@
       "io.autoptu.cobblemon.fabric.world.MareaWildAmbientBehaviorRuntime"
     ],
     "client": [
+      "io.autoptu.cobblemon.fabric.client.AutoPtuBattleHudClient",
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleVisualEvidenceClient"
     ]
