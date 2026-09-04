@@ -105,6 +105,16 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         double centerX = anchor.getX() + 0.5D;
         double centerZ = anchor.getZ() + 0.5D;
 
+        if (!insideHorizontalLeash(
+                actor.getX(),
+                actor.getZ(),
+                centerX,
+                centerZ,
+                population.habitatLeashRadiusBlocks())) {
+            applyRecovery(actor, centerX, centerZ);
+            return;
+        }
+
         if (state == AmbientPokemonBehaviorController.State.RECOVERING) {
             applyRecovery(actor, centerX, centerZ);
             return;
@@ -186,6 +196,23 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         return new double[] {(dx / length) * speed, (dz / length) * speed};
     }
 
+    static boolean insideHorizontalLeash(
+            double actorX,
+            double actorZ,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks
+    ) {
+        if (!Double.isFinite(actorX) || !Double.isFinite(actorZ)
+                || !Double.isFinite(centerX) || !Double.isFinite(centerZ)
+                || leashRadiusBlocks <= 0) {
+            throw new IllegalArgumentException("habitat leash requires finite coordinates and positive radius");
+        }
+        double dx = actorX - centerX;
+        double dz = actorZ - centerZ;
+        return dx * dx + dz * dz <= (double) leashRadiusBlocks * leashRadiusBlocks;
+    }
+
     static boolean insideLeashAfterImpulse(
             PokemonEntity actor,
             double centerX,
@@ -195,9 +222,13 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             double velocityZ
     ) {
         if (actor == null) return false;
-        double nextDx = actor.getX() + velocityX - centerX;
-        double nextDz = actor.getZ() + velocityZ - centerZ;
-        return nextDx * nextDx + nextDz * nextDz <= (double) leashRadiusBlocks * leashRadiusBlocks;
+        return insideHorizontalLeash(
+                actor.getX() + velocityX,
+                actor.getZ() + velocityZ,
+                centerX,
+                centerZ,
+                leashRadiusBlocks
+        );
     }
 
     static int controllerCount(MinecraftServer server) {
