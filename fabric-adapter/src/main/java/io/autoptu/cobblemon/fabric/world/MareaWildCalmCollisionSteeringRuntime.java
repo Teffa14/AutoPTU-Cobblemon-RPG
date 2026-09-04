@@ -117,8 +117,10 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
      * different motion-blocking surface at the exact target column, a second attempt uses that
      * surface height. The target column and every accepted path node must remain on locally stable
      * Minecraft surface. Consecutive path-node surfaces may climb or descend by at most one block,
-     * so ordinary slopes remain usable while abrupt ledges are rejected. This only supplies
-     * Minecraft presentation geometry; X/Z destination and leash authority remain unchanged.
+     * so ordinary slopes remain usable while abrupt ledges are rejected. Every node must also have
+     * clear actor-sized presentation volume before movement starts, including no overlap with another
+     * interaction-active visible wild Pokemon. This only supplies Minecraft presentation geometry;
+     * X/Z destination and leash authority remain unchanged.
      */
     static Path findLeashSafeNativePath(
             PokemonEntity actor,
@@ -147,6 +149,7 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             if (path == null || !path.reachesTarget()) continue;
             if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) continue;
             if (!navigationPathSurfaceContinuous(world, path)) continue;
+            if (!navigationPathPresentationClear(world, actor, path)) continue;
             return path;
         }
         return null;
@@ -199,6 +202,37 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             surfaceProfile[index] = surfaceY;
         }
         return stableCalmSurfaceProfile(surfaceProfile);
+    }
+
+    private static boolean navigationPathPresentationClear(ServerWorld world, PokemonEntity actor, Path path) {
+        if (world == null || actor == null || path == null || path.getLength() == 0) return false;
+        boolean[] nodeClear = new boolean[path.getLength()];
+        for (int index = 0; index < path.getLength(); index++) {
+            BlockPos node = path.getNode(index).getBlockPos();
+            double offsetX = node.getX() + 0.5D - actor.getX();
+            double offsetY = node.getY() - actor.getY();
+            double offsetZ = node.getZ() + 0.5D - actor.getZ();
+            var projectedBox = actor.getBoundingBox().offset(offsetX, offsetY, offsetZ);
+            boolean blockSpaceClear = world.isSpaceEmpty(actor, projectedBox);
+            boolean activeWildOverlap = !world.getOtherEntities(
+                    actor,
+                    projectedBox,
+                    candidate -> candidate instanceof PokemonEntity
+                            && VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.getUuid()))
+                    .isEmpty();
+            nodeClear[index] = MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(
+                    blockSpaceClear,
+                    activeWildOverlap);
+        }
+        return navigationPresentationProfileClear(nodeClear);
+    }
+
+    static boolean navigationPresentationProfileClear(boolean... nodeClear) {
+        if (nodeClear == null || nodeClear.length == 0) return false;
+        for (boolean clear : nodeClear) {
+            if (!clear) return false;
+        }
+        return true;
     }
 
     static int[] navigationTargetYCandidates(int actorY, int surfaceY) {

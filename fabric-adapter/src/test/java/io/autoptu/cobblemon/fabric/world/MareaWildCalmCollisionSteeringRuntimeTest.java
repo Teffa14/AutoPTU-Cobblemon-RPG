@@ -102,6 +102,26 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void initialNativeRouteRejectsOccupiedPresentationNodeBeforeMovementStarts() {
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear(
+                true, true, false, true));
+    }
+
+    @Test
+    void initialNativeRouteRejectsBlockedPresentationNodeBeforeMovementStarts() {
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear(
+                true, false, true));
+    }
+
+    @Test
+    void initialNativeRouteAcceptsOnlyFullyClearPresentationProfile() {
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear(
+                true, true, true));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear());
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear((boolean[]) null));
+    }
+
+    @Test
     void invalidSteeringInputsFailClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(null));
