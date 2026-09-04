@@ -122,6 +122,14 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void calmSteeringProbeRequiresBothBlockAndActiveWildClearance() {
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.steeringProbePresentationClear(true, false));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.steeringProbePresentationClear(false, false));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.steeringProbePresentationClear(true, true));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.steeringProbePresentationClear(false, true));
+    }
+
+    @Test
     void invalidSteeringInputsFailClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(null));
