@@ -162,8 +162,8 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
 
     /**
      * Revalidates only the unconsumed part of an active Minecraft route. Terrain edited behind the
-     * actor does not cancel useful navigation. A changed ledge/support condition or a newly occupied
-     * actor-sized path node ahead does cancel it, even when the heightmap still looks flat.
+     * actor does not cancel useful navigation. A changed ledge/support condition, a newly occupied
+     * block volume or another active visible wild actor occupying a node ahead does cancel it.
      */
     static boolean remainingPathStillSafe(
             ServerWorld world,
@@ -219,15 +219,28 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
     }
 
     /**
-     * Checks the actor's own presentation volume at a remaining native path node. This catches
-     * collision edits such as a wall placed on otherwise-flat ground without trusting the path's
-     * stale pre-edit collision graph.
+     * Checks the actor's own presentation volume at a remaining native path node. Block collision
+     * and dynamic overlap with another active visible wild actor are separate Minecraft concerns:
+     * neither may be treated as PTU movement legality, but both should invalidate stale ambient
+     * presentation navigation.
      */
     private static boolean pathNodeVolumeClear(ServerWorld world, PokemonEntity actor, BlockPos node) {
         double offsetX = node.getX() + 0.5D - actor.getX();
         double offsetY = node.getY() - actor.getY();
         double offsetZ = node.getZ() + 0.5D - actor.getZ();
-        return world.isSpaceEmpty(actor, actor.getBoundingBox().offset(offsetX, offsetY, offsetZ));
+        var projectedBox = actor.getBoundingBox().offset(offsetX, offsetY, offsetZ);
+        boolean blockSpaceClear = world.isSpaceEmpty(actor, projectedBox);
+        boolean activeWildOverlap = !world.getOtherEntities(
+                actor,
+                projectedBox,
+                candidate -> candidate instanceof PokemonEntity
+                        && VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.getUuid()))
+                .isEmpty();
+        return presentationNodeClear(blockSpaceClear, activeWildOverlap);
+    }
+
+    static boolean presentationNodeClear(boolean blockSpaceClear, boolean activeWildOverlap) {
+        return blockSpaceClear && !activeWildOverlap;
     }
 
     static boolean remainingSurfaceProfileContinuous(int currentNodeIndex, int... surfaceY) {
