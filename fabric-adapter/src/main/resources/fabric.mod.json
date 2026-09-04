@@ -14,7 +14,8 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint",
       "io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueEntrypoint",
-      "io.autoptu.cobblemon.fabric.world.MareaWildAmbientBehaviorRuntime"
+      "io.autoptu.cobblemon.fabric.world.MareaWildAmbientBehaviorRuntime",
+      "io.autoptu.cobblemon.fabric.world.MareaWildCalmCollisionSteeringRuntime"
     ],
     "client": [
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
