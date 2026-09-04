@@ -18,7 +18,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
-    private static int ticksBeforeConnect;
+    private static final int RESOURCE_READY_STABILITY_TICKS = 20;
+    private static int resourceReadyTicks;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean battleRequested;
@@ -52,19 +53,14 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         }
 
         if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Send both required slash commands while chat is still enabled. Minecraft suppresses
-            // sendChatCommand when ChatVisibility.HIDDEN is already active.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
             LOGGER.info("AutoPTU battle visual evidence camera placed");
             return;
         }
 
-        // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
         if (cameraPlaced) sanitizeCaptureHud(client);
 
-        // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
-        // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
         if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
             capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
@@ -94,14 +90,24 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     }
 
     private static void requestConnection(MinecraftClient client) {
-        if (connectRequested || client.currentScreen == null || client.world != null) return;
-        if (++ticksBeforeConnect < 40) return;
+        if (connectRequested || client.world != null) return;
+
+        // The loading overlay is the resource-readiness boundary. Once it has remained absent while
+        // Minecraft has a usable screen for a stable tick window, Cobblemon's model/atlas setup has
+        // completed far enough for registry sync. Do not require one particular menu implementation:
+        // modded clients may replace the vanilla TitleScreen after resource initialization.
+        if (client.currentScreen == null || client.getOverlay() != null) {
+            resourceReadyTicks = 0;
+            return;
+        }
+        if (++resourceReadyTicks < RESOURCE_READY_STABILITY_TICKS) return;
+
         String target = System.getProperty(SERVER_PROPERTY, DEFAULT_SERVER).trim();
         if (!ServerAddress.isValid(target)) { connectRequested = true; LOGGER.error("Invalid evidence server {}", target); return; }
         ServerInfo info = new ServerInfo("AutoPTU Battle Visual Evidence", target, ServerInfo.ServerType.OTHER);
         info.setResourcePackPolicy(ServerInfo.ResourcePackPolicy.DISABLED);
         connectRequested = true;
-        LOGGER.info("AutoPTU battle visual evidence connecting to authoritative server {}", target);
+        LOGGER.info("AutoPTU battle visual evidence resources stable; connecting to authoritative server {}", target);
         ConnectScreen.connect(client.currentScreen, client, ServerAddress.parse(target), info, false, null);
     }
 }

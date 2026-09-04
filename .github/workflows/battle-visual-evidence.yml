@@ -22,9 +22,8 @@ jobs:
           gradle-version: '8.14.3'
       - name: Install graphical launcher tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb imagemagick
-          python3 -m pip install --disable-pip-version-check 'minecraft-launcher-lib==8.0'
+          command -v Xvfb >/dev/null || { echo 'Xvfb is required on the GitHub runner'; exit 1; }
+          python3 -m pip install --disable-pip-version-check 'minecraft-launcher-lib==8.0' 'Pillow==10.4.0'
       - name: Prepare production Fabric + Cobblemon mods
         run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
       - name: Prepare battle evidence server and client
@@ -90,8 +89,18 @@ jobs:
           [ "$capture_ready" -eq 1 ] || { cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; }
           cp "$ready" "$first" "$counter" test-evidence/battle/
           for frame in test-evidence/battle/*.png; do
-            colors="$(identify -format '%k' "$frame")"; geometry="$(identify -format '%wx%h' "$frame")"
-            echo "Captured $(basename "$frame") ${geometry} ${colors} colors"
+            metrics="$(python3 - "$frame" <<'PY'
+          import sys
+          from PIL import Image
+          with Image.open(sys.argv[1]) as image:
+              rgb = image.convert('RGB')
+              sample = rgb.getcolors(maxcolors=63)
+              colors = 64 if sample is None else len(sample)
+              print(f'{image.width}x{image.height} {colors}')
+          PY
+          )"
+            geometry="${metrics%% *}"; colors="${metrics##* }"
+            echo "Captured $(basename "$frame") ${geometry} ${colors}+ colors"
             [ "$colors" -ge 64 ] || exit 1
           done
           grep 'AutoPTU TEST: Charmander vs Pikachu' graphical-client/logs/latest.log

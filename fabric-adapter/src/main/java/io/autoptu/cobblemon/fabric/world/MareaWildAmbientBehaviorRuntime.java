@@ -26,10 +26,13 @@ import java.util.UUID;
 public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final long CALM_WANDER_SEGMENT_TICKS = 80L;
+    private static final long CALM_WANDER_ACTIVE_TICKS = 60L;
     private static final double CALM_WANDER_SPEED = 0.025D;
     private static final double CALM_WANDER_STOP_DISTANCE = 1.0D;
     private static final double CALM_SEPARATION_DISTANCE = 2.5D;
     private static final double CALM_SEPARATION_SPEED = 0.018D;
+    private static final double CALM_COHESION_DISTANCE = 6.0D;
+    private static final double CALM_COHESION_SPEED = 0.012D;
     private static final double FLEE_SPEED = 0.08D;
     private static final double RECOVERY_SPEED = 0.04D;
     private static final double RECOVERY_STOP_DISTANCE = 1.5D;
@@ -203,7 +206,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         double distance = Math.sqrt(dx * dx + dz * dz);
         double requestedX = 0.0D;
         double requestedZ = 0.0D;
-        if (distance > CALM_WANDER_STOP_DISTANCE) {
+        if (calmWanderActive(worldTime) && distance > CALM_WANDER_STOP_DISTANCE) {
             requestedX = (dx / distance) * CALM_WANDER_SPEED;
             requestedZ = (dz / distance) * CALM_WANDER_SPEED;
         }
@@ -220,6 +223,18 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                     CALM_SEPARATION_SPEED);
             requestedX += separation[0];
             requestedZ += separation[1];
+
+            double[] cohesion = calmCohesionImpulse(
+                    actor.getUuid(),
+                    actor.getX(),
+                    actor.getZ(),
+                    nearestSibling.getUuid(),
+                    nearestSibling.getX(),
+                    nearestSibling.getZ(),
+                    CALM_COHESION_DISTANCE,
+                    CALM_COHESION_SPEED);
+            requestedX += cohesion[0];
+            requestedZ += cohesion[1];
         }
 
         if (Math.abs(requestedX) <= 0.000001D && Math.abs(requestedZ) <= 0.000001D) return;
@@ -227,6 +242,10 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         if (!insideLeashAfterImpulse(actor, centerX, centerZ, leashRadiusBlocks, bounded[0], bounded[1])) return;
         actor.setYaw((float) Math.toDegrees(Math.atan2(-bounded[0], bounded[1])));
         setAmbientHorizontalVelocity(actor, bounded[0], bounded[1], CALM_WANDER_SPEED);
+    }
+
+    static boolean calmWanderActive(long worldTime) {
+        return Math.floorMod(worldTime, CALM_WANDER_SEGMENT_TICKS) < CALM_WANDER_ACTIVE_TICKS;
     }
 
     static double[] calmRoamingTarget(
@@ -265,13 +284,8 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             double separationDistance,
             double separationSpeed
     ) {
-        if (actorId == null || siblingId == null
-                || !Double.isFinite(actorX) || !Double.isFinite(actorZ)
-                || !Double.isFinite(siblingX) || !Double.isFinite(siblingZ)
-                || !Double.isFinite(separationDistance) || separationDistance <= 0.0D
-                || !Double.isFinite(separationSpeed) || separationSpeed <= 0.0D) {
-            throw new IllegalArgumentException("calm separation requires actor identities, finite coordinates and positive bounds");
-        }
+        validatePairImpulseInputs(actorId, actorX, actorZ, siblingId, siblingX, siblingZ, separationDistance, separationSpeed,
+                "calm separation");
         if (actorId.equals(siblingId)) return new double[] {0.0D, 0.0D};
 
         double dx = actorX - siblingX;
@@ -294,6 +308,52 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                 (dx / distance) * separationSpeed * strength,
                 (dz / distance) * separationSpeed * strength
         };
+    }
+
+    static double[] calmCohesionImpulse(
+            UUID actorId,
+            double actorX,
+            double actorZ,
+            UUID siblingId,
+            double siblingX,
+            double siblingZ,
+            double cohesionDistance,
+            double cohesionSpeed
+    ) {
+        validatePairImpulseInputs(actorId, actorX, actorZ, siblingId, siblingX, siblingZ, cohesionDistance, cohesionSpeed,
+                "calm cohesion");
+        if (actorId.equals(siblingId)) return new double[] {0.0D, 0.0D};
+
+        double dx = siblingX - actorX;
+        double dz = siblingZ - actorZ;
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        if (distance <= cohesionDistance || distance <= 0.001D) return new double[] {0.0D, 0.0D};
+
+        double strength = Math.min(1.0D, (distance - cohesionDistance) / cohesionDistance);
+        return new double[] {
+                (dx / distance) * cohesionSpeed * strength,
+                (dz / distance) * cohesionSpeed * strength
+        };
+    }
+
+    private static void validatePairImpulseInputs(
+            UUID actorId,
+            double actorX,
+            double actorZ,
+            UUID siblingId,
+            double siblingX,
+            double siblingZ,
+            double distanceBound,
+            double speedBound,
+            String operation
+    ) {
+        if (actorId == null || siblingId == null
+                || !Double.isFinite(actorX) || !Double.isFinite(actorZ)
+                || !Double.isFinite(siblingX) || !Double.isFinite(siblingZ)
+                || !Double.isFinite(distanceBound) || distanceBound <= 0.0D
+                || !Double.isFinite(speedBound) || speedBound <= 0.0D) {
+            throw new IllegalArgumentException(operation + " requires actor identities, finite coordinates and positive bounds");
+        }
     }
 
     private static void applyRecovery(PokemonEntity actor, double centerX, double centerZ) {
