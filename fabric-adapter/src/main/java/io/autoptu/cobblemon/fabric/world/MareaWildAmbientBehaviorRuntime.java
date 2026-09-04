@@ -25,6 +25,9 @@ import java.util.UUID;
  */
 public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final long CALM_WANDER_SEGMENT_TICKS = 80L;
+    private static final double CALM_WANDER_SPEED = 0.025D;
+    private static final double CALM_WANDER_STOP_DISTANCE = 1.0D;
     private static final double FLEE_SPEED = 0.08D;
     private static final double RECOVERY_SPEED = 0.04D;
     private static final double RECOVERY_STOP_DISTANCE = 1.5D;
@@ -32,6 +35,8 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             new AmbientPokemonBehaviorController.Profile(14.0D, 7.0D, 3, 5);
     private static final Map<MinecraftServer, Map<UUID, AmbientPokemonBehaviorController>> CONTROLLERS =
             new IdentityHashMap<>();
+
+    private MareaWildAmbientBehaviorRuntime() {}
 
     @Override
     public void onInitialize() {
@@ -72,7 +77,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                         nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(actor.squaredDistanceTo(nearest)),
                         nearest != null
                 );
-                applyPresentation(actor, nearest, state, encounter, population, projectedSiteId.get());
+                applyPresentation(actor, nearest, state, encounter, population, projectedSiteId.get(), world.getTime());
             }
         }
 
@@ -99,7 +104,8 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             AmbientPokemonBehaviorController.State state,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
-            String projectedSiteId
+            String projectedSiteId,
+            long worldTime
     ) {
         BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
         double centerX = anchor.getX() + 0.5D;
@@ -119,6 +125,12 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             applyRecovery(actor, centerX, centerZ);
             return;
         }
+
+        if (state == AmbientPokemonBehaviorController.State.CALM) {
+            applyCalmRoaming(actor, centerX, centerZ, population.habitatLeashRadiusBlocks(), worldTime);
+            return;
+        }
+
         if (nearest == null) return;
 
         double dx = nearest.getX() - actor.getX();
@@ -146,6 +158,54 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
 
             setAmbientHorizontalVelocity(actor, fleeX, fleeZ, FLEE_SPEED);
         }
+    }
+
+    private static void applyCalmRoaming(
+            PokemonEntity actor,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            long worldTime
+    ) {
+        double[] target = calmRoamingTarget(actor.getUuid(), worldTime, centerX, centerZ, leashRadiusBlocks);
+        double dx = target[0] - actor.getX();
+        double dz = target[1] - actor.getZ();
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        if (distance <= CALM_WANDER_STOP_DISTANCE) return;
+
+        double requestedX = (dx / distance) * CALM_WANDER_SPEED;
+        double requestedZ = (dz / distance) * CALM_WANDER_SPEED;
+        if (!insideLeashAfterImpulse(actor, centerX, centerZ, leashRadiusBlocks, requestedX, requestedZ)) {
+            return;
+        }
+        actor.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
+        setAmbientHorizontalVelocity(actor, requestedX, requestedZ, CALM_WANDER_SPEED);
+    }
+
+    static double[] calmRoamingTarget(
+            UUID actorId,
+            long worldTime,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks
+    ) {
+        if (actorId == null
+                || !Double.isFinite(centerX) || !Double.isFinite(centerZ)
+                || leashRadiusBlocks <= 0) {
+            throw new IllegalArgumentException("calm roaming target requires actor, finite center and positive leash radius");
+        }
+        long segment = Math.floorDiv(worldTime, CALM_WANDER_SEGMENT_TICKS);
+        long mixed = actorId.getMostSignificantBits()
+                ^ Long.rotateLeft(actorId.getLeastSignificantBits(), 17)
+                ^ (segment * 0x9E3779B97F4A7C15L);
+        double angleUnit = ((mixed >>> 11) & 0x1FFFFFL) / (double) 0x1FFFFF;
+        double radiusUnit = ((Long.rotateLeft(mixed, 29) >>> 11) & 0x1FFFFFL) / (double) 0x1FFFFF;
+        double angle = angleUnit * Math.PI * 2.0D;
+        double radius = Math.max(1.0D, leashRadiusBlocks * (0.25D + radiusUnit * 0.55D));
+        return new double[] {
+                centerX + Math.cos(angle) * radius,
+                centerZ + Math.sin(angle) * radius
+        };
     }
 
     private static void applyRecovery(PokemonEntity actor, double centerX, double centerZ) {
