@@ -66,9 +66,19 @@ final class MareaWildCalmNavigationContinuityRuntimeTest {
 
     @Test
     void activeRouteCollisionRevalidationRejectsNewWallAhead() {
-        // A flat height profile is insufficient once a remaining actor-sized node becomes occupied.
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(false, false));
         assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(
                 1, false, true, false, true));
+    }
+
+    @Test
+    void activeRouteCollisionRevalidationRejectsAnotherActiveWildActorAhead() {
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(true, true));
+    }
+
+    @Test
+    void activeRouteCollisionRevalidationAcceptsClearPresentationVolume() {
+        assertTrue(MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(true, false));
     }
 
     @Test
