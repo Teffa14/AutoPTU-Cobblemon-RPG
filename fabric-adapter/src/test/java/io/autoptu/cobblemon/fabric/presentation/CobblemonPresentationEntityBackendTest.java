@@ -30,7 +30,13 @@ class CobblemonPresentationEntityBackendTest {
         assertTrue(methodNames.contains("authoritativeHpNameplate"));
         assertTrue(methodNames.contains("showCue"));
         assertTrue(methodNames.contains("statusSkipText"));
-        assertEquals(7, methodNames.stream().distinct().count());
+        assertTrue(methodNames.contains("renderMelee"));
+        assertTrue(methodNames.contains("renderProjectile"));
+        assertTrue(methodNames.contains("renderBeam"));
+        assertTrue(methodNames.contains("renderWave"));
+        assertTrue(methodNames.contains("renderBurst"));
+        assertTrue(methodNames.contains("renderArc"));
+        assertTrue(methodNames.contains("renderAura"));
     }
 
     @Test
