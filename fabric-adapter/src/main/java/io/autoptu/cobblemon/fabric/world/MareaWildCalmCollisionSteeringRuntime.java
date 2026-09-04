@@ -115,10 +115,10 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
      *
      * The actor's current Y remains the first attempt for flat terrain. If Minecraft reports a
      * different motion-blocking surface at the exact target column, a second attempt uses that
-     * surface height. The target column must also have locally continuous cardinal surface support;
-     * isolated pillars and abrupt ledge targets fall back to the existing deterministic steering
-     * instead of becoming ambient destinations. This only supplies Minecraft presentation geometry;
-     * X/Z destination and leash authority remain unchanged.
+     * surface height. The target column and every accepted path node must remain on locally stable
+     * Minecraft surface. Consecutive path-node surfaces may climb or descend by at most one block,
+     * so ordinary slopes remain usable while abrupt ledges are rejected. This only supplies
+     * Minecraft presentation geometry; X/Z destination and leash authority remain unchanged.
      */
     static Path findLeashSafeNativePath(
             PokemonEntity actor,
@@ -146,6 +146,7 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             Path path = navigation.findPathTo(target[0], targetY, target[1], 0);
             if (path == null || !path.reachesTarget()) continue;
             if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) continue;
+            if (!navigationPathSurfaceContinuous(world, path)) continue;
             return path;
         }
         return null;
@@ -171,6 +172,33 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             if (Math.abs((long) adjacentY - surfaceY) > MAX_CALM_NEIGHBOR_SURFACE_DELTA) return false;
         }
         return true;
+    }
+
+    static boolean stableCalmSurfaceProfile(int... surfaceY) {
+        if (surfaceY == null || surfaceY.length == 0) {
+            throw new IllegalArgumentException("CALM surface profile requires at least one height");
+        }
+        for (int index = 1; index < surfaceY.length; index++) {
+            if (Math.abs((long) surfaceY[index] - surfaceY[index - 1]) > MAX_CALM_NEIGHBOR_SURFACE_DELTA) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean navigationPathSurfaceContinuous(ServerWorld world, Path path) {
+        if (world == null || path == null || path.getLength() == 0) return false;
+        int[] surfaceProfile = new int[path.getLength()];
+        for (int index = 0; index < path.getLength(); index++) {
+            BlockPos node = path.getNode(index).getBlockPos();
+            int surfaceY = world.getTopY(
+                    Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                    node.getX(),
+                    node.getZ());
+            if (!stableCalmTargetSurface(world, node.getX(), node.getZ(), surfaceY)) return false;
+            surfaceProfile[index] = surfaceY;
+        }
+        return stableCalmSurfaceProfile(surfaceProfile);
     }
 
     static int[] navigationTargetYCandidates(int actorY, int surfaceY) {
