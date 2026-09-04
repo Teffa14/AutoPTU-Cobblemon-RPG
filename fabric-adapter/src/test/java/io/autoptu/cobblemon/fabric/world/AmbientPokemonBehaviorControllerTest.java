@@ -3,7 +3,9 @@ package io.autoptu.cobblemon.fabric.world;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class AmbientPokemonBehaviorControllerTest {
     private static final AmbientPokemonBehaviorController.Profile PROFILE =
@@ -66,6 +68,18 @@ final class AmbientPokemonBehaviorControllerTest {
                 () -> MareaWildAmbientBehaviorRuntime.boundedHorizontalVelocity(Double.NaN, 0.0D, 0.08D));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildAmbientBehaviorRuntime.boundedHorizontalVelocity(0.01D, 0.01D, 0.0D));
+    }
+
+    @Test
+    void authoredHabitatLeashDetectsNativeRoamingEscape() {
+        assertTrue(MareaWildAmbientBehaviorRuntime.insideHorizontalLeash(10.0D, 10.0D, 10.0D, 10.0D, 8));
+        assertTrue(MareaWildAmbientBehaviorRuntime.insideHorizontalLeash(18.0D, 10.0D, 10.0D, 10.0D, 8));
+        assertFalse(MareaWildAmbientBehaviorRuntime.insideHorizontalLeash(18.01D, 10.0D, 10.0D, 10.0D, 8));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.insideHorizontalLeash(Double.NaN, 0.0D, 0.0D, 0.0D, 8));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.insideHorizontalLeash(0.0D, 0.0D, 0.0D, 0.0D, 0));
     }
 
     @Test
