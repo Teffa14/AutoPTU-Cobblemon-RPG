@@ -63,6 +63,32 @@ final class AmbientPokemonBehaviorControllerTest {
     }
 
     @Test
+    void calmPopulationSeparationPushesOnlyNearbyCanonicalSiblingsApart() {
+        UUID actor = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
+        UUID sibling = UUID.fromString("0ddcb831-f81c-44e8-a906-d677be11d465");
+
+        double[] nearby = MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 6.0D, 5.0D, 2.5D, 0.018D);
+        assertTrue(nearby[0] < 0.0D);
+        assertEquals(0.0D, nearby[1], 0.0000001D);
+        assertTrue(Math.sqrt(nearby[0] * nearby[0] + nearby[1] * nearby[1]) <= 0.018D);
+
+        double[] distant = MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 8.0D, 5.0D, 2.5D, 0.018D);
+        assertArrayEquals(new double[] {0.0D, 0.0D}, distant, 0.0D);
+
+        double[] overlap = MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 5.0D, 5.0D, 2.5D, 0.018D);
+        assertEquals(0.018D, Math.sqrt(overlap[0] * overlap[0] + overlap[1] * overlap[1]), 0.0000001D);
+        assertArrayEquals(overlap, MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 5.0D, 5.0D, 2.5D, 0.018D), 0.0D);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                        null, 0.0D, 0.0D, sibling, 0.0D, 0.0D, 2.5D, 0.018D));
+    }
+
+    @Test
     void recoveryImpulsePointsBackToAuthoredHabitatAnchor() {
         double[] impulse = MareaWildAmbientBehaviorRuntime.recoveryImpulse(10.0D, 10.0D, 13.0D, 14.0D, 0.05D);
 
