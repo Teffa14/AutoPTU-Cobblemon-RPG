@@ -16,7 +16,8 @@
       "io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueEntrypoint",
       "io.autoptu.cobblemon.fabric.world.MareaWildAmbientBehaviorRuntime",
       "io.autoptu.cobblemon.fabric.world.MareaWildCalmCollisionSteeringRuntime",
-      "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationRecoveryRuntime"
+      "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationRecoveryRuntime",
+      "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationContinuityRuntime"
     ],
     "client": [
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
