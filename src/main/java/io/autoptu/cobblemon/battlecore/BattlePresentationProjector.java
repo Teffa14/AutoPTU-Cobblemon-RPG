@@ -53,7 +53,8 @@ public final class BattlePresentationProjector {
                         "targetId", required(parts[3], "targetId"),
                         "moveId", required(parts[4], "moveId"),
                         "hit", Boolean.toString(hit),
-                        "crit", Boolean.toString(crit)
+                        "crit", Boolean.toString(crit),
+                        "damage", Integer.toString(damage)
                 )
         );
         BattlePresentationCommand hp = command(
