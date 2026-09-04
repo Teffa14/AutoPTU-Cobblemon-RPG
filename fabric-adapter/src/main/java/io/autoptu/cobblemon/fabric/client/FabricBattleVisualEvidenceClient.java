@@ -18,22 +18,25 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
+    private static final int[] OFFSETS = {2, 6, 10, 14, 18, 22, 26, 30, 34};
     private static int ticksBeforeConnect;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean shapeSceneStarted;
     private static boolean cameraPlaced;
-    private static boolean rangedPlayed;
-    private static boolean aoePlayed;
-    private static boolean blastPlayed;
-    private static boolean linePlayed;
+    private static int phase;
+    private static int phaseStart = -1;
+    private static int captureIndex;
     private static boolean done;
 
     @Override public void onInitializeClient() {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            shapeSceneStarted = cameraPlaced = rangedPlayed = aoePlayed = blastPlayed = linePlayed = done = false;
+            shapeSceneStarted = cameraPlaced = done = false;
+            phase = 0;
+            phaseStart = -1;
+            captureIndex = 0;
             LOGGER.info("AutoPTU battle visual evidence client joined; PTU shape capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -59,52 +62,51 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
         if (cameraPlaced) sanitizeCaptureHud(client);
+        if (!cameraPlaced || ticksSinceJoin < 80) return;
 
-        if (!rangedPlayed && ticksSinceJoin >= 80) {
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz ranged");
-            rangedPlayed = true;
+        if (phaseStart < 0) {
+            startPhase(client);
             return;
         }
-        if (rangedPlayed && ticksSinceJoin >= 83 && ticksSinceJoin <= 91) {
-            capture(client, String.format("autoptu-ranged-%02d.png", ticksSinceJoin - 82));
-            if (ticksSinceJoin == 91) LOGGER.info("AutoPTU shape evidence captured ranged frames");
+
+        int elapsed = ticksSinceJoin - phaseStart;
+        if (captureIndex < OFFSETS.length && elapsed >= OFFSETS[captureIndex]) {
+            String name = phaseName();
+            captureIndex++;
+            capture(client, String.format("autoptu-%s-%02d.png", name, captureIndex));
+            LOGGER.info("AutoPTU shape evidence captured {} frame {} at +{} ticks", name, captureIndex, elapsed);
             return;
         }
-        if (!aoePlayed && ticksSinceJoin >= 110) {
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz reset");
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz aoe");
-            aoePlayed = true;
-            return;
-        }
-        if (aoePlayed && ticksSinceJoin >= 113 && ticksSinceJoin <= 121) {
-            capture(client, String.format("autoptu-aoe-%02d.png", ticksSinceJoin - 112));
-            if (ticksSinceJoin == 121) LOGGER.info("AutoPTU shape evidence captured AoE frames");
-            return;
-        }
-        if (!blastPlayed && ticksSinceJoin >= 140) {
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz reset");
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz blast");
-            blastPlayed = true;
-            return;
-        }
-        if (blastPlayed && ticksSinceJoin >= 143 && ticksSinceJoin <= 151) {
-            capture(client, String.format("autoptu-blast-%02d.png", ticksSinceJoin - 142));
-            if (ticksSinceJoin == 151) LOGGER.info("AutoPTU shape evidence captured Blast frames");
-            return;
-        }
-        if (!linePlayed && ticksSinceJoin >= 170) {
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz reset");
-            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz line");
-            linePlayed = true;
-            return;
-        }
-        if (linePlayed && ticksSinceJoin >= 173 && ticksSinceJoin <= 181) {
-            capture(client, String.format("autoptu-line-%02d.png", ticksSinceJoin - 172));
-            if (ticksSinceJoin == 181) {
-                LOGGER.info("AutoPTU shape evidence captured Line frames");
+
+        if (captureIndex >= OFFSETS.length && elapsed >= 40) {
+            LOGGER.info("AutoPTU shape evidence completed {} window", phaseName());
+            phase++;
+            if (phase >= 4) {
                 done = true;
+                return;
             }
+            client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz reset");
+            phaseStart = -1;
+            captureIndex = 0;
         }
+    }
+
+    private static void startPhase(MinecraftClient client) {
+        String name = phaseName();
+        client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz " + name);
+        phaseStart = ticksSinceJoin;
+        captureIndex = 0;
+        LOGGER.info("AutoPTU shape evidence started {} window at client tick {}", name, ticksSinceJoin);
+    }
+
+    private static String phaseName() {
+        return switch (phase) {
+            case 0 -> "ranged";
+            case 1 -> "aoe";
+            case 2 -> "blast";
+            case 3 -> "line";
+            default -> throw new IllegalStateException("invalid shape evidence phase " + phase);
+        };
     }
 
     private static void sanitizeCaptureHud(MinecraftClient client) {
