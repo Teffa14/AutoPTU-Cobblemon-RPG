@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -8,6 +9,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -23,6 +25,7 @@ import java.util.UUID;
  */
 public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final double FLEE_SPEED = 0.08D;
     private static final AmbientPokemonBehaviorController.Profile MAREA_ROAMING_PROFILE =
             new AmbientPokemonBehaviorController.Profile(14.0D, 7.0D, 3, 5);
     private static final Map<MinecraftServer, Map<UUID, AmbientPokemonBehaviorController>> CONTROLLERS =
@@ -49,6 +52,9 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
+            var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+            if (projectedSiteId.isEmpty()) continue;
+
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
@@ -64,7 +70,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                         nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(actor.squaredDistanceTo(nearest)),
                         nearest != null
                 );
-                applyPresentation(actor, nearest, state);
+                applyPresentation(actor, nearest, state, encounter, population, projectedSiteId.get());
             }
         }
 
@@ -88,7 +94,10 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static void applyPresentation(
             PokemonEntity actor,
             ServerPlayerEntity nearest,
-            AmbientPokemonBehaviorController.State state
+            AmbientPokemonBehaviorController.State state,
+            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
+            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            String projectedSiteId
     ) {
         if (nearest == null) return;
         double dx = nearest.getX() - actor.getX();
@@ -103,12 +112,39 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         if (state == AmbientPokemonBehaviorController.State.ALARMED) {
             actor.setYaw(towardPlayerYaw + 180.0F);
             double length = Math.sqrt(dx * dx + dz * dz);
-            if (length > 0.001D) {
-                double fleeSpeed = 0.08D;
-                actor.addVelocity((-dx / length) * fleeSpeed, 0.0D, (-dz / length) * fleeSpeed);
-                actor.velocityModified = true;
+            if (length <= 0.001D) return;
+
+            double fleeX = (-dx / length) * FLEE_SPEED;
+            double fleeZ = (-dz / length) * FLEE_SPEED;
+            BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
+            double centerX = anchor.getX() + 0.5D;
+            double centerZ = anchor.getZ() + 0.5D;
+            if (!insideLeashAfterImpulse(actor, centerX, centerZ, population.habitatLeashRadiusBlocks(), fleeX, fleeZ)) {
+                double centerDx = centerX - actor.getX();
+                double centerDz = centerZ - actor.getZ();
+                double centerLength = Math.sqrt(centerDx * centerDx + centerDz * centerDz);
+                if (centerLength <= 0.001D) return;
+                fleeX = (centerDx / centerLength) * FLEE_SPEED;
+                fleeZ = (centerDz / centerLength) * FLEE_SPEED;
             }
+
+            actor.addVelocity(fleeX, 0.0D, fleeZ);
+            actor.velocityModified = true;
         }
+    }
+
+    static boolean insideLeashAfterImpulse(
+            PokemonEntity actor,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            double velocityX,
+            double velocityZ
+    ) {
+        if (actor == null) return false;
+        double nextDx = actor.getX() + velocityX - centerX;
+        double nextDz = actor.getZ() + velocityZ - centerZ;
+        return nextDx * nextDx + nextDz * nextDz <= (double) leashRadiusBlocks * leashRadiusBlocks;
     }
 
     static int controllerCount(MinecraftServer server) {
