@@ -32,6 +32,16 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void nativeNavigationTargetMustRemainInsideAuthoredLeash() {
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 16.0D, 20.5D));
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 10.5D, 28.5D));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 18.6D, 20.5D));
+    }
+
+    @Test
     void invalidSteeringInputsFailClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(null));
@@ -39,5 +49,8 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
                 () -> MareaWildCalmCollisionSteeringRuntime.rotate(Double.NaN, 0.0D, 45.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.rotate(0.01D, 0.0D, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                        0.0D, 0.0D, 0, 1.0D, 1.0D));
     }
 }
