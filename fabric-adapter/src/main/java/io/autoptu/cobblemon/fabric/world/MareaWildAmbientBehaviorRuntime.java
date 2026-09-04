@@ -26,6 +26,7 @@ import java.util.UUID;
 public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final long CALM_WANDER_SEGMENT_TICKS = 80L;
+    private static final long CALM_WANDER_ACTIVE_TICKS = 60L;
     private static final double CALM_WANDER_SPEED = 0.025D;
     private static final double CALM_WANDER_STOP_DISTANCE = 1.0D;
     private static final double CALM_SEPARATION_DISTANCE = 2.5D;
@@ -205,7 +206,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         double distance = Math.sqrt(dx * dx + dz * dz);
         double requestedX = 0.0D;
         double requestedZ = 0.0D;
-        if (distance > CALM_WANDER_STOP_DISTANCE) {
+        if (calmWanderActive(worldTime) && distance > CALM_WANDER_STOP_DISTANCE) {
             requestedX = (dx / distance) * CALM_WANDER_SPEED;
             requestedZ = (dz / distance) * CALM_WANDER_SPEED;
         }
@@ -241,6 +242,10 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         if (!insideLeashAfterImpulse(actor, centerX, centerZ, leashRadiusBlocks, bounded[0], bounded[1])) return;
         actor.setYaw((float) Math.toDegrees(Math.atan2(-bounded[0], bounded[1])));
         setAmbientHorizontalVelocity(actor, bounded[0], bounded[1], CALM_WANDER_SPEED);
+    }
+
+    static boolean calmWanderActive(long worldTime) {
+        return Math.floorMod(worldTime, CALM_WANDER_SEGMENT_TICKS) < CALM_WANDER_ACTIVE_TICKS;
     }
 
     static double[] calmRoamingTarget(
