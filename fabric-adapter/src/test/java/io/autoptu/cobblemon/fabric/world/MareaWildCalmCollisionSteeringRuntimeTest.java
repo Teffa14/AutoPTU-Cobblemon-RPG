@@ -62,6 +62,19 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void calmNativeNavigationRequiresLocallyContinuousMinecraftSurface() {
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceNeighborhood(
+                64, 64, 65, 63, 64));
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceNeighborhood(
+                64, 63, 63, 65, 65));
+
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceNeighborhood(
+                64, 64, 64, 61, 64));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceNeighborhood(
+                64, 68, 64, 64, 64));
+    }
+
+    @Test
     void nativeNavigationPathMustRemainInsideAuthoredLeashAcrossTerrainHeightChanges() {
         Path safe = new Path(
                 List.of(new PathNode(10, 64, 20), new PathNode(14, 65, 20), new PathNode(16, 67, 20)),
@@ -94,5 +107,7 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
                         0.0D, 0.0D, 0, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmCollisionSteeringRuntime.stableCalmSurfaceNeighborhood(64, 64, 64, 64));
     }
 }
