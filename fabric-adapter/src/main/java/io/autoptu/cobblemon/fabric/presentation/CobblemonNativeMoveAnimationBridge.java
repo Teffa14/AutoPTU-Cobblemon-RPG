@@ -97,7 +97,7 @@ final class CobblemonNativeMoveAnimationBridge {
         // adapter never reads the temporary Cobblemon transform back into battle state.
         effect.run(context);
         if (route.substituted()) {
-            CobblemonSubstituteAnimationAccent.render(attacker, target, moveId, route.variant());
+            CobblemonSubstituteAnimationAccent.render(attacker, target, moveId, hit, route.variant());
         }
         return true;
     }
