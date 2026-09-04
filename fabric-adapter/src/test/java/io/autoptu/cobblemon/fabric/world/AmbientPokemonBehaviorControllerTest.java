@@ -63,6 +63,16 @@ final class AmbientPokemonBehaviorControllerTest {
     }
 
     @Test
+    void calmRoamingCadenceIncludesDeterministicRestWindow() {
+        assertTrue(MareaWildAmbientBehaviorRuntime.calmWanderActive(0L));
+        assertTrue(MareaWildAmbientBehaviorRuntime.calmWanderActive(59L));
+        assertFalse(MareaWildAmbientBehaviorRuntime.calmWanderActive(60L));
+        assertFalse(MareaWildAmbientBehaviorRuntime.calmWanderActive(79L));
+        assertTrue(MareaWildAmbientBehaviorRuntime.calmWanderActive(80L));
+        assertFalse(MareaWildAmbientBehaviorRuntime.calmWanderActive(-1L));
+    }
+
+    @Test
     void calmPopulationSeparationPushesOnlyNearbyCanonicalSiblingsApart() {
         UUID actor = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
         UUID sibling = UUID.fromString("0ddcb831-f81c-44e8-a906-d677be11d465");
