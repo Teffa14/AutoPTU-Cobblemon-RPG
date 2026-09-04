@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.client;
 
+import io.autoptu.cobblemon.fabric.network.FabricBattleCameraMode;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -16,13 +17,20 @@ import org.slf4j.LoggerFactory;
 public final class FabricBattleVisualEvidenceClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-battle-visual-evidence");
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
+    private static final String CAMERA_MODE_EVIDENCE_PROPERTY = "autoptu.crafticsCameraModeEvidence";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
+    private static final int MODE_STABLE_TICKS_BEFORE_CAPTURE = 3;
     private static int ticksBeforeConnect;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean battleRequested;
-    private static boolean cameraPlaced;
+    private static boolean cameraReady;
+    private static boolean trainerExternalCaptured;
+    private static boolean tacticalAerialCaptured;
+    private static boolean actionCinematicCaptured;
+    private static FabricBattleCameraMode observedMode;
+    private static int observedModeStableTicks;
     private static boolean readyCaptured;
     private static boolean firstCaptured;
     private static boolean counterCaptured;
@@ -31,7 +39,11 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            battleRequested = cameraPlaced = readyCaptured = firstCaptured = counterCaptured = false;
+            battleRequested = cameraReady = false;
+            trainerExternalCaptured = tacticalAerialCaptured = actionCinematicCaptured = false;
+            observedMode = null;
+            observedModeStableTicks = 0;
+            readyCaptured = firstCaptured = counterCaptured = false;
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -51,21 +63,23 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
 
-        if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Send both required slash commands while chat is still enabled. Minecraft suppresses
-            // sendChatCommand when ChatVisibility.HIDDEN is already active.
-            client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
-            cameraPlaced = true;
-            LOGGER.info("AutoPTU battle visual evidence camera placed");
+        if (battleRequested && !cameraReady && ticksSinceJoin >= 66) {
+            // The detached camera no longer requires moving the trainer to fake a viewing position.
+            // Keep the trainer at the exact position used by the server-authored external frame.
+            cameraReady = true;
+            LOGGER.info("AutoPTU battle visual evidence detached camera staging ready");
             return;
         }
 
-        // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
-        if (cameraPlaced) sanitizeCaptureHud(client);
+        if (cameraReady) sanitizeCaptureHud(client);
+
+        if (cameraReady && Boolean.getBoolean(CAMERA_MODE_EVIDENCE_PROPERTY) && captureStableCameraMode(client)) {
+            return;
+        }
 
         // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
         // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
-        if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
+        if (cameraReady && !readyCaptured && ticksSinceJoin >= 70) {
             capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
         }
@@ -77,6 +91,43 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             capture(client, "autoptu-battle-counter-strike.png"); counterCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
         }
+    }
+
+    private static boolean captureStableCameraMode(MinecraftClient client) {
+        FabricDetachedBattleCameraState.Snapshot snapshot = FabricDetachedBattleCameraState.snapshot();
+        if (snapshot == null) {
+            observedMode = null;
+            observedModeStableTicks = 0;
+            return false;
+        }
+
+        if (snapshot.mode() != observedMode) {
+            observedMode = snapshot.mode();
+            observedModeStableTicks = 1;
+            return false;
+        }
+        observedModeStableTicks++;
+        if (observedModeStableTicks < MODE_STABLE_TICKS_BEFORE_CAPTURE) return false;
+
+        if (snapshot.mode() == FabricBattleCameraMode.TRAINER_EXTERNAL && !trainerExternalCaptured) {
+            capture(client, "autoptu-camera-trainer-external.png");
+            trainerExternalCaptured = true;
+            LOGGER.info("AutoPTU camera evidence captured trainer-external mode after stable render window");
+            return true;
+        }
+        if (snapshot.mode() == FabricBattleCameraMode.TACTICAL_AERIAL && trainerExternalCaptured && !tacticalAerialCaptured) {
+            capture(client, "autoptu-camera-tactical-aerial.png");
+            tacticalAerialCaptured = true;
+            LOGGER.info("AutoPTU camera evidence captured tactical-aerial mode after stable render window");
+            return true;
+        }
+        if (snapshot.mode() == FabricBattleCameraMode.ACTION_CINEMATIC && tacticalAerialCaptured && !actionCinematicCaptured) {
+            capture(client, "autoptu-camera-action-cinematic.png");
+            actionCinematicCaptured = true;
+            LOGGER.info("AutoPTU camera evidence captured action-cinematic mode after stable render window");
+            return true;
+        }
+        return false;
     }
 
     private static void sanitizeCaptureHud(MinecraftClient client) {

@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.battle;
 
 import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
 import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
+import io.autoptu.cobblemon.fabric.network.FabricBattleCameraNetworking;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -20,12 +21,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * One-shot Minecraft camera framing for a server-bound AutoPTU battle.
+ * Minecraft camera framing for a server-bound AutoPTU battle.
  *
  * <p>This runtime does not infer combatants, legal tiles, range, movement, turn ownership or any
- * other PTU fact. It points the authenticated participant at the server-owned arena anchor already
- * persisted in the canonical encounter profile. The camera is presentation only and never changes
- * battle state.</p>
+ * other PTU fact. It frames only the canonical server-owned arena anchor already persisted in the
+ * encounter profile. Exact frozen arena dimensions are not present in this contract, so the normal
+ * path deliberately sends a one-anchor presentation frame rather than inventing a PTU grid size.
  */
 public final class FabricBattleCameraRuntime {
     private static final Set<UUID> AUTO_FRAMED = ConcurrentHashMap.newKeySet();
@@ -49,13 +50,11 @@ public final class FabricBattleCameraRuntime {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             UUID playerUuid = player.getUuid();
             if (!FabricBattleChoiceRuntime.hasBinding(playerUuid)) {
-                AUTO_FRAMED.remove(playerUuid);
+                if (AUTO_FRAMED.remove(playerUuid)) FabricBattleCameraNetworking.clear(player);
                 continue;
             }
             if (AUTO_FRAMED.contains(playerUuid)) continue;
-            if (frame(player)) {
-                AUTO_FRAMED.add(playerUuid);
-            }
+            if (frame(player)) AUTO_FRAMED.add(playerUuid);
         }
     }
 
@@ -93,8 +92,20 @@ public final class FabricBattleCameraRuntime {
         String playerDimension = player.getServerWorld().getRegistryKey().getValue().toString();
         if (!arena.dimensionId().equals(playerDimension)) return false;
 
+        String battleId = FabricBattleChoiceRuntime.spectateId(player.getUuid());
+        if (battleId == null || battleId.isBlank()) return false;
+
         CameraFocus focus = focusPoint(arena);
         player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(focus.x(), focus.y(), focus.z()));
+        FabricBattleCameraNetworking.sendTacticalAerial(
+                player,
+                battleId,
+                arena.originX(),
+                arena.originY(),
+                arena.originZ(),
+                1,
+                1
+        );
         return true;
     }
 
