@@ -24,13 +24,14 @@ import java.util.Objects;
  * AutoPTU remains the only battle authority. This class does not create or consult a Cobblemon
  * battle, BattleState, BattlePokemon, move legality, RNG, damage, HP, status or result. It only
  * takes an already-authoritative AutoPTU move result and supplies that result as presentation
- * context to Cobblemon's existing model animation/particle/sound timeline for the same move id.
+ * context to a loaded Cobblemon model animation/particle/sound timeline. Exact move assets are
+ * preferred; missing assets may reuse a deterministic native substitute selected only for visuals.
  */
 final class CobblemonNativeMoveAnimationBridge {
     private CobblemonNativeMoveAnimationBridge() {
     }
 
-    static boolean tryRender(
+    static RenderResult tryRender(
             PokemonEntity attacker,
             PokemonEntity target,
             String moveId,
@@ -44,12 +45,24 @@ final class CobblemonNativeMoveAnimationBridge {
             throw new IllegalArgumentException("authoritative miss cannot contain damage");
         }
 
-        String effectPath = effectPath(moveId);
+        CobblemonMoveAnimationRouting.Route route = CobblemonMoveAnimationRouting.resolve(moveId);
+        if (!route.nativeEffect()) {
+            return new RenderResult(false, route);
+        }
+
+        String effectPath = route.effectPath();
         ActionEffectTimeline effect = ActionEffects.INSTANCE.getActionEffects().get(
                 Identifier.of("cobblemon", effectPath)
         );
         if (effect == null) {
-            return false;
+            // Resource reloads can theoretically race route selection. Fail back to the project
+            // renderer rather than treating a presentation asset as required battle state.
+            return new RenderResult(false, new CobblemonMoveAnimationRouting.Route(
+                    CobblemonMoveAnimationRouting.Source.GENERIC_FALLBACK,
+                    route.requestedMoveId(),
+                    "",
+                    route.variant()
+            ));
         }
 
         MoLangRuntime runtime = new MoLangRuntime();
@@ -88,10 +101,19 @@ final class CobblemonNativeMoveAnimationBridge {
         // animation never becomes PTU position truth: AutoPTU coordinates remain canonical and the
         // adapter never reads the temporary Cobblemon transform back into battle state.
         effect.run(context);
-        return true;
+        return new RenderResult(true, route);
     }
 
     static String effectPath(String moveId) {
         return BattleMoveAnimationProfile.normalize(moveId);
+    }
+
+    record RenderResult(boolean rendered, CobblemonMoveAnimationRouting.Route route) {
+        RenderResult {
+            Objects.requireNonNull(route, "route");
+            if (rendered && !route.nativeEffect()) {
+                throw new IllegalArgumentException("rendered native result requires a native route");
+            }
+        }
     }
 }
