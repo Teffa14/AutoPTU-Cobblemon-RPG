@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,6 +32,8 @@ final class MareaWildCalmNavigationContinuityRuntimeTest {
     void deterministicDestinationSegmentChangeRevokesOldRoute() {
         long oldSegment = MareaWildCalmNavigationContinuityRuntime.calmSegment(79L);
         long newSegment = MareaWildCalmNavigationContinuityRuntime.calmSegment(80L);
+        assertEquals(0L, oldSegment);
+        assertEquals(1L, newSegment);
         assertFalse(MareaWildCalmNavigationContinuityRuntime.shouldRehydrate(
                 oldSegment, newSegment, true, false));
     }
