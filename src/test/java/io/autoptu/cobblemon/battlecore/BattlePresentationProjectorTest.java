@@ -26,6 +26,7 @@ class BattlePresentationProjectorTest {
         assertEquals(BattlePresentationCommand.Kind.MOVE_ANIMATION, commands.get(0).kind());
         assertEquals("alpha", commands.get(0).subjectId());
         assertEquals("tackle", commands.get(0).data().get("moveId"));
+        assertEquals("17", commands.get(0).data().get("damage"));
         assertEquals(BattlePresentationCommand.Kind.HP_PROJECTION, commands.get(1).kind());
         assertEquals("beta", commands.get(1).subjectId());
         assertEquals("17", commands.get(1).data().get("damage"));
