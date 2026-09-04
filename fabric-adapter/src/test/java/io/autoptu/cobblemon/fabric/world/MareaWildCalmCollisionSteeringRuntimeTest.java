@@ -1,7 +1,11 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import net.minecraft.entity.ai.pathing.Path;
+import net.minecraft.entity.ai.pathing.PathNode;
+import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +36,37 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void nativeNavigationTargetMustRemainInsideAuthoredLeash() {
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 16.0D, 20.5D));
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 10.5D, 28.5D));
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 2.5D, 20.5D));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 18.6D, 20.5D));
+    }
+
+    @Test
+    void nativeNavigationPathMustRemainInsideAuthoredLeash() {
+        Path safe = new Path(
+                List.of(new PathNode(10, 64, 20), new PathNode(14, 64, 20), new PathNode(16, 64, 20)),
+                new BlockPos(16, 64, 20),
+                true);
+        Path escapes = new Path(
+                List.of(new PathNode(10, 64, 20), new PathNode(19, 64, 20), new PathNode(16, 64, 20)),
+                new BlockPos(16, 64, 20),
+                true);
+
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
+                10.5D, 20.5D, 8, safe));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
+                10.5D, 20.5D, 8, escapes));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
+                10.5D, 20.5D, 8, null));
+    }
+
+    @Test
     void invalidSteeringInputsFailClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(null));
@@ -39,5 +74,11 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
                 () -> MareaWildCalmCollisionSteeringRuntime.rotate(Double.NaN, 0.0D, 45.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmCollisionSteeringRuntime.rotate(0.01D, 0.0D, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                        0.0D, 0.0D, 0, 1.0D, 1.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
+                        0.0D, 0.0D, 0, null));
     }
 }

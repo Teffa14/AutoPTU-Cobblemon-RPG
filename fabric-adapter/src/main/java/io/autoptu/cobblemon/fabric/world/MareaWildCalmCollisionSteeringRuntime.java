@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -12,16 +13,17 @@ import java.util.UUID;
 /**
  * Minecraft-native collision steering for already-authoritative Marea ambient presentation.
  *
- * This runtime only adjusts low-speed CALM presentation velocity after the ambient controller has
- * selected it. It reads Minecraft collision geometry, server-owned canonical population bindings
- * and the authored habitat leash. It never supplies PTU movement legality, targets, RNG, combat
- * state or outcomes, and it never reads Cobblemon Pokemon gameplay payload/state.
+ * This runtime only adjusts low-speed CALM presentation movement after the ambient controller has
+ * selected it. It reads Minecraft collision/navigation geometry, server-owned canonical population
+ * bindings and the authored habitat leash. It never supplies PTU movement legality, targets, RNG,
+ * combat state or outcomes, and it never reads Cobblemon Pokemon gameplay payload/state.
  */
 public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final double MAX_CALM_SPEED = 0.025001D;
     private static final double MIN_HORIZONTAL_SPEED = 0.000001D;
     private static final double COLLISION_PROBE_DISTANCE = 0.75D;
+    private static final double NATIVE_NAVIGATION_SPEED = 0.08D;
     private static final double[] TURN_ANGLES_DEGREES = {45.0D, 90.0D, 135.0D};
 
     @Override
@@ -59,6 +61,20 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
 
                 if (isCollisionFree(world, actor, velocity.x, velocity.z)) continue;
 
+                double[] target = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(
+                        actor.getUuid(),
+                        world.getTime(),
+                        centerX,
+                        centerZ,
+                        population.habitatLeashRadiusBlocks());
+                if (startNativeNavigation(actor, centerX, centerZ, population.habitatLeashRadiusBlocks(), target)) {
+                    // The native navigator now owns presentation locomotion toward the same authored CALM target.
+                    // Remove the blocked horizontal impulse so it cannot keep pushing into the obstacle meanwhile.
+                    actor.setVelocity(0.0D, velocity.y, 0.0D);
+                    actor.velocityModified = true;
+                    continue;
+                }
+
                 double[] safe = firstCollisionFreeVelocity(
                         world,
                         actor,
@@ -74,6 +90,64 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
                 }
             }
         }
+    }
+
+    private static boolean startNativeNavigation(
+            PokemonEntity actor,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            double[] target
+    ) {
+        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, actor.getX(), actor.getZ())) return false;
+        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, target[0], target[1])) return false;
+
+        var navigation = actor.getNavigation();
+        Path path = navigation.findPathTo(target[0], actor.getY(), target[1], 0);
+        if (path == null || !path.reachesTarget()) return false;
+        if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) return false;
+        return navigation.startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
+    }
+
+    static boolean navigationTargetInsideLeash(
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            double targetX,
+            double targetZ
+    ) {
+        if (!Double.isFinite(centerX) || !Double.isFinite(centerZ)
+                || !Double.isFinite(targetX) || !Double.isFinite(targetZ)
+                || leashRadiusBlocks <= 0) {
+            throw new IllegalArgumentException("native navigation target requires finite coordinates and positive leash");
+        }
+        double dx = targetX - centerX;
+        double dz = targetZ - centerZ;
+        return dx * dx + dz * dz <= (double) leashRadiusBlocks * leashRadiusBlocks;
+    }
+
+    static boolean navigationPathInsideLeash(
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            Path path
+    ) {
+        if (!Double.isFinite(centerX) || !Double.isFinite(centerZ) || leashRadiusBlocks <= 0) {
+            throw new IllegalArgumentException("native navigation path requires finite center and positive leash");
+        }
+        if (path == null || path.getLength() == 0) return false;
+        for (int index = 0; index < path.getLength(); index++) {
+            BlockPos node = path.getNode(index).getBlockPos();
+            if (!navigationTargetInsideLeash(
+                    centerX,
+                    centerZ,
+                    leashRadiusBlocks,
+                    node.getX() + 0.5D,
+                    node.getZ() + 0.5D)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static double[] firstCollisionFreeVelocity(
