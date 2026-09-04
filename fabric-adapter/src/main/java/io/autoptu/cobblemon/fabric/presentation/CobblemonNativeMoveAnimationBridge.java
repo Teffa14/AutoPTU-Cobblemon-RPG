@@ -55,16 +55,16 @@ final class CobblemonNativeMoveAnimationBridge {
         MoLangRuntime runtime = new MoLangRuntime();
         MoLangFunctions.INSTANCE.setup(runtime);
 
-        runtime.getEnvironment().getQuery().addFunction("user", params -> attacker.getStruct());
-        runtime.getEnvironment().getQuery().addFunction("target", params -> target.getStruct());
-        runtime.getEnvironment().getQuery().addFunction("targets", params -> target.getStruct());
-        runtime.getEnvironment().getQuery().addFunction("missed", params -> new DoubleValue(hit ? 0.0D : 1.0D));
-        runtime.getEnvironment().getQuery().addFunction("hurt", params -> new DoubleValue(damage > 0 ? 1.0D : 0.0D));
-        runtime.getEnvironment().getQuery().addFunction(
+        runtime.getEnvironment().query.addFunction("user", params -> attacker.getStruct());
+        runtime.getEnvironment().query.addFunction("target", params -> target.getStruct());
+        runtime.getEnvironment().query.addFunction("targets", params -> target.getStruct());
+        runtime.getEnvironment().query.addFunction("missed", params -> new DoubleValue(hit ? 0.0D : 1.0D));
+        runtime.getEnvironment().query.addFunction("hurt", params -> new DoubleValue(damage > 0 ? 1.0D : 0.0D));
+        runtime.getEnvironment().query.addFunction(
                 "move",
                 params -> Moves.getByNameOrDummy(effectPath).getStruct()
         );
-        runtime.getEnvironment().getQuery().addFunction(
+        runtime.getEnvironment().query.addFunction(
                 "instruction_id",
                 params -> new StringValue("cobblemon:move")
         );
