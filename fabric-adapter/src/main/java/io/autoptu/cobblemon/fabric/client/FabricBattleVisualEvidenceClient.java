@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
@@ -18,7 +19,8 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
-    private static int ticksBeforeConnect;
+    private static final int RESOURCE_READY_STABILITY_TICKS = 20;
+    private static int resourceReadyTicks;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean battleRequested;
@@ -94,14 +96,25 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     }
 
     private static void requestConnection(MinecraftClient client) {
-        if (connectRequested || client.currentScreen == null || client.world != null) return;
-        if (++ticksBeforeConnect < 40) return;
+        if (connectRequested || client.world != null) return;
+
+        // A non-null screen is not a resource-readiness signal: Minecraft installs the title screen
+        // underneath SplashOverlay while Cobblemon is still building atlases/models. Connecting in
+        // that window lets server registry sync call BerryModelRepository before the berry atlas is
+        // initialized. Require the real title screen with no loading overlay for a stable tick window
+        // before opening the QA-only connection.
+        if (!(client.currentScreen instanceof TitleScreen) || client.getOverlay() != null) {
+            resourceReadyTicks = 0;
+            return;
+        }
+        if (++resourceReadyTicks < RESOURCE_READY_STABILITY_TICKS) return;
+
         String target = System.getProperty(SERVER_PROPERTY, DEFAULT_SERVER).trim();
         if (!ServerAddress.isValid(target)) { connectRequested = true; LOGGER.error("Invalid evidence server {}", target); return; }
         ServerInfo info = new ServerInfo("AutoPTU Battle Visual Evidence", target, ServerInfo.ServerType.OTHER);
         info.setResourcePackPolicy(ServerInfo.ResourcePackPolicy.DISABLED);
         connectRequested = true;
-        LOGGER.info("AutoPTU battle visual evidence connecting to authoritative server {}", target);
+        LOGGER.info("AutoPTU battle visual evidence resources stable; connecting to authoritative server {}", target);
         ConnectScreen.connect(client.currentScreen, client, ServerAddress.parse(target), info, false, null);
     }
 }
