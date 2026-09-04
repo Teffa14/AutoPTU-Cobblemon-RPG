@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,14 +49,27 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
-    void nativeNavigationPathMustRemainInsideAuthoredLeash() {
+    void nativeNavigationRetriesExactTargetColumnAtMinecraftSurfaceHeight() {
+        assertArrayEquals(
+                new int[] {64, 67},
+                MareaWildCalmCollisionSteeringRuntime.navigationTargetYCandidates(64, 67));
+        assertArrayEquals(
+                new int[] {64, 61},
+                MareaWildCalmCollisionSteeringRuntime.navigationTargetYCandidates(64, 61));
+        assertArrayEquals(
+                new int[] {64},
+                MareaWildCalmCollisionSteeringRuntime.navigationTargetYCandidates(64, 64));
+    }
+
+    @Test
+    void nativeNavigationPathMustRemainInsideAuthoredLeashAcrossTerrainHeightChanges() {
         Path safe = new Path(
-                List.of(new PathNode(10, 64, 20), new PathNode(14, 64, 20), new PathNode(16, 64, 20)),
-                new BlockPos(16, 64, 20),
+                List.of(new PathNode(10, 64, 20), new PathNode(14, 65, 20), new PathNode(16, 67, 20)),
+                new BlockPos(16, 67, 20),
                 true);
         Path escapes = new Path(
-                List.of(new PathNode(10, 64, 20), new PathNode(19, 64, 20), new PathNode(16, 64, 20)),
-                new BlockPos(16, 64, 20),
+                List.of(new PathNode(10, 64, 20), new PathNode(19, 66, 20), new PathNode(16, 67, 20)),
+                new BlockPos(16, 67, 20),
                 true);
 
         assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
