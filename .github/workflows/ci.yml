@@ -5,10 +5,6 @@ on:
     branches: [main]
   pull_request:
 
-permissions:
-  contents: write
-  pull-requests: read
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -235,28 +231,3 @@ jobs:
             build/reports/tests/test/**
             fabric-adapter/build/test-results/test/**
             fabric-adapter/build/reports/tests/test/**
-      - name: Sync canonical WORLD-013 plan on the in-repo feature branch
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'world-013-roaming-ambient-behavior'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin world-013-roaming-ambient-behavior
-          git checkout -B world-013-roaming-ambient-behavior origin/world-013-roaming-ambient-behavior
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
-          text = p.read_text()
-          if 'PR #483 / production head `73e56e7f1b5e5dc22dfc8f6615140159684708b6`' in text:
-              raise SystemExit(0)
-          needle = " PR #480 / production head `ae4c3f3c2a46bd846f438480501dea4ee5c49906` adds deterministic server-clock migration projection for the lower-shelf cohort: the same two canonical Fletchling encounter identities remain at Sendero del Vidrio before departure, are not projected during authored transit, and reappear at Sendero Seasonal Crossing while habitat cues resolve against that same projected site; the WILD blueprint and encounter bindings remain unchanged. All four populations reuse only the same already-approved complete PTU profile; multi-species ecology stays blocked until another complete authoritative WILD blueprint exists. Movement-only invisible encounters remain prohibited."
-          replacement = " PR #480 / production head `ae4c3f3c2a46bd846f438480501dea4ee5c49906` adds deterministic server-clock migration projection for the lower-shelf cohort: the same two canonical Fletchling encounter identities remain at Sendero del Vidrio before departure, are not projected during authored transit, and reappear at Sendero Seasonal Crossing while habitat cues resolve against that same projected site; the WILD blueprint and encounter bindings remain unchanged. PR #481 / merge `e18d348232ba3fb7eb3fb496e0ac8e4b7039977d` recovers the same persisted roaming actor UUID across migration/restart using the authored home anchor and habitat leash, with activation/retention hysteresis. PR #482 / merge `91f7ea770d7abef77acdccfbeb5d7964045a62de` folds migration into the primary visible-wild reconciler so one server authority controls home, transit, stopover and restart projection. PR #483 / production head `73e56e7f1b5e5dc22dfc8f6615140159684708b6` adds server-observed ambient watch/flee reactions for active canonical Marea actors and constrains alarm movement to the current authored migration habitat leash. All four populations reuse only the same already-approved complete PTU profile; multi-species ecology stays blocked until another complete authoritative WILD blueprint exists. Movement-only invisible encounters remain prohibited."
-          if needle not in text:
-              raise SystemExit('WORLD-013 plan anchor not found; refusing unsafe rewrite')
-          p.write_text(text.replace(needle, replacement, 1))
-          PY
-          if git diff --quiet -- MINECRAFT_RPG_TOOLING_PLAN.md; then exit 0; fi
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add MINECRAFT_RPG_TOOLING_PLAN.md
-          git commit -m 'WORLD-013: sync canonical tooling plan'
-          git push origin HEAD:world-013-roaming-ambient-behavior
