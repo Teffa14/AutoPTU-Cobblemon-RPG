@@ -68,7 +68,7 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
                 double centerX = anchor.getX() + 0.5D;
                 double centerZ = anchor.getZ() + 0.5D;
 
-                if (isCollisionFree(world, actor, velocity.x, velocity.z)) continue;
+                if (isPresentationProbeClear(world, actor, velocity.x, velocity.z)) continue;
 
                 double[] target = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(
                         actor.getUuid(),
@@ -317,14 +317,33 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
                 leashRadiusBlocks,
                 velocity[0],
                 velocity[1])
-                && isCollisionFree(world, actor, velocity[0], velocity[1]);
+                && isPresentationProbeClear(world, actor, velocity[0], velocity[1]);
     }
 
-    private static boolean isCollisionFree(ServerWorld world, PokemonEntity actor, double velocityX, double velocityZ) {
+    private static boolean isPresentationProbeClear(
+            ServerWorld world,
+            PokemonEntity actor,
+            double velocityX,
+            double velocityZ
+    ) {
         double speed = Math.sqrt(velocityX * velocityX + velocityZ * velocityZ);
         if (speed <= MIN_HORIZONTAL_SPEED) return true;
         double scale = COLLISION_PROBE_DISTANCE / speed;
-        return world.isSpaceEmpty(actor, actor.getBoundingBox().offset(velocityX * scale, 0.0D, velocityZ * scale));
+        var projectedBox = actor.getBoundingBox().offset(velocityX * scale, 0.0D, velocityZ * scale);
+        boolean blockSpaceClear = world.isSpaceEmpty(actor, projectedBox);
+        boolean activeWildOverlap = !world.getOtherEntities(
+                actor,
+                projectedBox,
+                candidate -> candidate instanceof PokemonEntity
+                        && VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.getUuid()))
+                .isEmpty();
+        return steeringProbePresentationClear(blockSpaceClear, activeWildOverlap);
+    }
+
+    static boolean steeringProbePresentationClear(boolean blockSpaceClear, boolean activeWildOverlap) {
+        return MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(
+                blockSpaceClear,
+                activeWildOverlap);
     }
 
     static boolean clockwiseFirst(UUID actorId) {
