@@ -109,11 +109,13 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
                     continue;
                 }
 
-                Path path = navigation.findPathTo(target[0], actor.getY(), target[1], 0);
-                if (path == null || !path.reachesTarget()
-                        || !MareaWildCalmCollisionSteeringRuntime.navigationPathInsideLeash(
-                                centerX, centerZ, population.habitatLeashRadiusBlocks(), path)
-                        || !navigation.startMovingAlong(path, NATIVE_NAVIGATION_SPEED)) {
+                Path path = MareaWildCalmCollisionSteeringRuntime.findLeashSafeNativePath(
+                        actor,
+                        centerX,
+                        centerZ,
+                        population.habitatLeashRadiusBlocks(),
+                        target);
+                if (path == null || !navigation.startMovingAlong(path, NATIVE_NAVIGATION_SPEED)) {
                     active.remove(actor.getUuid());
                 }
             }
