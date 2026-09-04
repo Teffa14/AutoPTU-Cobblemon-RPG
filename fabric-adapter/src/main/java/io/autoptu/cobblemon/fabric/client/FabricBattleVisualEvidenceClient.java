@@ -4,7 +4,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
@@ -54,19 +53,14 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         }
 
         if (battleRequested && !cameraPlaced && ticksSinceJoin >= 66) {
-            // Send both required slash commands while chat is still enabled. Minecraft suppresses
-            // sendChatCommand when ChatVisibility.HIDDEN is already active.
             client.getNetworkHandler().sendChatCommand("tp @s ~4 ~2 ~-6 0 10");
             cameraPlaced = true;
             LOGGER.info("AutoPTU battle visual evidence camera placed");
             return;
         }
 
-        // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
         if (cameraPlaced) sanitizeCaptureHud(client);
 
-        // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
-        // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
         if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
             capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
             LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
@@ -98,12 +92,11 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static void requestConnection(MinecraftClient client) {
         if (connectRequested || client.world != null) return;
 
-        // A non-null screen is not a resource-readiness signal: Minecraft installs the title screen
-        // underneath SplashOverlay while Cobblemon is still building atlases/models. Connecting in
-        // that window lets server registry sync call BerryModelRepository before the berry atlas is
-        // initialized. Require the real title screen with no loading overlay for a stable tick window
-        // before opening the QA-only connection.
-        if (!(client.currentScreen instanceof TitleScreen) || client.getOverlay() != null) {
+        // The loading overlay is the resource-readiness boundary. Once it has remained absent while
+        // Minecraft has a usable screen for a stable tick window, Cobblemon's model/atlas setup has
+        // completed far enough for registry sync. Do not require one particular menu implementation:
+        // modded clients may replace the vanilla TitleScreen after resource initialization.
+        if (client.currentScreen == null || client.getOverlay() != null) {
             resourceReadyTicks = 0;
             return;
         }
