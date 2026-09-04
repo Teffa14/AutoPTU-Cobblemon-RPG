@@ -18,6 +18,7 @@ public final class CanonicalLocationCatalogue {
             new Location("ouros.marea.clinic", "Puerto Bruma Clinic", "minecraft:overworld", 10.0D),
             new Location("ouros.marea.sendero_vidrio", "Sendero del Vidrio", "minecraft:overworld", 22.0D),
             new Location("ouros.marea.sendero_crossing", "Sendero Seasonal Crossing", "minecraft:overworld", 12.0D),
+            new Location("ouros.marea.loma_windbreak", "Loma Clara Windbreak", "minecraft:overworld", 14.0D),
             new Location("ouros.marea.loma_clara", "Loma Clara", "minecraft:overworld", 44.0D),
             new Location("ouros.marea.loma_storehouse", "Loma Clara Cooperative Storehouse", "minecraft:overworld", 10.0D),
             new Location("ouros.marea.loma_communal_kitchen", "Loma Clara Communal Kitchen", "minecraft:overworld", 10.0D),
