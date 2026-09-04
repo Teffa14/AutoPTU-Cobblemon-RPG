@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import io.autoptu.cobblemon.battlecore.BattlePresentationCommand;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
@@ -46,6 +47,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * owns accuracy rolls, damage, action consumption and authoritative HP mutation. Fabric/Cobblemon
  * only select a server-owned demo scenario and project its semantic move result into visible entities.
  * Statuses, abilities, items, terrain, Trainer Features, forced movement and rewards are disabled.
+ *
+ * The Charizard scenario is additionally used by graphical QA to exercise Cobblemon's native
+ * Flamethrower/Hydro Pump ActionEffect timelines. The move IDs are presentation labels for this
+ * bounded demo; this harness does not claim full PTU Flamethrower/Hydro Pump mechanical parity.
  */
 public final class PlayableBattleTestRuntime {
     private static final int DEMO_HP = 30;
@@ -68,7 +73,9 @@ public final class PlayableBattleTestRuntime {
                                 .then(CommandManager.literal("charmander")
                                         .executes(context -> start(context.getSource(), "charmander")))
                                 .then(CommandManager.literal("squirtle")
-                                        .executes(context -> start(context.getSource(), "squirtle"))))));
+                                        .executes(context -> start(context.getSource(), "squirtle")))
+                                .then(CommandManager.literal("charizard")
+                                        .executes(context -> start(context.getSource(), "charizard"))))));
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (Session session : List.copyOf(ACTIVE.values())) {
@@ -79,7 +86,7 @@ public final class PlayableBattleTestRuntime {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             handler.player.sendMessage(Text.literal("AutoPTU playable battle test is installed."), false);
             handler.player.sendMessage(Text.literal(
-                    "Choose a Pokemon: /autoptu testbattle bulbasaur, charmander, or squirtle"), false);
+                    "Choose a Pokemon: /autoptu testbattle bulbasaur, charmander, squirtle, or charizard"), false);
         });
     }
 
@@ -94,8 +101,10 @@ public final class PlayableBattleTestRuntime {
             return 0;
         }
 
+        boolean nativeAnimationShowcase = "charizard".equals(starterId);
+        String opponentId = nativeAnimationShowcase ? "blastoise" : "pikachu";
         Species starter = PokemonSpecies.INSTANCE.getByName(starterId);
-        Species opponent = PokemonSpecies.INSTANCE.getByName("pikachu");
+        Species opponent = PokemonSpecies.INSTANCE.getByName(opponentId);
         if (starter == null || opponent == null) {
             source.sendError(Text.literal("Cobblemon species data is not ready."));
             return 0;
@@ -119,12 +128,13 @@ public final class PlayableBattleTestRuntime {
         Session session = new Session(
                 player,
                 displayName(starterId),
-                "Pikachu",
+                displayName(opponentId),
                 playerPokemon,
                 enemyPokemon,
                 playerOrigin,
                 enemyOrigin,
-                protectionScopeId
+                protectionScopeId,
+                nativeAnimationShowcase
         );
         ACTIVE.put(player.getUuid(), session);
         session.announceStart();
@@ -160,9 +170,9 @@ public final class PlayableBattleTestRuntime {
         );
     }
 
-    private static MoveOption demoMove() {
+    private static MoveOption demoMove(String moveId) {
         return MoveOption.standard(
-                "demo-strike",
+                moveId,
                 new MoveSpec("Ranged", "Ranged", 3, 3, null, null, "Ranged")
         );
     }
@@ -201,6 +211,7 @@ public final class PlayableBattleTestRuntime {
         private final BlockPos playerOrigin;
         private final BlockPos enemyOrigin;
         private final String protectionScopeId;
+        private final boolean nativeAnimationShowcase;
         private final RuntimeCombatantState playerState;
         private final RuntimeCombatantState enemyState;
         private final BattleRuntimeState runtime;
@@ -221,7 +232,8 @@ public final class PlayableBattleTestRuntime {
                 PokemonEntity enemyEntity,
                 BlockPos playerOrigin,
                 BlockPos enemyOrigin,
-                String protectionScopeId
+                String protectionScopeId,
+                boolean nativeAnimationShowcase
         ) {
             this.player = player;
             this.playerPokemonName = playerPokemonName;
@@ -231,6 +243,7 @@ public final class PlayableBattleTestRuntime {
             this.playerOrigin = playerOrigin;
             this.enemyOrigin = enemyOrigin;
             this.protectionScopeId = protectionScopeId;
+            this.nativeAnimationShowcase = nativeAnimationShowcase;
             this.playerState = combatant("player-demo", new GridCoord(1, 1));
             this.enemyState = combatant("wild-demo", new GridCoord(2, 1));
             this.runtime = new BattleRuntimeState(
@@ -243,7 +256,12 @@ public final class PlayableBattleTestRuntime {
 
         private void announceStart() {
             player.sendMessage(Text.literal("AutoPTU TEST: " + playerPokemonName + " vs " + enemyPokemonName), false);
-            player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
+            if (nativeAnimationShowcase) {
+                player.sendMessage(Text.literal(
+                        "Native animation QA: Flamethrower then Hydro Pump; AutoPTU-Java still owns the demo hit/damage result."), false);
+            } else {
+                player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
+            }
         }
 
         private void tick() {
@@ -280,11 +298,14 @@ public final class PlayableBattleTestRuntime {
             BlockPos attackerOrigin = playerTurn ? playerOrigin : enemyOrigin;
             String attackerName = playerTurn ? playerPokemonName : enemyPokemonName;
             String targetName = playerTurn ? enemyPokemonName : playerPokemonName;
+            String moveId = nativeAnimationShowcase
+                    ? (playerTurn ? "flamethrower" : "hydropump")
+                    : "demo-strike";
 
             attacker.actionBudget().resetConsumedActions();
             MoveChoice choice = new MoveChoice(
                     attacker.combatantId(),
-                    "demo-strike",
+                    moveId,
                     ChoiceTargetMode.COMBATANT,
                     target.combatantId(),
                     target.position(),
@@ -294,7 +315,7 @@ public final class PlayableBattleTestRuntime {
             AppliedActionResult applied = BattleRuntime.applyAuthoritativeMove(
                     runtime,
                     choice,
-                    demoMove(),
+                    demoMove(moveId),
                     "Medium",
                     "Medium",
                     Set.of(),
@@ -307,19 +328,38 @@ public final class PlayableBattleTestRuntime {
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("AutoPTU-Java emitted no MoveResolvedEvent"));
 
-            PRESENTATION.animateMove(attackerEntity, targetEntity, event.moveId());
+            PRESENTATION.animateMove(
+                    attackerEntity,
+                    targetEntity,
+                    new BattlePresentationCommand(
+                            0,
+                            0,
+                            BattlePresentationCommand.Kind.MOVE_ANIMATION,
+                            attacker.combatantId(),
+                            Map.of(
+                                    "targetId", target.combatantId(),
+                                    "moveId", event.moveId(),
+                                    "hit", Boolean.toString(event.hit()),
+                                    "crit", Boolean.toString(event.crit()),
+                                    "damage", Integer.toString(event.damage())
+                            )
+                    )
+            );
             lungingEntity = attackerEntity;
             lungeReturn = attackerOrigin;
             lungeRemaining = LUNGE_TICKS;
 
+            String moveDisplay = nativeAnimationShowcase
+                    ? (playerTurn ? "Flamethrower" : "Hydro Pump")
+                    : "the demo strike";
             if (event.hit()) {
                 PRESENTATION.projectDisplayedHealth(targetEntity, event.targetHp(), event.damage());
                 player.sendMessage(Text.literal(
-                        attackerName + " attacks " + targetName + " for " + event.damage()
+                        attackerName + " uses " + moveDisplay + " on " + targetName + " for " + event.damage()
                                 + " damage. HP: " + event.targetHp() + "/" + DEMO_HP
                                 + (event.crit() ? " CRITICAL" : "")), false);
             } else {
-                player.sendMessage(Text.literal(attackerName + " attacks, but misses."), false);
+                player.sendMessage(Text.literal(attackerName + " uses " + moveDisplay + ", but misses."), false);
             }
             updateNameplates();
 

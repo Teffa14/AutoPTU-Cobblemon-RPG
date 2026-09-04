@@ -26,7 +26,20 @@ jobs:
           sudo apt-get install -y xvfb imagemagick
           python3 -m pip install --disable-pip-version-check 'minecraft-launcher-lib==8.0'
       - name: Prepare production Fabric + Cobblemon mods
-        run: gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
+        shell: bash
+        run: |
+          # Graphical QA needs enough space for each data-driven ActionEffect timeline to finish
+          # before the counterattack starts. This changes only the DEV_ONLY demo cadence in this
+          # workflow checkout; normal battle timing remains untouched.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/demo/PlayableBattleTestRuntime.java')
+          s = p.read_text(encoding='utf-8')
+          old = 'private static final int TURN_DELAY_TICKS = 30;'
+          assert old in s
+          p.write_text(s.replace(old, 'private static final int TURN_DELAY_TICKS = 80;', 1), encoding='utf-8')
+          PY
+          gradle :fabric-adapter:prepareProductionSmokeMods --no-daemon
       - name: Prepare battle evidence server and client
         shell: bash
         run: |
@@ -51,7 +64,7 @@ jobs:
           [{"uuid":"43d6469a-bef9-3d6f-bbb3-3ad8e4494453","name":"AutoPTUVisual","level":4,"bypassesPlayerLimit":true}]
           EOF
           curl -fsSL -o graphical-server/fabric-server-launch.jar 'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
-      - name: Launch authoritative battle and capture frames
+      - name: Launch Charizard vs Blastoise and capture native move frames
         shell: bash
         run: |
           set -euo pipefail
@@ -80,24 +93,31 @@ jobs:
           raise SystemExit(subprocess.call(cmd,cwd=root))
           PY
           client_pid=$!
-          ready='graphical-client/screenshots/autoptu-battle-ready.png'; first='graphical-client/screenshots/autoptu-battle-first-strike.png'; counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
+          ready='graphical-client/screenshots/autoptu-charizard-blastoise-ready.png'
+          flame='graphical-client/screenshots/autoptu-charizard-blastoise-flamethrower-08.png'
+          hydro='graphical-client/screenshots/autoptu-charizard-blastoise-hydropump-08.png'
           capture_ready=0
           for _ in $(seq 1 280); do
-            if [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] && grep -q 'AutoPTU TEST: Charmander vs Pikachu' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured ready window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-first-move window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-counter-move window' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
+            if [ -s "$ready" ] && [ -s "$flame" ] && [ -s "$hydro" ] \
+              && grep -q 'AutoPTU TEST: Charizard vs Blastoise' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'captured Flamethrower frame 8' graphical-client/logs/latest.log 2>/dev/null \
+              && grep -q 'captured Hydro Pump frame 8' graphical-client/logs/latest.log 2>/dev/null; then
+              capture_ready=1
+              break
+            fi
             kill -0 "$client_pid" 2>/dev/null || { cat graphical-client.log; exit 1; }
             sleep 1
           done
           [ "$capture_ready" -eq 1 ] || { cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; }
-          cp "$ready" "$first" "$counter" test-evidence/battle/
+          cp graphical-client/screenshots/autoptu-charizard-blastoise-*.png test-evidence/battle/
           for frame in test-evidence/battle/*.png; do
             colors="$(identify -format '%k' "$frame")"; geometry="$(identify -format '%wx%h' "$frame")"
             echo "Captured $(basename "$frame") ${geometry} ${colors} colors"
             [ "$colors" -ge 64 ] || exit 1
           done
-          grep 'AutoPTU TEST: Charmander vs Pikachu' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured ready window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-first-move window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-counter-move window' graphical-client/logs/latest.log
+          grep 'AutoPTU TEST: Charizard vs Blastoise' graphical-client/logs/latest.log
+          grep 'AutoPTU battle visual evidence captured Flamethrower frame 8' graphical-client/logs/latest.log
+          grep 'AutoPTU battle visual evidence captured Hydro Pump frame 8' graphical-client/logs/latest.log
       - name: Collect graphical diagnostics
         if: always()
         shell: bash
