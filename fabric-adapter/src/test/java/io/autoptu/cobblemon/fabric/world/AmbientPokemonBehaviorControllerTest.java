@@ -53,6 +53,22 @@ final class AmbientPokemonBehaviorControllerTest {
     }
 
     @Test
+    void ambientVelocityIsCappedInsteadOfAccumulatingAcrossTicks() {
+        double[] bounded = MareaWildAmbientBehaviorRuntime.boundedHorizontalVelocity(0.12D, 0.16D, 0.08D);
+        assertEquals(0.048D, bounded[0], 0.0000001D);
+        assertEquals(0.064D, bounded[1], 0.0000001D);
+
+        double[] alreadyBounded = MareaWildAmbientBehaviorRuntime.boundedHorizontalVelocity(0.03D, 0.04D, 0.08D);
+        assertEquals(0.03D, alreadyBounded[0], 0.0000001D);
+        assertEquals(0.04D, alreadyBounded[1], 0.0000001D);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.boundedHorizontalVelocity(Double.NaN, 0.0D, 0.08D));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.boundedHorizontalVelocity(0.01D, 0.01D, 0.0D));
+    }
+
+    @Test
     void rejectsInvalidAuthoredProfilesAndInvalidObservedDistance() {
         assertThrows(IllegalArgumentException.class,
                 () -> new AmbientPokemonBehaviorController.Profile(0.0D, 1.0D, 1, 1));
