@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -98,8 +99,14 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             int leashRadiusBlocks,
             double[] target
     ) {
+        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, actor.getX(), actor.getZ())) return false;
         if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, target[0], target[1])) return false;
-        return actor.getNavigation().startMovingTo(target[0], actor.getY(), target[1], NATIVE_NAVIGATION_SPEED);
+
+        var navigation = actor.getNavigation();
+        Path path = navigation.findPathTo(target[0], actor.getY(), target[1], 0);
+        if (path == null || !path.reachesTarget()) return false;
+        if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) return false;
+        return navigation.startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
     }
 
     static boolean navigationTargetInsideLeash(
@@ -117,6 +124,30 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
         double dx = targetX - centerX;
         double dz = targetZ - centerZ;
         return dx * dx + dz * dz <= (double) leashRadiusBlocks * leashRadiusBlocks;
+    }
+
+    static boolean navigationPathInsideLeash(
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            Path path
+    ) {
+        if (!Double.isFinite(centerX) || !Double.isFinite(centerZ) || leashRadiusBlocks <= 0) {
+            throw new IllegalArgumentException("native navigation path requires finite center and positive leash");
+        }
+        if (path == null || path.getLength() == 0) return false;
+        for (int index = 0; index < path.getLength(); index++) {
+            BlockPos node = path.getNode(index).getBlockPos();
+            if (!navigationTargetInsideLeash(
+                    centerX,
+                    centerZ,
+                    leashRadiusBlocks,
+                    node.getX() + 0.5D,
+                    node.getZ() + 0.5D)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static double[] firstCollisionFreeVelocity(
