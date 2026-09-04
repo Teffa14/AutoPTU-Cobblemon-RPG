@@ -15,6 +15,7 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint",
       "io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueEntrypoint",
       "io.autoptu.cobblemon.fabric.world.MareaWildAmbientBehaviorRuntime",
+      "io.autoptu.cobblemon.fabric.world.MareaWildCalmReciprocalYieldRuntime",
       "io.autoptu.cobblemon.fabric.world.MareaWildCalmCollisionSteeringRuntime",
       "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationRecoveryRuntime",
       "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationContinuityRuntime"
