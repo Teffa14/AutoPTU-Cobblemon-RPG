@@ -33,6 +33,26 @@ final class AmbientPokemonBehaviorControllerTest {
     }
 
     @Test
+    void recoveryImpulsePointsBackToAuthoredHabitatAnchor() {
+        double[] impulse = MareaWildAmbientBehaviorRuntime.recoveryImpulse(10.0D, 10.0D, 13.0D, 14.0D, 0.05D);
+
+        assertEquals(0.03D, impulse[0], 0.0000001D);
+        assertEquals(0.04D, impulse[1], 0.0000001D);
+    }
+
+    @Test
+    void recoveryImpulseIsZeroAtAnchorAndRejectsInvalidInputs() {
+        double[] atAnchor = MareaWildAmbientBehaviorRuntime.recoveryImpulse(5.0D, 7.0D, 5.0D, 7.0D, 0.04D);
+        assertEquals(0.0D, atAnchor[0], 0.0D);
+        assertEquals(0.0D, atAnchor[1], 0.0D);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.recoveryImpulse(0.0D, 0.0D, 1.0D, 1.0D, 0.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.recoveryImpulse(Double.NaN, 0.0D, 1.0D, 1.0D, 0.04D));
+    }
+
+    @Test
     void rejectsInvalidAuthoredProfilesAndInvalidObservedDistance() {
         assertThrows(IllegalArgumentException.class,
                 () -> new AmbientPokemonBehaviorController.Profile(0.0D, 1.0D, 1, 1));
