@@ -43,4 +43,31 @@ final class MareaWildCalmNavigationContinuityRuntimeTest {
         assertFalse(MareaWildCalmNavigationContinuityRuntime.shouldRehydrate(
                 null, 3L, true, false));
     }
+
+    @Test
+    void activeRouteRevalidationIgnoresTerrainAlreadyTraversed() {
+        assertTrue(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(
+                2, 64, 70, 65, 66, 65));
+    }
+
+    @Test
+    void lastRemainingNodeDoesNotRevalidateTraversedTerrain() {
+        assertTrue(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(
+                2, 64, 99, 65));
+    }
+
+    @Test
+    void activeRouteRevalidationRejectsNewAbruptTerrainAhead() {
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(
+                1, 64, 65, 68, 67));
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(
+                0, 64, 61));
+    }
+
+    @Test
+    void activeRouteRevalidationFailsClosedForInvalidCursor() {
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(-1, 64));
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(1, 64));
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(0));
+    }
 }
