@@ -89,6 +89,30 @@ final class AmbientPokemonBehaviorControllerTest {
     }
 
     @Test
+    void calmPopulationCohesionPullsOnlyDispersedCanonicalSiblingsTogether() {
+        UUID actor = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
+        UUID sibling = UUID.fromString("0ddcb831-f81c-44e8-a906-d677be11d465");
+
+        double[] dispersed = MareaWildAmbientBehaviorRuntime.calmCohesionImpulse(
+                actor, 2.0D, 4.0D, sibling, 10.0D, 4.0D, 6.0D, 0.012D);
+        assertTrue(dispersed[0] > 0.0D);
+        assertEquals(0.0D, dispersed[1], 0.0000001D);
+        assertTrue(Math.sqrt(dispersed[0] * dispersed[0] + dispersed[1] * dispersed[1]) <= 0.012D);
+
+        double[] withinFlock = MareaWildAmbientBehaviorRuntime.calmCohesionImpulse(
+                actor, 2.0D, 4.0D, sibling, 7.5D, 4.0D, 6.0D, 0.012D);
+        assertArrayEquals(new double[] {0.0D, 0.0D}, withinFlock, 0.0D);
+
+        double[] sameActor = MareaWildAmbientBehaviorRuntime.calmCohesionImpulse(
+                actor, 2.0D, 4.0D, actor, 10.0D, 4.0D, 6.0D, 0.012D);
+        assertArrayEquals(new double[] {0.0D, 0.0D}, sameActor, 0.0D);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.calmCohesionImpulse(
+                        actor, 0.0D, 0.0D, sibling, Double.NaN, 0.0D, 6.0D, 0.012D));
+    }
+
+    @Test
     void recoveryImpulsePointsBackToAuthoredHabitatAnchor() {
         double[] impulse = MareaWildAmbientBehaviorRuntime.recoveryImpulse(10.0D, 10.0D, 13.0D, 14.0D, 0.05D);
 
