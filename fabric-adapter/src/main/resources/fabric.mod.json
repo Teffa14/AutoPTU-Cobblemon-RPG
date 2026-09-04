@@ -9,6 +9,7 @@
     "main": [
       "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter",
       "io.autoptu.cobblemon.fabric.admin.FabricBattleEvidenceAdminRuntime",
+      "io.autoptu.cobblemon.fabric.demo.BattleAnimationLabEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricNurseryEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricLeagueRegistrationEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint",
