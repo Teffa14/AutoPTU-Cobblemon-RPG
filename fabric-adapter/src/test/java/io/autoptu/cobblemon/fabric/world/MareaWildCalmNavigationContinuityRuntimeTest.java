@@ -51,6 +51,12 @@ final class MareaWildCalmNavigationContinuityRuntimeTest {
     }
 
     @Test
+    void lastRemainingNodeDoesNotRevalidateTraversedTerrain() {
+        assertTrue(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(
+                2, 64, 99, 65));
+    }
+
+    @Test
     void activeRouteRevalidationRejectsNewAbruptTerrainAhead() {
         assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(
                 1, 64, 65, 68, 67));
