@@ -86,7 +86,7 @@ jobs:
               && [ -s graphical-client/screenshots/autoptu-aoe-09.png ] \
               && [ -s graphical-client/screenshots/autoptu-blast-09.png ] \
               && [ -s graphical-client/screenshots/autoptu-line-09.png ] \
-              && grep -q 'captured Line frames' graphical-client/logs/latest.log 2>/dev/null; then
+              && grep -q 'completed line window' graphical-client/logs/latest.log 2>/dev/null; then
               capture_ready=1
               break
             fi
@@ -103,10 +103,10 @@ jobs:
             echo "Captured $(basename "$frame") ${geometry} ${colors} colors"
             [ "$colors" -ge 64 ] || exit 1
           done
-          grep 'AutoPTU shape evidence captured ranged frames' graphical-client/logs/latest.log
-          grep 'AutoPTU shape evidence captured AoE frames' graphical-client/logs/latest.log
-          grep 'AutoPTU shape evidence captured Blast frames' graphical-client/logs/latest.log
-          grep 'AutoPTU shape evidence captured Line frames' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed ranged window' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed aoe window' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed blast window' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed line window' graphical-client/logs/latest.log
       - name: Collect graphical diagnostics
         if: always()
         shell: bash
