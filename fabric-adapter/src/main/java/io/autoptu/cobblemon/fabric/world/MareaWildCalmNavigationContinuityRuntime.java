@@ -100,6 +100,7 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
                     Path currentPath = navigation.getCurrentPath();
                     if (!remainingPathStillSafe(
                             world,
+                            actor,
                             currentPath,
                             centerX,
                             centerZ,
@@ -161,21 +162,25 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
 
     /**
      * Revalidates only the unconsumed part of an active Minecraft route. Terrain edited behind the
-     * actor does not cancel useful navigation, while a changed ledge/support condition ahead does.
+     * actor does not cancel useful navigation. A changed ledge/support condition or a newly occupied
+     * actor-sized path node ahead does cancel it, even when the heightmap still looks flat.
      */
     static boolean remainingPathStillSafe(
             ServerWorld world,
+            PokemonEntity actor,
             Path path,
             double centerX,
             double centerZ,
             int leashRadiusBlocks
     ) {
-        if (world == null || path == null || path.getLength() == 0) return false;
+        if (world == null || actor == null || path == null || path.getLength() == 0) return false;
         if (!Double.isFinite(centerX) || !Double.isFinite(centerZ) || leashRadiusBlocks <= 0) return false;
         int currentNodeIndex = path.getCurrentNodeIndex();
         if (currentNodeIndex < 0 || currentNodeIndex >= path.getLength()) return false;
 
-        int[] surfaceProfile = new int[path.getLength() - currentNodeIndex];
+        int remainingNodeCount = path.getLength() - currentNodeIndex;
+        int[] surfaceProfile = new int[remainingNodeCount];
+        boolean[] collisionProfile = new boolean[remainingNodeCount];
         for (int pathIndex = currentNodeIndex, profileIndex = 0;
              pathIndex < path.getLength();
              pathIndex++, profileIndex++) {
@@ -207,8 +212,22 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
                 return false;
             }
             surfaceProfile[profileIndex] = surfaceY;
+            collisionProfile[profileIndex] = pathNodeVolumeClear(world, actor, node);
         }
-        return remainingSurfaceProfileContinuous(0, surfaceProfile);
+        return remainingSurfaceProfileContinuous(0, surfaceProfile)
+                && remainingCollisionProfileClear(0, collisionProfile);
+    }
+
+    /**
+     * Checks the actor's own presentation volume at a remaining native path node. This catches
+     * collision edits such as a wall placed on otherwise-flat ground without trusting the path's
+     * stale pre-edit collision graph.
+     */
+    private static boolean pathNodeVolumeClear(ServerWorld world, PokemonEntity actor, BlockPos node) {
+        double offsetX = node.getX() + 0.5D - actor.getX();
+        double offsetY = node.getY() - actor.getY();
+        double offsetZ = node.getZ() + 0.5D - actor.getZ();
+        return world.isSpaceEmpty(actor, actor.getBoundingBox().offset(offsetX, offsetY, offsetZ));
     }
 
     static boolean remainingSurfaceProfileContinuous(int currentNodeIndex, int... surfaceY) {
@@ -220,6 +239,17 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
         for (int index = currentNodeIndex + 1; index < surfaceY.length; index++) {
             if (Math.abs((long) surfaceY[index] - previous) > 1L) return false;
             previous = surfaceY[index];
+        }
+        return true;
+    }
+
+    static boolean remainingCollisionProfileClear(int currentNodeIndex, boolean... collisionFree) {
+        if (collisionFree == null || collisionFree.length == 0
+                || currentNodeIndex < 0 || currentNodeIndex >= collisionFree.length) {
+            return false;
+        }
+        for (int index = currentNodeIndex; index < collisionFree.length; index++) {
+            if (!collisionFree[index]) return false;
         }
         return true;
     }

@@ -65,9 +65,31 @@ final class MareaWildCalmNavigationContinuityRuntimeTest {
     }
 
     @Test
+    void activeRouteCollisionRevalidationRejectsNewWallAhead() {
+        // A flat height profile is insufficient once a remaining actor-sized node becomes occupied.
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(
+                1, false, true, false, true));
+    }
+
+    @Test
+    void activeRouteCollisionRevalidationIgnoresBlockedVolumeAlreadyTraversed() {
+        assertTrue(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(
+                2, false, false, true, true));
+    }
+
+    @Test
+    void activeRouteCollisionRevalidationAcceptsClearRemainingVolume() {
+        assertTrue(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(
+                0, true, true, true));
+    }
+
+    @Test
     void activeRouteRevalidationFailsClosedForInvalidCursor() {
         assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(-1, 64));
         assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(1, 64));
         assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingSurfaceProfileContinuous(0));
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(-1, true));
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(1, true));
+        assertFalse(MareaWildCalmNavigationContinuityRuntime.remainingCollisionProfileClear(0));
     }
 }
