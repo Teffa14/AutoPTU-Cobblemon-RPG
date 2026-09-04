@@ -5,8 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class MareaWildCalmCollisionSteeringRuntimeTest {
     @Test
@@ -20,15 +21,14 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
 
     @Test
     void actorIdentityDeterministicallyChoosesDetourHandedness() {
-        UUID first = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
-        UUID second = UUID.fromString("0ddcb831-f81c-44e8-a906-d677be11d464");
+        UUID clockwise = new UUID(0L, 0L);
+        UUID counterclockwise = new UUID(0L, 1L);
 
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(clockwise));
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(counterclockwise));
         assertEquals(
-                MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(first),
-                MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(first));
-        assertNotEquals(
-                MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(first),
-                MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(second));
+                MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(clockwise),
+                MareaWildCalmCollisionSteeringRuntime.clockwiseFirst(clockwise));
     }
 
     @Test
