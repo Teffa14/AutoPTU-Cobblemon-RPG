@@ -37,6 +37,8 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
                 10.5D, 20.5D, 8, 16.0D, 20.5D));
         assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
                 10.5D, 20.5D, 8, 10.5D, 28.5D));
+        assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
+                10.5D, 20.5D, 8, 2.5D, 20.5D));
         assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationTargetInsideLeash(
                 10.5D, 20.5D, 8, 18.6D, 20.5D));
     }
