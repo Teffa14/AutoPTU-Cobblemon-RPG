@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.Heightmap;
 
 import java.util.UUID;
 
@@ -68,8 +70,6 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
                         centerZ,
                         population.habitatLeashRadiusBlocks());
                 if (startNativeNavigation(actor, centerX, centerZ, population.habitatLeashRadiusBlocks(), target)) {
-                    // The native navigator now owns presentation locomotion toward the same authored CALM target.
-                    // Remove the blocked horizontal impulse so it cannot keep pushing into the obstacle meanwhile.
                     actor.setVelocity(0.0D, velocity.y, 0.0D);
                     actor.velocityModified = true;
                     continue;
@@ -99,14 +99,51 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             int leashRadiusBlocks,
             double[] target
     ) {
-        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, actor.getX(), actor.getZ())) return false;
-        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, target[0], target[1])) return false;
+        Path path = findLeashSafeNativePath(actor, centerX, centerZ, leashRadiusBlocks, target);
+        return path != null && actor.getNavigation().startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
+    }
 
+    /**
+     * Finds a Minecraft-native path toward the already-authored CALM X/Z destination.
+     *
+     * The actor's current Y remains the first attempt for flat terrain. If Minecraft reports a
+     * different motion-blocking surface at the exact target column, a second attempt uses that
+     * surface height. This only supplies Minecraft presentation geometry; X/Z destination and leash
+     * authority remain unchanged.
+     */
+    static Path findLeashSafeNativePath(
+            PokemonEntity actor,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            double[] target
+    ) {
+        if (actor == null) throw new IllegalArgumentException("actor is required");
+        if (target == null || target.length < 2 || !Double.isFinite(target[0]) || !Double.isFinite(target[1])) {
+            throw new IllegalArgumentException("native navigation target requires finite X/Z");
+        }
+        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, actor.getX(), actor.getZ())) return null;
+        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, target[0], target[1])) return null;
+        if (!(actor.getWorld() instanceof ServerWorld world)) return null;
+
+        int actorY = MathHelper.floor(actor.getY());
+        int surfaceY = world.getTopY(
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                MathHelper.floor(target[0]),
+                MathHelper.floor(target[1]));
         var navigation = actor.getNavigation();
-        Path path = navigation.findPathTo(target[0], actor.getY(), target[1], 0);
-        if (path == null || !path.reachesTarget()) return false;
-        if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) return false;
-        return navigation.startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
+        for (int targetY : navigationTargetYCandidates(actorY, surfaceY)) {
+            Path path = navigation.findPathTo(target[0], targetY, target[1], 0);
+            if (path == null || !path.reachesTarget()) continue;
+            if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) continue;
+            return path;
+        }
+        return null;
+    }
+
+    static int[] navigationTargetYCandidates(int actorY, int surfaceY) {
+        if (actorY == surfaceY) return new int[] {actorY};
+        return new int[] {actorY, surfaceY};
     }
 
     static boolean navigationTargetInsideLeash(
