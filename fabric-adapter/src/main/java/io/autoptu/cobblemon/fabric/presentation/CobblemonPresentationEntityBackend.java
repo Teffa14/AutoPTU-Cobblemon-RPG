@@ -4,12 +4,15 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.battlecore.BattlePresentationCommand;
 import io.autoptu.cobblemon.battlecore.PresentationEntityPlatformBackend;
 import io.autoptu.cobblemon.battlecore.WorldBlockCoordinate;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Objects;
 
@@ -30,33 +33,30 @@ public final class CobblemonPresentationEntityBackend
     public void animateMove(PokemonEntity attacker, PokemonEntity target, String moveId) {
         Objects.requireNonNull(attacker, "attacker");
         Objects.requireNonNull(target, "target");
-        if (moveId == null || moveId.isBlank()) throw new IllegalArgumentException("moveId is required");
+        BattleMoveAnimationProfile profile = BattleMoveAnimationProfile.resolve(moveId);
 
-        // Presentation-only facing. Do not translate or teleport the Pokemon for a generic attack:
-        // authoritative movement is projected separately, and inventing a lunge would visually move
-        // an actor without an AutoPTU relocation event. A future Cobblemon-specific animation may
-        // replace this neutral cue only when its exact poser/action-effect contract is verified.
-        double dx = target.getX() - attacker.getX();
-        double dz = target.getZ() - attacker.getZ();
-        if (dx != 0.0D || dz != 0.0D) {
-            float yaw = (float) (MathHelper.atan2(dz, dx) * (180.0D / Math.PI)) - 90.0F;
-            attacker.setYaw(yaw);
-            attacker.setHeadYaw(yaw);
-            attacker.setBodyYaw(yaw);
+        face(attacker, target);
+        if (!(attacker.getWorld() instanceof ServerWorld serverWorld)) {
+            return;
         }
 
-        if (attacker.getWorld() instanceof ServerWorld serverWorld) {
-            serverWorld.spawnParticles(
-                    ParticleTypes.SWEEP_ATTACK,
-                    target.getX(),
-                    target.getBodyY(0.55D),
-                    target.getZ(),
-                    1,
-                    0.0D,
-                    0.0D,
-                    0.0D,
-                    0.0D
-            );
+        Vec3d source = bodyPoint(attacker, 0.62D);
+        Vec3d destination = bodyPoint(target, 0.58D);
+
+        // A move whose already-authoritative endpoints bind to the same presentation entity is
+        // rendered as an aura. This is endpoint presentation only; it does not infer move targeting.
+        if (attacker == target) {
+            renderAura(serverWorld, source, profile);
+            return;
+        }
+
+        switch (profile.motion()) {
+            case MELEE -> renderMelee(serverWorld, source, destination, profile);
+            case PROJECTILE -> renderProjectile(serverWorld, source, destination, profile);
+            case BEAM -> renderBeam(serverWorld, source, destination, profile);
+            case WAVE -> renderWave(serverWorld, source, destination, profile);
+            case BURST -> renderBurst(serverWorld, source, destination, profile);
+            case ARC -> renderArc(serverWorld, source, destination, profile);
         }
     }
 
@@ -162,6 +162,200 @@ public final class CobblemonPresentationEntityBackend
         String phase = displayValue(command.data().get("phase"), "phase");
         String reason = displayValue(command.data().get("reason"), "authoritative skip");
         return status + " · " + phase + " · " + reason;
+    }
+
+    private static void face(PokemonEntity attacker, PokemonEntity target) {
+        double dx = target.getX() - attacker.getX();
+        double dz = target.getZ() - attacker.getZ();
+        if (dx == 0.0D && dz == 0.0D) return;
+        float yaw = (float) (MathHelper.atan2(dz, dx) * (180.0D / Math.PI)) - 90.0F;
+        attacker.setYaw(yaw);
+        attacker.setHeadYaw(yaw);
+        attacker.setBodyYaw(yaw);
+    }
+
+    private static Vec3d bodyPoint(PokemonEntity entity, double bodyHeight) {
+        return new Vec3d(entity.getX(), entity.getBodyY(bodyHeight), entity.getZ());
+    }
+
+    private static void renderMelee(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        spawn(world, ParticleTypes.CRIT, source, 7, 0.28D, 0.22D, 0.28D, 0.08D);
+        renderTrail(world, themed, source, target, 7, 0.18D, false);
+        spawn(world, ParticleTypes.SWEEP_ATTACK, target, 2, 0.12D, 0.10D, 0.12D, 0.0D);
+        spawn(world, themed, target, 10, 0.30D, 0.25D, 0.30D, 0.08D);
+        play(world, target, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 0.8F, 1.0F);
+    }
+
+    private static void renderProjectile(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        renderTrail(world, themed, source, target, 13, 0.42D, true);
+        renderTrail(world, ParticleTypes.END_ROD, source, target, 7, 0.30D, true);
+        spawn(world, themed, target, 14, 0.32D, 0.28D, 0.32D, 0.10D);
+        spawn(world, ParticleTypes.POOF, target, 4, 0.22D, 0.18D, 0.22D, 0.03D);
+        play(world, source, SoundEvents.ENTITY_ARROW_SHOOT, 0.65F, 1.15F);
+    }
+
+    private static void renderBeam(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        renderTrail(world, themed, source, target, 24, 0.0D, false);
+        renderTrail(world, ParticleTypes.END_ROD, source, target, 12, 0.0D, false);
+        spawn(world, themed, target, 18, 0.30D, 0.30D, 0.30D, 0.05D);
+        spawn(world, ParticleTypes.END_ROD, target, 6, 0.22D, 0.22D, 0.22D, 0.03D);
+        play(world, source, SoundEvents.BLOCK_BEACON_ACTIVATE, 0.6F, 1.35F);
+    }
+
+    private static void renderWave(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        Vec3d delta = target.subtract(source);
+        Vec3d horizontal = new Vec3d(delta.x, 0.0D, delta.z);
+        Vec3d side = horizontal.lengthSquared() > 0.0001D
+                ? new Vec3d(-horizontal.z, 0.0D, horizontal.x).normalize()
+                : new Vec3d(1.0D, 0.0D, 0.0D);
+
+        for (int i = 0; i <= 14; i++) {
+            double t = i / 14.0D;
+            Vec3d center = source.lerp(target, t);
+            double width = Math.sin(Math.PI * t) * 0.85D;
+            spawnOne(world, themed, center);
+            spawnOne(world, themed, center.add(side.multiply(width)));
+            spawnOne(world, themed, center.subtract(side.multiply(width)));
+        }
+        spawn(world, ParticleTypes.POOF, target, 8, 0.45D, 0.18D, 0.45D, 0.04D);
+        play(world, source, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 0.6F, 0.75F);
+    }
+
+    private static void renderBurst(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        renderTrail(world, themed, source, target, 8, 0.18D, true);
+        for (int i = 0; i < 24; i++) {
+            double angle = (Math.PI * 2.0D * i) / 24.0D;
+            double radius = 0.35D + (i % 3) * 0.22D;
+            Vec3d point = target.add(Math.cos(angle) * radius, ((i % 5) - 2) * 0.12D, Math.sin(angle) * radius);
+            spawnOne(world, themed, point);
+        }
+        spawn(world, ParticleTypes.POOF, target, 14, 0.55D, 0.35D, 0.55D, 0.08D);
+        play(world, target, SoundEvents.ENTITY_GENERIC_EXPLODE, 0.75F, 1.25F);
+    }
+
+    private static void renderArc(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        renderTrail(world, themed, source, target, 15, 0.75D, true);
+        renderTrail(world, ParticleTypes.END_ROD, source, target, 8, 0.60D, true);
+        spawn(world, themed, target, 10, 0.30D, 0.25D, 0.30D, 0.06D);
+        spawn(world, ParticleTypes.SWEEP_ATTACK, target, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        play(world, source, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.45F, 1.1F);
+    }
+
+    private static void renderAura(
+            ServerWorld world,
+            Vec3d center,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        for (int ring = 0; ring < 3; ring++) {
+            double radius = 0.35D + ring * 0.28D;
+            double height = -0.15D + ring * 0.35D;
+            for (int i = 0; i < 12; i++) {
+                double angle = (Math.PI * 2.0D * i) / 12.0D;
+                spawnOne(world, themed, center.add(Math.cos(angle) * radius, height, Math.sin(angle) * radius));
+            }
+        }
+        spawn(world, ParticleTypes.END_ROD, center.add(0.0D, 0.35D, 0.0D), 8, 0.30D, 0.35D, 0.30D, 0.02D);
+        play(world, center, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 1.45F);
+    }
+
+    private static void renderTrail(
+            ServerWorld world,
+            ParticleEffect particle,
+            Vec3d source,
+            Vec3d target,
+            int steps,
+            double arcHeight,
+            boolean arc
+    ) {
+        for (int i = 0; i <= steps; i++) {
+            double t = i / (double) steps;
+            Vec3d point = source.lerp(target, t);
+            if (arc) {
+                point = point.add(0.0D, Math.sin(Math.PI * t) * arcHeight, 0.0D);
+            }
+            spawnOne(world, particle, point);
+        }
+    }
+
+    private static ParticleEffect themedParticle(BattleMoveAnimationProfile.Theme theme) {
+        return switch (theme) {
+            case FIRE -> ParticleTypes.FLAME;
+            case WATER -> ParticleTypes.SPLASH;
+            case ELECTRIC -> ParticleTypes.ELECTRIC_SPARK;
+            case ICE -> ParticleTypes.SNOWFLAKE;
+            case GRASS -> ParticleTypes.HAPPY_VILLAGER;
+            case PSYCHIC -> ParticleTypes.ENCHANT;
+            case GHOST -> ParticleTypes.PORTAL;
+            case POISON -> ParticleTypes.WITCH;
+            case GROUND -> ParticleTypes.CLOUD;
+            case ROCK -> ParticleTypes.POOF;
+            case DRAGON -> ParticleTypes.DRAGON_BREATH;
+            case FAIRY -> ParticleTypes.END_ROD;
+            case FLYING -> ParticleTypes.CLOUD;
+            case STEEL -> ParticleTypes.CRIT;
+            case DARK -> ParticleTypes.SMOKE;
+            case BUG -> ParticleTypes.HAPPY_VILLAGER;
+            case FIGHTING -> ParticleTypes.CRIT;
+            case NORMAL -> ParticleTypes.CRIT;
+        };
+    }
+
+    private static void spawnOne(ServerWorld world, ParticleEffect particle, Vec3d point) {
+        world.spawnParticles(particle, point.x, point.y, point.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+    }
+
+    private static void spawn(
+            ServerWorld world,
+            ParticleEffect particle,
+            Vec3d point,
+            int count,
+            double dx,
+            double dy,
+            double dz,
+            double speed
+    ) {
+        world.spawnParticles(particle, point.x, point.y, point.z, count, dx, dy, dz, speed);
+    }
+
+    private static void play(ServerWorld world, Vec3d point, SoundEvent sound, float volume, float pitch) {
+        world.playSound(null, point.x, point.y, point.z, sound, SoundCategory.PLAYERS, volume, pitch);
     }
 
     private static String displayValue(String value, String fallback) {
