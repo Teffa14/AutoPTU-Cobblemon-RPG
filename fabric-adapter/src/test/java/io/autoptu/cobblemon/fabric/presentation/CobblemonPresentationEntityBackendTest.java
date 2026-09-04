@@ -30,6 +30,7 @@ class CobblemonPresentationEntityBackendTest {
         assertTrue(methodNames.contains("projectDisplayedHealth"));
         assertTrue(methodNames.contains("authoritativeHpNameplate"));
         assertTrue(methodNames.contains("authoritativeFlag"));
+        assertTrue(methodNames.contains("authoritativeNonNegativeInt"));
         assertTrue(methodNames.contains("showCue"));
         assertTrue(methodNames.contains("statusSkipText"));
         assertTrue(methodNames.contains("renderMelee"));
@@ -54,7 +55,7 @@ class CobblemonPresentationEntityBackendTest {
     }
 
     @Test
-    void moveOutcomeFlagsAreCopiedOnlyFromAuthoritativeCommand() {
+    void moveOutcomeValuesAreCopiedOnlyFromAuthoritativeCommand() {
         BattlePresentationCommand command = new BattlePresentationCommand(
                 10,
                 0,
@@ -64,16 +65,18 @@ class CobblemonPresentationEntityBackendTest {
                         "targetId", "pokemon-2",
                         "moveId", "Thunderbolt",
                         "hit", "true",
-                        "crit", "false"
+                        "crit", "false",
+                        "damage", "17"
                 )
         );
 
         assertTrue(CobblemonPresentationEntityBackend.authoritativeFlag(command, "hit"));
         assertFalse(CobblemonPresentationEntityBackend.authoritativeFlag(command, "crit"));
+        assertEquals(17, CobblemonPresentationEntityBackend.authoritativeNonNegativeInt(command, "damage"));
     }
 
     @Test
-    void missingOrNonBooleanMoveOutcomeCannotBeInventedByPresentation() {
+    void missingOrMalformedMoveOutcomeCannotBeInventedByPresentation() {
         BattlePresentationCommand missing = new BattlePresentationCommand(
                 10,
                 0,
@@ -81,12 +84,19 @@ class CobblemonPresentationEntityBackendTest {
                 "pokemon-1",
                 Map.of("targetId", "pokemon-2", "moveId", "Tackle")
         );
-        BattlePresentationCommand malformed = new BattlePresentationCommand(
+        BattlePresentationCommand malformedFlag = new BattlePresentationCommand(
                 11,
                 0,
                 BattlePresentationCommand.Kind.MOVE_ANIMATION,
                 "pokemon-1",
                 Map.of("targetId", "pokemon-2", "moveId", "Tackle", "hit", "maybe")
+        );
+        BattlePresentationCommand malformedDamage = new BattlePresentationCommand(
+                12,
+                0,
+                BattlePresentationCommand.Kind.MOVE_ANIMATION,
+                "pokemon-1",
+                Map.of("targetId", "pokemon-2", "moveId", "Tackle", "damage", "-4")
         );
 
         assertThrows(
@@ -95,14 +105,33 @@ class CobblemonPresentationEntityBackendTest {
         );
         assertThrows(
                 IllegalArgumentException.class,
-                () -> CobblemonPresentationEntityBackend.authoritativeFlag(malformed, "hit")
+                () -> CobblemonPresentationEntityBackend.authoritativeFlag(malformedFlag, "hit")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonPresentationEntityBackend.authoritativeNonNegativeInt(missing, "damage")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonPresentationEntityBackend.authoritativeNonNegativeInt(malformedDamage, "damage")
+        );
+    }
+
+    @Test
+    void nativeActionEffectLookupUsesCobblemonMoveResourceNaming() {
+        assertEquals("flamethrower", CobblemonNativeMoveAnimationBridge.effectPath("Flamethrower"));
+        assertEquals("quickattack", CobblemonNativeMoveAnimationBridge.effectPath("Quick Attack"));
+        assertEquals("uturn", CobblemonNativeMoveAnimationBridge.effectPath("U-turn"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonNativeMoveAnimationBridge.effectPath("   ")
         );
     }
 
     @Test
     void statusSkipTextMirrorsOnlyAuthoritativeCueFields() {
         BattlePresentationCommand cue = new BattlePresentationCommand(
-                12,
+                13,
                 0,
                 BattlePresentationCommand.Kind.STATUS_SKIP_CUE,
                 "wild-1",
@@ -122,7 +151,7 @@ class CobblemonPresentationEntityBackendTest {
     @Test
     void statusSkipTextKeepsMissingOptionalTextPresentationOnly() {
         BattlePresentationCommand cue = new BattlePresentationCommand(
-                13,
+                14,
                 0,
                 BattlePresentationCommand.Kind.STATUS_SKIP_CUE,
                 "wild-1",
@@ -138,7 +167,7 @@ class CobblemonPresentationEntityBackendTest {
     @Test
     void statusSkipTextRejectsNonStatusCue() {
         BattlePresentationCommand cue = new BattlePresentationCommand(
-                14,
+                15,
                 0,
                 BattlePresentationCommand.Kind.TURN_START_CUE,
                 "wild-1",
