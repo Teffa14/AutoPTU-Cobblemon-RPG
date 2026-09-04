@@ -33,6 +33,25 @@ public final class RegistryBackedPresentationEntityGateway<T> implements Present
     }
 
     @Override
+    public void animateMove(
+            String reservationId,
+            String attackerPresentationEntityId,
+            String targetPresentationEntityId,
+            BattlePresentationCommand command
+    ) {
+        Objects.requireNonNull(command, "command");
+        if (command.kind() != BattlePresentationCommand.Kind.MOVE_ANIMATION) {
+            throw new IllegalArgumentException("command must be MOVE_ANIMATION");
+        }
+        requireIdentifier(command.data().get("moveId"), "moveId");
+        backend.animateMove(
+                registry.require(reservationId, attackerPresentationEntityId),
+                registry.require(reservationId, targetPresentationEntityId),
+                command
+        );
+    }
+
+    @Override
     public void projectDisplayedHealth(
             String reservationId,
             String presentationEntityId,
