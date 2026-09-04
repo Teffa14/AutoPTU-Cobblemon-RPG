@@ -1,0 +1,40 @@
+name: WORLD-013 Plan Self Patch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.head_ref == 'world-013-revalidate-active-calm-path'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: world-013-revalidate-active-calm-path
+          fetch-depth: 0
+      - name: Record WORLD-013 slice and remove one-shot workflow
+        shell: python
+        run: |
+          from pathlib import Path
+          plan = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = plan.read_text()
+          marker = ' All four populations reuse only the same already-approved complete PTU profile;'
+          addition = ' PR #514 / implementation head `ecb95f53e482e0d6a0cb8aac95fabcd8b7f5d587` revalidates the unconsumed nodes of every active Minecraft-native CALM route against the authored leash and current MOTION_BLOCKING_NO_LEAVES surface geometry; terrain edits behind the actor are ignored, while an unsafe changed segment ahead stops the stale path and immediately recomputes the same deterministic authored destination through the existing leash-safe path helper.'
+          if addition not in text:
+              if marker not in text:
+                  raise SystemExit('WORLD-013 insertion marker missing')
+              text = text.replace(marker, addition + marker, 1)
+              plan.write_text(text)
+          Path('.github/workflows/world013-plan-patch.yml').unlink()
+      - name: Commit plan record
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/world013-plan-patch.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'Record WORLD-013 active path revalidation'
+          git push origin HEAD:world-013-revalidate-active-calm-path
