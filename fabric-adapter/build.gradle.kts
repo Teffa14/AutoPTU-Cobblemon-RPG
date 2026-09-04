@@ -8,7 +8,15 @@ group = "io.autoptu"
 version = "0.1.0-SNAPSHOT"
 
 val cobblemonVersion = providers.gradleProperty("cobblemonVersion").orElse("1.7.3+1.21.1")
-val cobblemonRuntimeRange = providers.gradleProperty("cobblemonRuntimeRange").orElse(">=1.7.3 <1.8.0")
+val defaultCobblemonRuntimeRange = cobblemonVersion.map { target ->
+    when {
+        target.startsWith("1.7.") -> ">=1.7.3 <1.8.0"
+        target.startsWith("1.8.") -> ">=1.8.0 <1.9.0"
+        else -> throw GradleException(
+            "No validated Cobblemon runtime range for $target; provide -PcobblemonRuntimeRange explicitly")
+    }
+}
+val cobblemonRuntimeRange = providers.gradleProperty("cobblemonRuntimeRange").orElse(defaultCobblemonRuntimeRange)
 val autoPtuJavaSha = "aefc058328a9217d634477835a4851d521aaeccb"
 val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
 val autoPtuJavaJar = layout.buildDirectory.file("pinned-autoptu-java/$autoPtuJavaSha/autoptu-java-core.jar")
