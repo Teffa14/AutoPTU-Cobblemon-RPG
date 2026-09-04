@@ -8,6 +8,7 @@ import io.autoptu.cobblemon.fabric.battle.FabricBattleCameraRuntime;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleChoiceRuntime;
 import io.autoptu.cobblemon.fabric.demo.PlayableBattleTestRuntime;
 import io.autoptu.cobblemon.fabric.network.FabricBattleActionNetworking;
+import io.autoptu.cobblemon.fabric.network.FabricBattleHpPresentationNetworking;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -97,6 +98,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricCanonicalPlayerProvisioning.register();
         FabricCanonicalPlayerStoreRestartSmoke.registerIfEnabled();
         FabricBattleActionNetworking.registerPayloadType();
+        FabricBattleHpPresentationNetworking.registerPayloadType();
         if (!FabricLoader.getInstance().isModLoaded("cobblemon")) {
             throw new IllegalStateException("Cobblemon runtime is required by the AutoPTU adapter");
         }

@@ -17,6 +17,7 @@
       "io.autoptu.cobblemon.fabric.world.MareaWildAmbientBehaviorRuntime"
     ],
     "client": [
+      "io.autoptu.cobblemon.fabric.client.FabricBattleHpOverlayClient",
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleVisualEvidenceClient"
     ]
