@@ -26,7 +26,14 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
     private static final double MIN_HORIZONTAL_SPEED = 0.000001D;
     private static final double COLLISION_PROBE_DISTANCE = 0.75D;
     private static final double NATIVE_NAVIGATION_SPEED = 0.08D;
+    private static final int MAX_CALM_NEIGHBOR_SURFACE_DELTA = 1;
     private static final double[] TURN_ANGLES_DEGREES = {45.0D, 90.0D, 135.0D};
+    private static final int[][] CARDINAL_SURFACE_OFFSETS = {
+            {0, -1},
+            {0, 1},
+            {-1, 0},
+            {1, 0}
+    };
 
     @Override
     public void onInitialize() {
@@ -108,8 +115,10 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
      *
      * The actor's current Y remains the first attempt for flat terrain. If Minecraft reports a
      * different motion-blocking surface at the exact target column, a second attempt uses that
-     * surface height. This only supplies Minecraft presentation geometry; X/Z destination and leash
-     * authority remain unchanged.
+     * surface height. The target column must also have locally continuous cardinal surface support;
+     * isolated pillars and abrupt ledge targets fall back to the existing deterministic steering
+     * instead of becoming ambient destinations. This only supplies Minecraft presentation geometry;
+     * X/Z destination and leash authority remain unchanged.
      */
     static Path findLeashSafeNativePath(
             PokemonEntity actor,
@@ -126,11 +135,12 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
         if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, target[0], target[1])) return null;
         if (!(actor.getWorld() instanceof ServerWorld world)) return null;
 
+        int targetX = MathHelper.floor(target[0]);
+        int targetZ = MathHelper.floor(target[1]);
         int actorY = MathHelper.floor(actor.getY());
-        int surfaceY = world.getTopY(
-                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-                MathHelper.floor(target[0]),
-                MathHelper.floor(target[1]));
+        int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, targetX, targetZ);
+        if (!stableCalmTargetSurface(world, targetX, targetZ, surfaceY)) return null;
+
         var navigation = actor.getNavigation();
         for (int targetY : navigationTargetYCandidates(actorY, surfaceY)) {
             Path path = navigation.findPathTo(target[0], targetY, target[1], 0);
@@ -139,6 +149,28 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
             return path;
         }
         return null;
+    }
+
+    private static boolean stableCalmTargetSurface(ServerWorld world, int targetX, int targetZ, int surfaceY) {
+        int[] adjacentSurfaceY = new int[CARDINAL_SURFACE_OFFSETS.length];
+        for (int index = 0; index < CARDINAL_SURFACE_OFFSETS.length; index++) {
+            int[] offset = CARDINAL_SURFACE_OFFSETS[index];
+            adjacentSurfaceY[index] = world.getTopY(
+                    Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                    targetX + offset[0],
+                    targetZ + offset[1]);
+        }
+        return stableCalmSurfaceNeighborhood(surfaceY, adjacentSurfaceY);
+    }
+
+    static boolean stableCalmSurfaceNeighborhood(int surfaceY, int... adjacentSurfaceY) {
+        if (adjacentSurfaceY == null || adjacentSurfaceY.length != CARDINAL_SURFACE_OFFSETS.length) {
+            throw new IllegalArgumentException("CALM surface neighborhood requires four cardinal heights");
+        }
+        for (int adjacentY : adjacentSurfaceY) {
+            if (Math.abs((long) adjacentY - surfaceY) > MAX_CALM_NEIGHBOR_SURFACE_DELTA) return false;
+        }
+        return true;
     }
 
     static int[] navigationTargetYCandidates(int actorY, int surfaceY) {
