@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,6 +29,7 @@ class CobblemonPresentationEntityBackendTest {
         assertTrue(methodNames.contains("animateMove"));
         assertTrue(methodNames.contains("projectDisplayedHealth"));
         assertTrue(methodNames.contains("authoritativeHpNameplate"));
+        assertTrue(methodNames.contains("authoritativeFlag"));
         assertTrue(methodNames.contains("showCue"));
         assertTrue(methodNames.contains("statusSkipText"));
         assertTrue(methodNames.contains("renderMelee"));
@@ -37,6 +39,8 @@ class CobblemonPresentationEntityBackendTest {
         assertTrue(methodNames.contains("renderBurst"));
         assertTrue(methodNames.contains("renderArc"));
         assertTrue(methodNames.contains("renderAura"));
+        assertTrue(methodNames.contains("renderMiss"));
+        assertTrue(methodNames.contains("renderCritical"));
     }
 
     @Test
@@ -46,6 +50,52 @@ class CobblemonPresentationEntityBackendTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> CobblemonPresentationEntityBackend.authoritativeHpNameplate(-1)
+        );
+    }
+
+    @Test
+    void moveOutcomeFlagsAreCopiedOnlyFromAuthoritativeCommand() {
+        BattlePresentationCommand command = new BattlePresentationCommand(
+                10,
+                0,
+                BattlePresentationCommand.Kind.MOVE_ANIMATION,
+                "pokemon-1",
+                Map.of(
+                        "targetId", "pokemon-2",
+                        "moveId", "Thunderbolt",
+                        "hit", "true",
+                        "crit", "false"
+                )
+        );
+
+        assertTrue(CobblemonPresentationEntityBackend.authoritativeFlag(command, "hit"));
+        assertFalse(CobblemonPresentationEntityBackend.authoritativeFlag(command, "crit"));
+    }
+
+    @Test
+    void missingOrNonBooleanMoveOutcomeCannotBeInventedByPresentation() {
+        BattlePresentationCommand missing = new BattlePresentationCommand(
+                10,
+                0,
+                BattlePresentationCommand.Kind.MOVE_ANIMATION,
+                "pokemon-1",
+                Map.of("targetId", "pokemon-2", "moveId", "Tackle")
+        );
+        BattlePresentationCommand malformed = new BattlePresentationCommand(
+                11,
+                0,
+                BattlePresentationCommand.Kind.MOVE_ANIMATION,
+                "pokemon-1",
+                Map.of("targetId", "pokemon-2", "moveId", "Tackle", "hit", "maybe")
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonPresentationEntityBackend.authoritativeFlag(missing, "hit")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CobblemonPresentationEntityBackend.authoritativeFlag(malformed, "hit")
         );
     }
 
