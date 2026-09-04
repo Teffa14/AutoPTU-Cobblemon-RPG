@@ -108,6 +108,12 @@ final class MareaWildCalmCollisionSteeringRuntimeTest {
     }
 
     @Test
+    void initialNativeRouteRejectsBlockedPresentationNodeBeforeMovementStarts() {
+        assertFalse(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear(
+                true, false, true));
+    }
+
+    @Test
     void initialNativeRouteAcceptsOnlyFullyClearPresentationProfile() {
         assertTrue(MareaWildCalmCollisionSteeringRuntime.navigationPresentationProfileClear(
                 true, true, true));
