@@ -21,17 +21,26 @@ public final class OurosGrandPalaceV4Builder {
         // envelope or roof can survive underneath the courtyard plan on rebuild.
         clear(world, origin, MIN_X, MIN_Y, MIN_Z, MAX_X, MAX_Y, MAX_Z);
 
-        // Order is intentional: massing, facade refinement, room program, support joins, roofscape,
-        // silhouette, audit. Facade refinement runs before room shells so it never erases authored
-        // interiors, only the original flat front-wing ribbon outside z=-53.
+        // Order is intentional: massing, front facade, authored rooms, visual cleanup, structural
+        // joins, low mansards, silhouette accents, audits. Visual refinement runs after room themes
+        // so it can remove diagnostic fixtures and hash-selected accent bands without erasing the
+        // room program. Generic-furniture cleanup removes only the original cloned table/chair
+        // coordinates; the composition pass then gives the remaining weak rooms a deliberate focal
+        // hierarchy before anchoring validates the final authored interior. The visual audit keeps
+        // browser-review failures from returning even when structural and density gates still pass.
         OurosGrandPalaceV4ArchitecturePass.apply(world, origin);
         OurosGrandPalaceV4FacadeRefinementPass.apply(world, origin);
         OurosGrandPalaceV4Rooms.buildAll(world, origin);
+        OurosGrandPalaceV4InteriorRefinementPass.apply(world, origin);
+        OurosGrandPalaceV4AccentRefinementPass.apply(world, origin);
+        OurosGrandPalaceV4GenericFurnitureCleanupPass.apply(world, origin);
+        OurosGrandPalaceV4RoomCompositionPass.apply(world, origin);
         OurosGrandPalaceV4RoomAnchoringPass.apply(world, origin);
         OurosGrandPalaceV4ConnectivityPass.apply(world, origin);
-        OurosGrandPalaceV4RoofPass.apply(world, origin);
+        OurosGrandPalaceV4AuthoredRoofPass.apply(world, origin);
         OurosGrandPalaceV4SilhouettePass.apply(world, origin);
         OurosGrandPalaceV4QualityAudit.assertValid(world, origin);
+        OurosGrandPalaceV4VisualQualityAudit.assertValid(world, origin);
 
         return new OurosGrandPalace.BuildResult(
                 origin,
