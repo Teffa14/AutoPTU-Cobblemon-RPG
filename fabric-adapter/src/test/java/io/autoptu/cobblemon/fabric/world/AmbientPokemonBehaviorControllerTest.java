@@ -2,6 +2,9 @@ package io.autoptu.cobblemon.fabric.world;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,6 +35,57 @@ final class AmbientPokemonBehaviorControllerTest {
             assertEquals(AmbientPokemonBehaviorController.State.ALARMED, controller.update(Double.POSITIVE_INFINITY, false));
         }
         assertEquals(AmbientPokemonBehaviorController.State.CALM, controller.update(Double.POSITIVE_INFINITY, false));
+    }
+
+    @Test
+    void calmRoamingTargetIsStableWithinClockSegmentAndInsideAuthoredLeash() {
+        UUID actor = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
+        double[] first = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(actor, 320L, 10.5D, -4.5D, 12);
+        double[] sameSegment = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(actor, 399L, 10.5D, -4.5D, 12);
+
+        assertArrayEquals(first, sameSegment, 0.0D);
+        assertTrue(MareaWildAmbientBehaviorRuntime.insideHorizontalLeash(
+                first[0], first[1], 10.5D, -4.5D, 12));
+    }
+
+    @Test
+    void calmRoamingTargetChangesByActorOrClockSegmentWithoutExternalRng() {
+        UUID actor = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
+        UUID other = UUID.fromString("0ddcb831-f81c-44e8-a906-d677be11d465");
+        double[] first = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(actor, 320L, 0.5D, 0.5D, 10);
+        double[] nextSegment = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(actor, 400L, 0.5D, 0.5D, 10);
+        double[] otherActor = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(other, 320L, 0.5D, 0.5D, 10);
+
+        assertFalse(first[0] == nextSegment[0] && first[1] == nextSegment[1]);
+        assertFalse(first[0] == otherActor[0] && first[1] == otherActor[1]);
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.calmRoamingTarget(null, 0L, 0.0D, 0.0D, 10));
+    }
+
+    @Test
+    void calmPopulationSeparationPushesOnlyNearbyCanonicalSiblingsApart() {
+        UUID actor = UUID.fromString("8e3d8854-0f85-4d7d-844d-a58c91079345");
+        UUID sibling = UUID.fromString("0ddcb831-f81c-44e8-a906-d677be11d465");
+
+        double[] nearby = MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 6.0D, 5.0D, 2.5D, 0.018D);
+        assertTrue(nearby[0] < 0.0D);
+        assertEquals(0.0D, nearby[1], 0.0000001D);
+        assertTrue(Math.sqrt(nearby[0] * nearby[0] + nearby[1] * nearby[1]) <= 0.018D);
+
+        double[] distant = MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 8.0D, 5.0D, 2.5D, 0.018D);
+        assertArrayEquals(new double[] {0.0D, 0.0D}, distant, 0.0D);
+
+        double[] overlap = MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 5.0D, 5.0D, 2.5D, 0.018D);
+        assertEquals(0.018D, Math.sqrt(overlap[0] * overlap[0] + overlap[1] * overlap[1]), 0.0000001D);
+        assertArrayEquals(overlap, MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                actor, 5.0D, 5.0D, sibling, 5.0D, 5.0D, 2.5D, 0.018D), 0.0D);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildAmbientBehaviorRuntime.calmSeparationImpulse(
+                        null, 0.0D, 0.0D, sibling, 0.0D, 0.0D, 2.5D, 0.018D));
     }
 
     @Test

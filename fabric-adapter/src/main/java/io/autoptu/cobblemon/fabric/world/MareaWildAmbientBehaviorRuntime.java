@@ -25,6 +25,11 @@ import java.util.UUID;
  */
 public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final long CALM_WANDER_SEGMENT_TICKS = 80L;
+    private static final double CALM_WANDER_SPEED = 0.025D;
+    private static final double CALM_WANDER_STOP_DISTANCE = 1.0D;
+    private static final double CALM_SEPARATION_DISTANCE = 2.5D;
+    private static final double CALM_SEPARATION_SPEED = 0.018D;
     private static final double FLEE_SPEED = 0.08D;
     private static final double RECOVERY_SPEED = 0.04D;
     private static final double RECOVERY_STOP_DISTANCE = 1.5D;
@@ -72,7 +77,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                         nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(actor.squaredDistanceTo(nearest)),
                         nearest != null
                 );
-                applyPresentation(actor, nearest, state, encounter, population, projectedSiteId.get());
+                applyPresentation(actor, nearest, state, encounter, population, projectedSiteId.get(), world.getTime(), world);
             }
         }
 
@@ -99,7 +104,9 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             AmbientPokemonBehaviorController.State state,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
-            String projectedSiteId
+            String projectedSiteId,
+            long worldTime,
+            ServerWorld world
     ) {
         BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
         double centerX = anchor.getX() + 0.5D;
@@ -119,6 +126,18 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             applyRecovery(actor, centerX, centerZ);
             return;
         }
+
+        if (state == AmbientPokemonBehaviorController.State.CALM) {
+            applyCalmRoaming(
+                    actor,
+                    nearestPopulationSibling(world, actor, population),
+                    centerX,
+                    centerZ,
+                    population.habitatLeashRadiusBlocks(),
+                    worldTime);
+            return;
+        }
+
         if (nearest == null) return;
 
         double dx = nearest.getX() - actor.getX();
@@ -146,6 +165,135 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
 
             setAmbientHorizontalVelocity(actor, fleeX, fleeZ, FLEE_SPEED);
         }
+    }
+
+    private static PokemonEntity nearestPopulationSibling(
+            ServerWorld world,
+            PokemonEntity actor,
+            CanonicalWildPopulationCatalogue.PopulationDefinition population
+    ) {
+        PokemonEntity nearest = null;
+        double nearestDistance = Double.POSITIVE_INFINITY;
+        for (var siblingEncounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+            var siblingUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(siblingEncounter.canonicalEncounterId());
+            if (siblingUuid.isEmpty() || siblingUuid.get().equals(actor.getUuid())) continue;
+            var siblingEntity = world.getEntity(siblingUuid.get());
+            if (!(siblingEntity instanceof PokemonEntity sibling) || sibling.isRemoved() || sibling.isInvisible()) continue;
+            if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(sibling.getUuid())) continue;
+            double distance = actor.squaredDistanceTo(sibling);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = sibling;
+            }
+        }
+        return nearest;
+    }
+
+    private static void applyCalmRoaming(
+            PokemonEntity actor,
+            PokemonEntity nearestSibling,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks,
+            long worldTime
+    ) {
+        double[] target = calmRoamingTarget(actor.getUuid(), worldTime, centerX, centerZ, leashRadiusBlocks);
+        double dx = target[0] - actor.getX();
+        double dz = target[1] - actor.getZ();
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        double requestedX = 0.0D;
+        double requestedZ = 0.0D;
+        if (distance > CALM_WANDER_STOP_DISTANCE) {
+            requestedX = (dx / distance) * CALM_WANDER_SPEED;
+            requestedZ = (dz / distance) * CALM_WANDER_SPEED;
+        }
+
+        if (nearestSibling != null) {
+            double[] separation = calmSeparationImpulse(
+                    actor.getUuid(),
+                    actor.getX(),
+                    actor.getZ(),
+                    nearestSibling.getUuid(),
+                    nearestSibling.getX(),
+                    nearestSibling.getZ(),
+                    CALM_SEPARATION_DISTANCE,
+                    CALM_SEPARATION_SPEED);
+            requestedX += separation[0];
+            requestedZ += separation[1];
+        }
+
+        if (Math.abs(requestedX) <= 0.000001D && Math.abs(requestedZ) <= 0.000001D) return;
+        double[] bounded = boundedHorizontalVelocity(requestedX, requestedZ, CALM_WANDER_SPEED);
+        if (!insideLeashAfterImpulse(actor, centerX, centerZ, leashRadiusBlocks, bounded[0], bounded[1])) return;
+        actor.setYaw((float) Math.toDegrees(Math.atan2(-bounded[0], bounded[1])));
+        setAmbientHorizontalVelocity(actor, bounded[0], bounded[1], CALM_WANDER_SPEED);
+    }
+
+    static double[] calmRoamingTarget(
+            UUID actorId,
+            long worldTime,
+            double centerX,
+            double centerZ,
+            int leashRadiusBlocks
+    ) {
+        if (actorId == null
+                || !Double.isFinite(centerX) || !Double.isFinite(centerZ)
+                || leashRadiusBlocks <= 0) {
+            throw new IllegalArgumentException("calm roaming target requires actor, finite center and positive leash radius");
+        }
+        long segment = Math.floorDiv(worldTime, CALM_WANDER_SEGMENT_TICKS);
+        long mixed = actorId.getMostSignificantBits()
+                ^ Long.rotateLeft(actorId.getLeastSignificantBits(), 17)
+                ^ (segment * 0x9E3779B97F4A7C15L);
+        double angleUnit = ((mixed >>> 11) & 0x1FFFFFL) / (double) 0x1FFFFF;
+        double radiusUnit = ((Long.rotateLeft(mixed, 29) >>> 11) & 0x1FFFFFL) / (double) 0x1FFFFF;
+        double angle = angleUnit * Math.PI * 2.0D;
+        double radius = Math.max(1.0D, leashRadiusBlocks * (0.25D + radiusUnit * 0.55D));
+        return new double[] {
+                centerX + Math.cos(angle) * radius,
+                centerZ + Math.sin(angle) * radius
+        };
+    }
+
+    static double[] calmSeparationImpulse(
+            UUID actorId,
+            double actorX,
+            double actorZ,
+            UUID siblingId,
+            double siblingX,
+            double siblingZ,
+            double separationDistance,
+            double separationSpeed
+    ) {
+        if (actorId == null || siblingId == null
+                || !Double.isFinite(actorX) || !Double.isFinite(actorZ)
+                || !Double.isFinite(siblingX) || !Double.isFinite(siblingZ)
+                || !Double.isFinite(separationDistance) || separationDistance <= 0.0D
+                || !Double.isFinite(separationSpeed) || separationSpeed <= 0.0D) {
+            throw new IllegalArgumentException("calm separation requires actor identities, finite coordinates and positive bounds");
+        }
+        if (actorId.equals(siblingId)) return new double[] {0.0D, 0.0D};
+
+        double dx = actorX - siblingX;
+        double dz = actorZ - siblingZ;
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        if (distance >= separationDistance) return new double[] {0.0D, 0.0D};
+
+        if (distance <= 0.001D) {
+            long mixed = actorId.getMostSignificantBits()
+                    ^ actorId.getLeastSignificantBits()
+                    ^ Long.rotateLeft(siblingId.getMostSignificantBits(), 13)
+                    ^ Long.rotateLeft(siblingId.getLeastSignificantBits(), 31);
+            double angleUnit = ((mixed >>> 11) & 0x1FFFFFL) / (double) 0x1FFFFF;
+            double angle = angleUnit * Math.PI * 2.0D;
+            return new double[] {Math.cos(angle) * separationSpeed, Math.sin(angle) * separationSpeed};
+        }
+
+        double strength = (separationDistance - distance) / separationDistance;
+        return new double[] {
+                (dx / distance) * separationSpeed * strength,
+                (dz / distance) * separationSpeed * strength
+        };
     }
 
     private static void applyRecovery(PokemonEntity actor, double centerX, double centerZ) {
