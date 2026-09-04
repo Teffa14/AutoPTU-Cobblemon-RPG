@@ -24,7 +24,7 @@ public final class GatewayBackedBattleEntityBoundPresentationConsumer
                 requireReservationId(reservationId),
                 animation.attackerPresentationEntityId(),
                 animation.targetPresentationEntityId(),
-                animation.moveId()
+                animation.command()
         );
     }
 
