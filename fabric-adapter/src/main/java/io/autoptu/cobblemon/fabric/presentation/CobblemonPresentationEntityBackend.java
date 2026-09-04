@@ -31,9 +31,39 @@ public final class CobblemonPresentationEntityBackend
 
     @Override
     public void animateMove(PokemonEntity attacker, PokemonEntity target, String moveId) {
+        renderResolvedMove(attacker, target, BattleMoveAnimationProfile.resolve(moveId), true, false);
+    }
+
+    @Override
+    public void animateMove(
+            PokemonEntity attacker,
+            PokemonEntity target,
+            BattlePresentationCommand command
+    ) {
+        Objects.requireNonNull(command, "command");
+        if (command.kind() != BattlePresentationCommand.Kind.MOVE_ANIMATION) {
+            throw new IllegalArgumentException("command must be MOVE_ANIMATION");
+        }
+        String moveId = command.data().get("moveId");
+        BattleMoveAnimationProfile profile = BattleMoveAnimationProfile.resolve(moveId);
+        boolean hit = authoritativeFlag(command, "hit");
+        boolean crit = authoritativeFlag(command, "crit");
+        if (!hit && crit) {
+            throw new IllegalArgumentException("authoritative miss cannot be critical");
+        }
+        renderResolvedMove(attacker, target, profile, hit, crit);
+    }
+
+    private static void renderResolvedMove(
+            PokemonEntity attacker,
+            PokemonEntity target,
+            BattleMoveAnimationProfile profile,
+            boolean hit,
+            boolean crit
+    ) {
         Objects.requireNonNull(attacker, "attacker");
         Objects.requireNonNull(target, "target");
-        BattleMoveAnimationProfile profile = BattleMoveAnimationProfile.resolve(moveId);
+        Objects.requireNonNull(profile, "profile");
 
         face(attacker, target);
         if (!(attacker.getWorld() instanceof ServerWorld serverWorld)) {
@@ -43,20 +73,32 @@ public final class CobblemonPresentationEntityBackend
         Vec3d source = bodyPoint(attacker, 0.62D);
         Vec3d destination = bodyPoint(target, 0.58D);
 
+        // Miss is not inferred from damage/HP. This branch exists only when the authoritative
+        // move_resolved event explicitly says hit=false. The visual travels past the target and
+        // deliberately avoids impact feedback on the target entity.
+        if (!hit) {
+            renderMiss(serverWorld, source, destination, profile, attacker == target);
+            return;
+        }
+
         // A move whose already-authoritative endpoints bind to the same presentation entity is
         // rendered as an aura. This is endpoint presentation only; it does not infer move targeting.
         if (attacker == target) {
             renderAura(serverWorld, source, profile);
-            return;
+        } else {
+            switch (profile.motion()) {
+                case MELEE -> renderMelee(serverWorld, source, destination, profile);
+                case PROJECTILE -> renderProjectile(serverWorld, source, destination, profile);
+                case BEAM -> renderBeam(serverWorld, source, destination, profile);
+                case WAVE -> renderWave(serverWorld, source, destination, profile);
+                case BURST -> renderBurst(serverWorld, source, destination, profile);
+                case ARC -> renderArc(serverWorld, source, destination, profile);
+            }
         }
 
-        switch (profile.motion()) {
-            case MELEE -> renderMelee(serverWorld, source, destination, profile);
-            case PROJECTILE -> renderProjectile(serverWorld, source, destination, profile);
-            case BEAM -> renderBeam(serverWorld, source, destination, profile);
-            case WAVE -> renderWave(serverWorld, source, destination, profile);
-            case BURST -> renderBurst(serverWorld, source, destination, profile);
-            case ARC -> renderArc(serverWorld, source, destination, profile);
+        // Crit is likewise copied from the authoritative command, never inferred from damage.
+        if (crit) {
+            renderCritical(serverWorld, destination, profile);
         }
     }
 
@@ -101,6 +143,16 @@ public final class CobblemonPresentationEntityBackend
     static String authoritativeHpNameplate(int targetHp) {
         if (targetHp < 0) throw new IllegalArgumentException("targetHp cannot be negative");
         return "PTU HP " + targetHp;
+    }
+
+    static boolean authoritativeFlag(BattlePresentationCommand command, String key) {
+        Objects.requireNonNull(command, "command");
+        if (key == null || key.isBlank()) throw new IllegalArgumentException("key is required");
+        String value = command.data().get(key.strip());
+        if (!"true".equals(value) && !"false".equals(value)) {
+            throw new IllegalArgumentException(key + " must be an authoritative boolean");
+        }
+        return Boolean.parseBoolean(value);
     }
 
     @Override
@@ -293,6 +345,50 @@ public final class CobblemonPresentationEntityBackend
         }
         spawn(world, ParticleTypes.END_ROD, center.add(0.0D, 0.35D, 0.0D), 8, 0.30D, 0.35D, 0.30D, 0.02D);
         play(world, center, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 1.45F);
+    }
+
+    private static void renderMiss(
+            ServerWorld world,
+            Vec3d source,
+            Vec3d target,
+            BattleMoveAnimationProfile profile,
+            boolean selfTarget
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        if (selfTarget) {
+            spawn(world, ParticleTypes.POOF, source, 8, 0.45D, 0.35D, 0.45D, 0.03D);
+            play(world, source, SoundEvents.BLOCK_FIRE_EXTINGUISH, 0.35F, 1.5F);
+            return;
+        }
+
+        Vec3d direction = target.subtract(source);
+        Vec3d horizontal = new Vec3d(direction.x, 0.0D, direction.z);
+        Vec3d forward = horizontal.lengthSquared() > 0.0001D
+                ? horizontal.normalize()
+                : new Vec3d(0.0D, 0.0D, 1.0D);
+        Vec3d side = new Vec3d(-forward.z, 0.0D, forward.x);
+        Vec3d missPoint = target.add(forward.multiply(0.85D)).add(side.multiply(0.45D));
+
+        boolean arc = profile.motion() == BattleMoveAnimationProfile.Motion.PROJECTILE
+                || profile.motion() == BattleMoveAnimationProfile.Motion.ARC
+                || profile.motion() == BattleMoveAnimationProfile.Motion.BURST;
+        int steps = profile.motion() == BattleMoveAnimationProfile.Motion.BEAM ? 22 : 14;
+        renderTrail(world, themed, source, missPoint, steps, arc ? 0.55D : 0.0D, arc);
+        renderTrail(world, ParticleTypes.END_ROD, source, missPoint, Math.max(6, steps / 2), arc ? 0.42D : 0.0D, arc);
+        spawn(world, ParticleTypes.POOF, missPoint, 5, 0.20D, 0.18D, 0.20D, 0.03D);
+        play(world, missPoint, SoundEvents.ENTITY_ARROW_SHOOT, 0.35F, 1.65F);
+    }
+
+    private static void renderCritical(
+            ServerWorld world,
+            Vec3d target,
+            BattleMoveAnimationProfile profile
+    ) {
+        ParticleEffect themed = themedParticle(profile.theme());
+        spawn(world, ParticleTypes.CRIT, target, 22, 0.48D, 0.40D, 0.48D, 0.16D);
+        spawn(world, ParticleTypes.END_ROD, target, 12, 0.38D, 0.34D, 0.38D, 0.08D);
+        spawn(world, themed, target, 12, 0.42D, 0.34D, 0.42D, 0.10D);
+        play(world, target, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, 0.9F, 0.9F);
     }
 
     private static void renderTrail(
