@@ -1,5 +1,8 @@
 {
-  "primaryMinecraftVersion": "1.20.1",
+  "primaryMinecraftVersion": "1.21.1",
+  "stableCobblemonVersion": "1.7.3+1.21.1",
+  "nextCobblemonTarget": "1.8.0",
+  "nextTargetSource": "cable-mc/cobblemon main changelog and source",
   "distributionGoal": "java-modded-global",
-  "note": "Compatibility target metadata only. Runtime migration is incremental and must preserve server-authoritative RPG and AutoPTU battle contracts."
+  "note": "Runtime compatibility remains gated until the 1.8 artifact passes production Fabric + Cobblemon smokes. RPG/world authority and AutoPTU battle contracts are version-independent."
 }
