@@ -18,20 +18,23 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
+    private static final int[] FLAMETHROWER_CAPTURE_TICKS = {81, 84, 87, 90, 93, 96};
+    private static final int[] HYDRO_PUMP_CAPTURE_TICKS = {111, 114, 117, 120, 123, 126};
     private static int ticksBeforeConnect;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean battleRequested;
     private static boolean cameraPlaced;
     private static boolean readyCaptured;
-    private static boolean firstCaptured;
-    private static boolean counterCaptured;
+    private static int flamethrowerCaptures;
+    private static int hydroPumpCaptures;
 
     @Override public void onInitializeClient() {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            battleRequested = cameraPlaced = readyCaptured = firstCaptured = counterCaptured = false;
+            battleRequested = cameraPlaced = readyCaptured = false;
+            flamethrowerCaptures = hydroPumpCaptures = 0;
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -39,15 +42,15 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
 
     private static void tick(MinecraftClient client) {
         if (ticksSinceJoin < 0) { requestConnection(client); return; }
-        if (counterCaptured || client.player == null || client.world == null) return;
+        if (hydroPumpCaptures >= HYDRO_PUMP_CAPTURE_TICKS.length || client.player == null || client.world == null) return;
         ticksSinceJoin++;
         if (ticksSinceJoin <= 40 && client.currentScreen != null) client.setScreen(null);
         if (client.getNetworkHandler() == null) return;
 
         if (!battleRequested && ticksSinceJoin >= 60) {
-            client.getNetworkHandler().sendChatCommand("autoptu testbattle charmander");
+            client.getNetworkHandler().sendChatCommand("autoptu testbattle charizard");
             battleRequested = true;
-            LOGGER.info("AutoPTU battle visual evidence requested authoritative demo battle");
+            LOGGER.info("AutoPTU battle visual evidence requested Charizard vs Blastoise native move showcase");
             return;
         }
 
@@ -63,19 +66,27 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         // Clear chat and unrelated toasts only after the battle and camera commands are on the wire.
         if (cameraPlaced) sanitizeCaptureHud(client);
 
-        // AutoPTU-Java owns the fixed demo cadence and PTU results. These windows only capture its
-        // server-synchronized presentation and never use Cobblemon-native HP as combat authority.
         if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
-            capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
+            capture(client, "autoptu-charizard-blastoise-ready.png");
+            readyCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence captured Charizard vs Blastoise ready window");
+            return;
         }
-        if (readyCaptured && !firstCaptured && ticksSinceJoin >= 90) {
-            capture(client, "autoptu-battle-first-strike.png"); firstCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence captured post-first-move window"); return;
+
+        if (readyCaptured && flamethrowerCaptures < FLAMETHROWER_CAPTURE_TICKS.length
+                && ticksSinceJoin >= FLAMETHROWER_CAPTURE_TICKS[flamethrowerCaptures]) {
+            int frame = ++flamethrowerCaptures;
+            capture(client, String.format("autoptu-charizard-blastoise-flamethrower-%02d.png", frame));
+            LOGGER.info("AutoPTU battle visual evidence captured Flamethrower frame {} at client tick {}", frame, ticksSinceJoin);
+            return;
         }
-        if (firstCaptured && !counterCaptured && ticksSinceJoin >= 120) {
-            capture(client, "autoptu-battle-counter-strike.png"); counterCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
+
+        if (flamethrowerCaptures >= FLAMETHROWER_CAPTURE_TICKS.length
+                && hydroPumpCaptures < HYDRO_PUMP_CAPTURE_TICKS.length
+                && ticksSinceJoin >= HYDRO_PUMP_CAPTURE_TICKS[hydroPumpCaptures]) {
+            int frame = ++hydroPumpCaptures;
+            capture(client, String.format("autoptu-charizard-blastoise-hydropump-%02d.png", frame));
+            LOGGER.info("AutoPTU battle visual evidence captured Hydro Pump frame {} at client tick {}", frame, ticksSinceJoin);
         }
     }
 
