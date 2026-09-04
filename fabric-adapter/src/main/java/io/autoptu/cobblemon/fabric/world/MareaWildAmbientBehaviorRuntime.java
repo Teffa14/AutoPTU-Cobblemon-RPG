@@ -134,8 +134,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                 if (fleeX == 0.0D && fleeZ == 0.0D) return;
             }
 
-            actor.addVelocity(fleeX, 0.0D, fleeZ);
-            actor.velocityModified = true;
+            setAmbientHorizontalVelocity(actor, fleeX, fleeZ, FLEE_SPEED);
         }
     }
 
@@ -148,8 +147,24 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         double[] recovery = recoveryImpulse(actor.getX(), actor.getZ(), centerX, centerZ, RECOVERY_SPEED);
         if (recovery[0] == 0.0D && recovery[1] == 0.0D) return;
         actor.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
-        actor.addVelocity(recovery[0], 0.0D, recovery[1]);
+        setAmbientHorizontalVelocity(actor, recovery[0], recovery[1], RECOVERY_SPEED);
+    }
+
+    private static void setAmbientHorizontalVelocity(PokemonEntity actor, double requestedX, double requestedZ, double maxSpeed) {
+        double[] bounded = boundedHorizontalVelocity(requestedX, requestedZ, maxSpeed);
+        actor.setVelocity(bounded[0], actor.getVelocity().y, bounded[1]);
         actor.velocityModified = true;
+    }
+
+    static double[] boundedHorizontalVelocity(double requestedX, double requestedZ, double maxSpeed) {
+        if (!Double.isFinite(requestedX) || !Double.isFinite(requestedZ)
+                || !Double.isFinite(maxSpeed) || maxSpeed <= 0.0D) {
+            throw new IllegalArgumentException("ambient velocity requires finite components and positive max speed");
+        }
+        double speed = Math.sqrt(requestedX * requestedX + requestedZ * requestedZ);
+        if (speed <= maxSpeed || speed <= 0.001D) return new double[] {requestedX, requestedZ};
+        double scale = maxSpeed / speed;
+        return new double[] {requestedX * scale, requestedZ * scale};
     }
 
     static double[] recoveryImpulse(
