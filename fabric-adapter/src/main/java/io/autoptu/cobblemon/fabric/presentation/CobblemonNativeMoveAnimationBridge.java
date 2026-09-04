@@ -31,7 +31,7 @@ final class CobblemonNativeMoveAnimationBridge {
     private CobblemonNativeMoveAnimationBridge() {
     }
 
-    static RenderResult tryRender(
+    static boolean tryRender(
             PokemonEntity attacker,
             PokemonEntity target,
             String moveId,
@@ -47,7 +47,7 @@ final class CobblemonNativeMoveAnimationBridge {
 
         CobblemonMoveAnimationRouting.Route route = CobblemonMoveAnimationRouting.resolve(moveId);
         if (!route.nativeEffect()) {
-            return new RenderResult(false, route);
+            return false;
         }
 
         String effectPath = route.effectPath();
@@ -57,12 +57,7 @@ final class CobblemonNativeMoveAnimationBridge {
         if (effect == null) {
             // Resource reloads can theoretically race route selection. Fail back to the project
             // renderer rather than treating a presentation asset as required battle state.
-            return new RenderResult(false, new CobblemonMoveAnimationRouting.Route(
-                    CobblemonMoveAnimationRouting.Source.GENERIC_FALLBACK,
-                    route.requestedMoveId(),
-                    "",
-                    route.variant()
-            ));
+            return false;
         }
 
         MoLangRuntime runtime = new MoLangRuntime();
@@ -101,19 +96,13 @@ final class CobblemonNativeMoveAnimationBridge {
         // animation never becomes PTU position truth: AutoPTU coordinates remain canonical and the
         // adapter never reads the temporary Cobblemon transform back into battle state.
         effect.run(context);
-        return new RenderResult(true, route);
+        if (route.substituted()) {
+            CobblemonSubstituteAnimationAccent.render(attacker, target, moveId, route.variant());
+        }
+        return true;
     }
 
     static String effectPath(String moveId) {
         return BattleMoveAnimationProfile.normalize(moveId);
-    }
-
-    record RenderResult(boolean rendered, CobblemonMoveAnimationRouting.Route route) {
-        RenderResult {
-            Objects.requireNonNull(route, "route");
-            if (rendered && !route.nativeEffect()) {
-                throw new IllegalArgumentException("rendered native result requires a native route");
-            }
-        }
     }
 }
