@@ -132,6 +132,45 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     }
 
     @Test
+    void yieldLeaseUsesSegmentedPathElevationInsteadOfCurrentHeightStraightCorridor() {
+        var yieldingRoute = MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                new Box(-0.25D, 0.0D, -0.25D, 0.25D, 1.0D, 0.25D),
+                new Vec3d(0.0D, 0.0D, 0.0D),
+                List.of(
+                        new Vec3d(1.0D, 0.0D, 0.0D),
+                        new Vec3d(1.0D, 4.0D, 0.0D),
+                        new Vec3d(3.0D, 4.0D, 0.0D)),
+                5.0D);
+
+        Box underElevatedSegment = new Box(1.75D, 0.0D, -0.2D, 2.25D, 1.0D, 0.2D);
+        Box onElevatedSegment = new Box(1.75D, 4.0D, -0.2D, 2.25D, 5.0D, 0.2D);
+
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.corridorsOccupiedOrClaimed(
+                yieldingRoute, underElevatedSegment, List.of()));
+        assertTrue(MareaWildCalmReciprocalYieldRuntime.corridorsOccupiedOrClaimed(
+                yieldingRoute, onElevatedSegment, List.of()));
+    }
+
+    @Test
+    void yieldLeaseRetainsAgainstPeerClaimOnlyWhereSegmentedRoutesActuallyOverlap() {
+        var yieldingRoute = List.of(
+                new MareaWildCalmReciprocalYieldRuntime.DirectedCorridor(
+                        1.0D, 0.0D, new Box(0.0D, 4.0D, 0.0D, 3.0D, 5.0D, 0.5D)));
+        Box peerBounds = new Box(3.5D, 0.0D, 1.0D, 4.0D, 1.0D, 1.5D);
+        var lowPeerClaim = List.of(
+                new MareaWildCalmReciprocalYieldRuntime.DirectedCorridor(
+                        0.0D, -1.0D, new Box(1.5D, 0.0D, -0.5D, 2.0D, 1.0D, 1.5D)));
+        var highPeerClaim = List.of(
+                new MareaWildCalmReciprocalYieldRuntime.DirectedCorridor(
+                        0.0D, -1.0D, new Box(1.5D, 4.0D, -0.5D, 2.0D, 5.0D, 1.5D)));
+
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.corridorsOccupiedOrClaimed(
+                yieldingRoute, peerBounds, lowPeerClaim));
+        assertTrue(MareaWildCalmReciprocalYieldRuntime.corridorsOccupiedOrClaimed(
+                yieldingRoute, peerBounds, highPeerClaim));
+    }
+
+    @Test
     void parallelCorridorsDoNotCreateArtificialYield() {
         Box actorCorridor = new Box(0.0D, 0.0D, 0.0D, 3.0D, 1.0D, 1.0D);
         Box peerCorridor = new Box(0.5D, 0.0D, 0.2D, 3.5D, 1.0D, 1.2D);
@@ -212,6 +251,9 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
                         0.0D, 1.0D, new Box(0, 0, 0, 1, 1, 1)));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
+                        null, new Box(0, 0, 0, 1, 1, 1), List.of()));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmReciprocalYieldRuntime.corridorsOccupiedOrClaimed(
                         null, new Box(0, 0, 0, 1, 1, 1), List.of()));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
