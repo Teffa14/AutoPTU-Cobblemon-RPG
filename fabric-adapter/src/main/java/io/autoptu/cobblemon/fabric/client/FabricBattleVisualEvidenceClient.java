@@ -56,9 +56,11 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
         if (shapeSceneStarted && !cameraPlaced && ticksSinceJoin >= 66) {
-            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~4 ~-10 0 12");
+            // QA evidence only: use a higher, steeper angle so ground footprints are readable.
+            // This does not alter production battle-camera behavior.
+            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~7 ~-10 0 28");
             cameraPlaced = true;
-            LOGGER.info("AutoPTU PTU-shape camera placed");
+            LOGGER.info("AutoPTU PTU-shape evidence camera placed at elevated footprint-readable angle");
             return;
         }
         if (cameraPlaced) sanitizeCaptureHud(client);
@@ -78,7 +80,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
 
-        if (captureIndex >= OFFSETS.length && elapsed >= 40) {
+        if (captureIndex >= OFFSETS.length && elapsed >= 48) {
             LOGGER.info("AutoPTU shape evidence completed {} window", phaseName());
             phase++;
             if (phase >= 4) {
