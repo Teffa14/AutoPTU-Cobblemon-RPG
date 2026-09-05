@@ -15,12 +15,19 @@ public record WildBehaviorProfile(
         long calmActiveTicks,
         double maxIdleHorizontalSpeed,
         double playerGuardRadius,
-        float idleScanDegrees
+        float idleScanDegrees,
+        double calmRoamSpeed,
+        double calmStopDistance,
+        double separationDistance,
+        double separationSpeed,
+        double cohesionDistance,
+        double cohesionSpeed,
+        double fleeSpeed,
+        double recoverySpeed,
+        double recoveryStopDistance
 ) {
     public WildBehaviorProfile {
-        if (!Double.isFinite(watchDistance) || watchDistance <= 0.0D) {
-            throw new IllegalArgumentException("watchDistance must be finite and positive");
-        }
+        requirePositive(watchDistance, "watchDistance");
         if (!Double.isFinite(alarmDistance) || alarmDistance <= 0.0D || alarmDistance > watchDistance) {
             throw new IllegalArgumentException("alarmDistance must be finite, positive and <= watchDistance");
         }
@@ -33,11 +40,21 @@ public record WildBehaviorProfile(
         if (!Double.isFinite(maxIdleHorizontalSpeed) || maxIdleHorizontalSpeed < 0.0D) {
             throw new IllegalArgumentException("maxIdleHorizontalSpeed must be finite and non-negative");
         }
-        if (!Double.isFinite(playerGuardRadius) || playerGuardRadius <= 0.0D) {
-            throw new IllegalArgumentException("playerGuardRadius must be finite and positive");
-        }
+        requirePositive(playerGuardRadius, "playerGuardRadius");
         if (!Float.isFinite(idleScanDegrees) || idleScanDegrees < 0.0F || idleScanDegrees > 180.0F) {
             throw new IllegalArgumentException("idleScanDegrees must be finite and between 0 and 180");
+        }
+        requirePositive(calmRoamSpeed, "calmRoamSpeed");
+        requirePositive(calmStopDistance, "calmStopDistance");
+        requirePositive(separationDistance, "separationDistance");
+        requirePositive(separationSpeed, "separationSpeed");
+        requirePositive(cohesionDistance, "cohesionDistance");
+        requirePositive(cohesionSpeed, "cohesionSpeed");
+        requirePositive(fleeSpeed, "fleeSpeed");
+        requirePositive(recoverySpeed, "recoverySpeed");
+        requirePositive(recoveryStopDistance, "recoveryStopDistance");
+        if (cohesionDistance <= separationDistance) {
+            throw new IllegalArgumentException("cohesionDistance must be greater than separationDistance");
         }
     }
 
@@ -51,5 +68,11 @@ public record WildBehaviorProfile(
 
     public boolean calmMovementActive(long worldTime) {
         return Math.floorMod(worldTime, calmSegmentTicks) < calmActiveTicks;
+    }
+
+    private static void requirePositive(double value, String name) {
+        if (!Double.isFinite(value) || value <= 0.0D) {
+            throw new IllegalArgumentException(name + " must be finite and positive");
+        }
     }
 }
