@@ -10,6 +10,16 @@ AutoPTU-Java owns battle legality, calculations, lifecycle and outcomes. Minecra
 
 Out-of-combat Trainer, Pokémon, item and progression state is also server-authoritative. Persistent player/profile/Pokémon/item state is stored below the active world save. Clients and platform entities may supply authenticated identity or presentation correlation only.
 
+## Deployment and engine integration model
+
+The intended product is a coordinated client-and-server Fabric modpack, not a server-only compatibility layer. Client code may own custom UI, camera/presentation, local input collection and other presentation behavior that cannot be implemented reliably from the dedicated server alone. The server remains authoritative for all RPG and PTU state and revalidates every client intent.
+
+The battle integration follows the same high-level separation pattern that Cobblemon uses around Pokémon Showdown: a Minecraft/Cobblemon-facing translation layer bridges to a separate battle-rules authority. In this project that authority is `AutoPTU-Java`, consumed through explicit Java contracts. The Fabric adapter translates authenticated world/player/entity correlations and authoritative battle events; it does not translate Cobblemon `BattleState` into PTU truth.
+
+The Python `Teffa14/AutoPTU` implementation is the parity oracle while the Java port is incomplete. It is not the intended production runtime and must not be reintroduced as a Python subprocess, embedded interpreter, VM or IPC battle service merely to mirror Cobblemon's Showdown deployment. Keeping the production authority in Java avoids a second runtime/process boundary while preserving the important architectural property: Minecraft/Cobblemon are platform and presentation, while battle rules remain isolated behind a narrow adapter.
+
+Maintaining both client and server code means players must use the compatible modpack/version set. Distribution through a managed modpack is therefore part of the deployment model, and compatibility checks must cover the complete pinned Minecraft/Fabric/Cobblemon/client stack rather than only dedicated-server boot.
+
 ## First playable battle test
 
 The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a short lunge, displayed HP/nameplates and the final winner/loser message.
