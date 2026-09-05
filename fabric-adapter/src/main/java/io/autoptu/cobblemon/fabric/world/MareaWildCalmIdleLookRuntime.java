@@ -12,10 +12,9 @@ import java.util.List;
 /**
  * Authored population adapter for the current Marea fixture.
  *
- * The ambient idle algorithm is owned by {@link WildCalmIdleLookRuntime}. This class only maps the
- * existing authored population/migration data into the generic world-wide ecology projection
- * contract. New regions and species should register their own data sources instead of copying this
- * runtime or adding behavior here.
+ * Global ambient algorithms are owned by the Wild* runtimes. This class only maps the existing
+ * authored population/migration data into the world-wide ecology projection contract. New regions
+ * and species register data sources instead of copying this adapter's behavior.
  */
 public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
     static final WildBehaviorProfile BEHAVIOR_PROFILE = new WildBehaviorProfile(
@@ -27,7 +26,16 @@ public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
             60L,
             0.001D,
             14.0D,
-            35.0F);
+            35.0F,
+            0.025D,
+            1.0D,
+            2.5D,
+            0.018D,
+            6.0D,
+            0.012D,
+            0.08D,
+            0.04D,
+            1.5D);
 
     @Override
     public void onInitialize() {
@@ -55,8 +63,10 @@ public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
                         projectedSiteId.get());
                 projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
                         actor,
+                        population.siteId(),
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
+                        population.habitatLeashRadiusBlocks(),
                         BEHAVIOR_PROFILE));
             }
         }
