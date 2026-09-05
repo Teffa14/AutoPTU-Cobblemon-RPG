@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * Minecraft-only idle presentation for canonical Marea roaming actors.
  *
- * During the authored CALM rest cadence, an otherwise idle actor turns toward the interior of its
+ * During the authored CALM rest cadence, an otherwise idle actor orients toward the interior of its
  * current habitat with a small deterministic scan offset. Nearby players, active navigation and
  * meaningful horizontal motion always suppress this behavior so WATCHING/ALARMED/recovery and
  * native pathing keep priority. This runtime never reads Cobblemon Pokemon gameplay payload or
