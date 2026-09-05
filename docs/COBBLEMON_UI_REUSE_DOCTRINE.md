@@ -19,6 +19,20 @@ The rule is strict for UI, battle presentation and generic Minecraft support sys
 5. Cobblemon Pokemon/BattleState payloads and third-party mod state must not become canonical RPG or battle inputs merely because their presentation or infrastructure code is reused. Canonical state flows from server-authoritative AutoPTU/Ouros services into the reused surface. A third-party mod may own ordinary Minecraft-only state when that state has no Ouros/PTU semantic authority.
 6. Existing Ouros UIs and generic infrastructure are migration candidates. If a safe pinned Cobblemon or compatible-mod component can expose the same server-authoritative state, prefer replacing the duplicate Ouros implementation rather than maintaining both.
 
+## Client/server and engine boundary
+
+The supported product architecture assumes coordinated Fabric code on both client and dedicated server. Server-only compatibility is not the design target because it would unnecessarily restrict custom battle UI, camera/presentation behavior and smooth client-side interaction. The cost is explicit: players must use the compatible modpack and pinned dependency versions, so client distribution and version maintenance are part of the product surface.
+
+The battle bridge follows a translator pattern rather than a shared-authority pattern. Cobblemon itself separates Minecraft from Pokémon Showdown through translation. Ouros should preserve that useful separation while replacing Showdown authority with AutoPTU-Java authority:
+
+`Minecraft/Cobblemon client + server presentation <-> Fabric adapter contracts <-> AutoPTU-Java battle authority`
+
+The adapter may translate authenticated player identity, canonical combatant IDs, world/entity correlations, legal-choice projections, battle requests and authoritative semantic events. It must not translate Cobblemon `BattleState`, Cobblemon Pokémon gameplay payloads or client state into canonical PTU truth.
+
+The Python AutoPTU repository remains the read-only behavior oracle during the Java port. Production integration must not add a Python subprocess, embedded Python interpreter, virtual machine or IPC service merely to copy Cobblemon's Showdown hosting strategy. The relevant lesson is the narrow translation boundary, not the implementation language or process topology. AutoPTU-Java should remain directly consumable from the Java/Fabric runtime so the project avoids a second runtime boundary, serialization protocol, process supervision path and failure/recovery domain.
+
+If a future requirement genuinely needs process isolation, that must be justified independently with measured reliability/security/performance evidence and an explicit authority contract. It is not the default architecture.
+
 ## Dependency admission gate
 
 A third-party mod is a candidate only after checking all of these:
