@@ -80,45 +80,18 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
     }
 
     /**
-     * Recovers the existing persistent presentation actor before any replacement is allowed.
-     *
-     * <p>Migration can activate a stopover while the actor's authored-home chunk is unloaded. The
-     * canonical encounter binding still points at the persisted UUID, so loading the bounded chunk
-     * envelope covered by the population's authored habitat leash lets Minecraft restore that exact
-     * entity before projection moves it. Only if no bound actor exists after that recovery may the
-     * normal visible-wild reconciler create a replacement.</p>
+     * Compatibility bridge for the authored Marea migration projection.
+     * Persistent visible-actor recovery itself is region-agnostic and shared by every population.
      */
     static PokemonEntity recoverBoundActor(
             ServerWorld world,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
     ) {
-        PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
-        if (actor != null) return actor;
-        if (VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId()).isEmpty()) return null;
-
-        BlockPos home = canonicalHomeAnchor(encounter);
-        int leash = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "missing canonical wild population for recovery: " + encounter.populationId()))
-                .habitatLeashRadiusBlocks();
-        int minChunkX = Math.floorDiv(home.getX() - leash, 16);
-        int maxChunkX = Math.floorDiv(home.getX() + leash, 16);
-        int minChunkZ = Math.floorDiv(home.getZ() - leash, 16);
-        int maxChunkZ = Math.floorDiv(home.getZ() + leash, 16);
-        for (int x = minChunkX; x <= maxChunkX; x++) {
-            for (int z = minChunkZ; z <= maxChunkZ; z++) {
-                world.getChunk(x, z);
-            }
-        }
-        return loadedActor(world, encounter.canonicalEncounterId());
+        return WildVisibleActorRecovery.recoverBoundActor(world, encounter);
     }
 
     static BlockPos canonicalHomeAnchor(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
-        if (encounter == null) throw new IllegalArgumentException("encounter is required");
-        var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId())
-                .orElseThrow(() -> new IllegalStateException("missing canonical wild encounter home site: " + encounter.siteId()));
-        return new BlockPos(site.x(), site.y(), site.z()).add(
-                encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
+        return WildVisibleActorRecovery.canonicalHomeAnchor(encounter);
     }
 
     static CanonicalWildPopulationCatalogue.PresenceFootprint activityFootprint(
@@ -149,20 +122,13 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
     ) {
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-            PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
+            PokemonEntity actor = WildVisibleActorRecovery.loadedActor(world, encounter.canonicalEncounterId());
             if (actor == null) continue;
             actor.setInvisible(!active);
             VisibleWildPokemonEncounterRuntime.setInteractionActive(actor.getUuid(), active);
             if (active) visible++;
         }
         return visible;
-    }
-
-    private static PokemonEntity loadedActor(ServerWorld world, String encounterId) {
-        var bound = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounterId);
-        if (bound.isEmpty()) return null;
-        var entity = world.getEntity(bound.get());
-        return entity instanceof PokemonEntity pokemon && !pokemon.isRemoved() ? pokemon : null;
     }
 
     private static boolean hasPlayerInside(
