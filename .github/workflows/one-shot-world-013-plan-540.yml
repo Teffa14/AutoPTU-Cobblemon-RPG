@@ -1,0 +1,39 @@
+name: One-shot WORLD-013 plan bookkeeping 540
+
+on:
+  push:
+    paths:
+      - .github/workflows/one-shot-world-013-plan-540.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch canonical WORLD-013 queue entry
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old = "PR #539 / merge `fd408c3743ce968ed9aa917aa40cdff67718c299` extracts restart/chunk-load recovery of already-bound visible WILD presentation actors into region-agnostic `WildVisibleActorRecovery`; the existing migration path consumes this global boundary without reading Cobblemon Pokemon gameplay data. New ecology work must continue removing lifecycle responsibility from `MareaWild*` runtimes: next globalize normal population activation, presence reconciliation and provisioning orchestration from `MareaVisibleWildPokemonRuntime` behind reusable server-owned policies. Missing additional complete WILD blueprints block activation of additional species/populations only; they do not block generic ecology infrastructure."
+          new = "PR #539 / merge `fd408c3743ce968ed9aa917aa40cdff67718c299` extracts restart/chunk-load recovery of already-bound visible WILD presentation actors into region-agnostic `WildVisibleActorRecovery`; the existing migration path consumes this global boundary without reading Cobblemon Pokemon gameplay data. PR #540 / merge `f7d8e81b39b4a572d420dcb3fe30090e8ae9691e` moves normal visible-WILD activation, retention hysteresis, hibernation, presence reconciliation, canonical binding, blueprint-before-reveal, replacement provisioning and destructive-unload cleanup into global `WildPopulationRuntime` plus `WildPopulationContentRegistry`; Marea now contributes authored source policy/content and retains only a compatibility facade for existing fixtures. New ecology work must continue removing region-owned policy algorithms: next extract the Marea migration/projected-site schedule into reusable data-driven population projection profiles consumed by the global registry, leaving region modules as authored data rather than lifecycle logic. Missing additional complete WILD blueprints block activation of additional species/populations only; they do not block generic ecology infrastructure."
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one WORLD-013 tail, found {count}')
+          path.write_text(text.replace(old, new))
+          PY
+      - name: Commit plan and remove one-shot helper
+        run: |
+          rm .github/workflows/one-shot-world-013-plan-540.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/one-shot-world-013-plan-540.yml
+          git commit -m "Record WORLD-013 global population lifecycle"
+          git push origin HEAD:main
