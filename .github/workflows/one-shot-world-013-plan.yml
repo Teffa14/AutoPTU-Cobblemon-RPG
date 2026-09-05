@@ -1,0 +1,40 @@
+name: One-shot WORLD-013 plan bookkeeping
+
+on:
+  push:
+    paths:
+      - .github/workflows/one-shot-world-013-plan.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Patch canonical WORLD-013 queue entry
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text()
+          old = "PR #536 / merge `7e7f9bf73eacd23499ba3f267ffae6838e059603` globalizes stalled-route recovery and native-route continuity through `WildCalmNavigationRecoveryRuntime` and `WildCalmNavigationContinuityRuntime`; every population published through the global ecology registry now uses its own `WildBehaviorProfile` cadence, player guard and stop distance while Minecraft geometry remains presentation-only authority. New ecology work must continue removing behavior responsibility from `MareaWild*` runtimes: next globalize reciprocal-yield intent handling. Missing additional complete WILD blueprints block activation of additional species/populations only; they do not block generic ecology infrastructure."
+          new = "PR #536 / merge `7e7f9bf73eacd23499ba3f267ffae6838e059603` globalizes stalled-route recovery and native-route continuity through `WildCalmNavigationRecoveryRuntime` and `WildCalmNavigationContinuityRuntime`; every population published through the global ecology registry now uses its own `WildBehaviorProfile` cadence, player guard and stop distance while Minecraft geometry remains presentation-only authority. PR #537 / merge `32f69e63bf8cd744855bcea3753c430fc17f8351` globalizes reciprocal-yield intent handling through `WildCalmReciprocalYieldRuntime`, including 3D path intent, swept-volume fallback, deterministic canonical ordering and bounded yield leases for any projected population. PR #538 / merge `250a2e09d09644dc803ec9dc05d5f1a0979b2268` moves habitat cues and ecology startup onto global `Wild*` runtimes while reducing Marea to authored projection/content data. PR #539 / merge `fd408c3743ce968ed9aa917aa40cdff67718c299` extracts restart/chunk-load recovery of already-bound visible WILD presentation actors into region-agnostic `WildVisibleActorRecovery`; the existing migration path consumes this global boundary without reading Cobblemon Pokemon gameplay data. New ecology work must continue removing lifecycle responsibility from `MareaWild*` runtimes: next globalize normal population activation, presence reconciliation and provisioning orchestration from `MareaVisibleWildPokemonRuntime` behind reusable server-owned policies. Missing additional complete WILD blueprints block activation of additional species/populations only; they do not block generic ecology infrastructure."
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one WORLD-013 tail, found {count}')
+          path.write_text(text.replace(old, new))
+          PY
+      - name: Commit plan and remove one-shot helper
+        run: |
+          rm .github/workflows/one-shot-world-013-plan.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/one-shot-world-013-plan.yml
+          git commit -m "Record shipped global wild ecology slices"
+          git push origin HEAD:main
