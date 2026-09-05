@@ -6,9 +6,13 @@ animation authority. The official Cobblemon geometry remains the body source of
 truth; appended `ouros_*` bones must inherit from that hierarchy and must not be
 free-floating islands in bind pose.
 
-The gate is intentionally reusable across species. It complements Blockbench
-motion review; it does not replace visual inspection of official idle/battle/
-locomotion clips.
+The gate validates both Bedrock cubes and experimental `poly_mesh` geometry.
+For Ouros poly meshes it additionally requires explicit indexed polygons and a
+single connected vertex component so a distant island cannot hide inside one
+large mesh AABB.
+
+The gate complements Blockbench motion review; it does not replace visual
+inspection of official idle/battle/locomotion clips.
 """
 from __future__ import annotations
 
@@ -16,6 +20,8 @@ import argparse
 import json
 import math
 from pathlib import Path
+
+Bounds = tuple[tuple[float, float, float], tuple[float, float, float]]
 
 
 def load_geometry(path: Path) -> dict:
@@ -29,7 +35,7 @@ def load_geometry(path: Path) -> dict:
     return geo
 
 
-def aabb(cube: dict) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
+def cube_bounds(cube: dict) -> Bounds:
     origin = cube.get("origin")
     size = cube.get("size")
     if not (isinstance(origin, list) and isinstance(size, list) and len(origin) == len(size) == 3):
@@ -39,9 +45,24 @@ def aabb(cube: dict) -> tuple[tuple[float, float, float], tuple[float, float, fl
     return tuple(min(lo[i], hi[i]) for i in range(3)), tuple(max(lo[i], hi[i]) for i in range(3))
 
 
-def gap(a: dict, b: dict) -> float:
-    alo, ahi = aabb(a)
-    blo, bhi = aabb(b)
+def mesh_bounds(mesh: dict) -> Bounds:
+    positions = mesh.get("positions")
+    if not isinstance(positions, list) or len(positions) < 3:
+        raise ValueError("poly_mesh requires at least 3 positions")
+    parsed = []
+    for index, pos in enumerate(positions):
+        if not isinstance(pos, list) or len(pos) != 3:
+            raise ValueError(f"poly_mesh position {index} must contain 3 numbers")
+        parsed.append(tuple(float(v) for v in pos))
+    return (
+        tuple(min(pos[axis] for pos in parsed) for axis in range(3)),
+        tuple(max(pos[axis] for pos in parsed) for axis in range(3)),
+    )
+
+
+def bounds_gap(a: Bounds, b: Bounds) -> float:
+    alo, ahi = a
+    blo, bhi = b
     sq = 0.0
     for axis in range(3):
         if ahi[axis] < blo[axis]:
@@ -52,6 +73,47 @@ def gap(a: dict, b: dict) -> float:
             d = 0.0
         sq += d * d
     return math.sqrt(sq)
+
+
+def validate_mesh_topology(name: str, mesh: dict) -> None:
+    positions = mesh.get("positions")
+    polys = mesh.get("polys")
+    if not isinstance(positions, list) or len(positions) < 3:
+        raise SystemExit(f"{name}: poly_mesh requires at least 3 positions")
+    if not isinstance(polys, list) or not polys:
+        raise SystemExit(f"{name}: Ouros poly_mesh must use explicit indexed polys")
+
+    used: set[int] = set()
+    adjacency: dict[int, set[int]] = {}
+    for face_index, face in enumerate(polys):
+        if not isinstance(face, list) or len(face) not in (3, 4):
+            raise SystemExit(f"{name}: poly_mesh face {face_index} must be a triangle or quad")
+        face_positions: list[int] = []
+        for vertex in face:
+            if not isinstance(vertex, list) or len(vertex) != 3:
+                raise SystemExit(f"{name}: face {face_index} vertex must index position/normal/uv")
+            pos_index = vertex[0]
+            if not isinstance(pos_index, int) or not 0 <= pos_index < len(positions):
+                raise SystemExit(f"{name}: face {face_index} has invalid position index {pos_index!r}")
+            face_positions.append(pos_index)
+            used.add(pos_index)
+            adjacency.setdefault(pos_index, set())
+        for left in face_positions:
+            adjacency[left].update(right for right in face_positions if right != left)
+
+    if not used:
+        raise SystemExit(f"{name}: poly_mesh has no referenced positions")
+    start = next(iter(used))
+    seen = {start}
+    stack = [start]
+    while stack:
+        cursor = stack.pop()
+        for nxt in adjacency.get(cursor, set()):
+            if nxt not in seen:
+                seen.add(nxt)
+                stack.append(nxt)
+    if seen != used:
+        raise SystemExit(f"{name}: poly_mesh contains disconnected vertex components")
 
 
 def main() -> None:
@@ -76,8 +138,8 @@ def main() -> None:
     if not extras:
         raise SystemExit("candidate has no Ouros cosmetic bones")
 
-    official_cubes = [cube for bone in official_bones for cube in bone.get("cubes", [])]
-    if not official_cubes:
+    official_bounds = [cube_bounds(cube) for bone in official_bones for cube in bone.get("cubes", [])]
+    if not official_bounds:
         raise SystemExit("official model has no cubes")
 
     reports = []
@@ -89,7 +151,6 @@ def main() -> None:
         if not isinstance(parent, str) or parent not in all_names:
             raise SystemExit(f"{name}: missing/unknown parent {parent!r}")
 
-        # The parent chain must terminate in the immutable official hierarchy.
         seen = {name}
         cursor = parent
         while cursor not in original_names:
@@ -104,10 +165,26 @@ def main() -> None:
                 raise SystemExit(f"{name}: parent chain terminates without an official bone")
 
         cubes = bone.get("cubes", [])
-        if not cubes:
-            raise SystemExit(f"{name}: cosmetic bone has no cubes")
+        if cubes is None:
+            cubes = []
+        if not isinstance(cubes, list):
+            raise SystemExit(f"{name}: cubes must be a list")
+        pieces: list[tuple[str, int, Bounds]] = [
+            ("cube", index, cube_bounds(cube)) for index, cube in enumerate(cubes)
+        ]
 
-        anchor_gap = min(gap(c, o) for c in cubes for o in official_cubes)
+        mesh = bone.get("poly_mesh")
+        mesh_present = mesh is not None
+        if mesh_present:
+            if not isinstance(mesh, dict):
+                raise SystemExit(f"{name}: poly_mesh must be an object")
+            validate_mesh_topology(name, mesh)
+            pieces.append(("poly_mesh", 0, mesh_bounds(mesh)))
+
+        if not pieces:
+            raise SystemExit(f"{name}: cosmetic bone has no cubes or poly_mesh")
+
+        anchor_gap = min(bounds_gap(piece[2], official) for piece in pieces for official in official_bounds)
         if anchor_gap > args.anchor_gap:
             raise SystemExit(
                 f"{name}: entire cosmetic group is detached from official body; "
@@ -115,19 +192,25 @@ def main() -> None:
             )
 
         floating = []
-        for index, cube in enumerate(cubes):
-            body_gap = min(gap(cube, o) for o in official_cubes)
-            sibling_gaps = [gap(cube, other) for j, other in enumerate(cubes) if j != index]
+        for index, (kind, piece_index, piece) in enumerate(pieces):
+            body_gap = min(bounds_gap(piece, official) for official in official_bounds)
+            sibling_gaps = [bounds_gap(piece, other[2]) for j, other in enumerate(pieces) if j != index]
             sibling_gap = min(sibling_gaps) if sibling_gaps else math.inf
             if body_gap > args.anchor_gap and sibling_gap > args.piece_gap:
-                floating.append({"cube": index, "bodyGap": round(body_gap, 3), "nearestSiblingGap": round(sibling_gap, 3)})
+                floating.append({
+                    "kind": kind,
+                    "piece": piece_index,
+                    "bodyGap": round(body_gap, 3),
+                    "nearestSiblingGap": round(sibling_gap, 3),
+                })
         if floating:
-            raise SystemExit(f"{name}: floating cosmetic cubes detected: {json.dumps(floating)}")
+            raise SystemExit(f"{name}: floating cosmetic geometry detected: {json.dumps(floating)}")
 
         reports.append({
             "bone": name,
             "parent": parent,
             "cubeCount": len(cubes),
+            "polyMesh": mesh_present,
             "nearestOfficialGap": round(anchor_gap, 3),
         })
 
@@ -138,7 +221,7 @@ def main() -> None:
         "pieceGapLimit": args.piece_gap,
         "attachmentGate": "PASS",
         "groups": reports,
-        "note": "Bind-pose geometry gate only; Blockbench official-animation review remains mandatory.",
+        "note": "Bind-pose geometry gate for cubes/poly_mesh only; Blockbench official-animation review remains mandatory.",
     }, indent=2))
 
 
