@@ -1,5 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
+import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 import net.fabricmc.api.ModInitializer;
 
 /**
@@ -12,6 +14,19 @@ import net.fabricmc.api.ModInitializer;
 public final class WildEcologyContentRuntime implements ModInitializer {
     @Override
     public void onInitialize() {
-        WildEcologyProjectionRegistry.register("fixture.ouros.marea", MareaWildEcologyProjectionSource::projectedActors);
+        WildPopulationContentRegistry.register(new WildPopulationContentRegistry.Source(
+                "fixture.ouros.marea",
+                population -> population.siteId().startsWith("ouros.marea."),
+                world -> world != null && world.getServer() != null && world == world.getServer().getOverworld(),
+                MareaWildMigrationProjection::projectedSiteId,
+                new MareaCanonicalWildEncounterBlueprintSource(),
+                encounter -> encounter.speciesStatus() == CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL
+                        && !encounter.fusion()
+                        && "standard".equals(encounter.formId())
+        ));
+        WildEcologyProjectionRegistry.register(
+                "fixture.ouros.marea",
+                MareaWildEcologyProjectionSource::projectedActors
+        );
     }
 }
