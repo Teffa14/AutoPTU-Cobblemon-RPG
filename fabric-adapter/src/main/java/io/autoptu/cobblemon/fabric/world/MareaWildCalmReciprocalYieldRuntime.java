@@ -345,7 +345,7 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
             double peerSpeed = horizontalSpeed(peerVelocity.x, peerVelocity.z);
             if (peerSpeed <= MIN_HORIZONTAL_SPEED || peerSpeed > MAX_CALM_SPEED) continue;
             if (reciprocalApproach(
-                    actor.getX(), actor.getZ(), velocityX, velocity.z,
+                    actor.getX(), actor.getZ(), velocityX, velocityZ,
                     peer.getX(), peer.getZ(), peerVelocity.x, peerVelocity.z)) {
                 return peer;
             }
