@@ -1,45 +1,46 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
-import io.autoptu.cobblemon.ecology.MigrationCohortState;
 import io.autoptu.cobblemon.ecology.MigrationPhase;
-import io.autoptu.cobblemon.ecology.MigrationRoute;
-import io.autoptu.cobblemon.ecology.MigrationRuntime;
-import io.autoptu.cobblemon.ecology.MigrationStopover;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Server-authored world projection for a bounded Marea migration slice.
+ * Authored Marea projection data for the lower-shelf migration cohort.
  *
- * <p>The migration changes only where an already-canonical roaming population is projected in
- * Minecraft. Encounter identity, species, PTU profile, stats, moves, HP and battle legality remain
- * untouched. Resolution is deterministic from the server world clock, so restart/reconnect cannot
- * create a second migration authority or duplicate population state.</p>
+ * <p>The schedule is content. Resolution belongs to {@link WildPopulationProjectionProfile}, so a
+ * second region or population can author another profile without adding another lifecycle algorithm.</p>
  */
 final class MareaWildMigrationProjection {
     private static final long CYCLE_TICKS = 168_000L;
     private static final long DEPARTURE_TICK = 84_000L;
-    private static final long OUTBOUND_TRANSIT_TICKS = 6_000L;
-    private static final long FINAL_TRANSIT_TICKS = 1L;
-    private static final String MIGRATING_POPULATION_ID =
-            CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID;
+    private static final long OUTBOUND_TRANSIT_END_TICK = 90_001L;
+    private static final long STOPOVER_END_TICK = 90_002L;
+    private static final long FINAL_TRANSIT_END_TICK = 90_003L;
+    private static final long ARRIVAL_END_TICK = 90_004L;
     private static final String STOPOVER_SITE_ID = "ouros.marea.sendero_crossing";
 
-    private static final MigrationRuntime RUNTIME = new MigrationRuntime();
-    private static final MigrationRoute ROUTE = new MigrationRoute(
+    private static final WildPopulationProjectionProfile PROFILE = new WildPopulationProjectionProfile(
             "ouros.marea.migration.lower_shelf_to_crossing.v1",
-            DEPARTURE_TICK,
-            OUTBOUND_TRANSIT_TICKS,
-            FINAL_TRANSIT_TICKS,
-            List.of(new MigrationStopover(
-                    STOPOVER_SITE_ID,
-                    DEPARTURE_TICK + OUTBOUND_TRANSIT_TICKS,
-                    CYCLE_TICKS - 1L,
-                    8,
-                    1.0D
-            ))
+            CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
+            CYCLE_TICKS,
+            List.of(
+                    WildPopulationProjectionProfile.Window.home(
+                            0L, DEPARTURE_TICK, MigrationPhase.PREPARING),
+                    WildPopulationProjectionProfile.Window.home(
+                            DEPARTURE_TICK, DEPARTURE_TICK + 1L, MigrationPhase.DEPARTING),
+                    WildPopulationProjectionProfile.Window.hidden(
+                            DEPARTURE_TICK + 1L, OUTBOUND_TRANSIT_END_TICK, MigrationPhase.IN_TRANSIT),
+                    WildPopulationProjectionProfile.Window.site(
+                            OUTBOUND_TRANSIT_END_TICK, STOPOVER_END_TICK, MigrationPhase.STOPOVER, STOPOVER_SITE_ID),
+                    WildPopulationProjectionProfile.Window.site(
+                            STOPOVER_END_TICK, FINAL_TRANSIT_END_TICK, MigrationPhase.IN_TRANSIT, STOPOVER_SITE_ID),
+                    WildPopulationProjectionProfile.Window.site(
+                            FINAL_TRANSIT_END_TICK, ARRIVAL_END_TICK, MigrationPhase.ARRIVING, STOPOVER_SITE_ID),
+                    WildPopulationProjectionProfile.Window.site(
+                            ARRIVAL_END_TICK, CYCLE_TICKS, MigrationPhase.SEASONAL_RESIDENCE, STOPOVER_SITE_ID)
+            )
     );
 
     private MareaWildMigrationProjection() {}
@@ -48,58 +49,17 @@ final class MareaWildMigrationProjection {
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
             long worldTick
     ) {
-        if (population == null) throw new IllegalArgumentException("population is required");
-        if (worldTick < 0L) throw new IllegalArgumentException("worldTick must be >= 0");
-        if (!MIGRATING_POPULATION_ID.equals(population.populationId())) {
-            return Optional.of(population.siteId());
-        }
-
-        MigrationCohortState state = resolve(worldTick);
-        return switch (state.phase()) {
-            case PREPARING, DEPARTING -> Optional.of(population.siteId());
-            case IN_TRANSIT -> state.stopoverIndex() < 0
-                    ? Optional.empty()
-                    : Optional.of(ROUTE.stopovers().get(state.stopoverIndex()).id());
-            case STOPOVER -> Optional.of(ROUTE.stopovers().get(state.stopoverIndex()).id());
-            case ARRIVING, SEASONAL_RESIDENCE -> Optional.of(STOPOVER_SITE_ID);
-            case RETURNING, COMPLETE -> Optional.of(population.siteId());
-        };
+        return PROFILE.projectedSiteId(population, worldTick);
     }
 
     static MigrationPhase phase(long worldTick) {
-        return resolve(worldTick).phase();
+        var population = CanonicalWildPopulationCatalogue.DEFAULT
+                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
+                .orElseThrow(() -> new IllegalStateException("missing authored Marea lower-shelf population"));
+        return PROFILE.resolve(population, worldTick).phase();
     }
 
-    private static MigrationCohortState resolve(long worldTick) {
-        long cycleTick = Math.floorMod(worldTick, CYCLE_TICKS);
-        MigrationCohortState state = new MigrationCohortState(
-                "ouros.marea.cohort.lower_shelf.fletchling.v1",
-                "fletchling",
-                2,
-                MigrationPhase.PREPARING,
-                -1,
-                0L,
-                0.4D,
-                false
-        );
-        if (cycleTick < DEPARTURE_TICK) return state;
-
-        state = RUNTIME.advance(ROUTE, state, DEPARTURE_TICK);
-        if (cycleTick < DEPARTURE_TICK + 1L) return state;
-
-        state = RUNTIME.advance(ROUTE, state, DEPARTURE_TICK + 1L);
-        long stopoverArrival = DEPARTURE_TICK + 1L + OUTBOUND_TRANSIT_TICKS;
-        if (cycleTick < stopoverArrival) return state;
-
-        state = RUNTIME.advance(ROUTE, state, stopoverArrival);
-        if (cycleTick < stopoverArrival + 1L) return state;
-
-        state = RUNTIME.advance(ROUTE, state, stopoverArrival + 1L);
-        long finalArrival = stopoverArrival + 1L + FINAL_TRANSIT_TICKS;
-        if (cycleTick < finalArrival) return state;
-
-        state = RUNTIME.advance(ROUTE, state, finalArrival);
-        if (cycleTick < finalArrival + 1L) return state;
-        return RUNTIME.advance(ROUTE, state, finalArrival + 1L);
+    static WildPopulationProjectionProfile profile() {
+        return PROFILE;
     }
 }
