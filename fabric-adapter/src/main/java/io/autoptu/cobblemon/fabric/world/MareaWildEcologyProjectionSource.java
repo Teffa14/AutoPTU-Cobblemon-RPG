@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -46,6 +47,9 @@ final class MareaWildEcologyProjectionSource {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
             var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
+            var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "missing projected canonical wild population site: " + projectedSiteId.get()));
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
@@ -58,6 +62,7 @@ final class MareaWildEcologyProjectionSource {
                 projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
                         actor,
                         population.siteId(),
+                        site.displayName(),
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
                         population.habitatLeashRadiusBlocks(),
