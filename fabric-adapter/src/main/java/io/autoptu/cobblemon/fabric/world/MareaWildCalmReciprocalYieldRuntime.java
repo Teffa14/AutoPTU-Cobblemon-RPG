@@ -24,12 +24,14 @@ import java.util.UUID;
  * the remaining path nodes so curves and crossings can be reserved before the actors physically
  * meet. Path-derived corridors retain the native node elevation, so routes that cross only in X/Z
  * at separate heights do not create false yield conflicts. Without an active path, the runtime keeps
- * the existing low-speed velocity corridor as a fallback. When multiple published intents or
- * reciprocal fallback peers overlap, the peer is selected by stable canonical encounter identity
- * rather than collection iteration order. The lower lexical encounter identity keeps presentation
- * priority while the higher identity stops. A short server-owned lease keeps that yield stable
- * against the same segmented 3D intent geometry that caused the yield, while the same peer still
- * occupies or claims that reserved route.
+ * the existing low-speed velocity corridor as a fallback. The reciprocal physical fallback sweeps
+ * the actor-sized volume from the current position through the forward probe so peers already inside
+ * the traversed corridor are observed before contact. When multiple published intents or reciprocal
+ * fallback peers overlap, the peer is selected by stable canonical encounter identity rather than
+ * collection iteration order. The lower lexical encounter identity keeps presentation priority while
+ * the higher identity stops. A short server-owned lease keeps that yield stable against the same
+ * segmented 3D intent geometry that caused the yield, while the same peer still occupies or claims
+ * that reserved route.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -369,7 +371,10 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
         double speed = horizontalSpeed(velocityX, velocityZ);
         if (speed <= MIN_HORIZONTAL_SPEED) return null;
         double scale = RECIPROCAL_PROBE_DISTANCE / speed;
-        var projectedBox = actor.getBoundingBox().offset(velocityX * scale, 0.0D, velocityZ * scale);
+        var projectedBox = actor.getBoundingBox().stretch(
+                velocityX * scale,
+                0.0D,
+                velocityZ * scale);
 
         PokemonEntity selectedPeer = null;
         String selectedCanonicalId = null;
