@@ -27,8 +27,8 @@ import java.util.UUID;
  * the existing low-speed velocity corridor as a fallback. When two published intents overlap while
  * approaching shared space, exactly one actor yields according to canonical encounter identity.
  * The lower lexical encounter identity keeps presentation priority while the higher identity stops.
- * A short server-owned lease keeps that yield stable while the same peer still occupies or claims
- * the actor's forward corridor.
+ * A short server-owned lease keeps that yield stable against the same segmented 3D intent geometry
+ * that caused the yield, while the same peer still occupies or claims that reserved route.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -103,13 +103,7 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
                     }
                     double directionX = velocity.x / speed;
                     double directionZ = velocity.z / speed;
-                    corridors = List.of(new DirectedCorridor(
-                            directionX,
-                            directionZ,
-                            actor.getBoundingBox().stretch(
-                                    directionX * INTENT_CORRIDOR_DISTANCE,
-                                    0.0D,
-                                    directionZ * INTENT_CORRIDOR_DISTANCE)));
+                    corridors = velocityIntentCorridors(actor.getBoundingBox(), directionX, directionZ);
                 }
 
                 DirectedCorridor lead = corridors.getFirst();
@@ -142,6 +136,20 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
                 actor.getPos(),
                 remainingNodes,
                 PATH_INTENT_MAX_DISTANCE);
+    }
+
+    private static List<DirectedCorridor> velocityIntentCorridors(
+            Box actorBounds,
+            double directionX,
+            double directionZ
+    ) {
+        return List.of(new DirectedCorridor(
+                directionX,
+                directionZ,
+                actorBounds.stretch(
+                        directionX * INTENT_CORRIDOR_DISTANCE,
+                        0.0D,
+                        directionZ * INTENT_CORRIDOR_DISTANCE)));
     }
 
     static List<DirectedCorridor> pathIntentCorridors(
@@ -232,16 +240,15 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
                     && shouldYield(
                             actorBinding.get().canonicalEncounterId(),
                             peerBinding.get().canonicalEncounterId());
-            Box yieldCorridor = actor.getBoundingBox().stretch(
-                    lease.directionX() * INTENT_CORRIDOR_DISTANCE,
-                    0.0D,
-                    lease.directionZ() * INTENT_CORRIDOR_DISTANCE);
             CorridorIntent peerIntent = CORRIDOR_INTENTS.get(peer.getUuid());
             List<DirectedCorridor> peerIntentCorridors = peerIntent != null && peerIntent.expiresAtTick() > tick
                     ? peerIntent.corridors()
                     : List.of();
             boolean peerInCorridor = canonicalPriorityStillApplies
-                    && corridorOccupiedOrClaimed(yieldCorridor, peer.getBoundingBox(), peerIntentCorridors);
+                    && corridorsOccupiedOrClaimed(
+                            lease.actorCorridors(),
+                            peer.getBoundingBox(),
+                            peerIntentCorridors);
 
             if (!shouldRetainLease(
                     tick,
@@ -278,17 +285,17 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
 
                 CorridorIntent actorIntent = CORRIDOR_INTENTS.get(actor.getUuid());
                 PokemonEntity peer = conflictingIntentPeer(world, actor, tick);
-                double directionX;
-                double directionZ;
+                List<DirectedCorridor> leaseCorridors;
                 if (peer != null && actorIntent != null && actorIntent.expiresAtTick() > tick) {
-                    directionX = actorIntent.directionX();
-                    directionZ = actorIntent.directionZ();
+                    leaseCorridors = actorIntent.corridors();
                 } else {
                     if (speed <= MIN_HORIZONTAL_SPEED) continue;
                     peer = reciprocalPeerAhead(world, actor, velocity.x, velocity.z);
                     if (peer == null) continue;
-                    directionX = velocity.x / speed;
-                    directionZ = velocity.z / speed;
+                    leaseCorridors = velocityIntentCorridors(
+                            actor.getBoundingBox(),
+                            velocity.x / speed,
+                            velocity.z / speed);
                 }
 
                 var actorBinding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid());
@@ -300,7 +307,7 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
 
                 YIELD_LEASES.put(
                         actor.getUuid(),
-                        new YieldLease(peer.getUuid(), directionX, directionZ, tick + MAX_YIELD_HOLD_TICKS));
+                        new YieldLease(peer.getUuid(), leaseCorridors, tick + MAX_YIELD_HOLD_TICKS));
                 stopPresentationMotion(actor);
             }
         }
@@ -368,12 +375,31 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
         if (yieldCorridor == null || peerBounds == null || peerIntentCorridors == null) {
             throw new IllegalArgumentException("yield corridor, peer bounds and peer intent corridors are required");
         }
-        if (yieldCorridor.intersects(peerBounds)) return true;
-        for (DirectedCorridor peerIntentCorridor : peerIntentCorridors) {
-            if (peerIntentCorridor == null || peerIntentCorridor.corridor() == null) {
-                throw new IllegalArgumentException("peer intent corridors must be complete");
+        return corridorsOccupiedOrClaimed(
+                List.of(new DirectedCorridor(0.0D, 0.0D, yieldCorridor)),
+                peerBounds,
+                peerIntentCorridors);
+    }
+
+    static boolean corridorsOccupiedOrClaimed(
+            List<DirectedCorridor> yieldCorridors,
+            Box peerBounds,
+            List<DirectedCorridor> peerIntentCorridors
+    ) {
+        if (yieldCorridors == null || peerBounds == null || peerIntentCorridors == null) {
+            throw new IllegalArgumentException("yield corridors, peer bounds and peer intent corridors are required");
+        }
+        for (DirectedCorridor yieldCorridor : yieldCorridors) {
+            if (yieldCorridor == null || yieldCorridor.corridor() == null) {
+                throw new IllegalArgumentException("yield corridors must be complete");
             }
-            if (yieldCorridor.intersects(peerIntentCorridor.corridor())) return true;
+            if (yieldCorridor.corridor().intersects(peerBounds)) return true;
+            for (DirectedCorridor peerIntentCorridor : peerIntentCorridors) {
+                if (peerIntentCorridor == null || peerIntentCorridor.corridor() == null) {
+                    throw new IllegalArgumentException("peer intent corridors must be complete");
+                }
+                if (yieldCorridor.corridor().intersects(peerIntentCorridor.corridor())) return true;
+            }
         }
         return false;
     }
@@ -482,10 +508,16 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
 
     private record YieldLease(
             UUID peerUuid,
-            double directionX,
-            double directionZ,
+            List<DirectedCorridor> actorCorridors,
             long expiresAtTick
-    ) {}
+    ) {
+        YieldLease {
+            if (peerUuid == null || actorCorridors == null || actorCorridors.isEmpty()) {
+                throw new IllegalArgumentException("yield lease requires peer and actor corridors");
+            }
+            actorCorridors = List.copyOf(actorCorridors);
+        }
+    }
 
     private record CorridorIntent(
             String canonicalEncounterId,
