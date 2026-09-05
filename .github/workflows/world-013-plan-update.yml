@@ -1,0 +1,40 @@
+name: WORLD-013 plan update helper
+
+on:
+  push:
+    branches:
+      - world-013-calm-idle-look
+
+permissions:
+  contents: write
+
+jobs:
+  update-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Record PR 531 in canonical plan and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          needle = ' These slices remain Minecraft presentation locomotion and do not add PTU movement, initiative, targeting, RNG or battle rules. |'
+          if text.count(needle) != 1:
+              raise SystemExit(f'expected exactly one WORLD-013 closing marker, found {text.count(needle)}')
+          record = (' PR #531 / production head `dd62d38b57faf1ce903c4d69fed39cc8ab192d87` adds a visible deterministic CALM rest scan: an interaction-active Marea actor with idle native navigation, negligible horizontal motion and no nearby non-spectator player turns toward the authored habitat interior with a stable per-actor scan offset; WATCHING, ALARMED, recovery and native pathing retain priority and no PTU rule is inferred.')
+          path.write_text(text.replace(needle, record + needle, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/world-013-plan-update.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/world-013-plan-update.yml
+          git commit -m 'WORLD-013 record CALM idle habitat scan'
+          git push origin HEAD:${GITHUB_REF_NAME}
