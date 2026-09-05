@@ -18,15 +18,24 @@ import java.util.Objects;
 public final class WildEcologyProjectionRegistry {
     public record ProjectedActor(
             PokemonEntity actor,
+            String populationKey,
             double habitatCenterX,
             double habitatCenterZ,
+            int habitatLeashRadiusBlocks,
             WildBehaviorProfile behaviorProfile
     ) {
         public ProjectedActor {
             Objects.requireNonNull(actor, "actor");
+            populationKey = Objects.requireNonNull(populationKey, "populationKey").strip();
             Objects.requireNonNull(behaviorProfile, "behaviorProfile");
+            if (populationKey.isEmpty()) {
+                throw new IllegalArgumentException("populationKey must not be blank");
+            }
             if (!Double.isFinite(habitatCenterX) || !Double.isFinite(habitatCenterZ)) {
                 throw new IllegalArgumentException("habitat center must be finite");
+            }
+            if (habitatLeashRadiusBlocks <= 0) {
+                throw new IllegalArgumentException("habitat leash radius must be positive");
             }
         }
     }
