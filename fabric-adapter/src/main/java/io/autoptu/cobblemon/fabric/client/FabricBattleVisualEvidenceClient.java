@@ -18,8 +18,9 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String ENABLE_PROPERTY = "autoptu.battleVisualEvidenceCapture";
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
+    private static final int RESOURCE_READY_STABILITY_TICKS = 20;
     private static final int[] OFFSETS = {2, 6, 10, 14, 18, 22, 26, 30, 34};
-    private static int ticksBeforeConnect;
+    private static int resourceReadyTicks;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean shapeSceneStarted;
@@ -125,13 +126,24 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     }
 
     private static void requestConnection(MinecraftClient client) {
-        if (connectRequested || client.currentScreen == null || client.world != null) return;
-        if (++ticksBeforeConnect < 40) return;
+        if (connectRequested || client.world != null) return;
+
+        // Do not join while Minecraft/Cobblemon is still constructing resource atlases. The loading
+        // overlay is the readiness boundary already proven by the current-main battle evidence client.
+        // Requiring a stable usable screen with no overlay prevents BerryRegistry sync from racing
+        // Cobblemon's atlas/model initialization without relying on a blind sleep.
+        if (client.currentScreen == null || client.getOverlay() != null) {
+            resourceReadyTicks = 0;
+            return;
+        }
+        if (++resourceReadyTicks < RESOURCE_READY_STABILITY_TICKS) return;
+
         String target = System.getProperty(SERVER_PROPERTY, DEFAULT_SERVER).trim();
         if (!ServerAddress.isValid(target)) { connectRequested = true; LOGGER.error("Invalid evidence server {}", target); return; }
         ServerInfo info = new ServerInfo("AutoPTU Battle Visual Evidence", target, ServerInfo.ServerType.OTHER);
         info.setResourcePackPolicy(ServerInfo.ResourcePackPolicy.DISABLED);
         connectRequested = true;
+        LOGGER.info("AutoPTU shape evidence resources stable; connecting to authoritative server {}", target);
         ConnectScreen.connect(client.currentScreen, client, ServerAddress.parse(target), info, false, null);
     }
 }
