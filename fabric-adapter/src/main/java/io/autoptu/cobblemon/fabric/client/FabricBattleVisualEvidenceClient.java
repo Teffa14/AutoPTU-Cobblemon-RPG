@@ -19,6 +19,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static final String SERVER_PROPERTY = "autoptu.visualEvidenceServer";
     private static final String DEFAULT_SERVER = "127.0.0.1:25565";
     private static final int RESOURCE_READY_STABILITY_TICKS = 20;
+    private static final int INTER_PHASE_SETTLE_TICKS = 36;
     private static final int[] OFFSETS = {2, 6, 10, 14, 18, 22, 26, 30, 34};
     private static int resourceReadyTicks;
     private static int ticksSinceJoin = -1;
@@ -27,6 +28,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static boolean cameraPlaced;
     private static int phase;
     private static int phaseStart = -1;
+    private static int nextPhaseAllowedTick = 80;
     private static int captureIndex;
     private static boolean done;
 
@@ -37,6 +39,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             shapeSceneStarted = cameraPlaced = done = false;
             phase = 0;
             phaseStart = -1;
+            nextPhaseAllowedTick = 80;
             captureIndex = 0;
             LOGGER.info("AutoPTU battle visual evidence client joined; PTU shape capture armed");
         });
@@ -57,17 +60,18 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
         if (shapeSceneStarted && !cameraPlaced && ticksSinceJoin >= 66) {
-            // QA evidence only: use a higher, steeper angle so ground footprints are readable.
-            // This does not alter production battle-camera behavior.
-            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~7 ~-10 0 28");
+            // QA evidence only: a high downward angle exposes circular, conical and corridor ground
+            // footprints. Production battle-camera behavior is unchanged.
+            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~10 ~-10 0 45");
             cameraPlaced = true;
-            LOGGER.info("AutoPTU PTU-shape evidence camera placed at elevated footprint-readable angle");
+            LOGGER.info("AutoPTU PTU-shape evidence camera placed at high footprint-readable angle");
             return;
         }
         if (cameraPlaced) sanitizeCaptureHud(client);
         if (!cameraPlaced || ticksSinceJoin < 80) return;
 
         if (phaseStart < 0) {
+            if (ticksSinceJoin < nextPhaseAllowedTick) return;
             startPhase(client);
             return;
         }
@@ -90,7 +94,9 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             }
             client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz reset");
             phaseStart = -1;
+            nextPhaseAllowedTick = ticksSinceJoin + INTER_PHASE_SETTLE_TICKS;
             captureIndex = 0;
+            LOGGER.info("AutoPTU shape evidence settling {} ticks before {}", INTER_PHASE_SETTLE_TICKS, phaseName());
         }
     }
 
