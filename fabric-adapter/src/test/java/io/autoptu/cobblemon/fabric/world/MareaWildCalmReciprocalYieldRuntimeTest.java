@@ -1,8 +1,12 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,6 +23,58 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     }
 
     @Test
+    void nativePathIntentFollowsUpcomingTurnInsteadOfOneStraightVelocityEnvelope() {
+        Box actorBounds = new Box(-0.3D, 0.0D, -0.3D, 0.3D, 1.0D, 0.3D);
+        List<MareaWildCalmReciprocalYieldRuntime.DirectedCorridor> corridors =
+                MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                        actorBounds,
+                        new Vec3d(0.0D, 0.0D, 0.0D),
+                        List.of(
+                                new Vec3d(1.0D, 0.0D, 0.0D),
+                                new Vec3d(1.0D, 0.0D, 2.0D)),
+                        5.0D);
+
+        assertEquals(2, corridors.size());
+        assertEquals(1.0D, corridors.get(0).directionX(), 0.000001D);
+        assertEquals(0.0D, corridors.get(0).directionZ(), 0.000001D);
+        assertEquals(0.0D, corridors.get(1).directionX(), 0.000001D);
+        assertEquals(1.0D, corridors.get(1).directionZ(), 0.000001D);
+        assertFalse(corridors.get(1).corridor().contains(2.0D, 0.5D, 0.0D));
+    }
+
+    @Test
+    void nativePathIntentStopsAtBoundedLookaheadDistance() {
+        Box actorBounds = new Box(-0.3D, 0.0D, -0.3D, 0.3D, 1.0D, 0.3D);
+        List<MareaWildCalmReciprocalYieldRuntime.DirectedCorridor> corridors =
+                MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                        actorBounds,
+                        new Vec3d(0.0D, 0.0D, 0.0D),
+                        List.of(new Vec3d(10.0D, 0.0D, 0.0D)),
+                        2.5D);
+
+        assertEquals(1, corridors.size());
+        Box bounded = corridors.getFirst().corridor();
+        assertTrue(bounded.maxX <= 2.8D + 0.000001D);
+        assertFalse(bounded.contains(4.0D, 0.5D, 0.0D));
+    }
+
+    @Test
+    void remainingPathSegmentsDetectCurvedCrossingBeforeActorBoxesTouch() {
+        var actorCorridors = MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                new Box(-0.25D, 0.0D, -0.25D, 0.25D, 1.0D, 0.25D),
+                new Vec3d(0.0D, 0.0D, 0.0D),
+                List.of(new Vec3d(1.0D, 0.0D, 0.0D), new Vec3d(1.0D, 0.0D, 2.0D)),
+                5.0D);
+        var peerCorridors = MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                new Box(1.75D, 0.0D, 0.75D, 2.25D, 1.0D, 1.25D),
+                new Vec3d(2.0D, 0.0D, 1.0D),
+                List.of(new Vec3d(1.0D, 0.0D, 1.0D)),
+                5.0D);
+
+        assertTrue(MareaWildCalmReciprocalYieldRuntime.corridorsConflict(actorCorridors, peerCorridors));
+    }
+
+    @Test
     void publishedCorridorsDetectFutureCrossingBeforeActorBoxesTouch() {
         Box actorCorridor = new Box(0.0D, 0.0D, 0.0D, 2.5D, 1.0D, 1.0D);
         Box peerCorridor = new Box(1.5D, 0.0D, -1.0D, 2.5D, 1.0D, 2.0D);
@@ -32,12 +88,15 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     void publishedPeerIntentKeepsYieldBeforePhysicalContact() {
         Box yieldCorridor = new Box(0.0D, 0.0D, 0.0D, 2.5D, 1.0D, 1.0D);
         Box peerBounds = new Box(3.0D, 0.0D, 1.5D, 3.5D, 1.0D, 2.0D);
-        Box peerIntent = new Box(1.5D, 0.0D, 0.5D, 3.5D, 1.0D, 2.0D);
+        var peerIntent = List.of(new MareaWildCalmReciprocalYieldRuntime.DirectedCorridor(
+                -1.0D,
+                0.0D,
+                new Box(1.5D, 0.0D, 0.5D, 3.5D, 1.0D, 2.0D)));
 
         assertTrue(MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
                 yieldCorridor, peerBounds, peerIntent));
         assertFalse(MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
-                yieldCorridor, peerBounds, null));
+                yieldCorridor, peerBounds, List.of()));
     }
 
     @Test
@@ -121,6 +180,12 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
                         0.0D, 1.0D, new Box(0, 0, 0, 1, 1, 1)));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
-                        null, new Box(0, 0, 0, 1, 1, 1), null));
+                        null, new Box(0, 0, 0, 1, 1, 1), List.of()));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                        new Box(0, 0, 0, 1, 1, 1),
+                        new Vec3d(0.0D, 0.0D, 0.0D),
+                        List.of(new Vec3d(Double.NaN, 0.0D, 0.0D)),
+                        5.0D));
     }
 }
