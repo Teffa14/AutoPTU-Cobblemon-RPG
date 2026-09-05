@@ -65,17 +65,18 @@ public final class BattleShapeVisualLabRuntime {
         BlockPos base = player.getBlockPos();
         Session s = new Session();
         s.actors.add(spawn(world, "charizard", base.add(0, 0, 0)));
-        s.actors.add(spawn(world, "blastoise", base.add(8, 0, 0)));
-        s.actors.add(spawn(world, "venusaur", base.add(8, 0, 2)));
-        s.actors.add(spawn(world, "pikachu", base.add(10, 0, -2)));
-        s.actors.add(spawn(world, "snorlax", base.add(12, 0, 3)));
+        // Keep QA targets compact so their models do not hide the floor footprint being inspected.
+        s.actors.add(spawn(world, "pikachu", base.add(8, 0, 0)));
+        s.actors.add(spawn(world, "riolu", base.add(8, 0, 2)));
+        s.actors.add(spawn(world, "eevee", base.add(10, 0, -2)));
+        s.actors.add(spawn(world, "lucario", base.add(12, 0, 3)));
         s.origins.add(base.add(0,0,0));
         s.origins.add(base.add(8,0,0));
         s.origins.add(base.add(8,0,2));
         s.origins.add(base.add(10,0,-2));
         s.origins.add(base.add(12,0,3));
         ACTIVE.put(player.getUuid(), s);
-        source.sendFeedback(() -> Text.literal("QA VISUAL ONLY shape scene ready: attacker + four targets."), false);
+        source.sendFeedback(() -> Text.literal("QA VISUAL ONLY shape scene ready: attacker + four compact targets."), false);
         return 1;
     }
 
@@ -94,7 +95,7 @@ public final class BattleShapeVisualLabRuntime {
         animate(s.actors.get(0), s.actors.get(1), "earthquake", 10);
         animate(s.actors.get(0), s.actors.get(2), "earthquake", 10);
         arm(s, Shape.AOE);
-        source.sendFeedback(() -> Text.literal("QA VISUAL ONLY AoE fixture: circular ground footprint around the authored center; Blastoise/Venusaur are in-set controls."), false);
+        source.sendFeedback(() -> Text.literal("QA VISUAL ONLY AoE fixture: circular ground footprint; Pikachu/Riolu are authored in-set controls."), false);
         return 1;
     }
 
@@ -175,7 +176,7 @@ public final class BattleShapeVisualLabRuntime {
         world.spawnParticles(ParticleTypes.CLOUD, center.x, center.y + 0.10D, center.z, 6, 0.65D, 0.08D, 0.65D, 0.01D);
     }
 
-    /** A widening triangular cone. Side rails and cross-sections make the widening footprint explicit. */
+    /** A widening triangular cone. Sparse rails/cross-sections keep its silhouette legible instead of filling a strip. */
     private static void renderBlast(ServerWorld world, PokemonEntity attacker, PokemonEntity primaryTarget, double progress) {
         Vec3d origin = ground(attacker);
         Vec3d toward = ground(primaryTarget).subtract(origin);
@@ -187,16 +188,16 @@ public final class BattleShapeVisualLabRuntime {
         Vec3d farCenter = origin.add(forward.multiply(BLAST_LENGTH));
         Vec3d farLeft = farCenter.add(side.multiply(farHalfWidth));
         Vec3d farRight = farCenter.subtract(side.multiply(farHalfWidth));
-        trail(world, origin, farLeft, 42, ParticleTypes.FLAME);
-        trail(world, origin, farRight, 42, ParticleTypes.FLAME);
+        trail(world, origin, farLeft, 36, ParticleTypes.FLAME);
+        trail(world, origin, farRight, 36, ParticleTypes.FLAME);
 
-        for (int section = 1; section <= 5; section++) {
-            double distance = BLAST_LENGTH * section / 5.0D;
+        for (int section = 1; section <= 4; section++) {
+            double distance = BLAST_LENGTH * section / 4.0D;
             double halfWidth = blastHalfWidth(distance);
             Vec3d center = origin.add(forward.multiply(distance));
             Vec3d left = center.add(side.multiply(halfWidth));
             Vec3d right = center.subtract(side.multiply(halfWidth));
-            trail(world, left, right, 14, ParticleTypes.FLAME);
+            trail(world, left, right, 10, ParticleTypes.END_ROD);
         }
 
         double frontDistance = Math.max(0.8D, BLAST_LENGTH * Math.min(1.0D, progress * 1.45D));
@@ -205,10 +206,10 @@ public final class BattleShapeVisualLabRuntime {
         trail(world,
                 frontCenter.add(side.multiply(frontHalfWidth)),
                 frontCenter.subtract(side.multiply(frontHalfWidth)),
-                20,
-                ParticleTypes.END_ROD);
+                18,
+                ParticleTypes.FLAME);
         world.spawnParticles(ParticleTypes.FLAME, frontCenter.x, frontCenter.y + 0.10D, frontCenter.z,
-                7, frontHalfWidth * 0.42D, 0.12D, frontHalfWidth * 0.42D, 0.02D);
+                4, frontHalfWidth * 0.28D, 0.08D, frontHalfWidth * 0.28D, 0.015D);
     }
 
     /** A constant-width rectangular corridor, visually distinct from the moving Ranged projectile and Blast cone. */
@@ -247,7 +248,7 @@ public final class BattleShapeVisualLabRuntime {
 
     static double blastHalfWidth(double distance) {
         if (!Double.isFinite(distance) || distance < 0.0D) throw new IllegalArgumentException("blast distance must be finite and non-negative");
-        return 0.15D + distance * 0.23D;
+        return 0.15D + distance * 0.25D;
     }
 
     static double aoeRadius() {
