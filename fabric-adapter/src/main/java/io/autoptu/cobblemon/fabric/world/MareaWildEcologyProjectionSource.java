@@ -2,7 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
-import net.fabricmc.api.ModInitializer;
+import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -10,13 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Authored population adapter for the current Marea fixture.
+ * Authored projection source for the current Marea fixture content.
  *
- * Global ambient algorithms are owned by the Wild* runtimes. This class only maps the existing
- * authored population/migration data into the world-wide ecology projection contract. New regions
- * and species register data sources instead of copying this adapter's behavior.
+ * This class supplies data only. All ambient behavior, navigation, yielding and habitat feedback
+ * are owned by region-agnostic Wild* runtimes consuming WildEcologyProjectionRegistry.
  */
-public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
+final class MareaWildEcologyProjectionSource {
     static final WildBehaviorProfile BEHAVIOR_PROFILE = new WildBehaviorProfile(
             14.0D,
             7.0D,
@@ -37,12 +36,10 @@ public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
             0.04D,
             1.5D);
 
-    @Override
-    public void onInitialize() {
-        WildEcologyProjectionRegistry.register("fixture.ouros.marea", MareaWildCalmIdleLookRuntime::projectedActors);
+    private MareaWildEcologyProjectionSource() {
     }
 
-    private static Iterable<WildEcologyProjectionRegistry.ProjectedActor> projectedActors(ServerWorld world) {
+    static Iterable<WildEcologyProjectionRegistry.ProjectedActor> projectedActors(ServerWorld world) {
         if (world == null) return List.of();
         List<WildEcologyProjectionRegistry.ProjectedActor> projected = new ArrayList<>();
 
@@ -50,6 +47,9 @@ public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
             var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
+            var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "missing projected canonical wild population site: " + projectedSiteId.get()));
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
@@ -58,12 +58,11 @@ public final class MareaWildCalmIdleLookRuntime implements ModInitializer {
                 if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || actor.isInvisible()) continue;
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
-                BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(
-                        encounter,
-                        projectedSiteId.get());
+                BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
                 projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
                         actor,
                         population.siteId(),
+                        site.displayName(),
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
                         population.habitatLeashRadiusBlocks(),

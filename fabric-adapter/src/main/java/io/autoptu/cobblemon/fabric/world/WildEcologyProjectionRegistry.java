@@ -19,6 +19,7 @@ public final class WildEcologyProjectionRegistry {
     public record ProjectedActor(
             PokemonEntity actor,
             String populationKey,
+            String habitatDisplayName,
             double habitatCenterX,
             double habitatCenterZ,
             int habitatLeashRadiusBlocks,
@@ -27,9 +28,13 @@ public final class WildEcologyProjectionRegistry {
         public ProjectedActor {
             Objects.requireNonNull(actor, "actor");
             populationKey = Objects.requireNonNull(populationKey, "populationKey").strip();
+            habitatDisplayName = Objects.requireNonNull(habitatDisplayName, "habitatDisplayName").strip();
             Objects.requireNonNull(behaviorProfile, "behaviorProfile");
             if (populationKey.isEmpty()) {
                 throw new IllegalArgumentException("populationKey must not be blank");
+            }
+            if (habitatDisplayName.isEmpty()) {
+                throw new IllegalArgumentException("habitatDisplayName must not be blank");
             }
             if (!Double.isFinite(habitatCenterX) || !Double.isFinite(habitatCenterZ)) {
                 throw new IllegalArgumentException("habitat center must be finite");
@@ -37,6 +42,18 @@ public final class WildEcologyProjectionRegistry {
             if (habitatLeashRadiusBlocks <= 0) {
                 throw new IllegalArgumentException("habitat leash radius must be positive");
             }
+        }
+
+        /** Compatibility constructor for projection sources that have not authored a display label yet. */
+        public ProjectedActor(
+                PokemonEntity actor,
+                String populationKey,
+                double habitatCenterX,
+                double habitatCenterZ,
+                int habitatLeashRadiusBlocks,
+                WildBehaviorProfile behaviorProfile
+        ) {
+            this(actor, populationKey, populationKey, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks, behaviorProfile);
         }
     }
 
