@@ -23,6 +23,37 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     }
 
     @Test
+    void multipleConflictingPeersSelectSameCanonicalPeerRegardlessOfIterationOrder() {
+        String actor = "ouros.marea.sendero_crossing.member_03";
+        var firstOrder = List.of(
+                "ouros.marea.sendero_crossing.member_02",
+                "ouros.marea.sendero_crossing.member_01",
+                "ouros.marea.sendero_crossing.member_04");
+        var reverseOrder = List.of(
+                "ouros.marea.sendero_crossing.member_04",
+                "ouros.marea.sendero_crossing.member_01",
+                "ouros.marea.sendero_crossing.member_02");
+
+        assertEquals(
+                "ouros.marea.sendero_crossing.member_01",
+                MareaWildCalmReciprocalYieldRuntime.preferredConflictingCanonicalPeer(actor, firstOrder));
+        assertEquals(
+                "ouros.marea.sendero_crossing.member_01",
+                MareaWildCalmReciprocalYieldRuntime.preferredConflictingCanonicalPeer(actor, reverseOrder));
+    }
+
+    @Test
+    void canonicalPeerSelectionIgnoresTheActorIdentityItself() {
+        assertEquals(
+                "ouros.marea.lower_shelf.member_01",
+                MareaWildCalmReciprocalYieldRuntime.preferredConflictingCanonicalPeer(
+                        "ouros.marea.lower_shelf.member_02",
+                        List.of(
+                                "ouros.marea.lower_shelf.member_02",
+                                "ouros.marea.lower_shelf.member_01")));
+    }
+
+    @Test
     void nativePathIntentFollowsUpcomingTurnInsteadOfOneStraightVelocityEnvelope() {
         Box actorBounds = new Box(-0.3D, 0.0D, -0.3D, 0.3D, 1.0D, 0.3D);
         List<MareaWildCalmReciprocalYieldRuntime.DirectedCorridor> corridors =
@@ -241,6 +272,11 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
                 () -> MareaWildCalmReciprocalYieldRuntime.shouldYield("", "peer"));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmReciprocalYieldRuntime.shouldYield("actor", null));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmReciprocalYieldRuntime.preferredConflictingCanonicalPeer("actor", null));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmReciprocalYieldRuntime.preferredConflictingCanonicalPeer(
+                        "actor", List.of("peer", " ")));
         assertThrows(IllegalArgumentException.class,
                 () -> MareaWildCalmReciprocalYieldRuntime.reciprocalApproach(
                         Double.NaN, 0.0D, 0.02D, 0.0D,
