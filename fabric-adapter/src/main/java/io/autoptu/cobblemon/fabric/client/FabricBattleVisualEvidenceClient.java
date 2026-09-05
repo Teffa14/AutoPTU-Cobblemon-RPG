@@ -60,11 +60,12 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
             return;
         }
         if (shapeSceneStarted && !cameraPlaced && ticksSinceJoin >= 66) {
-            // QA evidence only: a high downward angle exposes circular, conical and corridor ground
-            // footprints. Production battle-camera behavior is unchanged.
-            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~10 ~-10 0 45");
+            // QA evidence only: use a moderately elevated diagonal view so the complete actors remain
+            // visible while circular/conical/corridor ground footprints retain depth. Production
+            // battle-camera behavior is unchanged.
+            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~7 ~-10 -15 30");
             cameraPlaced = true;
-            LOGGER.info("AutoPTU PTU-shape evidence camera placed at high footprint-readable angle");
+            LOGGER.info("AutoPTU PTU-shape evidence camera placed at diagonal footprint-readable angle");
             return;
         }
         if (cameraPlaced) sanitizeCaptureHud(client);
