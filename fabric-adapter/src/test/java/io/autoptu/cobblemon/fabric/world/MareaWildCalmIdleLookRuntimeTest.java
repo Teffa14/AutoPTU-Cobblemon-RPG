@@ -2,10 +2,11 @@ package io.autoptu.cobblemon.fabric.world;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,14 +46,21 @@ final class MareaWildCalmIdleLookRuntimeTest {
     }
 
     @Test
-    void differentActorsCanScanDifferentlyAtSameHabitatPosition() {
-        UUID firstActor = UUID.fromString("00000000-0000-0000-0000-000000000123");
-        UUID secondActor = UUID.fromString("00000000-0000-0000-0000-000000000456");
+    void actorIdentityDistributesIdleScanAcrossAvailableDirections() {
+        Set<Float> observed = new HashSet<>();
+        for (long lowBits = 1L; lowBits <= 64L; lowBits++) {
+            UUID actor = new UUID(0L, lowBits);
+            observed.add(MareaWildCalmIdleLookRuntime.idleFacingYaw(
+                    actor,
+                    60L,
+                    12.0D,
+                    10.0D,
+                    10.0D,
+                    10.0D));
+        }
 
-        float first = MareaWildCalmIdleLookRuntime.idleFacingYaw(firstActor, 60L, 12.0D, 10.0D, 10.0D, 10.0D);
-        float second = MareaWildCalmIdleLookRuntime.idleFacingYaw(secondActor, 60L, 12.0D, 10.0D, 10.0D, 10.0D);
-
-        assertNotEquals(first, second);
+        assertTrue(observed.size() > 1);
+        assertTrue(observed.size() <= 3);
     }
 
     @Test
