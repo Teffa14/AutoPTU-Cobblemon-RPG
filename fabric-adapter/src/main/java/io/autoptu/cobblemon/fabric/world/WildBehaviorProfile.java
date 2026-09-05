@@ -15,12 +15,19 @@ public record WildBehaviorProfile(
         long calmActiveTicks,
         double maxIdleHorizontalSpeed,
         double playerGuardRadius,
-        float idleScanDegrees
+        float idleScanDegrees,
+        double calmRoamSpeed,
+        double calmStopDistance,
+        double separationDistance,
+        double separationSpeed,
+        double cohesionDistance,
+        double cohesionSpeed,
+        double fleeSpeed,
+        double recoverySpeed,
+        double recoveryStopDistance
 ) {
     public WildBehaviorProfile {
-        if (!Double.isFinite(watchDistance) || watchDistance <= 0.0D) {
-            throw new IllegalArgumentException("watchDistance must be finite and positive");
-        }
+        requirePositive(watchDistance, "watchDistance");
         if (!Double.isFinite(alarmDistance) || alarmDistance <= 0.0D || alarmDistance > watchDistance) {
             throw new IllegalArgumentException("alarmDistance must be finite, positive and <= watchDistance");
         }
@@ -33,12 +40,59 @@ public record WildBehaviorProfile(
         if (!Double.isFinite(maxIdleHorizontalSpeed) || maxIdleHorizontalSpeed < 0.0D) {
             throw new IllegalArgumentException("maxIdleHorizontalSpeed must be finite and non-negative");
         }
-        if (!Double.isFinite(playerGuardRadius) || playerGuardRadius <= 0.0D) {
-            throw new IllegalArgumentException("playerGuardRadius must be finite and positive");
-        }
+        requirePositive(playerGuardRadius, "playerGuardRadius");
         if (!Float.isFinite(idleScanDegrees) || idleScanDegrees < 0.0F || idleScanDegrees > 180.0F) {
             throw new IllegalArgumentException("idleScanDegrees must be finite and between 0 and 180");
         }
+        requirePositive(calmRoamSpeed, "calmRoamSpeed");
+        requirePositive(calmStopDistance, "calmStopDistance");
+        requirePositive(separationDistance, "separationDistance");
+        requirePositive(separationSpeed, "separationSpeed");
+        requirePositive(cohesionDistance, "cohesionDistance");
+        requirePositive(cohesionSpeed, "cohesionSpeed");
+        requirePositive(fleeSpeed, "fleeSpeed");
+        requirePositive(recoverySpeed, "recoverySpeed");
+        requirePositive(recoveryStopDistance, "recoveryStopDistance");
+        if (cohesionDistance <= separationDistance) {
+            throw new IllegalArgumentException("cohesionDistance must be greater than separationDistance");
+        }
+    }
+
+    /**
+     * Compatibility constructor for existing authored profiles that predate global roaming policy.
+     * The defaults preserve the already-shipped ambient motion values while callers migrate their
+     * tuning into explicit profile data.
+     */
+    public WildBehaviorProfile(
+            double watchDistance,
+            double alarmDistance,
+            int recoveryQuietUpdates,
+            int abandonedAlarmQuietUpdates,
+            long calmSegmentTicks,
+            long calmActiveTicks,
+            double maxIdleHorizontalSpeed,
+            double playerGuardRadius,
+            float idleScanDegrees
+    ) {
+        this(
+                watchDistance,
+                alarmDistance,
+                recoveryQuietUpdates,
+                abandonedAlarmQuietUpdates,
+                calmSegmentTicks,
+                calmActiveTicks,
+                maxIdleHorizontalSpeed,
+                playerGuardRadius,
+                idleScanDegrees,
+                0.025D,
+                1.0D,
+                2.5D,
+                0.018D,
+                6.0D,
+                0.012D,
+                0.08D,
+                0.04D,
+                1.5D);
     }
 
     public AmbientPokemonBehaviorController.Profile proximityProfile() {
@@ -51,5 +105,11 @@ public record WildBehaviorProfile(
 
     public boolean calmMovementActive(long worldTime) {
         return Math.floorMod(worldTime, calmSegmentTicks) < calmActiveTicks;
+    }
+
+    private static void requirePositive(double value, String name) {
+        if (!Double.isFinite(value) || value <= 0.0D) {
+            throw new IllegalArgumentException(name + " must be finite and positive");
+        }
     }
 }
