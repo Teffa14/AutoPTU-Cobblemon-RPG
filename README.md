@@ -10,6 +10,16 @@ AutoPTU-Java owns battle legality, calculations, lifecycle and outcomes. Minecra
 
 Out-of-combat Trainer, Pokémon, item and progression state is also server-authoritative. Persistent player/profile/Pokémon/item state is stored below the active world save. Clients and platform entities may supply authenticated identity or presentation correlation only.
 
+## Wild ecology architecture
+
+Wild ecology is a global reusable RPG subsystem. Marea, Cedar Meadow, Fletchling, or any other authored region/species may be used as fixtures, smoke content, population data or QA scenarios, but they are not the production architecture.
+
+All new wild-ecology work must move toward a generic data-driven runtime that can support every approved WILD population in every region without one Java behavior implementation per species or map. Existing `MareaWild*`-style production code is migration debt and must not become the pattern for new work.
+
+The intended separation is `WildPopulationDefinition -> HabitatProfile -> WildBehaviorProfile -> CapabilityProfile -> Spawn/Population Runtime -> Generic Ambient AI -> Encounter Binding`. Missing authoritative WILD blueprints may block activation of a particular species, but must not block generic ecology infrastructure. Unsupported species fail closed rather than borrowing PTU facts from Cobblemon.
+
+`WORLD-013` is therefore the extraction/generalization path for world-wide visible-wild ecology, not an endless Marea/Fletchling polish item. Marea-specific work is lower priority unless it directly extracts, proves or migrates reusable infrastructure. See `docs/WILD_ECOLOGY_ARCHITECTURE.md` for the permanent design and review rules.
+
 ## First playable battle test
 
 The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a short lunge, displayed HP/nameplates and the final winner/loser message.
