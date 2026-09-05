@@ -1,6 +1,5 @@
 package io.autoptu.cobblemon.fabric;
 
-import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.admin.FabricRpgVisualProofRuntime;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
@@ -11,6 +10,7 @@ import io.autoptu.cobblemon.fabric.network.FabricBattleActionNetworking;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import io.autoptu.cobblemon.fabric.platform.CobblemonPokemonActorPlatform;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveHealthSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveReactionPlaybackSmoke;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonLiveRelocationSmoke;
@@ -175,7 +175,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         CobblemonLiveHealthSmoke.registerIfEnabled();
         CobblemonLiveBattleInterceptionSmoke.registerIfEnabled();
         FabricAuthenticatedPlayerContextResolverSmoke.registerIfEnabled();
-        LOGGER.info("AutoPTU Cobblemon runtime detected: {}", PokemonEntity.class.getName());
+        LOGGER.info("AutoPTU Cobblemon runtime detected: {}", CobblemonPokemonActorPlatform.runtimeActorClassName());
         LOGGER.info("AutoPTU Fabric server adapter initialized");
     }
 }

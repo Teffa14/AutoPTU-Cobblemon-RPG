@@ -1,16 +1,13 @@
 package io.autoptu.cobblemon.fabric.world;
 
-import com.cobblemon.mod.common.CobblemonEntities;
-import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import com.cobblemon.mod.common.pokemon.Pokemon;
-import com.cobblemon.mod.common.pokemon.Species;
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 import io.autoptu.cobblemon.fabric.battle.ServerOwnedWildEncounterBlueprintPublisher;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import io.autoptu.cobblemon.fabric.platform.CobblemonPokemonActorPlatform;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -112,16 +109,8 @@ public final class MareaVisibleWildPokemonRuntime {
 
         evictMissingBinding(encounter.canonicalEncounterId());
         enforceProjectionContentGate(encounter);
-        Species species = PokemonSpecies.INSTANCE.getByName(encounter.speciesId());
-        if (species == null) {
-            throw new IllegalStateException("Cobblemon official species unavailable for Marea wild actor: " + encounter.speciesId());
-        }
-
-        Pokemon pokemon = new Pokemon();
-        pokemon.setSpecies(species);
-        PokemonEntity entity = new PokemonEntity(world, pokemon, CobblemonEntities.POKEMON);
-        entity.refreshPositionAndAngles(anchor.getX() + 0.5D, anchor.getY(), anchor.getZ() + 0.5D, 180.0F, 0.0F);
-        entity.setPersistent();
+        PokemonEntity entity = CobblemonPokemonActorPlatform.createOfficialPresentationActor(
+                world, encounter.speciesId(), anchor, 180.0F);
         entity.addCommandTag(WILD_TAG_PREFIX + encounter.canonicalEncounterId());
         entity.addCommandTag(WILD_MARKER_TAG);
         if (!world.spawnEntity(entity)) return null;
@@ -378,9 +367,9 @@ public final class MareaVisibleWildPokemonRuntime {
 
     private static PokemonEntity findExisting(ServerWorld world, String canonicalEncounterId, BlockPos anchor) {
         String tag = WILD_TAG_PREFIX + canonicalEncounterId;
-        return world.getEntitiesByClass(PokemonEntity.class,
-                        new Box(anchor).expand(HABITAT_SEARCH_RADIUS_BLOCKS, 24.0D, HABITAT_SEARCH_RADIUS_BLOCKS),
-                        entity -> !entity.isRemoved() && entity.getCommandTags().contains(tag))
-                .stream().findFirst().orElse(null);
+        return CobblemonPokemonActorPlatform.findLoadedByCommandTag(
+                world,
+                new Box(anchor).expand(HABITAT_SEARCH_RADIUS_BLOCKS, 24.0D, HABITAT_SEARCH_RADIUS_BLOCKS),
+                tag);
     }
 }

@@ -7,6 +7,16 @@ plugins {
 group = "io.autoptu"
 version = "0.1.0-SNAPSHOT"
 
+val cobblemonVersion = providers.gradleProperty("cobblemonVersion").orElse("1.7.3+1.21.1")
+val defaultCobblemonRuntimeRange = cobblemonVersion.map { target ->
+    when {
+        target.startsWith("1.7.") -> ">=1.7.3 <1.8.0"
+        target.startsWith("1.8.") -> ">=1.8.0 <1.9.0"
+        else -> throw GradleException(
+            "No validated Cobblemon runtime range for $target; provide -PcobblemonRuntimeRange explicitly")
+    }
+}
+val cobblemonRuntimeRange = providers.gradleProperty("cobblemonRuntimeRange").orElse(defaultCobblemonRuntimeRange)
 val autoPtuJavaSha = "aefc058328a9217d634477835a4851d521aaeccb"
 val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
 val autoPtuJavaJar = layout.buildDirectory.file("pinned-autoptu-java/$autoPtuJavaSha/autoptu-java-core.jar")
@@ -62,7 +72,7 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:0.18.2")
     modImplementation("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
     modImplementation("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
-    modImplementation("com.cobblemon:fabric:1.7.3+1.21.1")
+    modImplementation("com.cobblemon:fabric:${cobblemonVersion.get()}")
 
     // Frozen Ouros Overworld substrate for Minecraft 1.21.1.
     // Keep worldgen-only artifacts out of Loom's development classpath: some are
@@ -71,7 +81,7 @@ dependencies {
     // They are resolved only into the production smoke runtime below.
     productionSmokeMods("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
     productionSmokeMods("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
-    productionSmokeMods("com.cobblemon:fabric:1.7.3+1.21.1")
+    productionSmokeMods("com.cobblemon:fabric:${cobblemonVersion.get()}")
     productionSmokeMods("maven.modrinth:XaDC71GB:UrEAYvpA") // Lithostitched 1.7.7
     productionSmokeMods("maven.modrinth:8oi3bsk5:eWDLFabb") // Terralith 2.6.2
     productionSmokeMods("maven.modrinth:lWDHr9jE:WDwMnQJ5") // Tectonic 3.0.1
@@ -108,8 +118,12 @@ tasks.jar {
 
 tasks.processResources {
     inputs.property("version", project.version)
+    inputs.property("cobblemonRuntimeRange", cobblemonRuntimeRange)
     filesMatching("fabric.mod.json") {
-        expand(mapOf("version" to project.version))
+        expand(mapOf(
+            "version" to project.version,
+            "cobblemonRuntimeRange" to cobblemonRuntimeRange.get()
+        ))
     }
 }
 
