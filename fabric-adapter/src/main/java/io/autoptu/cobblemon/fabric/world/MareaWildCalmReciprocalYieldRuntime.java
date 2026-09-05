@@ -24,11 +24,12 @@ import java.util.UUID;
  * the remaining path nodes so curves and crossings can be reserved before the actors physically
  * meet. Path-derived corridors retain the native node elevation, so routes that cross only in X/Z
  * at separate heights do not create false yield conflicts. Without an active path, the runtime keeps
- * the existing low-speed velocity corridor as a fallback. When multiple published intents overlap,
- * the conflicting peer is selected by stable canonical encounter identity rather than map iteration
- * order. The lower lexical encounter identity keeps presentation priority while the higher identity
- * stops. A short server-owned lease keeps that yield stable against the same segmented 3D intent
- * geometry that caused the yield, while the same peer still occupies or claims that reserved route.
+ * the existing low-speed velocity corridor as a fallback. When multiple published intents or
+ * reciprocal fallback peers overlap, the peer is selected by stable canonical encounter identity
+ * rather than collection iteration order. The lower lexical encounter identity keeps presentation
+ * priority while the higher identity stops. A short server-owned lease keeps that yield stable
+ * against the same segmented 3D intent geometry that caused the yield, while the same peer still
+ * occupies or claims that reserved route.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -370,6 +371,8 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
         double scale = RECIPROCAL_PROBE_DISTANCE / speed;
         var projectedBox = actor.getBoundingBox().offset(velocityX * scale, 0.0D, velocityZ * scale);
 
+        PokemonEntity selectedPeer = null;
+        String selectedCanonicalId = null;
         for (var candidate : world.getOtherEntities(
                 actor,
                 projectedBox,
@@ -379,13 +382,21 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
             var peerVelocity = peer.getVelocity();
             double peerSpeed = horizontalSpeed(peerVelocity.x, peerVelocity.z);
             if (peerSpeed <= MIN_HORIZONTAL_SPEED || peerSpeed > MAX_CALM_SPEED) continue;
-            if (reciprocalApproach(
+            if (!reciprocalApproach(
                     actor.getX(), actor.getZ(), velocityX, velocityZ,
-                    peer.getX(), peer.getZ(), peerVelocity.x, peerVelocity.z)) {
-                return peer;
+                    peer.getX(), peer.getZ(), peerVelocity.x, peerVelocity.z)) continue;
+
+            var peerBinding = VisibleWildPokemonEncounterRuntime.binding(peer.getUuid());
+            if (peerBinding.isEmpty()) continue;
+            String peerCanonicalId = requireCanonicalId(
+                    peerBinding.get().canonicalEncounterId(),
+                    "peerCanonicalEncounterId");
+            if (selectedCanonicalId == null || peerCanonicalId.compareTo(selectedCanonicalId) < 0) {
+                selectedCanonicalId = peerCanonicalId;
+                selectedPeer = peer;
             }
         }
-        return null;
+        return selectedPeer;
     }
 
     private static void stopPresentationMotion(PokemonEntity actor) {
