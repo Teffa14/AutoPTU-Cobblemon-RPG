@@ -25,13 +25,12 @@ import java.util.UUID;
  * meet. Path-derived corridors retain the native node elevation, so routes that cross only in X/Z
  * at separate heights do not create false yield conflicts. Without an active path, the runtime keeps
  * the existing low-speed velocity corridor as a fallback. The reciprocal physical fallback sweeps
- * the actor-sized volume from the current position through the forward probe so peers already inside
- * the traversed corridor are observed before contact. When multiple published intents or reciprocal
- * fallback peers overlap, the peer is selected by stable canonical encounter identity rather than
- * collection iteration order. The lower lexical encounter identity keeps presentation priority while
- * the higher identity stops. A short server-owned lease keeps that yield stable against the same
- * segmented 3D intent geometry that caused the yield, while the same peer still occupies or claims
- * that reserved route.
+ * both actors' short forward volumes and detects overlap before either current bounding box enters
+ * the other's corridor. When multiple published intents or reciprocal fallback peers overlap, the
+ * peer is selected by stable canonical encounter identity rather than collection iteration order.
+ * The lower lexical encounter identity keeps presentation priority while the higher identity stops.
+ * A short server-owned lease keeps that yield stable against the same segmented 3D intent geometry
+ * that caused the yield, while the same peer still occupies or claims that reserved route.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -371,16 +370,17 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
         double speed = horizontalSpeed(velocityX, velocityZ);
         if (speed <= MIN_HORIZONTAL_SPEED) return null;
         double scale = RECIPROCAL_PROBE_DISTANCE / speed;
-        var projectedBox = actor.getBoundingBox().stretch(
+        Box actorCorridor = actor.getBoundingBox().stretch(
                 velocityX * scale,
                 0.0D,
                 velocityZ * scale);
+        Box peerSearch = actorCorridor.expand(RECIPROCAL_PROBE_DISTANCE, 0.0D, RECIPROCAL_PROBE_DISTANCE);
 
         PokemonEntity selectedPeer = null;
         String selectedCanonicalId = null;
         for (var candidate : world.getOtherEntities(
                 actor,
-                projectedBox,
+                peerSearch,
                 entity -> entity instanceof PokemonEntity
                         && VisibleWildPokemonEncounterRuntime.isInteractionActive(entity.getUuid()))) {
             PokemonEntity peer = (PokemonEntity) candidate;
@@ -390,6 +390,10 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
             if (!reciprocalApproach(
                     actor.getX(), actor.getZ(), velocityX, velocityZ,
                     peer.getX(), peer.getZ(), peerVelocity.x, peerVelocity.z)) continue;
+            if (!sweptReciprocalCorridorsConflict(
+                    actor.getBoundingBox(), velocityX, velocityZ,
+                    peer.getBoundingBox(), peerVelocity.x, peerVelocity.z,
+                    RECIPROCAL_PROBE_DISTANCE)) continue;
 
             var peerBinding = VisibleWildPokemonEncounterRuntime.binding(peer.getUuid());
             if (peerBinding.isEmpty()) continue;
@@ -402,6 +406,37 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
             }
         }
         return selectedPeer;
+    }
+
+    static boolean sweptReciprocalCorridorsConflict(
+            Box actorBounds,
+            double actorVelocityX,
+            double actorVelocityZ,
+            Box peerBounds,
+            double peerVelocityX,
+            double peerVelocityZ,
+            double probeDistance
+    ) {
+        if (actorBounds == null || peerBounds == null
+                || !allFinite(actorVelocityX, actorVelocityZ, peerVelocityX, peerVelocityZ, probeDistance)
+                || probeDistance <= 0.0D) {
+            throw new IllegalArgumentException("reciprocal swept corridors require bounds, finite velocities and positive distance");
+        }
+        double actorSpeed = horizontalSpeed(actorVelocityX, actorVelocityZ);
+        double peerSpeed = horizontalSpeed(peerVelocityX, peerVelocityZ);
+        if (actorSpeed <= MIN_HORIZONTAL_SPEED || peerSpeed <= MIN_HORIZONTAL_SPEED) return false;
+
+        double actorScale = probeDistance / actorSpeed;
+        double peerScale = probeDistance / peerSpeed;
+        Box actorCorridor = actorBounds.stretch(
+                actorVelocityX * actorScale,
+                0.0D,
+                actorVelocityZ * actorScale);
+        Box peerCorridor = peerBounds.stretch(
+                peerVelocityX * peerScale,
+                0.0D,
+                peerVelocityZ * peerScale);
+        return actorCorridor.intersects(peerCorridor);
     }
 
     private static void stopPresentationMotion(PokemonEntity actor) {
