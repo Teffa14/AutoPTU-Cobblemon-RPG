@@ -1,0 +1,202 @@
+name: One-shot WORLD-013 global reciprocal yield
+
+on:
+  push:
+    branches:
+      - world-013-global-reciprocal-yield
+    paths:
+      - '.github/workflows/one-shot-world013-global-yield.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: world-013-global-reciprocal-yield
+          fetch-depth: 0
+      - name: Globalize reciprocal yield runtime
+        shell: python
+        run: |
+          from pathlib import Path
+
+          root = Path('fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world')
+          old_path = root / 'MareaWildCalmReciprocalYieldRuntime.java'
+          new_path = root / 'WildCalmReciprocalYieldRuntime.java'
+          text = old_path.read_text()
+          text = text.replace('import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;\n', '')
+          text = text.replace('MareaWildCalmReciprocalYieldRuntime', 'WildCalmReciprocalYieldRuntime')
+
+          start = text.index('    private static void publishCorridorIntents(ServerWorld world, long tick) {')
+          end = text.index('    private static List<DirectedCorridor> nativePathCorridors', start)
+          publish = '''    private static void publishCorridorIntents(ServerWorld world, long tick) {
+              CORRIDOR_INTENTS.entrySet().removeIf(entry -> entry.getValue().expiresAtTick() <= tick);
+              if (world == null) {
+                  CORRIDOR_INTENTS.clear();
+                  return;
+              }
+
+              for (var projected : WildEcologyProjectionRegistry.collect(world)) {
+                  PokemonEntity actor = projected.actor();
+                  if (actor.isRemoved() || actor.isInvisible()) {
+                      CORRIDOR_INTENTS.remove(actor.getUuid());
+                      continue;
+                  }
+                  if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) {
+                      CORRIDOR_INTENTS.remove(actor.getUuid());
+                      continue;
+                  }
+                  var binding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid());
+                  if (binding.isEmpty()) {
+                      CORRIDOR_INTENTS.remove(actor.getUuid());
+                      continue;
+                  }
+
+                  var velocity = actor.getVelocity();
+                  double speed = horizontalSpeed(velocity.x, velocity.z);
+                  double maxCalmSpeed = projected.behaviorProfile().calmRoamSpeed() + MIN_HORIZONTAL_SPEED;
+                  if (speed > maxCalmSpeed) {
+                      CORRIDOR_INTENTS.remove(actor.getUuid());
+                      continue;
+                  }
+
+                  List<DirectedCorridor> corridors = nativePathCorridors(actor);
+                  if (corridors.isEmpty()) {
+                      if (speed <= MIN_HORIZONTAL_SPEED) {
+                          CORRIDOR_INTENTS.remove(actor.getUuid());
+                          continue;
+                      }
+                      double directionX = velocity.x / speed;
+                      double directionZ = velocity.z / speed;
+                      corridors = velocityIntentCorridors(actor.getBoundingBox(), directionX, directionZ);
+                  }
+
+                  DirectedCorridor lead = corridors.getFirst();
+                  CORRIDOR_INTENTS.put(
+                          actor.getUuid(),
+                          new CorridorIntent(
+                                  binding.get().canonicalEncounterId(),
+                                  lead.directionX(),
+                                  lead.directionZ(),
+                                  corridors,
+                                  tick + INTENT_TTL_TICKS));
+              }
+          }
+
+'''
+          text = text[:start] + publish + text[end:]
+
+          start = text.index('    private static void acquireReciprocalYields(ServerWorld world, long tick) {')
+          end = text.index('    private static PokemonEntity conflictingIntentPeer', start)
+          acquire = '''    private static void acquireReciprocalYields(ServerWorld world, long tick) {
+              if (world == null) return;
+
+              for (var projected : WildEcologyProjectionRegistry.collect(world)) {
+                  PokemonEntity actor = projected.actor();
+                  if (YIELD_LEASES.containsKey(actor.getUuid())) continue;
+                  if (actor.isRemoved() || actor.isInvisible()) continue;
+                  if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
+
+                  var velocity = actor.getVelocity();
+                  double speed = horizontalSpeed(velocity.x, velocity.z);
+                  double maxCalmSpeed = projected.behaviorProfile().calmRoamSpeed() + MIN_HORIZONTAL_SPEED;
+                  if (speed > maxCalmSpeed) continue;
+
+                  CorridorIntent actorIntent = CORRIDOR_INTENTS.get(actor.getUuid());
+                  PokemonEntity peer = conflictingIntentPeer(world, actor, tick);
+                  List<DirectedCorridor> leaseCorridors;
+                  if (peer != null && actorIntent != null && actorIntent.expiresAtTick() > tick) {
+                      leaseCorridors = actorIntent.corridors();
+                  } else {
+                      if (speed <= MIN_HORIZONTAL_SPEED) continue;
+                      peer = reciprocalPeerAhead(world, actor, velocity.x, velocity.z, maxCalmSpeed);
+                      if (peer == null) continue;
+                      leaseCorridors = velocityIntentCorridors(
+                              actor.getBoundingBox(),
+                              velocity.x / speed,
+                              velocity.z / speed);
+                  }
+
+                  var actorBinding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid());
+                  var peerBinding = VisibleWildPokemonEncounterRuntime.binding(peer.getUuid());
+                  if (actorBinding.isEmpty() || peerBinding.isEmpty()) continue;
+                  if (!shouldYield(
+                          actorBinding.get().canonicalEncounterId(),
+                          peerBinding.get().canonicalEncounterId())) continue;
+
+                  YIELD_LEASES.put(
+                          actor.getUuid(),
+                          new YieldLease(peer.getUuid(), leaseCorridors, tick + MAX_YIELD_HOLD_TICKS));
+                  stopPresentationMotion(actor);
+              }
+          }
+
+'''
+          text = text[:start] + acquire + text[end:]
+
+          old_sig = '''    private static PokemonEntity reciprocalPeerAhead(
+                  ServerWorld world,
+                  PokemonEntity actor,
+                  double velocityX,
+                  double velocityZ
+          ) {'''
+          new_sig = '''    private static PokemonEntity reciprocalPeerAhead(
+                  ServerWorld world,
+                  PokemonEntity actor,
+                  double velocityX,
+                  double velocityZ,
+                  double maxCalmSpeed
+          ) {'''
+          if text.count(old_sig) != 1:
+              raise SystemExit('expected reciprocalPeerAhead signature once')
+          text = text.replace(old_sig, new_sig, 1)
+          old_speed = '            if (peerSpeed <= MIN_HORIZONTAL_SPEED || peerSpeed > MAX_CALM_SPEED) continue;'
+          if text.count(old_speed) != 1:
+              raise SystemExit('expected peer speed guard once')
+          text = text.replace(old_speed, '            if (peerSpeed <= MIN_HORIZONTAL_SPEED || peerSpeed > maxCalmSpeed) continue;', 1)
+          text = text.replace('    private static final double MAX_CALM_SPEED = 0.025001D;\n', '')
+
+          if 'ouros.marea.' in text or 'CanonicalWildPopulationCatalogue' in text or 'MareaWildMigrationProjection' in text:
+              raise SystemExit('regional reciprocal-yield dependency remains in global runtime')
+          new_path.write_text(text)
+
+          mod_path = Path('fabric-adapter/src/main/resources/fabric.mod.json')
+          mod = mod_path.read_text()
+          old_entry = 'io.autoptu.cobblemon.fabric.world.MareaWildCalmReciprocalYieldRuntime'
+          new_entry = 'io.autoptu.cobblemon.fabric.world.WildCalmReciprocalYieldRuntime'
+          if mod.count(old_entry) != 1:
+              raise SystemExit('expected one regional reciprocal-yield entrypoint')
+          mod_path.write_text(mod.replace(old_entry, new_entry, 1))
+
+          test_root = Path('fabric-adapter/src/test/java/io/autoptu/cobblemon/fabric/world')
+          old_test = test_root / 'MareaWildCalmReciprocalYieldRuntimeTest.java'
+          new_test = test_root / 'WildCalmReciprocalYieldRuntimeTest.java'
+          test_text = old_test.read_text().replace(
+              'MareaWildCalmReciprocalYieldRuntime',
+              'WildCalmReciprocalYieldRuntime')
+          new_test.write_text(test_text)
+
+      - name: Verify global production boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'WildCalmReciprocalYieldRuntime' fabric-adapter/src/main/resources/fabric.mod.json
+          ! grep -q 'MareaWildCalmReciprocalYieldRuntime' fabric-adapter/src/main/resources/fabric.mod.json
+          ! grep -q 'ouros.marea.' fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/WildCalmReciprocalYieldRuntime.java
+          ./gradlew :fabric-adapter:test --tests '*WildCalmReciprocalYieldRuntimeTest'
+      - name: Commit implementation and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/one-shot-world013-global-yield.yml
+          git add fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/WildCalmReciprocalYieldRuntime.java
+          git add fabric-adapter/src/main/resources/fabric.mod.json
+          git add fabric-adapter/src/test/java/io/autoptu/cobblemon/fabric/world/WildCalmReciprocalYieldRuntimeTest.java
+          git commit -m 'Globalize wild reciprocal yield runtime'
+          git push origin HEAD:world-013-global-reciprocal-yield
