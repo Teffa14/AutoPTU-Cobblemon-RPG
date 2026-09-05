@@ -8,10 +8,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -28,11 +30,18 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 100;
     private static final Map<MinecraftServer, Map<UUID, Set<String>>> INSIDE_POPULATIONS = new IdentityHashMap<>();
 
-    record HabitatCue(String populationKey, double centerX, double centerZ, int radiusBlocks, int visibleActors) {
-        HabitatCue {
-            if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
+    record HabitatCircle(double centerX, double centerZ, int radiusBlocks) {
+        HabitatCircle {
             if (!Double.isFinite(centerX) || !Double.isFinite(centerZ)) throw new IllegalArgumentException("habitat center must be finite");
             if (radiusBlocks <= 0) throw new IllegalArgumentException("radiusBlocks must be positive");
+        }
+    }
+
+    record HabitatCue(String populationKey, List<HabitatCircle> circles, int visibleActors) {
+        HabitatCue {
+            if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
+            circles = List.copyOf(circles);
+            if (circles.isEmpty()) throw new IllegalArgumentException("at least one habitat circle is required");
             if (visibleActors <= 0) throw new IllegalArgumentException("visibleActors must be positive");
         }
     }
@@ -75,34 +84,35 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     }
 
     static Map<String, HabitatCue> habitatCues(ServerWorld world) {
-        Map<String, HabitatCue> habitats = new LinkedHashMap<>();
+        Map<String, List<HabitatCircle>> circlesByPopulation = new LinkedHashMap<>();
+        Map<String, Integer> countsByPopulation = new LinkedHashMap<>();
         for (var projection : WildEcologyProjectionRegistry.collect(world)) {
-            HabitatCue existing = habitats.get(projection.populationKey());
-            if (existing == null) {
-                habitats.put(projection.populationKey(), new HabitatCue(
-                        projection.populationKey(),
-                        projection.habitatCenterX(),
-                        projection.habitatCenterZ(),
-                        projection.habitatLeashRadiusBlocks(),
-                        1));
-                continue;
-            }
-            if (Double.compare(existing.centerX(), projection.habitatCenterX()) != 0
-                    || Double.compare(existing.centerZ(), projection.habitatCenterZ()) != 0
-                    || existing.radiusBlocks() != projection.habitatLeashRadiusBlocks()) {
-                throw new IllegalStateException("inconsistent habitat projection for population: " + projection.populationKey());
-            }
-            habitats.put(projection.populationKey(), new HabitatCue(
-                    existing.populationKey(), existing.centerX(), existing.centerZ(), existing.radiusBlocks(), existing.visibleActors() + 1));
+            circlesByPopulation.computeIfAbsent(projection.populationKey(), ignored -> new ArrayList<>())
+                    .add(new HabitatCircle(
+                            projection.habitatCenterX(),
+                            projection.habitatCenterZ(),
+                            projection.habitatLeashRadiusBlocks()));
+            countsByPopulation.merge(projection.populationKey(), 1, Integer::sum);
+        }
+
+        Map<String, HabitatCue> habitats = new LinkedHashMap<>();
+        for (var entry : circlesByPopulation.entrySet()) {
+            habitats.put(entry.getKey(), new HabitatCue(
+                    entry.getKey(),
+                    entry.getValue(),
+                    countsByPopulation.getOrDefault(entry.getKey(), 0)));
         }
         return Map.copyOf(habitats);
     }
 
     static boolean containsHorizontal(double playerX, double playerZ, HabitatCue habitat) {
-        double dx = playerX - habitat.centerX();
-        double dz = playerZ - habitat.centerZ();
-        double radius = habitat.radiusBlocks();
-        return dx * dx + dz * dz <= radius * radius;
+        for (HabitatCircle circle : habitat.circles()) {
+            double dx = playerX - circle.centerX();
+            double dz = playerZ - circle.centerZ();
+            double radius = circle.radiusBlocks();
+            if (dx * dx + dz * dz <= radius * radius) return true;
+        }
+        return false;
     }
 
     private static void announce(ServerPlayerEntity player, HabitatCue habitat) {
