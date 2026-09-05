@@ -58,6 +58,43 @@ public record WildBehaviorProfile(
         }
     }
 
+    /**
+     * Compatibility constructor for existing authored profiles that predate global roaming policy.
+     * The defaults preserve the already-shipped ambient motion values while callers migrate their
+     * tuning into explicit profile data.
+     */
+    public WildBehaviorProfile(
+            double watchDistance,
+            double alarmDistance,
+            int recoveryQuietUpdates,
+            int abandonedAlarmQuietUpdates,
+            long calmSegmentTicks,
+            long calmActiveTicks,
+            double maxIdleHorizontalSpeed,
+            double playerGuardRadius,
+            float idleScanDegrees
+    ) {
+        this(
+                watchDistance,
+                alarmDistance,
+                recoveryQuietUpdates,
+                abandonedAlarmQuietUpdates,
+                calmSegmentTicks,
+                calmActiveTicks,
+                maxIdleHorizontalSpeed,
+                playerGuardRadius,
+                idleScanDegrees,
+                0.025D,
+                1.0D,
+                2.5D,
+                0.018D,
+                6.0D,
+                0.012D,
+                0.08D,
+                0.04D,
+                1.5D);
+    }
+
     public AmbientPokemonBehaviorController.Profile proximityProfile() {
         return new AmbientPokemonBehaviorController.Profile(
                 watchDistance,
