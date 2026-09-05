@@ -20,8 +20,8 @@ import java.util.UUID;
  * actors are approaching the shared space, exactly one actor yields according to canonical
  * encounter identity before their physical bounding boxes have to collide. The lower lexical
  * encounter identity keeps presentation priority while the higher identity stops. A short
- * server-owned lease keeps that yield stable while the same peer still occupies the actor's
- * forward corridor, avoiding cadence-by-cadence stop/start oscillation.
+ * server-owned lease keeps that yield stable while the same peer still occupies or claims the
+ * actor's forward corridor, avoiding cadence-by-cadence stop/start oscillation.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -139,8 +139,16 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
                     && shouldYield(
                             actorBinding.get().canonicalEncounterId(),
                             peerBinding.get().canonicalEncounterId());
+            Box yieldCorridor = actor.getBoundingBox().stretch(
+                    lease.directionX() * INTENT_CORRIDOR_DISTANCE,
+                    0.0D,
+                    lease.directionZ() * INTENT_CORRIDOR_DISTANCE);
+            CorridorIntent peerIntent = CORRIDOR_INTENTS.get(peer.getUuid());
+            Box peerIntentCorridor = peerIntent != null && peerIntent.expiresAtTick() > tick
+                    ? peerIntent.corridor()
+                    : null;
             boolean peerInCorridor = canonicalPriorityStillApplies
-                    && peerOccupiesYieldCorridor(actor, peer, lease.directionX(), lease.directionZ());
+                    && corridorOccupiedOrClaimed(yieldCorridor, peer.getBoundingBox(), peerIntentCorridor);
 
             if (!shouldRetainLease(
                     tick,
@@ -251,24 +259,19 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
         return null;
     }
 
-    private static boolean peerOccupiesYieldCorridor(
-            PokemonEntity actor,
-            PokemonEntity peer,
-            double directionX,
-            double directionZ
-    ) {
-        var corridor = actor.getBoundingBox().stretch(
-                directionX * INTENT_CORRIDOR_DISTANCE,
-                0.0D,
-                directionZ * INTENT_CORRIDOR_DISTANCE);
-        return corridor.intersects(peer.getBoundingBox());
-    }
-
     private static void stopPresentationMotion(PokemonEntity actor) {
         var velocity = actor.getVelocity();
         actor.getNavigation().stop();
         actor.setVelocity(0.0D, velocity.y, 0.0D);
         actor.velocityModified = true;
+    }
+
+    static boolean corridorOccupiedOrClaimed(Box yieldCorridor, Box peerBounds, Box peerIntentCorridor) {
+        if (yieldCorridor == null || peerBounds == null) {
+            throw new IllegalArgumentException("yield corridor and peer bounds are required");
+        }
+        return yieldCorridor.intersects(peerBounds)
+                || (peerIntentCorridor != null && yieldCorridor.intersects(peerIntentCorridor));
     }
 
     static boolean corridorsConflict(
