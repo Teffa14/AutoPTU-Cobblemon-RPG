@@ -29,6 +29,18 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     }
 
     @Test
+    void publishedPeerIntentKeepsYieldBeforePhysicalContact() {
+        Box yieldCorridor = new Box(0.0D, 0.0D, 0.0D, 2.5D, 1.0D, 1.0D);
+        Box peerBounds = new Box(3.0D, 0.0D, 1.5D, 3.5D, 1.0D, 2.0D);
+        Box peerIntent = new Box(1.5D, 0.0D, 0.5D, 3.5D, 1.0D, 2.0D);
+
+        assertTrue(MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
+                yieldCorridor, peerBounds, peerIntent));
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
+                yieldCorridor, peerBounds, null));
+    }
+
+    @Test
     void parallelCorridorsDoNotCreateArtificialYield() {
         Box actorCorridor = new Box(0.0D, 0.0D, 0.0D, 3.0D, 1.0D, 1.0D);
         Box peerCorridor = new Box(0.5D, 0.0D, 0.2D, 3.5D, 1.0D, 1.2D);
@@ -107,5 +119,8 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
                 () -> MareaWildCalmReciprocalYieldRuntime.corridorsConflict(
                         Double.NaN, 0.0D, new Box(0, 0, 0, 1, 1, 1),
                         0.0D, 1.0D, new Box(0, 0, 0, 1, 1, 1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmReciprocalYieldRuntime.corridorOccupiedOrClaimed(
+                        null, new Box(0, 0, 0, 1, 1, 1), null));
     }
 }
