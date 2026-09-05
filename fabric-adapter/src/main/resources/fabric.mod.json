@@ -19,8 +19,8 @@
       "io.autoptu.cobblemon.fabric.world.MareaWildCalmIdleLookRuntime",
       "io.autoptu.cobblemon.fabric.world.MareaWildCalmReciprocalYieldRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmCollisionNavigationRuntime",
-      "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationRecoveryRuntime",
-      "io.autoptu.cobblemon.fabric.world.MareaWildCalmNavigationContinuityRuntime"
+      "io.autoptu.cobblemon.fabric.world.WildCalmNavigationRecoveryRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildCalmNavigationContinuityRuntime"
     ],
     "client": [
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
