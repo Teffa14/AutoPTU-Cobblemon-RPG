@@ -19,9 +19,10 @@ import java.util.UUID;
 /**
  * Minecraft-only ambient presentation for canonical Marea roaming actors.
  *
- * This runtime consumes only server-observed player proximity plus authored presentation thresholds.
- * It never reads Cobblemon Pokemon gameplay payload, PTU stats, HP, moves, statuses, abilities,
- * battle state, encounter legality, RNG or results. Combat authority remains entirely upstream.
+ * This runtime consumes only server-observed player proximity and Minecraft visibility plus authored
+ * presentation thresholds. It never reads Cobblemon Pokemon gameplay payload, PTU stats, HP, moves,
+ * statuses, abilities, battle state, encounter legality, RNG or results. Combat authority remains
+ * entirely upstream.
  */
 public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -73,7 +74,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid()) || actor.isInvisible()) continue;
 
                 liveActors.add(actor.getUuid());
-                var nearest = nearestPlayer(world, actor);
+                var nearest = nearestVisiblePlayer(world, actor);
                 AmbientPokemonBehaviorController controller = controllers.computeIfAbsent(
                         actor.getUuid(), ignored -> new AmbientPokemonBehaviorController(MAREA_ROAMING_PROFILE));
                 var state = controller.update(
@@ -87,11 +88,11 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
         controllers.keySet().removeIf(uuid -> !liveActors.contains(uuid));
     }
 
-    private static ServerPlayerEntity nearestPlayer(ServerWorld world, PokemonEntity actor) {
+    private static ServerPlayerEntity nearestVisiblePlayer(ServerWorld world, PokemonEntity actor) {
         ServerPlayerEntity nearest = null;
         double nearestDistance = Double.POSITIVE_INFINITY;
         for (ServerPlayerEntity player : world.getPlayers()) {
-            if (player.isSpectator()) continue;
+            if (!acceptsAmbientPlayer(player.isSpectator(), actor.canSee(player))) continue;
             double distance = actor.squaredDistanceTo(player);
             if (distance < nearestDistance) {
                 nearestDistance = distance;
@@ -99,6 +100,10 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             }
         }
         return nearest;
+    }
+
+    static boolean acceptsAmbientPlayer(boolean spectator, boolean visible) {
+        return !spectator && visible;
     }
 
     private static void applyPresentation(
