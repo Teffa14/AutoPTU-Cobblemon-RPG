@@ -10,11 +10,11 @@ final class BattleShapeVisualLabRuntimeTest {
     @Test
     void aoeFootprintKeepsAuthoredInsideAndOutsideControlsVisuallySeparated() {
         double radius = BattleShapeVisualLabRuntime.aoeRadius();
-        double venusaurOffset = Math.hypot(0.0D, 2.0D);
-        double pikachuOffset = Math.hypot(2.0D, -2.0D);
+        double rioluOffset = Math.hypot(0.0D, 2.0D);
+        double eeveeOffset = Math.hypot(2.0D, -2.0D);
 
-        assertTrue(venusaurOffset < radius);
-        assertTrue(pikachuOffset > radius);
+        assertTrue(rioluOffset < radius);
+        assertTrue(eeveeOffset > radius);
     }
 
     @Test
@@ -26,6 +26,8 @@ final class BattleShapeVisualLabRuntimeTest {
         assertTrue(near < middle);
         assertTrue(middle < far);
         assertTrue(far > BattleShapeVisualLabRuntime.lineHalfWidth() * 3.0D);
+        assertTrue(2.0D < BattleShapeVisualLabRuntime.blastHalfWidth(8.0D),
+                "the authored second compact target must sit visibly inside the cone at x=8");
     }
 
     @Test
