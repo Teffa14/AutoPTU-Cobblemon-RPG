@@ -43,6 +43,38 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     }
 
     @Test
+    void nativePathIntentCarriesNodeElevationIntoCorridorVolume() {
+        Box actorBounds = new Box(-0.25D, 0.0D, -0.25D, 0.25D, 1.0D, 0.25D);
+        var corridors = MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                actorBounds,
+                new Vec3d(0.0D, 0.0D, 0.0D),
+                List.of(new Vec3d(2.0D, 2.0D, 0.0D)),
+                5.0D);
+
+        assertEquals(1, corridors.size());
+        Box rising = corridors.getFirst().corridor();
+        assertTrue(rising.maxY >= 3.0D - 0.000001D);
+        assertTrue(rising.contains(1.0D, 1.5D, 0.0D));
+    }
+
+    @Test
+    void verticallySeparatedCrossingPathsDoNotCreateFalseYield() {
+        var bridgeCorridors = MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                new Box(-0.25D, 4.0D, -0.25D, 0.25D, 5.0D, 0.25D),
+                new Vec3d(0.0D, 4.0D, 0.0D),
+                List.of(new Vec3d(2.0D, 4.0D, 0.0D)),
+                5.0D);
+        var underpassCorridors = MareaWildCalmReciprocalYieldRuntime.pathIntentCorridors(
+                new Box(0.75D, 0.0D, -1.25D, 1.25D, 1.0D, -0.75D),
+                new Vec3d(1.0D, 0.0D, -1.0D),
+                List.of(new Vec3d(1.0D, 0.0D, 1.0D)),
+                5.0D);
+
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.corridorsConflict(
+                bridgeCorridors, underpassCorridors));
+    }
+
+    @Test
     void nativePathIntentStopsAtBoundedLookaheadDistance() {
         Box actorBounds = new Box(-0.3D, 0.0D, -0.3D, 0.3D, 1.0D, 0.3D);
         List<MareaWildCalmReciprocalYieldRuntime.DirectedCorridor> corridors =

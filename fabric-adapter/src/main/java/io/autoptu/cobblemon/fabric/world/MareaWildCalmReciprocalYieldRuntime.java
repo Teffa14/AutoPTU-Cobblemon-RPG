@@ -22,11 +22,13 @@ import java.util.UUID;
  * Interaction-active canonical wild actors publish a short-lived server-owned movement intent.
  * When Minecraft has an active native navigation path, the intent follows a bounded lookahead of
  * the remaining path nodes so curves and crossings can be reserved before the actors physically
- * meet. Without an active path, the runtime keeps the existing low-speed velocity corridor as a
- * fallback. When two published intents overlap while approaching shared space, exactly one actor
- * yields according to canonical encounter identity. The lower lexical encounter identity keeps
- * presentation priority while the higher identity stops. A short server-owned lease keeps that
- * yield stable while the same peer still occupies or claims the actor's forward corridor.
+ * meet. Path-derived corridors retain the native node elevation, so routes that cross only in X/Z
+ * at separate heights do not create false yield conflicts. Without an active path, the runtime keeps
+ * the existing low-speed velocity corridor as a fallback. When two published intents overlap while
+ * approaching shared space, exactly one actor yields according to canonical encounter identity.
+ * The lower lexical encounter identity keeps presentation priority while the higher identity stops.
+ * A short server-owned lease keeps that yield stable while the same peer still occupies or claims
+ * the actor's forward corridor.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -162,6 +164,7 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
                 throw new IllegalArgumentException("path intent nodes must be finite");
             }
             double deltaX = requestedEnd.x - segmentStart.x;
+            double deltaY = requestedEnd.y - segmentStart.y;
             double deltaZ = requestedEnd.z - segmentStart.z;
             double segmentDistance = horizontalSpeed(deltaX, deltaZ);
             if (segmentDistance <= MIN_HORIZONTAL_SPEED) {
@@ -172,17 +175,18 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
             double consumedDistance = Math.min(segmentDistance, remainingDistance);
             double fraction = consumedDistance / segmentDistance;
             double endX = segmentStart.x + deltaX * fraction;
+            double endY = segmentStart.y + deltaY * fraction;
             double endZ = segmentStart.z + deltaZ * fraction;
             double directionX = deltaX / segmentDistance;
             double directionZ = deltaZ / segmentDistance;
 
             Box segmentStartBounds = actorBounds.offset(
                     segmentStart.x - actorPosition.x,
-                    0.0D,
+                    segmentStart.y - actorPosition.y,
                     segmentStart.z - actorPosition.z);
             Box corridor = segmentStartBounds.stretch(
                     endX - segmentStart.x,
-                    0.0D,
+                    endY - segmentStart.y,
                     endZ - segmentStart.z);
             corridors.add(new DirectedCorridor(directionX, directionZ, corridor));
 
