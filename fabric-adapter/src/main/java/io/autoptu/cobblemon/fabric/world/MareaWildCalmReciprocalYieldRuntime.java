@@ -24,11 +24,11 @@ import java.util.UUID;
  * the remaining path nodes so curves and crossings can be reserved before the actors physically
  * meet. Path-derived corridors retain the native node elevation, so routes that cross only in X/Z
  * at separate heights do not create false yield conflicts. Without an active path, the runtime keeps
- * the existing low-speed velocity corridor as a fallback. When two published intents overlap while
- * approaching shared space, exactly one actor yields according to canonical encounter identity.
- * The lower lexical encounter identity keeps presentation priority while the higher identity stops.
- * A short server-owned lease keeps that yield stable against the same segmented 3D intent geometry
- * that caused the yield, while the same peer still occupies or claims that reserved route.
+ * the existing low-speed velocity corridor as a fallback. When multiple published intents overlap,
+ * the conflicting peer is selected by stable canonical encounter identity rather than map iteration
+ * order. The lower lexical encounter identity keeps presentation priority while the higher identity
+ * stops. A short server-owned lease keeps that yield stable against the same segmented 3D intent
+ * geometry that caused the yield, while the same peer still occupies or claims that reserved route.
  *
  * This never decides PTU movement, initiative, targeting, legality, RNG, damage or results and never
  * reads Cobblemon Pokemon gameplay state.
@@ -317,6 +317,8 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
         CorridorIntent actorIntent = CORRIDOR_INTENTS.get(actor.getUuid());
         if (actorIntent == null || actorIntent.expiresAtTick() <= tick) return null;
 
+        PokemonEntity selectedPeer = null;
+        String selectedCanonicalId = null;
         for (var entry : CORRIDOR_INTENTS.entrySet()) {
             if (entry.getKey().equals(actor.getUuid())) continue;
             CorridorIntent peerIntent = entry.getValue();
@@ -326,9 +328,35 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
             var peerEntity = world.getEntity(entry.getKey());
             if (!(peerEntity instanceof PokemonEntity peer) || peer.isRemoved() || peer.isInvisible()) continue;
             if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(peer.getUuid())) continue;
-            return peer;
+            var peerBinding = VisibleWildPokemonEncounterRuntime.binding(peer.getUuid());
+            if (peerBinding.isEmpty()) continue;
+            String peerCanonicalId = requireCanonicalId(
+                    peerBinding.get().canonicalEncounterId(),
+                    "peerCanonicalEncounterId");
+            if (!peerCanonicalId.equals(peerIntent.canonicalEncounterId())) continue;
+            if (selectedCanonicalId == null || peerCanonicalId.compareTo(selectedCanonicalId) < 0) {
+                selectedCanonicalId = peerCanonicalId;
+                selectedPeer = peer;
+            }
         }
-        return null;
+        return selectedPeer;
+    }
+
+    static String preferredConflictingCanonicalPeer(
+            String actorCanonicalEncounterId,
+            List<String> conflictingPeerCanonicalIds
+    ) {
+        String actorId = requireCanonicalId(actorCanonicalEncounterId, "actorCanonicalEncounterId");
+        if (conflictingPeerCanonicalIds == null) {
+            throw new IllegalArgumentException("conflictingPeerCanonicalIds is required");
+        }
+        String selected = null;
+        for (String candidate : conflictingPeerCanonicalIds) {
+            String candidateId = requireCanonicalId(candidate, "conflictingPeerCanonicalId");
+            if (actorId.equals(candidateId)) continue;
+            if (selected == null || candidateId.compareTo(selected) < 0) selected = candidateId;
+        }
+        return selected;
     }
 
     private static PokemonEntity reciprocalPeerAhead(
