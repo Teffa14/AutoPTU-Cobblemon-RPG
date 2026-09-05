@@ -18,6 +18,31 @@ final class MareaWildCalmReciprocalYieldRuntimeTest {
     }
 
     @Test
+    void yieldLeasePersistsOnlyWhileCanonicalPresentationPeerStillOccupiesCorridor() {
+        assertTrue(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                110L, 140L, true, true, true));
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                110L, 140L, true, true, false));
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                110L, 140L, true, false, true));
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                110L, 140L, false, true, true));
+    }
+
+    @Test
+    void yieldLeaseHasHardExpiryToPreventStalePresentationDeadlock() {
+        assertTrue(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                139L, 140L, true, true, true));
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                140L, 140L, true, true, true));
+        assertFalse(MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                141L, 140L, true, true, true));
+        assertThrows(IllegalArgumentException.class,
+                () -> MareaWildCalmReciprocalYieldRuntime.shouldRetainLease(
+                        -1L, 140L, true, true, true));
+    }
+
+    @Test
     void reciprocalApproachRequiresBothActorsToMoveTowardEachOther() {
         assertTrue(MareaWildCalmReciprocalYieldRuntime.reciprocalApproach(
                 0.0D, 0.0D, 0.02D, 0.0D,
