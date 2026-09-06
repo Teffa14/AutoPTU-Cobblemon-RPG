@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +31,22 @@ class WildEcologyDescriptorRegistryTest {
         assertNotNull(descriptor.blueprintSource());
         assertNotNull(descriptor.projectionEligibility());
         assertNotNull(descriptor.behaviorProfile());
+        assertEquals(WildSocialRole.ALPHA, descriptor.socialRole(CanonicalWildEncounterCatalogue.DEFAULT
+                .encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID).orElseThrow()));
+        assertEquals(WildSocialRole.MEMBER, descriptor.socialRole(CanonicalWildEncounterCatalogue.DEFAULT
+                .encounter(CanonicalWildEncounterCatalogue.MAREA_SECOND_FLETCHLING_ID).orElseThrow()));
+    }
+
+    @Test
+    void everyMareaPopulationAuthorsExactlyOneAlphaWithoutReadingMechanicalValues() {
+        var descriptor = MareaWildEcologyContent.descriptors().getFirst();
+        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
+            if (!descriptor.populationSelector().test(population)) continue;
+            long alphaCount = CanonicalWildPopulationCatalogue.DEFAULT.members(population).stream()
+                    .filter(encounter -> descriptor.socialRole(encounter) == WildSocialRole.ALPHA)
+                    .count();
+            assertEquals(1L, alphaCount, population.populationId());
+        }
     }
 
     @Test

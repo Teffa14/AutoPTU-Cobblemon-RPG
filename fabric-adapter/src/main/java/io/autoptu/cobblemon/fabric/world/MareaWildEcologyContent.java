@@ -6,6 +6,7 @@ import io.autoptu.cobblemon.ecology.MigrationPhase;
 import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 
 import java.util.List;
+import java.util.Set;
 
 /** Authored Marea ecology data consumed by region-agnostic Wild* runtimes. */
 final class MareaWildEcologyContent {
@@ -20,6 +21,12 @@ final class MareaWildEcologyContent {
     private static final WildBehaviorProfile AMBIENT_BEHAVIOR_PROFILE = new WildBehaviorProfile(
             14.0D, 7.0D, 3, 5, 80L, 60L, 0.001D, 14.0D, 35.0F,
             0.025D, 1.0D, 2.5D, 0.018D, 6.0D, 0.012D, 0.08D, 0.04D, 1.5D);
+
+    private static final Set<String> AUTHORED_ALPHA_ENCOUNTERS = Set.of(
+            CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID,
+            CanonicalWildEncounterCatalogue.MAREA_CROSSING_FLETCHLING_ID,
+            CanonicalWildEncounterCatalogue.MAREA_MIRADOR_FLETCHLING_ID,
+            CanonicalWildEncounterCatalogue.MAREA_LOMA_WINDBREAK_FLETCHLING_ID);
 
     private static final List<WildPopulationProjectionProfile> PROJECTION_PROFILES = List.of(
             new WildPopulationProjectionProfile(
@@ -71,7 +78,10 @@ final class MareaWildEcologyContent {
                     encounter -> encounter.speciesStatus() == CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL
                             && !encounter.fusion()
                             && "standard".equals(encounter.formId()),
-                    AMBIENT_BEHAVIOR_PROFILE)
+                    AMBIENT_BEHAVIOR_PROFILE,
+                    encounter -> AUTHORED_ALPHA_ENCOUNTERS.contains(encounter.canonicalEncounterId())
+                            ? WildSocialRole.ALPHA
+                            : WildSocialRole.MEMBER)
     );
 
     private MareaWildEcologyContent() {}
