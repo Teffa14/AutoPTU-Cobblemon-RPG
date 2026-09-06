@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildCalmAlphaCohesionNavigationRuntimeTest {
@@ -49,6 +51,24 @@ final class WildCalmAlphaCohesionNavigationRuntimeTest {
     }
 
     @Test
+    void cohesionTargetStopsShortOfAlphaAtAuthoredSafeSpacing() {
+        assertArrayEquals(
+                new double[] {5.5D, 0.0D},
+                WildCalmAlphaCohesionNavigationRuntime.cohesionTarget(
+                        0.0D, 0.0D, 10.0D, 0.0D, 2.0D, 6.0D),
+                0.0000001D);
+    }
+
+    @Test
+    void coincidentCohesionTargetDoesNotInventDirection() {
+        assertArrayEquals(
+                new double[] {3.0D, 4.0D},
+                WildCalmAlphaCohesionNavigationRuntime.cohesionTarget(
+                        3.0D, 4.0D, 3.0D, 4.0D, 2.0D, 6.0D),
+                0.0000001D);
+    }
+
+    @Test
     void invalidInputsFailClosed() {
         var candidates = List.of(candidate(
                 ALPHA_NEAR, "marea", 2.0D, 0.0D, WildSocialRole.ALPHA, true));
@@ -61,6 +81,9 @@ final class WildCalmAlphaCohesionNavigationRuntimeTest {
                 SELF, 0.0D, 0.0D, "", candidates).isEmpty());
         assertTrue(WildCalmAlphaCohesionNavigationRuntime.deterministicAlphaAnchorIdentity(
                 SELF, 0.0D, 0.0D, "marea", null).isEmpty());
+        assertThrows(IllegalArgumentException.class, () ->
+                WildCalmAlphaCohesionNavigationRuntime.cohesionTarget(
+                        0.0D, 0.0D, 10.0D, 0.0D, 6.0D, 6.0D));
     }
 
     private static WildCalmAlphaCohesionNavigationRuntime.AlphaCandidate candidate(
