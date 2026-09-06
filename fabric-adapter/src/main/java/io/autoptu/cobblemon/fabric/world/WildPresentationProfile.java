@@ -20,9 +20,6 @@ public record WildPresentationProfile(
 
     public WildPresentationProfile {
         if (herdRole == null) throw new IllegalArgumentException("herdRole is required");
-        if (herdRole == HerdRole.LEADER && !alphaVisual) {
-            throw new IllegalArgumentException("alpha herd leader presentation requires alphaVisual");
-        }
     }
 
     public static WildPresentationProfile alphaLeader() {
