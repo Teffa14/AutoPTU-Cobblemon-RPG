@@ -1,0 +1,54 @@
+name: One-shot WORLD-013 plan bookkeeping
+
+on:
+  push:
+    branches:
+      - world-013-plan-553
+
+permissions:
+  contents: write
+
+jobs:
+  update-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: world-013-plan-553
+      - name: Record shipped Cobblemon 1.8 Habitat Block slice
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("MINECRAFT_RPG_TOOLING_PLAN.md")
+          text = path.read_text(encoding="utf-8")
+          lines = text.splitlines()
+          marker = "| WORLD-013 | NEXT/PARTIAL |"
+          old_next = (
+              "Next isolate the remaining compatibility-registry callers in tests/fixtures and delete the parallel registries "
+              "once no required caller depends on them. "
+          )
+          replacement = (
+              "PR #553 / merge `43b88911a28928400ecf7d4e7c39b205604c6c29` integrates Cobblemon 1.8 Habitat Blocks as bounded physical ecology points of interest: "
+              "generic resting visible-WILD presentation can discover the nearest real `cobblemon:habitat_block` inside the server-authored canonical habitat leash and face it, while the adapter never reads the Habitat Block spawn pool, species, levels, modifiers, weights or native spawn outcomes as RPG/PTU truth. "
+              "Integration Core CI #2398 verifies the real 1.8 Habitat Block and `HabitatBlockEntity` on a dedicated server, removes the temporary probe before native spawning can run, and passes a second restart boot. "
+              "Next add a generic server-authored Alpha/herd presentation capability boundary that can drive Cobblemon 1.8 alpha visuals and herd leadership only when canonical ecology content explicitly requests it; Cobblemon level matching, TM moves, stat boosts, combat aggression and battle outcomes remain non-authoritative. "
+              "After that, isolate the remaining compatibility-registry callers in tests/fixtures and delete the parallel registries once no required caller depends on them. "
+          )
+          matches = [i for i, line in enumerate(lines) if line.startswith(marker)]
+          if len(matches) != 1:
+              raise SystemExit(f"expected one WORLD-013 row, found {len(matches)}")
+          index = matches[0]
+          if old_next not in lines[index]:
+              raise SystemExit("WORLD-013 expected NEXT text not found; refusing broad edit")
+          lines[index] = lines[index].replace(old_next, replacement, 1)
+          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+      - name: Remove one-shot workflow and commit exact plan edit
+        run: |
+          rm .github/workflows/one-shot-world-013-plan-553.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/one-shot-world-013-plan-553.yml
+          git diff --cached --check
+          git commit -m "Record WORLD-013 PR #553"
+          git push origin HEAD:world-013-plan-553
