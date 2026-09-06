@@ -46,6 +46,10 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             if (visibleActors <= 0) throw new IllegalArgumentException("visibleActors must be positive");
             if (visibleAlphas < 0 || visibleAlphas > visibleActors) throw new IllegalArgumentException("visibleAlphas must be within visible actor count");
         }
+
+        HabitatCue(String populationKey, String displayName, List<HabitatCircle> circles, int visibleActors) {
+            this(populationKey, displayName, circles, visibleActors, 0);
+        }
     }
 
     @Override
