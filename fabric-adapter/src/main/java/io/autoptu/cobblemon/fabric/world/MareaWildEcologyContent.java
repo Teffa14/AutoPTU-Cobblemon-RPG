@@ -6,12 +6,12 @@ import io.autoptu.cobblemon.ecology.MigrationPhase;
 import java.util.List;
 
 /**
- * Authored Marea wild-ecology content consumed by the region-agnostic Wild* runtimes.
+ * Authored Marea wild-ecology content consumed by region-agnostic Wild* runtimes.
  *
- * <p>This class contains data only. Projection lifecycle and server-clock resolution are owned by
- * {@link WildPopulationProjectionProfile} and {@link WildPopulationContentRegistry}. Adding another
- * migratory population means adding another profile to this content list, not another projection
- * runtime or resolver class.</p>
+ * <p>This class contains data only. Population projection lifecycle is owned by
+ * {@link WildPopulationProjectionProfile} and {@link WildPopulationContentRegistry}; visible actor assembly
+ * is owned by the global ecology projection source. Adding another region therefore contributes profiles and
+ * behavior data without adding a region-specific runtime.</p>
  */
 final class MareaWildEcologyContent {
     private static final long LOWER_SHELF_CYCLE_TICKS = 168_000L;
@@ -21,6 +21,26 @@ final class MareaWildEcologyContent {
     private static final long LOWER_SHELF_FINAL_TRANSIT_END_TICK = 90_003L;
     private static final long LOWER_SHELF_ARRIVAL_END_TICK = 90_004L;
     private static final String LOWER_SHELF_STOPOVER_SITE_ID = "ouros.marea.sendero_crossing";
+
+    private static final WildBehaviorProfile AMBIENT_BEHAVIOR_PROFILE = new WildBehaviorProfile(
+            14.0D,
+            7.0D,
+            3,
+            5,
+            80L,
+            60L,
+            0.001D,
+            14.0D,
+            35.0F,
+            0.025D,
+            1.0D,
+            2.5D,
+            0.018D,
+            6.0D,
+            0.012D,
+            0.08D,
+            0.04D,
+            1.5D);
 
     private static final List<WildPopulationProjectionProfile> PROJECTION_PROFILES = List.of(
             new WildPopulationProjectionProfile(
@@ -62,9 +82,20 @@ final class MareaWildEcologyContent {
             )
     );
 
+    private static final List<WildEcologyProjectionContentRegistry.Source> ECOLOGY_PROJECTION_SOURCES = List.of(
+            new WildEcologyProjectionContentRegistry.Source(
+                    "fixture.ouros.marea",
+                    population -> population.siteId().startsWith("ouros.marea."),
+                    AMBIENT_BEHAVIOR_PROFILE)
+    );
+
     private MareaWildEcologyContent() {}
 
     static List<WildPopulationProjectionProfile> projectionProfiles() {
         return PROJECTION_PROFILES;
+    }
+
+    static List<WildEcologyProjectionContentRegistry.Source> ecologyProjectionSources() {
+        return ECOLOGY_PROJECTION_SOURCES;
     }
 }

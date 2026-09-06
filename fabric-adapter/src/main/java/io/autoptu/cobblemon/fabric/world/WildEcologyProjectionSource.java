@@ -10,41 +10,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Authored projection source for the current Marea fixture content.
+ * Global projection source for server-owned visible wild actors.
  *
- * This class supplies data only. All ambient behavior, navigation, yielding and habitat feedback
- * are owned by region-agnostic Wild* runtimes consuming WildEcologyProjectionRegistry.
+ * <p>Authored region content selects populations and supplies ambient behavior profiles through
+ * {@link WildEcologyProjectionContentRegistry}. This runtime resolves every mutable projection fact from
+ * canonical server state and never reads Pokemon combat truth from Cobblemon.</p>
  */
-final class MareaWildEcologyProjectionSource {
-    static final WildBehaviorProfile BEHAVIOR_PROFILE = new WildBehaviorProfile(
-            14.0D,
-            7.0D,
-            3,
-            5,
-            80L,
-            60L,
-            0.001D,
-            14.0D,
-            35.0F,
-            0.025D,
-            1.0D,
-            2.5D,
-            0.018D,
-            6.0D,
-            0.012D,
-            0.08D,
-            0.04D,
-            1.5D);
-
-    private MareaWildEcologyProjectionSource() {
-    }
+final class WildEcologyProjectionSource {
+    private WildEcologyProjectionSource() {}
 
     static Iterable<WildEcologyProjectionRegistry.ProjectedActor> projectedActors(ServerWorld world) {
         if (world == null) return List.of();
         List<WildEcologyProjectionRegistry.ProjectedActor> projected = new ArrayList<>();
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            if (!population.siteId().startsWith("ouros.marea.")) continue;
+            var ecologyContent = WildEcologyProjectionContentRegistry.sourceFor(population).orElse(null);
+            if (ecologyContent == null) continue;
+
+            var populationContent = WildPopulationContentRegistry.sourceFor(population).orElse(null);
+            if (populationContent == null || !populationContent.worldEligibility().accepts(world)) continue;
+
             var projectedSiteId = WildPopulationContentRegistry.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
             var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
@@ -58,7 +43,7 @@ final class MareaWildEcologyProjectionSource {
                 if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || actor.isInvisible()) continue;
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
-                BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
+                BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
                 projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
                         actor,
                         population.siteId(),
@@ -66,7 +51,7 @@ final class MareaWildEcologyProjectionSource {
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
                         population.habitatLeashRadiusBlocks(),
-                        BEHAVIOR_PROFILE));
+                        ecologyContent.behaviorProfile()));
             }
         }
         return List.copyOf(projected);
