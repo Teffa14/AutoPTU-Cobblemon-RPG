@@ -20,21 +20,33 @@ class WildPopulationProjectionProfileTest {
 
     @Test
     void authoredWindowsDriveHomeTransitAndSeasonalProjectionWithoutRegionCode() {
-        var profile = new WildPopulationProjectionProfile(
-                "ouros.test.migration.ridge_to_marsh.v1",
-                POPULATION.populationId(),
-                100L,
-                List.of(
-                        WildPopulationProjectionProfile.Window.home(0L, 40L, MigrationPhase.PREPARING),
-                        WildPopulationProjectionProfile.Window.hidden(40L, 60L, MigrationPhase.IN_TRANSIT),
-                        WildPopulationProjectionProfile.Window.site(
-                                60L, 100L, MigrationPhase.SEASONAL_RESIDENCE, "ouros.test.marsh")));
+        var profile = profile();
 
         assertEquals("ouros.test.ridge_home", profile.projectedSiteId(POPULATION, 0L).orElseThrow());
         assertTrue(profile.projectedSiteId(POPULATION, 50L).isEmpty());
         assertEquals("ouros.test.marsh", profile.projectedSiteId(POPULATION, 75L).orElseThrow());
         assertEquals("ouros.test.ridge_home", profile.projectedSiteId(POPULATION, 100L).orElseThrow());
         assertEquals(MigrationPhase.IN_TRANSIT, profile.resolve(POPULATION, 50L).phase());
+    }
+
+    @Test
+    void registryComposesAuthoredProfilesAndKeepsUnprofiledPopulationsAtHome() {
+        var resolver = WildPopulationContentRegistry.projectionResolver(List.of(profile()));
+        var resident = new CanonicalWildPopulationCatalogue.PopulationDefinition(
+                "ouros.other.wild.resident.v1",
+                "ouros.other.home",
+                "ouros.other.zone",
+                List.of());
+
+        assertTrue(resolver.projectedSiteId(POPULATION, 50L).isEmpty());
+        assertEquals("ouros.test.marsh", resolver.projectedSiteId(POPULATION, 75L).orElseThrow());
+        assertEquals("ouros.other.home", resolver.projectedSiteId(resident, 75L).orElseThrow());
+    }
+
+    @Test
+    void registryRejectsMultipleProfilesForTheSamePopulation() {
+        assertThrows(IllegalArgumentException.class, () ->
+                WildPopulationContentRegistry.projectionResolver(List.of(profile(), profile())));
     }
 
     @Test
@@ -72,5 +84,17 @@ class WildPopulationProjectionProfileTest {
                 POPULATION.populationId(),
                 100L,
                 List.of(WildPopulationProjectionProfile.Window.home(0L, 99L, MigrationPhase.PREPARING))));
+    }
+
+    private static WildPopulationProjectionProfile profile() {
+        return new WildPopulationProjectionProfile(
+                "ouros.test.migration.ridge_to_marsh.v1",
+                POPULATION.populationId(),
+                100L,
+                List.of(
+                        WildPopulationProjectionProfile.Window.home(0L, 40L, MigrationPhase.PREPARING),
+                        WildPopulationProjectionProfile.Window.hidden(40L, 60L, MigrationPhase.IN_TRANSIT),
+                        WildPopulationProjectionProfile.Window.site(
+                                60L, 100L, MigrationPhase.SEASONAL_RESIDENCE, "ouros.test.marsh")));
     }
 }
