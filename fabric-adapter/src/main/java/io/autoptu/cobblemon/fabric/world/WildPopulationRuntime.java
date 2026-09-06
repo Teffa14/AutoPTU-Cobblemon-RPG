@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * Global server-owned lifecycle for approved visible WILD populations.
  *
- * <p>Authored region modules register content policy through {@link WildPopulationContentRegistry}.
+ * <p>Authored region modules register one content policy through {@link WildEcologyDescriptorRegistry}.
  * This runtime owns normal activation, hibernation, presence reconciliation, actor replacement,
  * canonical encounter binding and destructive-unload cleanup for every registered population.
  * Cobblemon entities remain presentation bodies only.</p>
@@ -53,7 +53,7 @@ public final class WildPopulationRuntime {
             if (!(entity instanceof PokemonEntity pokemonEntity)) return;
             var encounter = canonicalEncounterFor(pokemonEntity);
             if (encounter.isEmpty()) return;
-            var source = WildPopulationContentRegistry.sourceFor(encounter.get()).orElse(null);
+            var source = WildEcologyDescriptorRegistry.descriptorFor(encounter.get()).orElse(null);
             if (source == null) return;
             if (!source.worldEligibility().accepts(world)) {
                 VisibleWildPokemonEncounterRuntime.unbind(pokemonEntity.getUuid());
@@ -83,8 +83,8 @@ public final class WildPopulationRuntime {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             clearPopulationActivity(server);
             int visible = reconcileAllWorlds(server);
-            LOGGER.info("AutoPTU global visible wild populations ready: {} actors across {} content sources",
-                    visible, WildPopulationContentRegistry.sourceCount());
+            LOGGER.info("AutoPTU global visible wild populations ready: {} actors across {} ecology descriptors",
+                    visible, WildEcologyDescriptorRegistry.descriptorCount());
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(WildPopulationRuntime::clearPopulationActivity);
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -97,7 +97,7 @@ public final class WildPopulationRuntime {
         if (world == null) throw new IllegalArgumentException("world is required");
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            var source = WildPopulationContentRegistry.sourceFor(population).orElse(null);
+            var source = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
             if (source == null || !source.worldEligibility().accepts(world)) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 if (ensureProjected(world, encounter) != null) visible++;
@@ -112,16 +112,15 @@ public final class WildPopulationRuntime {
     ) {
         if (world == null) throw new IllegalArgumentException("world is required");
         if (encounter == null) throw new IllegalArgumentException("encounter is required");
-        var source = WildPopulationContentRegistry.sourceFor(encounter)
+        var source = WildEcologyDescriptorRegistry.descriptorFor(encounter)
                 .orElseThrow(() -> new IllegalStateException(
-                        "no registered visible wild population source for " + encounter.populationId()));
+                        "no registered visible wild ecology descriptor for " + encounter.populationId()));
         if (!source.worldEligibility().accepts(world)) {
             throw new IllegalArgumentException("wild population projection rejected this Minecraft world");
         }
 
         publishBeforeReveal(world, encounter.canonicalEncounterId(), source);
-        String projectedSiteId = source.projectedSiteResolver()
-                .projectedSiteId(populationFor(encounter), world.getTime())
+        String projectedSiteId = source.projectedSiteId(populationFor(encounter), world.getTime())
                 .orElse(encounter.siteId());
         BlockPos anchor = projectedPresentationAnchor(encounter, projectedSiteId);
         loadHabitatChunks(world, anchor);
@@ -158,7 +157,7 @@ public final class WildPopulationRuntime {
         if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
         if (encounter == null) return null;
-        var source = WildPopulationContentRegistry.sourceFor(encounter).orElse(null);
+        var source = WildEcologyDescriptorRegistry.descriptorFor(encounter).orElse(null);
         if (source == null || !source.worldEligibility().accepts(world)) return null;
         var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
         if (boundUuid.isPresent()) {
@@ -183,10 +182,10 @@ public final class WildPopulationRuntime {
         if (!FabricCanonicalPlayerStoreRuntime.storesAvailable(world.getServer())) return 0;
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            var source = WildPopulationContentRegistry.sourceFor(population).orElse(null);
+            var source = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
             if (source == null || !source.worldEligibility().accepts(world)) continue;
 
-            var projectedSiteId = source.projectedSiteResolver().projectedSiteId(population, world.getTime());
+            var projectedSiteId = source.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) {
                 setPopulationMarkedActive(world.getServer(), population.populationId(), false);
                 hibernateLoadedPopulation(world, population);
@@ -231,10 +230,10 @@ public final class WildPopulationRuntime {
             ServerWorld world,
             PokemonEntity actor,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
-            WildPopulationContentRegistry.Source source
+            WildEcologyDescriptorRegistry.Descriptor source
     ) {
         var population = populationFor(encounter);
-        var projectedSiteId = source.projectedSiteResolver().projectedSiteId(population, world.getTime());
+        var projectedSiteId = source.projectedSiteId(population, world.getTime());
         if (projectedSiteId.isEmpty()) {
             setPopulationMarkedActive(world.getServer(), population.populationId(), false);
             setPopulationProjectionActive(actor, false);
@@ -326,7 +325,7 @@ public final class WildPopulationRuntime {
             if (!tag.startsWith(WILD_TAG_PREFIX)) continue;
             String encounterId = tag.substring(WILD_TAG_PREFIX.length());
             var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(encounterId);
-            if (encounter.isPresent() && WildPopulationContentRegistry.sourceFor(encounter.get()).isPresent()) {
+            if (encounter.isPresent() && WildEcologyDescriptorRegistry.descriptorFor(encounter.get()).isPresent()) {
                 return encounter;
             }
         }
@@ -392,7 +391,7 @@ public final class WildPopulationRuntime {
 
     private static void enforceProjectionContentGate(
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
-            WildPopulationContentRegistry.Source source
+            WildEcologyDescriptorRegistry.Descriptor source
     ) {
         if (!source.projectionEligibility().test(encounter)) {
             throw new IllegalStateException("visible wild projection content rejected by source " + source.sourceId()
@@ -403,7 +402,7 @@ public final class WildPopulationRuntime {
     private static void publishBeforeReveal(
             ServerWorld world,
             String canonicalEncounterId,
-            WildPopulationContentRegistry.Source source
+            WildEcologyDescriptorRegistry.Descriptor source
     ) {
         var registry = FabricCanonicalPlayerStoreRuntime.requireWildEncounterBlueprintRegistry(world.getServer());
         if (registry.resolve(canonicalEncounterId).isPresent()) return;
