@@ -6,6 +6,7 @@ import io.autoptu.cobblemon.fabric.battle.CanonicalWildEncounterBlueprintSource;
 import net.minecraft.server.world.ServerWorld;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -52,6 +53,30 @@ public final class WildPopulationContentRegistry {
     private static final Map<String, Source> SOURCES = new LinkedHashMap<>();
 
     private WildPopulationContentRegistry() {}
+
+    /**
+     * Builds the normal projection resolver directly from authored population profiles.
+     * Populations without a profile remain at their canonical home site.
+     */
+    public static ProjectedSiteResolver projectionResolver(List<WildPopulationProjectionProfile> profiles) {
+        if (profiles == null) throw new IllegalArgumentException("profiles are required");
+        Map<String, WildPopulationProjectionProfile> byPopulation = new LinkedHashMap<>();
+        for (WildPopulationProjectionProfile profile : profiles) {
+            if (profile == null) throw new IllegalArgumentException("projection profile is required");
+            WildPopulationProjectionProfile previous = byPopulation.putIfAbsent(profile.populationId(), profile);
+            if (previous != null) {
+                throw new IllegalArgumentException("multiple projection profiles for population: " + profile.populationId());
+            }
+        }
+        Map<String, WildPopulationProjectionProfile> immutableProfiles = Map.copyOf(byPopulation);
+        return (population, worldTick) -> {
+            if (population == null) throw new IllegalArgumentException("population is required");
+            WildPopulationProjectionProfile profile = immutableProfiles.get(population.populationId());
+            return profile == null
+                    ? Optional.of(population.siteId())
+                    : profile.projectedSiteId(population, worldTick);
+        };
+    }
 
     public static synchronized void register(Source source) {
         if (source == null) throw new IllegalArgumentException("source is required");
