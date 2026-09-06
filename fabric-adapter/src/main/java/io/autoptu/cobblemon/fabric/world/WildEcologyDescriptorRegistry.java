@@ -9,14 +9,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * Single server-authored registration boundary for visible-wild ecology.
  *
  * <p>One descriptor owns the population selector, Minecraft-world eligibility, temporal projection calendar,
- * canonical blueprint source, projection-content eligibility and ambient behavior profile. Generic Wild*
- * runtimes consume this descriptor and continue to own lifecycle, projection and interaction behavior.</p>
+ * canonical blueprint source, projection-content eligibility, ambient behavior profile and optional ambient
+ * social presentation role. Generic Wild* runtimes consume this descriptor and continue to own lifecycle,
+ * projection and interaction behavior.</p>
  */
 public final class WildEcologyDescriptorRegistry {
     @FunctionalInterface
@@ -31,7 +33,8 @@ public final class WildEcologyDescriptorRegistry {
             List<WildPopulationProjectionProfile> projectionProfiles,
             CanonicalWildEncounterBlueprintSource blueprintSource,
             Predicate<CanonicalWildEncounterCatalogue.EncounterDefinition> projectionEligibility,
-            WildBehaviorProfile behaviorProfile
+            WildBehaviorProfile behaviorProfile,
+            Function<CanonicalWildEncounterCatalogue.EncounterDefinition, WildSocialRole> socialRoleResolver
     ) {
         public Descriptor {
             if (sourceId == null || sourceId.isBlank()) throw new IllegalArgumentException("sourceId is required");
@@ -43,6 +46,7 @@ public final class WildEcologyDescriptorRegistry {
             if (blueprintSource == null) throw new IllegalArgumentException("blueprintSource is required");
             if (projectionEligibility == null) throw new IllegalArgumentException("projectionEligibility is required");
             if (behaviorProfile == null) throw new IllegalArgumentException("behaviorProfile is required");
+            if (socialRoleResolver == null) throw new IllegalArgumentException("socialRoleResolver is required");
 
             Map<String, WildPopulationProjectionProfile> profilesByPopulation = new LinkedHashMap<>();
             for (WildPopulationProjectionProfile profile : projectionProfiles) {
@@ -52,6 +56,27 @@ public final class WildEcologyDescriptorRegistry {
                     throw new IllegalArgumentException("multiple projection profiles for population: " + profile.populationId());
                 }
             }
+        }
+
+        /** Compatibility constructor for ecology sources without authored social roles. */
+        public Descriptor(
+                String sourceId,
+                Predicate<CanonicalWildPopulationCatalogue.PopulationDefinition> populationSelector,
+                WorldEligibility worldEligibility,
+                List<WildPopulationProjectionProfile> projectionProfiles,
+                CanonicalWildEncounterBlueprintSource blueprintSource,
+                Predicate<CanonicalWildEncounterCatalogue.EncounterDefinition> projectionEligibility,
+                WildBehaviorProfile behaviorProfile
+        ) {
+            this(
+                    sourceId,
+                    populationSelector,
+                    worldEligibility,
+                    projectionProfiles,
+                    blueprintSource,
+                    projectionEligibility,
+                    behaviorProfile,
+                    encounter -> WildSocialRole.MEMBER);
         }
 
         public Optional<String> projectedSiteId(
@@ -65,6 +90,16 @@ public final class WildEcologyDescriptorRegistry {
                 }
             }
             return Optional.of(population.siteId());
+        }
+
+        public WildSocialRole socialRole(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+            if (encounter == null) throw new IllegalArgumentException("encounter is required");
+            WildSocialRole role = socialRoleResolver.apply(encounter);
+            if (role == null) {
+                throw new IllegalStateException("wild ecology social role resolver returned null for "
+                        + encounter.canonicalEncounterId());
+            }
+            return role;
         }
     }
 
