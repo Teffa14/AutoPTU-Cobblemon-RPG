@@ -83,4 +83,12 @@ final class MareaWildEcologyContent {
     static List<WildEcologyDescriptorRegistry.Descriptor> descriptors() {
         return DESCRIPTORS;
     }
+
+    /** Legacy test/fixture view; production registers only {@link #descriptors()}. */
+    static List<WildEcologyProjectionContentRegistry.Source> ecologyProjectionSources() {
+        return DESCRIPTORS.stream()
+                .map(descriptor -> new WildEcologyProjectionContentRegistry.Source(
+                        descriptor.sourceId(), descriptor.populationSelector(), descriptor.behaviorProfile()))
+                .toList();
+    }
 }
