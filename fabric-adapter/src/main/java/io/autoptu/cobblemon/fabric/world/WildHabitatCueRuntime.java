@@ -9,6 +9,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -22,13 +23,15 @@ import java.util.UUID;
  * Global Minecraft-visible habitat feedback for every registered wild ecology population.
  *
  * Region/species content publishes projected actors through {@link WildEcologyProjectionRegistry}.
- * This runtime derives only presentation habitat presence from those server-authored projections.
- * It never selects encounters, rolls RNG, reads Cobblemon Pokemon gameplay payloads, or supplies
- * PTU species/stats/moves/legality/results.
+ * This runtime derives only presentation habitat presence and physical interaction-range feedback
+ * from those server-authored projections. It never selects encounters, rolls RNG, reads Cobblemon
+ * Pokemon gameplay payloads, or supplies PTU species/stats/moves/legality/results.
  */
 public final class WildHabitatCueRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 100;
+    private static final int ENGAGEMENT_UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, Map<String, HabitatSnapshot>>> INSIDE_POPULATIONS = new IdentityHashMap<>();
+    private static final Map<MinecraftServer, Map<UUID, UUID>> NEARBY_INTERACTION_ACTORS = new IdentityHashMap<>();
 
     record HabitatCircle(double centerX, double centerZ, int radiusBlocks) {
         HabitatCircle {
@@ -66,12 +69,15 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     @Override
     public void onInitialize() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (server.getTicks() % UPDATE_INTERVAL_TICKS != 0) return;
-            reconcile(server.getOverworld());
+            if (server.getTicks() % ENGAGEMENT_UPDATE_INTERVAL_TICKS == 0) reconcileNearbyInteractions(server.getOverworld());
+            if (server.getTicks() % UPDATE_INTERVAL_TICKS == 0) reconcile(server.getOverworld());
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             synchronized (INSIDE_POPULATIONS) {
                 INSIDE_POPULATIONS.remove(server);
+            }
+            synchronized (NEARBY_INTERACTION_ACTORS) {
+                NEARBY_INTERACTION_ACTORS.remove(server);
             }
         });
     }
@@ -99,6 +105,54 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             remember(world.getServer(), player.getUuid(), current);
         }
         forgetOffline(world.getServer(), online);
+    }
+
+    static void reconcileNearbyInteractions(ServerWorld world) {
+        if (world == null || world.getServer() == null || world != world.getServer().getOverworld()) return;
+
+        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        Set<UUID> online = new HashSet<>();
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            UUID playerId = player.getUuid();
+            online.add(playerId);
+            if (player.isSpectator()) {
+                rememberNearbyInteraction(world.getServer(), playerId, null);
+                continue;
+            }
+
+            UUID previousActor = rememberedNearbyInteraction(world.getServer(), playerId);
+            UUID currentActor = nearestInteractionActor(player, projections);
+            rememberNearbyInteraction(world.getServer(), playerId, currentActor);
+            if (shouldAnnounceNearbyInteraction(previousActor, currentActor)) {
+                player.sendMessage(Text.literal(nearbyInteractionText()), true);
+            }
+        }
+        forgetOfflineNearbyInteractions(world.getServer(), online);
+    }
+
+    static UUID nearestInteractionActor(
+            ServerPlayerEntity player,
+            List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
+        if (player == null || projections == null || projections.isEmpty()) return null;
+        return projections.stream()
+                .filter(projection -> projection != null && !projection.actor().isRemoved())
+                .filter(projection -> VisibleWildPokemonEncounterRuntime.isInteractionActive(projection.actor().getUuid()))
+                .filter(projection -> VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(
+                        player.squaredDistanceTo(projection.actor())))
+                .min(Comparator
+                        .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor projection) ->
+                                player.squaredDistanceTo(projection.actor()))
+                        .thenComparing(projection -> projection.actor().getUuid().toString()))
+                .map(projection -> projection.actor().getUuid())
+                .orElse(null);
+    }
+
+    static boolean shouldAnnounceNearbyInteraction(UUID previousActor, UUID currentActor) {
+        return currentActor != null && !currentActor.equals(previousActor);
+    }
+
+    static String nearbyInteractionText() {
+        return "Wild Pokemon within reach · interact to inspect encounter";
     }
 
     static Map<String, HabitatCue> habitatCues(ServerWorld world) {
@@ -186,6 +240,31 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             if (players == null) return;
             players.keySet().removeIf(playerId -> !online.contains(playerId));
             if (players.isEmpty()) INSIDE_POPULATIONS.remove(server);
+        }
+    }
+
+    private static UUID rememberedNearbyInteraction(MinecraftServer server, UUID playerId) {
+        synchronized (NEARBY_INTERACTION_ACTORS) {
+            Map<UUID, UUID> players = NEARBY_INTERACTION_ACTORS.get(server);
+            return players == null ? null : players.get(playerId);
+        }
+    }
+
+    private static void rememberNearbyInteraction(MinecraftServer server, UUID playerId, UUID actorId) {
+        synchronized (NEARBY_INTERACTION_ACTORS) {
+            Map<UUID, UUID> players = NEARBY_INTERACTION_ACTORS.computeIfAbsent(server, ignored -> new HashMap<>());
+            if (actorId == null) players.remove(playerId);
+            else players.put(playerId, actorId);
+            if (players.isEmpty()) NEARBY_INTERACTION_ACTORS.remove(server);
+        }
+    }
+
+    private static void forgetOfflineNearbyInteractions(MinecraftServer server, Set<UUID> online) {
+        synchronized (NEARBY_INTERACTION_ACTORS) {
+            Map<UUID, UUID> players = NEARBY_INTERACTION_ACTORS.get(server);
+            if (players == null) return;
+            players.keySet().removeIf(playerId -> !online.contains(playerId));
+            if (players.isEmpty()) NEARBY_INTERACTION_ACTORS.remove(server);
         }
     }
 }

@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Cobblemon result.
  */
 public final class VisibleWildPokemonEncounterRuntime {
-    private static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
+    static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
     private static final WorldEncounterTriggerRequestService REQUESTS = new WorldEncounterTriggerRequestService();
     private static final Map<UUID, Binding> BINDINGS = new ConcurrentHashMap<>();
     private static final Map<String, UUID> ENTITY_BY_ENCOUNTER = new ConcurrentHashMap<>();
@@ -50,7 +50,7 @@ public final class VisibleWildPokemonEncounterRuntime {
             Binding binding = BINDINGS.get(entity.getUuid());
             if (binding == null) return ActionResult.PASS;
             if (!INTERACTION_ACTIVE.contains(entity.getUuid())) return ActionResult.FAIL;
-            if (serverPlayer.squaredDistanceTo(entity) > MAX_INTERACTION_DISTANCE_SQUARED) return ActionResult.FAIL;
+            if (!isWithinInteractionDistanceSquared(serverPlayer.squaredDistanceTo(entity))) return ActionResult.FAIL;
 
             var blueprintRegistry = FabricCanonicalPlayerStoreRuntime
                     .requireWildEncounterBlueprintRegistry(serverPlayer.getServer());
@@ -83,6 +83,12 @@ public final class VisibleWildPokemonEncounterRuntime {
                             : "Your pending wild encounter remains locked to the same party handoff."), true);
             return ActionResult.SUCCESS;
         });
+    }
+
+    static boolean isWithinInteractionDistanceSquared(double squaredDistance) {
+        return Double.isFinite(squaredDistance)
+                && squaredDistance >= 0.0D
+                && squaredDistance <= MAX_INTERACTION_DISTANCE_SQUARED;
     }
 
     private static PersistentWorldEncounterPartyHandoffService handoffService(
