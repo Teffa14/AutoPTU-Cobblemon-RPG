@@ -15,15 +15,12 @@ import java.util.Optional;
  */
 @Deprecated(forRemoval = true)
 final class MareaWildMigrationProjection {
-    private static final WildPopulationContentRegistry.ProjectedSiteResolver RESOLVER =
-            WildPopulationContentRegistry.projectionResolver(MareaWildEcologyContent.projectionProfiles());
-
     private MareaWildMigrationProjection() {}
 
     static Optional<String> projectedSiteId(
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
             long worldTick
     ) {
-        return RESOLVER.projectedSiteId(population, worldTick);
+        return WildPopulationContentRegistry.projectedSiteId(population, worldTick);
     }
 }
