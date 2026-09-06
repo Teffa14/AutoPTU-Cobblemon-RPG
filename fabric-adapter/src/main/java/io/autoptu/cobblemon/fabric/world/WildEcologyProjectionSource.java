@@ -46,7 +46,7 @@ final class WildEcologyProjectionSource {
                 BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
                 projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
                         actor,
-                        population.populationId(),
+                        population.siteId(),
                         site.displayName(),
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
