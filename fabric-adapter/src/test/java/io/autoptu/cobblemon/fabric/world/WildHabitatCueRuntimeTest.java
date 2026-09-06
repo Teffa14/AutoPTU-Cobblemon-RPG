@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.world;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -114,6 +115,28 @@ final class WildHabitatCueRuntimeTest {
         assertTrue(WildHabitatCueRuntime.shouldAnnounce(previous, oneActorGone));
         assertTrue(WildHabitatCueRuntime.shouldAnnounce(previous, alphaGone));
         assertTrue(WildHabitatCueRuntime.shouldAnnounce(null, original));
+    }
+
+    @Test
+    void engagementCueUsesTheExactServerInteractionDistanceBoundary() {
+        assertTrue(VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(0.0D));
+        assertTrue(VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(36.0D));
+        assertFalse(VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(36.0001D));
+        assertFalse(VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(Double.NaN));
+        assertFalse(VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(-1.0D));
+    }
+
+    @Test
+    void engagementCueAnnouncesOnlyOnEnteringOrChangingTheNearbyCanonicalActor() {
+        UUID first = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        UUID second = UUID.fromString("00000000-0000-0000-0000-000000000202");
+
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(null, first));
+        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(first, first));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(first, second));
+        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(first, null));
+        assertEquals("Wild Pokemon within reach · interact to inspect encounter",
+                WildHabitatCueRuntime.nearbyInteractionText());
     }
 
     @Test
