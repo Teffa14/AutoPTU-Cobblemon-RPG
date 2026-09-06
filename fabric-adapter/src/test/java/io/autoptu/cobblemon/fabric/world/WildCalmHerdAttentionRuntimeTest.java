@@ -9,21 +9,57 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildCalmHerdAttentionRuntimeTest {
-    @Test
-    void deterministicAnchorUsesStableServerActorIdentity() {
-        UUID high = UUID.fromString("00000000-0000-0000-0000-0000000000ff");
-        UUID low = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        UUID middle = UUID.fromString("00000000-0000-0000-0000-000000000080");
+    private static final UUID SELF = UUID.fromString("00000000-0000-0000-0000-000000000010");
+    private static final UUID LOW = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID MID = UUID.fromString("00000000-0000-0000-0000-000000000080");
+    private static final UUID HIGH = UUID.fromString("00000000-0000-0000-0000-0000000000ff");
 
-        assertEquals(low, WildCalmHerdAttentionRuntime.deterministicAnchorIdentity(
-                List.of(high, low, middle)).orElseThrow());
-        assertEquals(low, WildCalmHerdAttentionRuntime.deterministicAnchorIdentity(
-                List.of(middle, high, low)).orElseThrow());
+    @Test
+    void nearestEligibleActorWinsBeforeStableIdentityTieBreak() {
+        List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 8.0D, 0.0D),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 2.0D, 0.0D));
+
+        assertEquals(HIGH, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 10.0D, candidates).orElseThrow());
     }
 
     @Test
-    void emptyPopulationHasNoPresentationAnchor() {
-        assertTrue(WildCalmHerdAttentionRuntime.deterministicAnchorIdentity(List.of()).isEmpty());
-        assertTrue(WildCalmHerdAttentionRuntime.deterministicAnchorIdentity(null).isEmpty());
+    void equalDistanceUsesStableActorIdentityIndependentOfInputOrder() {
+        WildCalmHerdAttentionRuntime.AnchorCandidate low =
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, -2.0D, 0.0D);
+        WildCalmHerdAttentionRuntime.AnchorCandidate high =
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 2.0D, 0.0D);
+
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 10.0D, List.of(high, low)).orElseThrow());
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 10.0D, List.of(low, high)).orElseThrow());
+    }
+
+    @Test
+    void ignoresSelfCoincidentAndOutOfCohesionCandidates() {
+        List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(SELF, 1.0D, 0.0D),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(MID, 0.0D, 0.0D),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 6.0D, 0.0D),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 4.0D, 0.0D));
+
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 5.0D, candidates).orElseThrow());
+    }
+
+    @Test
+    void invalidOrEmptyInputsHaveNoPresentationAnchor() {
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 5.0D, List.of()).isEmpty());
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 5.0D, null).isEmpty());
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, 0.0D, 0.0D, 0.0D, List.of(
+                        new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 1.0D, 0.0D))).isEmpty());
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+                SELF, Double.NaN, 0.0D, 5.0D, List.of(
+                        new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 1.0D, 0.0D))).isEmpty());
     }
 }
