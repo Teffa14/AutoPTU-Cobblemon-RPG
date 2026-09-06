@@ -106,7 +106,9 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
             return;
         }
         if (state == AmbientPokemonBehaviorController.State.CALM) {
-            applyCalmRoaming(projection, nearestPopulationSibling(projection, allActors), worldTime);
+            var nearestSibling = nearestPopulationSibling(projection, allActors);
+            var cohesionPeer = herdCohesionPeer(projection, allActors, nearestSibling);
+            applyCalmRoaming(projection, nearestSibling, cohesionPeer, worldTime);
             return;
         }
         if (nearest == null) return;
@@ -153,9 +155,42 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
         return nearest;
     }
 
+    static WildEcologyProjectionRegistry.ProjectedActor herdCohesionPeer(
+            WildEcologyProjectionRegistry.ProjectedActor actor,
+            List<WildEcologyProjectionRegistry.ProjectedActor> allActors,
+            WildEcologyProjectionRegistry.ProjectedActor nearestSibling
+    ) {
+        if (actor == null || allActors == null) {
+            throw new IllegalArgumentException("herd cohesion selection requires actor and population projections");
+        }
+        if (actor.presentationProfile().herdRole() != WildPresentationProfile.HerdRole.FOLLOWER) {
+            return nearestSibling;
+        }
+
+        WildEcologyProjectionRegistry.ProjectedActor leader = null;
+        double leaderDistance = Double.POSITIVE_INFINITY;
+        for (var candidate : allActors) {
+            if (candidate == null || candidate.actor().getUuid().equals(actor.actor().getUuid())) continue;
+            if (!candidate.populationKey().equals(actor.populationKey())) continue;
+            if (candidate.presentationProfile().herdRole() != WildPresentationProfile.HerdRole.LEADER) continue;
+            if (candidate.actor().isRemoved() || candidate.actor().isInvisible()) continue;
+
+            double distance = actor.actor().squaredDistanceTo(candidate.actor());
+            if (distance < leaderDistance
+                    || (distance == leaderDistance
+                    && leader != null
+                    && candidate.actor().getUuid().compareTo(leader.actor().getUuid()) < 0)) {
+                leaderDistance = distance;
+                leader = candidate;
+            }
+        }
+        return leader != null ? leader : nearestSibling;
+    }
+
     private static void applyCalmRoaming(
             WildEcologyProjectionRegistry.ProjectedActor projection,
             WildEcologyProjectionRegistry.ProjectedActor nearestSibling,
+            WildEcologyProjectionRegistry.ProjectedActor cohesionPeer,
             long worldTime
     ) {
         PokemonEntity actor = projection.actor();
@@ -185,10 +220,13 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
                     profile.separationDistance(), profile.separationSpeed(), false);
             requestedX += separation[0];
             requestedZ += separation[1];
+        }
 
+        if (cohesionPeer != null) {
+            PokemonEntity cohesionActor = cohesionPeer.actor();
             double[] cohesion = pairImpulse(
                     actor.getUuid(), actor.getX(), actor.getZ(),
-                    sibling.getUuid(), sibling.getX(), sibling.getZ(),
+                    cohesionActor.getUuid(), cohesionActor.getX(), cohesionActor.getZ(),
                     profile.cohesionDistance(), profile.cohesionSpeed(), true);
             requestedX += cohesion[0];
             requestedZ += cohesion[1];
