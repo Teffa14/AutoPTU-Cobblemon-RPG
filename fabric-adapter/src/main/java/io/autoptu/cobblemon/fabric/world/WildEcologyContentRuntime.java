@@ -5,11 +5,10 @@ import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSo
 import net.fabricmc.api.ModInitializer;
 
 /**
- * Central registration boundary for authored visible-wild ecology sources.
+ * Central registration boundary for authored visible-wild ecology content.
  *
- * Region/species content may contribute projection sources here, but gameplay behavior remains in
- * the generic Wild* runtimes. Adding another approved region therefore adds data/source registration
- * rather than another Fabric behavior entrypoint.
+ * Region/species modules contribute server-authored data here. Projection assembly and gameplay behavior
+ * remain in generic Wild* runtimes, so adding an approved region does not add another Fabric behavior source.
  */
 public final class WildEcologyContentRuntime implements ModInitializer {
     @Override
@@ -24,9 +23,12 @@ public final class WildEcologyContentRuntime implements ModInitializer {
                         && !encounter.fusion()
                         && "standard".equals(encounter.formId())
         ));
+        for (var source : MareaWildEcologyContent.ecologyProjectionSources()) {
+            WildEcologyProjectionContentRegistry.register(source);
+        }
         WildEcologyProjectionRegistry.register(
-                "fixture.ouros.marea",
-                MareaWildEcologyProjectionSource::projectedActors
+                "server-owned.visible-wilds",
+                WildEcologyProjectionSource::projectedActors
         );
     }
 }
