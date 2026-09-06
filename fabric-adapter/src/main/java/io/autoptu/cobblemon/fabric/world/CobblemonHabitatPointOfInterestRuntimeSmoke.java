@@ -2,6 +2,8 @@ package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.CobblemonBlockEntities;
 import com.cobblemon.mod.common.CobblemonBlocks;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -17,10 +19,15 @@ import org.slf4j.LoggerFactory;
  * server tick can let Cobblemon's native spawner execute. It never reads or writes habitat spawn
  * configuration.</p>
  */
-final class CobblemonHabitatPointOfInterestRuntimeSmoke {
+public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
+    private static final String ENABLE_PROPERTY = "autoptu.liveMareaWildPresenceSmoke";
 
-    private CobblemonHabitatPointOfInterestRuntimeSmoke() {}
+    @Override
+    public void onInitialize() {
+        if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
+        ServerLifecycleEvents.SERVER_STARTED.register(CobblemonHabitatPointOfInterestRuntimeSmoke::verify);
+    }
 
     static void verify(MinecraftServer server) {
         if (server == null) throw new IllegalArgumentException("server is required");
