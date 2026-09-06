@@ -18,6 +18,7 @@
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildAmbientBehaviorRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmIdleLookRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildCalmHerdAttentionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmReciprocalYieldRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmCollisionNavigationRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmNavigationRecoveryRuntime",
