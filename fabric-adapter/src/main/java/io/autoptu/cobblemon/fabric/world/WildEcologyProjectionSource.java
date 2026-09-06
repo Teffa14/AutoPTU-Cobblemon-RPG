@@ -9,13 +9,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Global projection source for server-owned visible wild actors.
- *
- * <p>Authored region content registers one {@link WildEcologyDescriptorRegistry.Descriptor} per ecology source.
- * This runtime resolves every mutable projection fact from that unified server-owned descriptor plus canonical
- * world state and never reads Pokemon combat truth from Cobblemon.</p>
- */
+/** Global projection source for server-owned visible wild actors. */
 final class WildEcologyProjectionSource {
     private WildEcologyProjectionSource() {}
 
@@ -30,8 +24,7 @@ final class WildEcologyProjectionSource {
             var projectedSiteId = descriptor.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
             var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "missing projected canonical wild population site: " + projectedSiteId.get()));
+                    .orElseThrow(() -> new IllegalStateException("missing projected canonical wild population site: " + projectedSiteId.get()));
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
@@ -48,7 +41,8 @@ final class WildEcologyProjectionSource {
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
                         population.habitatLeashRadiusBlocks(),
-                        descriptor.behaviorProfile()));
+                        descriptor.behaviorProfile(),
+                        descriptor.socialRole(encounter)));
             }
         }
         return List.copyOf(projected);
