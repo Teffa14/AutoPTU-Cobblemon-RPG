@@ -15,10 +15,12 @@ import java.util.UUID;
  * Generic server-owned herd attention for visible wild actors during CALM rest windows.
  *
  * <p>The presentation anchor is selected only from interaction-active actors already published by
- * the canonical ecology projection for the same population. Selection uses only server-observed
- * world position plus stable Minecraft actor identity; species, level, stats, moves, abilities and
- * Cobblemon gameplay state are never read. The anchor is presentation-only and has no PTU
- * initiative, leadership or battle semantics.</p>
+ * the canonical ecology projection for the same population. Canonically authored Alpha actors are
+ * preferred inside the same cohesion radius; otherwise the nearest eligible member remains the
+ * anchor. Selection uses only server-owned ecology role, server-observed world position and stable
+ * Minecraft actor identity. Species, level, stats, moves, abilities and Cobblemon gameplay state are
+ * never read. The anchor is presentation-only and has no PTU initiative, leadership or battle
+ * semantics.</p>
  */
 public final class WildCalmHerdAttentionRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -100,12 +102,13 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
                             && distanceSquared <= maxDistanceSquared;
                 })
                 .min(Comparator
-                        .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
-                                horizontalDistanceSquared(actor, candidate.actor()))
+                        .comparingInt((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                                socialRolePriority(candidate.socialRole()))
+                        .thenComparingDouble(candidate -> horizontalDistanceSquared(actor, candidate.actor()))
                         .thenComparing(candidate -> candidate.actor().getUuid()));
     }
 
-    static Optional<UUID> deterministicNearestAnchorIdentity(
+    static Optional<UUID> deterministicPreferredAnchorIdentity(
             UUID actorId,
             double actorX,
             double actorZ,
@@ -123,7 +126,7 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
 
         double maxDistanceSquared = cohesionDistance * cohesionDistance;
         return candidates.stream()
-                .filter(candidate -> candidate != null && candidate.actorId() != null)
+                .filter(candidate -> candidate != null && candidate.actorId() != null && candidate.socialRole() != null)
                 .filter(candidate -> !candidate.actorId().equals(actorId))
                 .filter(candidate -> Double.isFinite(candidate.x()) && Double.isFinite(candidate.z()))
                 .filter(candidate -> {
@@ -131,10 +134,25 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
                     return distanceSquared > MIN_ANCHOR_DISTANCE_SQUARED && distanceSquared <= maxDistanceSquared;
                 })
                 .min(Comparator
-                        .comparingDouble((AnchorCandidate candidate) ->
+                        .comparingInt((AnchorCandidate candidate) -> socialRolePriority(candidate.socialRole()))
+                        .thenComparingDouble(candidate ->
                                 horizontalDistanceSquared(actorX, actorZ, candidate.x(), candidate.z()))
                         .thenComparing(AnchorCandidate::actorId))
                 .map(AnchorCandidate::actorId);
+    }
+
+    static Optional<UUID> deterministicNearestAnchorIdentity(
+            UUID actorId,
+            double actorX,
+            double actorZ,
+            double cohesionDistance,
+            List<AnchorCandidate> candidates
+    ) {
+        return deterministicPreferredAnchorIdentity(actorId, actorX, actorZ, cohesionDistance, candidates);
+    }
+
+    private static int socialRolePriority(WildSocialRole role) {
+        return role == WildSocialRole.ALPHA ? 0 : 1;
     }
 
     private static double horizontalDistanceSquared(PokemonEntity first, PokemonEntity second) {
@@ -166,6 +184,9 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
         return false;
     }
 
-    record AnchorCandidate(UUID actorId, double x, double z) {
+    record AnchorCandidate(UUID actorId, double x, double z, WildSocialRole socialRole) {
+        AnchorCandidate(UUID actorId, double x, double z) {
+            this(actorId, x, z, WildSocialRole.MEMBER);
+        }
     }
 }
