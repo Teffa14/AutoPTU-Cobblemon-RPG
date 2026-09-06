@@ -23,6 +23,17 @@ final class MareaWildCalmIdleLookRuntimeTest {
     }
 
     @Test
+    void habitatPointOfInterestAddsBoundedVerticalGaze() {
+        float up = WildCalmIdleLookRuntime.idleFacingPitch(64.0D, 70.0D, 10.0D, 10.0D, 14.0D, 10.0D);
+        float down = WildCalmIdleLookRuntime.idleFacingPitch(70.0D, 64.0D, 10.0D, 10.0D, 14.0D, 10.0D);
+        float extreme = WildCalmIdleLookRuntime.idleFacingPitch(64.0D, 164.0D, 10.0D, 10.0D, 10.0D, 10.0D);
+
+        assertTrue(up < 0.0F);
+        assertTrue(down > 0.0F);
+        assertEquals(-60.0F, extreme);
+    }
+
+    @Test
     void genericPolicySupportsDifferentPopulationCadencesAndScanWidths() {
         UUID actor = UUID.fromString("00000000-0000-0000-0000-000000000123");
         float narrow = WildCalmIdleLookRuntime.idleFacingYaw(actor, 60L, 12.0D, 10.0D, 10.0D, 10.0D, 80L, 10.0F);
@@ -88,6 +99,8 @@ final class MareaWildCalmIdleLookRuntimeTest {
                 () -> WildCalmIdleLookRuntime.idleFacingYaw(null, 60L, 0.0D, 0.0D, 0.0D, 0.0D, 80L, 35.0F));
         assertThrows(IllegalArgumentException.class,
                 () -> WildCalmIdleLookRuntime.idleFacingYaw(UUID.randomUUID(), 60L, Double.NaN, 0.0D, 0.0D, 0.0D, 80L, 35.0F));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildCalmIdleLookRuntime.idleFacingPitch(64.0D, Double.NaN, 0.0D, 0.0D, 0.0D, 0.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> new WildBehaviorProfile(14.0D, 15.0D, 3, 5, 80L, 60L, 0.001D, 14.0D, 35.0F));
         assertThrows(IllegalArgumentException.class,
