@@ -5,6 +5,8 @@ import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MareaWildEcologyContentTest {
@@ -43,12 +45,22 @@ class MareaWildEcologyContentTest {
     }
 
     @Test
-    void contentRegistersOnlyProjectionDataAndCanBeExtendedWithoutAnotherResolverType() {
+    void contentRegistersProjectionAndBehaviorDataWithoutARegionalRuntime() {
         assertEquals(1, MareaWildEcologyContent.projectionProfiles().size());
         assertEquals(
                 CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
                 MareaWildEcologyContent.projectionProfiles().getFirst().populationId()
         );
+        assertEquals(1, MareaWildEcologyContent.ecologyProjectionSources().size());
+
+        var source = MareaWildEcologyContent.ecologyProjectionSources().getFirst();
+        var marea = CanonicalWildPopulationCatalogue.DEFAULT
+                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
+                .orElseThrow();
+        assertEquals("fixture.ouros.marea", source.sourceId());
+        assertTrue(source.populationSelector().test(marea));
+        assertFalse(source.behaviorProfile().equals(null));
+        assertSame(source.behaviorProfile(), MareaWildEcologyContent.ecologyProjectionSources().getFirst().behaviorProfile());
     }
 
     @Test
