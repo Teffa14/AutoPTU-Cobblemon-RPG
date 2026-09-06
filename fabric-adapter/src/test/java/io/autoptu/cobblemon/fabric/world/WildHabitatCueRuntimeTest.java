@@ -83,6 +83,40 @@ final class WildHabitatCueRuntimeTest {
     }
 
     @Test
+    void cueRefreshesOnlyWhenVisibleAuthoredPopulationStateChanges() {
+        var original = new WildHabitatCueRuntime.HabitatCue(
+                "ouros.any.herd",
+                "Windbreak",
+                List.of(new WildHabitatCueRuntime.HabitatCircle(0.0D, 0.0D, 8)),
+                4,
+                1);
+        var samePopulationStateAtAnotherAnchor = new WildHabitatCueRuntime.HabitatCue(
+                "ouros.any.herd",
+                "Windbreak",
+                List.of(new WildHabitatCueRuntime.HabitatCircle(4.0D, 0.0D, 8)),
+                4,
+                1);
+        var oneActorGone = new WildHabitatCueRuntime.HabitatCue(
+                "ouros.any.herd",
+                "Windbreak",
+                List.of(new WildHabitatCueRuntime.HabitatCircle(0.0D, 0.0D, 8)),
+                3,
+                1);
+        var alphaGone = new WildHabitatCueRuntime.HabitatCue(
+                "ouros.any.herd",
+                "Windbreak",
+                List.of(new WildHabitatCueRuntime.HabitatCircle(0.0D, 0.0D, 8)),
+                4,
+                0);
+
+        var previous = WildHabitatCueRuntime.HabitatSnapshot.from(original);
+        assertFalse(WildHabitatCueRuntime.shouldAnnounce(previous, samePopulationStateAtAnotherAnchor));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounce(previous, oneActorGone));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounce(previous, alphaGone));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounce(null, original));
+    }
+
+    @Test
     void alphaCountCannotExceedVisibleServerProjection() {
         assertThrows(IllegalArgumentException.class, () -> new WildHabitatCueRuntime.HabitatCue(
                 "ouros.invalid",
