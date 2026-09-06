@@ -1,0 +1,84 @@
+name: One-shot WORLD-013 direct descriptor migration
+
+on:
+  push:
+    branches:
+      - world-013-direct-descriptor-runtime
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: world-013-direct-descriptor-runtime
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Migrate production ecology runtimes to unified descriptor
+        shell: python
+        run: |
+          from pathlib import Path
+
+          population_path = Path("fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/WildPopulationRuntime.java")
+          text = population_path.read_text(encoding="utf-8")
+          text = text.replace(
+              "Authored region modules register content policy through {@link WildPopulationContentRegistry}.",
+              "Authored region modules register content policy through {@link WildEcologyDescriptorRegistry}."
+          )
+          text = text.replace("WildPopulationContentRegistry.sourceFor(", "WildEcologyDescriptorRegistry.descriptorFor(")
+          text = text.replace("WildPopulationContentRegistry.sourceCount()", "WildEcologyDescriptorRegistry.descriptorCount()")
+          text = text.replace("WildPopulationContentRegistry.Source", "WildEcologyDescriptorRegistry.Descriptor")
+          text = text.replace("source.projectedSiteResolver()\n                .projectedSiteId(", "source.projectedSiteId(")
+          text = text.replace("source.projectedSiteResolver().projectedSiteId(", "source.projectedSiteId(")
+          if "WildPopulationContentRegistry" in text:
+              raise SystemExit("WildPopulationRuntime still depends on compatibility population registry")
+          population_path.write_text(text, encoding="utf-8")
+
+          projection_path = Path("fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/WildEcologyProjectionSource.java")
+          text = projection_path.read_text(encoding="utf-8")
+          text = text.replace(
+              "Authored region content selects populations and supplies ambient behavior profiles through\n * {@link WildEcologyProjectionContentRegistry}. This runtime resolves every mutable projection fact from",
+              "Authored region content supplies population, world, projection-calendar and ambient policy through\n * {@link WildEcologyDescriptorRegistry}. This runtime resolves every mutable projection fact from"
+          )
+          old = '''            var ecologyContent = WildEcologyProjectionContentRegistry.sourceFor(population).orElse(null);
+            if (ecologyContent == null) continue;
+
+            var populationContent = WildPopulationContentRegistry.sourceFor(population).orElse(null);
+            if (populationContent == null || !populationContent.worldEligibility().accepts(world)) continue;
+
+            var projectedSiteId = WildPopulationContentRegistry.projectedSiteId(population, world.getTime());
+'''
+          new = '''            var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+            if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
+
+            var projectedSiteId = descriptor.projectedSiteId(population, world.getTime());
+'''
+          if old not in text:
+              raise SystemExit("WildEcologyProjectionSource expected compatibility-registry block not found")
+          text = text.replace(old, new, 1)
+          text = text.replace("ecologyContent.behaviorProfile()", "descriptor.behaviorProfile()")
+          if "WildEcologyProjectionContentRegistry" in text or "WildPopulationContentRegistry" in text:
+              raise SystemExit("WildEcologyProjectionSource still depends on compatibility registries")
+          projection_path.write_text(text, encoding="utf-8")
+
+      - name: Compile and test migrated Fabric adapter
+        run: ./gradlew --no-daemon :fabric-adapter:test
+
+      - name: Commit production migration and remove one-shot workflow
+        run: |
+          rm .github/workflows/one-shot-world-013-direct-descriptor.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/WildPopulationRuntime.java \
+                  fabric-adapter/src/main/java/io/autoptu/cobblemon/fabric/world/WildEcologyProjectionSource.java \
+                  .github/workflows/one-shot-world-013-direct-descriptor.yml
+          git diff --cached --check
+          git commit -m "WORLD-013 consume unified ecology descriptors directly"
+          git push origin HEAD:world-013-direct-descriptor-runtime
