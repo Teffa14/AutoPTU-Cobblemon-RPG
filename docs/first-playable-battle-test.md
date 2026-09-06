@@ -9,7 +9,7 @@ This build is the first manual graphical battle proof for AutoPTU inside Minecra
 - Fabric Loader 0.17.2
 - Fabric API 0.116.11+1.21.1
 - Fabric Language Kotlin 1.13.6+kotlin.2.2.20
-- Cobblemon 1.7.3+1.21.1
+- Cobblemon 1.8.0+1.21.1
 - `AutoPTU-Cobblemon-RPG-playable-test.jar` from the `Playable Test Build` GitHub Actions artifact
 
 Put all required mods in the same Fabric `mods` directory. This test does not require a separate AutoPTU-Java jar: the exact inspected upstream core commit is compiled read-only and nested into the playable mod artifact.
