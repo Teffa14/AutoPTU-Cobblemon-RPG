@@ -65,7 +65,7 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, worldTime);
+            var projectedSiteId = WildPopulationContentRegistry.projectedSiteId(population, worldTime);
             if (projectedSiteId.isEmpty()) continue;
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
