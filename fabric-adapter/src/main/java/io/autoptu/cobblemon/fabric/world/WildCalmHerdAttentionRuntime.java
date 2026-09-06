@@ -15,12 +15,14 @@ import java.util.UUID;
  * Generic server-owned herd attention for visible wild actors during CALM rest windows.
  *
  * <p>The presentation anchor is selected only from interaction-active actors already published by
- * the canonical ecology projection for the same population. Selection uses stable Minecraft actor
- * identity; species, level, stats, moves, abilities and Cobblemon gameplay state are never read.
- * The anchor is presentation-only and has no PTU initiative, leadership or battle semantics.</p>
+ * the canonical ecology projection for the same population. Selection uses only server-observed
+ * world position plus stable Minecraft actor identity; species, level, stats, moves, abilities and
+ * Cobblemon gameplay state are never read. The anchor is presentation-only and has no PTU
+ * initiative, leadership or battle semantics.</p>
  */
 public final class WildCalmHerdAttentionRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final double MIN_ANCHOR_DISTANCE_SQUARED = 0.000000000001D;
 
     @Override
     public void onInitialize() {
@@ -49,15 +51,15 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
         if (profile.calmMovementActive(world.getTime())) return false;
         if (!eligibleRestingActor(world, actor, profile)) return false;
 
-        Optional<WildEcologyProjectionRegistry.ProjectedActor> anchor = herdAnchor(projection, allActors);
-        if (anchor.isEmpty() || anchor.get().actor().getUuid().equals(actor.getUuid())) return false;
+        Optional<WildEcologyProjectionRegistry.ProjectedActor> anchor = herdAnchor(
+                projection,
+                allActors,
+                profile.cohesionDistance());
+        if (anchor.isEmpty()) return false;
 
         PokemonEntity anchorActor = anchor.get().actor();
         double dx = anchorActor.getX() - actor.getX();
         double dz = anchorActor.getZ() - actor.getZ();
-        double distance = Math.hypot(dx, dz);
-        if (distance <= 0.000001D || distance > profile.cohesionDistance()) return false;
-
         float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         float pitch = WildCalmIdleLookRuntime.idleFacingPitch(
                 actor.getY() + actor.getStandingEyeHeight(),
@@ -74,20 +76,75 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
 
     static Optional<WildEcologyProjectionRegistry.ProjectedActor> herdAnchor(
             WildEcologyProjectionRegistry.ProjectedActor projection,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors
+            List<WildEcologyProjectionRegistry.ProjectedActor> allActors,
+            double cohesionDistance
     ) {
-        if (projection == null || allActors == null) return Optional.empty();
+        if (projection == null || allActors == null || !Double.isFinite(cohesionDistance) || cohesionDistance <= 0.0D) {
+            return Optional.empty();
+        }
+
+        PokemonEntity actor = projection.actor();
+        UUID actorId = actor.getUuid();
+        double maxDistanceSquared = cohesionDistance * cohesionDistance;
+
         return allActors.stream()
                 .filter(candidate -> candidate != null)
                 .filter(candidate -> projection.populationKey().equals(candidate.populationKey()))
+                .filter(candidate -> !candidate.actor().getUuid().equals(actorId))
                 .filter(candidate -> !candidate.actor().isRemoved() && !candidate.actor().isInvisible())
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
-                .min(Comparator.comparing(candidate -> candidate.actor().getUuid()));
+                .filter(candidate -> {
+                    double distanceSquared = horizontalDistanceSquared(actor, candidate.actor());
+                    return Double.isFinite(distanceSquared)
+                            && distanceSquared > MIN_ANCHOR_DISTANCE_SQUARED
+                            && distanceSquared <= maxDistanceSquared;
+                })
+                .min(Comparator
+                        .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                                horizontalDistanceSquared(actor, candidate.actor()))
+                        .thenComparing(candidate -> candidate.actor().getUuid()));
     }
 
-    static Optional<UUID> deterministicAnchorIdentity(List<UUID> actorIds) {
-        if (actorIds == null) return Optional.empty();
-        return actorIds.stream().filter(id -> id != null).min(UUID::compareTo);
+    static Optional<UUID> deterministicNearestAnchorIdentity(
+            UUID actorId,
+            double actorX,
+            double actorZ,
+            double cohesionDistance,
+            List<AnchorCandidate> candidates
+    ) {
+        if (actorId == null
+                || !Double.isFinite(actorX)
+                || !Double.isFinite(actorZ)
+                || !Double.isFinite(cohesionDistance)
+                || cohesionDistance <= 0.0D
+                || candidates == null) {
+            return Optional.empty();
+        }
+
+        double maxDistanceSquared = cohesionDistance * cohesionDistance;
+        return candidates.stream()
+                .filter(candidate -> candidate != null && candidate.actorId() != null)
+                .filter(candidate -> !candidate.actorId().equals(actorId))
+                .filter(candidate -> Double.isFinite(candidate.x()) && Double.isFinite(candidate.z()))
+                .filter(candidate -> {
+                    double distanceSquared = horizontalDistanceSquared(actorX, actorZ, candidate.x(), candidate.z());
+                    return distanceSquared > MIN_ANCHOR_DISTANCE_SQUARED && distanceSquared <= maxDistanceSquared;
+                })
+                .min(Comparator
+                        .comparingDouble((AnchorCandidate candidate) ->
+                                horizontalDistanceSquared(actorX, actorZ, candidate.x(), candidate.z()))
+                        .thenComparing(AnchorCandidate::actorId))
+                .map(AnchorCandidate::actorId);
+    }
+
+    private static double horizontalDistanceSquared(PokemonEntity first, PokemonEntity second) {
+        return horizontalDistanceSquared(first.getX(), first.getZ(), second.getX(), second.getZ());
+    }
+
+    private static double horizontalDistanceSquared(double firstX, double firstZ, double secondX, double secondZ) {
+        double dx = secondX - firstX;
+        double dz = secondZ - firstZ;
+        return dx * dx + dz * dz;
     }
 
     private static boolean eligibleRestingActor(ServerWorld world, PokemonEntity actor, WildBehaviorProfile profile) {
@@ -107,5 +164,8 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
             if (actor.squaredDistanceTo(player) <= radiusSquared) return true;
         }
         return false;
+    }
+
+    record AnchorCandidate(UUID actorId, double x, double z) {
     }
 }
