@@ -15,13 +15,33 @@ final class WildCalmHerdAttentionRuntimeTest {
     private static final UUID HIGH = UUID.fromString("00000000-0000-0000-0000-0000000000ff");
 
     @Test
-    void nearestEligibleActorWinsBeforeStableIdentityTieBreak() {
+    void authoredAlphaWinsInsideCohesionBeforeNearerMember() {
+        List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 2.0D, 0.0D, WildSocialRole.MEMBER),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 8.0D, 0.0D, WildSocialRole.ALPHA));
+
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
+                SELF, 0.0D, 0.0D, 10.0D, candidates).orElseThrow());
+    }
+
+    @Test
+    void nearestEligibleMemberWinsWhenNoAlphaIsEligible() {
         List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
                 new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 8.0D, 0.0D),
                 new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 2.0D, 0.0D));
 
-        assertEquals(HIGH, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertEquals(HIGH, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 10.0D, candidates).orElseThrow());
+    }
+
+    @Test
+    void outOfCohesionAlphaDoesNotOverrideEligibleMember() {
+        List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 3.0D, 0.0D, WildSocialRole.MEMBER),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 7.0D, 0.0D, WildSocialRole.ALPHA));
+
+        assertEquals(HIGH, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
+                SELF, 0.0D, 0.0D, 5.0D, candidates).orElseThrow());
     }
 
     @Test
@@ -31,9 +51,9 @@ final class WildCalmHerdAttentionRuntimeTest {
         WildCalmHerdAttentionRuntime.AnchorCandidate high =
                 new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 2.0D, 0.0D);
 
-        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 10.0D, List.of(high, low)).orElseThrow());
-        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 10.0D, List.of(low, high)).orElseThrow());
     }
 
@@ -45,20 +65,20 @@ final class WildCalmHerdAttentionRuntimeTest {
                 new WildCalmHerdAttentionRuntime.AnchorCandidate(HIGH, 6.0D, 0.0D),
                 new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 4.0D, 0.0D));
 
-        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertEquals(LOW, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 5.0D, candidates).orElseThrow());
     }
 
     @Test
     void invalidOrEmptyInputsHaveNoPresentationAnchor() {
-        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 5.0D, List.of()).isEmpty());
-        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 5.0D, null).isEmpty());
-        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, 0.0D, 0.0D, 0.0D, List.of(
                         new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 1.0D, 0.0D))).isEmpty());
-        assertTrue(WildCalmHerdAttentionRuntime.deterministicNearestAnchorIdentity(
+        assertTrue(WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
                 SELF, Double.NaN, 0.0D, 5.0D, List.of(
                         new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 1.0D, 0.0D))).isEmpty());
     }
