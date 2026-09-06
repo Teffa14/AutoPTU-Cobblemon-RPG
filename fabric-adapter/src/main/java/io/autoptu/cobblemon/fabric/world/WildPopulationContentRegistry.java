@@ -12,10 +12,11 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * Server-owned registration boundary between authored WILD content and the global population runtime.
+ * Compatibility view over server-owned visible-wild population policy.
  *
- * <p>Region modules contribute selectors, world/projection policy and an already-canonical blueprint source.
- * They do not own activation cadence, presence reconciliation, actor lifecycle or interaction binding.</p>
+ * <p>Normal production content is registered once through {@link WildEcologyDescriptorRegistry}. The legacy
+ * register method remains for isolated tests/fixtures while generic runtimes migrate without changing their
+ * already-proven lifecycle boundary.</p>
  */
 public final class WildPopulationContentRegistry {
     @FunctionalInterface
@@ -50,14 +51,10 @@ public final class WildPopulationContentRegistry {
         }
     }
 
-    private static final Map<String, Source> SOURCES = new LinkedHashMap<>();
+    private static final Map<String, Source> LEGACY_SOURCES = new LinkedHashMap<>();
 
     private WildPopulationContentRegistry() {}
 
-    /**
-     * Builds the normal projection resolver directly from authored population profiles.
-     * Populations without a profile remain at their canonical home site.
-     */
     public static ProjectedSiteResolver projectionResolver(List<WildPopulationProjectionProfile> profiles) {
         if (profiles == null) throw new IllegalArgumentException("profiles are required");
         Map<String, WildPopulationProjectionProfile> byPopulation = new LinkedHashMap<>();
@@ -78,13 +75,6 @@ public final class WildPopulationContentRegistry {
         };
     }
 
-    /**
-     * Resolves the current site through the registered server-owned content source.
-     *
-     * <p>This is the normal runtime lookup for ecology consumers. A registered source owns the
-     * authored projection profile; a population with no source remains at its canonical home site.
-     * No Cobblemon Pokemon payload or PTU battle rule participates in this lookup.</p>
-     */
     public static Optional<String> projectedSiteId(
             CanonicalWildPopulationCatalogue.PopulationDefinition population,
             long worldTick
@@ -97,7 +87,7 @@ public final class WildPopulationContentRegistry {
 
     public static synchronized void register(Source source) {
         if (source == null) throw new IllegalArgumentException("source is required");
-        Source previous = SOURCES.putIfAbsent(source.sourceId(), source);
+        Source previous = LEGACY_SOURCES.putIfAbsent(source.sourceId(), source);
         if (previous != null && previous != source) {
             throw new IllegalStateException("wild population source already registered: " + source.sourceId());
         }
@@ -107,8 +97,11 @@ public final class WildPopulationContentRegistry {
             CanonicalWildPopulationCatalogue.PopulationDefinition population
     ) {
         if (population == null) return Optional.empty();
+        var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+        if (descriptor != null) return Optional.of(fromDescriptor(descriptor));
+
         Source match = null;
-        for (Source source : SOURCES.values()) {
+        for (Source source : LEGACY_SOURCES.values()) {
             if (!source.populationSelector().test(population)) continue;
             if (match != null) {
                 throw new IllegalStateException("multiple wild population sources match " + population.populationId()
@@ -125,7 +118,17 @@ public final class WildPopulationContentRegistry {
         return sourceFor(population);
     }
 
+    private static Source fromDescriptor(WildEcologyDescriptorRegistry.Descriptor descriptor) {
+        return new Source(
+                descriptor.sourceId(),
+                descriptor.populationSelector(),
+                descriptor.worldEligibility()::accepts,
+                descriptor::projectedSiteId,
+                descriptor.blueprintSource(),
+                descriptor.projectionEligibility());
+    }
+
     static synchronized int sourceCount() {
-        return SOURCES.size();
+        return WildEcologyDescriptorRegistry.descriptorCount() + LEGACY_SOURCES.size();
     }
 }
