@@ -13,7 +13,7 @@ import java.util.Objects;
  * Global registry of server-authored visible-wild ecology projections.
  *
  * Region/species content registers projection sources here. Generic ecology runtimes consume the
- * resulting actor/habitat/profile tuples without knowing species names, map names or PTU facts.
+ * resulting actor/habitat/behavior/presentation tuples without knowing species names, map names or PTU facts.
  */
 public final class WildEcologyProjectionRegistry {
     public record ProjectedActor(
@@ -23,13 +23,15 @@ public final class WildEcologyProjectionRegistry {
             double habitatCenterX,
             double habitatCenterZ,
             int habitatLeashRadiusBlocks,
-            WildBehaviorProfile behaviorProfile
+            WildBehaviorProfile behaviorProfile,
+            WildPresentationProfile presentationProfile
     ) {
         public ProjectedActor {
             Objects.requireNonNull(actor, "actor");
             populationKey = Objects.requireNonNull(populationKey, "populationKey").strip();
             habitatDisplayName = Objects.requireNonNull(habitatDisplayName, "habitatDisplayName").strip();
             Objects.requireNonNull(behaviorProfile, "behaviorProfile");
+            Objects.requireNonNull(presentationProfile, "presentationProfile");
             if (populationKey.isEmpty()) {
                 throw new IllegalArgumentException("populationKey must not be blank");
             }
@@ -44,6 +46,27 @@ public final class WildEcologyProjectionRegistry {
             }
         }
 
+        /** Compatibility constructor for projection sources without special presentation roles. */
+        public ProjectedActor(
+                PokemonEntity actor,
+                String populationKey,
+                String habitatDisplayName,
+                double habitatCenterX,
+                double habitatCenterZ,
+                int habitatLeashRadiusBlocks,
+                WildBehaviorProfile behaviorProfile
+        ) {
+            this(
+                    actor,
+                    populationKey,
+                    habitatDisplayName,
+                    habitatCenterX,
+                    habitatCenterZ,
+                    habitatLeashRadiusBlocks,
+                    behaviorProfile,
+                    WildPresentationProfile.STANDARD);
+        }
+
         /** Compatibility constructor for projection sources that have not authored a display label yet. */
         public ProjectedActor(
                 PokemonEntity actor,
@@ -53,7 +76,15 @@ public final class WildEcologyProjectionRegistry {
                 int habitatLeashRadiusBlocks,
                 WildBehaviorProfile behaviorProfile
         ) {
-            this(actor, populationKey, populationKey, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks, behaviorProfile);
+            this(
+                    actor,
+                    populationKey,
+                    populationKey,
+                    habitatCenterX,
+                    habitatCenterZ,
+                    habitatLeashRadiusBlocks,
+                    behaviorProfile,
+                    WildPresentationProfile.STANDARD);
         }
     }
 
