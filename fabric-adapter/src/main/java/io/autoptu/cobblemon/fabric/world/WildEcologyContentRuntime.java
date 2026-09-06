@@ -4,6 +4,8 @@ import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 import net.fabricmc.api.ModInitializer;
 
+import java.util.List;
+
 /**
  * Central registration boundary for authored visible-wild ecology sources.
  *
@@ -18,7 +20,7 @@ public final class WildEcologyContentRuntime implements ModInitializer {
                 "fixture.ouros.marea",
                 population -> population.siteId().startsWith("ouros.marea."),
                 world -> world != null && world.getServer() != null && world == world.getServer().getOverworld(),
-                MareaWildMigrationProjection::projectedSiteId,
+                WildPopulationContentRegistry.projectionResolver(List.of(MareaWildMigrationProjection.profile())),
                 new MareaCanonicalWildEncounterBlueprintSource(),
                 encounter -> encounter.speciesStatus() == CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL
                         && !encounter.fusion()
