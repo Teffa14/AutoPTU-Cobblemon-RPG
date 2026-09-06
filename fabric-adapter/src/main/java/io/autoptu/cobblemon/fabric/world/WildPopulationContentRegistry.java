@@ -78,6 +78,23 @@ public final class WildPopulationContentRegistry {
         };
     }
 
+    /**
+     * Resolves the current site through the registered server-owned content source.
+     *
+     * <p>This is the normal runtime lookup for ecology consumers. A registered source owns the
+     * authored projection profile; a population with no source remains at its canonical home site.
+     * No Cobblemon Pokemon payload or PTU battle rule participates in this lookup.</p>
+     */
+    public static Optional<String> projectedSiteId(
+            CanonicalWildPopulationCatalogue.PopulationDefinition population,
+            long worldTick
+    ) {
+        if (population == null) throw new IllegalArgumentException("population is required");
+        return sourceFor(population)
+                .map(source -> source.projectedSiteResolver().projectedSiteId(population, worldTick))
+                .orElseGet(() -> Optional.of(population.siteId()));
+    }
+
     public static synchronized void register(Source source) {
         if (source == null) throw new IllegalArgumentException("source is required");
         Source previous = SOURCES.putIfAbsent(source.sourceId(), source);
