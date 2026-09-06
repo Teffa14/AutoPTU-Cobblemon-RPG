@@ -74,7 +74,7 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+            var projectedSiteId = WildPopulationContentRegistry.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
@@ -271,7 +271,7 @@ public final class MareaWildCalmReciprocalYieldRuntime implements ModInitializer
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+            var projectedSiteId = WildPopulationContentRegistry.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
