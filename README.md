@@ -34,7 +34,7 @@ Every CI run preserves Gradle/JUnit results, complete authority-test output, ded
 
 Current dedicated-server evidence includes:
 
-- Production-remapped Fabric 1.21.1 + Cobblemon 1.7.3 startup.
+- Production-remapped Fabric 1.21.1 + Cobblemon 1.8.0 startup.
 - Server-side `PokemonEntity` UUID lookup used only for presentation identity.
 - Authoritative relocation projected to a live Cobblemon entity and verified from server position.
 - Authoritative positive HP projection mirrored to a live Cobblemon entity.
