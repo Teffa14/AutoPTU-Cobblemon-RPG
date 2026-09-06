@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Global Minecraft-visible habitat-entry feedback for every registered wild ecology population.
+ * Global Minecraft-visible habitat feedback for every registered wild ecology population.
  *
  * Region/species content publishes projected actors through {@link WildEcologyProjectionRegistry}.
  * This runtime derives only presentation habitat presence from those server-authored projections.
@@ -28,7 +28,7 @@ import java.util.UUID;
  */
 public final class WildHabitatCueRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 100;
-    private static final Map<MinecraftServer, Map<UUID, Set<String>>> INSIDE_POPULATIONS = new IdentityHashMap<>();
+    private static final Map<MinecraftServer, Map<UUID, Map<String, HabitatSnapshot>>> INSIDE_POPULATIONS = new IdentityHashMap<>();
 
     record HabitatCircle(double centerX, double centerZ, int radiusBlocks) {
         HabitatCircle {
@@ -49,6 +49,17 @@ public final class WildHabitatCueRuntime implements ModInitializer {
 
         HabitatCue(String populationKey, String displayName, List<HabitatCircle> circles, int visibleActors) {
             this(populationKey, displayName, circles, visibleActors, 0);
+        }
+    }
+
+    record HabitatSnapshot(int visibleActors, int visibleAlphas) {
+        HabitatSnapshot {
+            if (visibleActors <= 0) throw new IllegalArgumentException("visibleActors must be positive");
+            if (visibleAlphas < 0 || visibleAlphas > visibleActors) throw new IllegalArgumentException("visibleAlphas must be within visible actor count");
+        }
+
+        static HabitatSnapshot from(HabitatCue habitat) {
+            return new HabitatSnapshot(habitat.visibleActors(), habitat.visibleAlphas());
         }
     }
 
@@ -73,16 +84,17 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         for (ServerPlayerEntity player : world.getPlayers()) {
             online.add(player.getUuid());
             if (player.isSpectator()) {
-                remember(world.getServer(), player.getUuid(), Set.of());
+                remember(world.getServer(), player.getUuid(), Map.of());
                 continue;
             }
 
-            Set<String> previous = remembered(world.getServer(), player.getUuid());
-            Set<String> current = new HashSet<>();
+            Map<String, HabitatSnapshot> previous = remembered(world.getServer(), player.getUuid());
+            Map<String, HabitatSnapshot> current = new HashMap<>();
             for (HabitatCue habitat : habitats.values()) {
                 if (!containsHorizontal(player.getX(), player.getZ(), habitat)) continue;
-                current.add(habitat.populationKey());
-                if (!previous.contains(habitat.populationKey())) announce(player, habitat);
+                HabitatSnapshot snapshot = HabitatSnapshot.from(habitat);
+                current.put(habitat.populationKey(), snapshot);
+                if (shouldAnnounce(previous.get(habitat.populationKey()), habitat)) announce(player, habitat);
             }
             remember(world.getServer(), player.getUuid(), current);
         }
@@ -132,6 +144,10 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         return false;
     }
 
+    static boolean shouldAnnounce(HabitatSnapshot previous, HabitatCue current) {
+        return previous == null || !previous.equals(HabitatSnapshot.from(current));
+    }
+
     static String announcementText(HabitatCue habitat) {
         String herd = habitat.visibleActors() == 1
                 ? "1 roaming Pokemon"
@@ -146,27 +162,27 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         player.sendMessage(Text.literal(announcementText(habitat)), true);
     }
 
-    private static Set<String> remembered(MinecraftServer server, UUID playerId) {
+    private static Map<String, HabitatSnapshot> remembered(MinecraftServer server, UUID playerId) {
         synchronized (INSIDE_POPULATIONS) {
-            Map<UUID, Set<String>> players = INSIDE_POPULATIONS.get(server);
-            if (players == null) return Set.of();
-            Set<String> populations = players.get(playerId);
-            return populations == null ? Set.of() : Set.copyOf(populations);
+            Map<UUID, Map<String, HabitatSnapshot>> players = INSIDE_POPULATIONS.get(server);
+            if (players == null) return Map.of();
+            Map<String, HabitatSnapshot> populations = players.get(playerId);
+            return populations == null ? Map.of() : Map.copyOf(populations);
         }
     }
 
-    private static void remember(MinecraftServer server, UUID playerId, Set<String> populations) {
+    private static void remember(MinecraftServer server, UUID playerId, Map<String, HabitatSnapshot> populations) {
         synchronized (INSIDE_POPULATIONS) {
-            Map<UUID, Set<String>> players = INSIDE_POPULATIONS.computeIfAbsent(server, ignored -> new HashMap<>());
+            Map<UUID, Map<String, HabitatSnapshot>> players = INSIDE_POPULATIONS.computeIfAbsent(server, ignored -> new HashMap<>());
             if (populations.isEmpty()) players.remove(playerId);
-            else players.put(playerId, Set.copyOf(populations));
+            else players.put(playerId, Map.copyOf(populations));
             if (players.isEmpty()) INSIDE_POPULATIONS.remove(server);
         }
     }
 
     private static void forgetOffline(MinecraftServer server, Set<UUID> online) {
         synchronized (INSIDE_POPULATIONS) {
-            Map<UUID, Set<String>> players = INSIDE_POPULATIONS.get(server);
+            Map<UUID, Map<String, HabitatSnapshot>> players = INSIDE_POPULATIONS.get(server);
             if (players == null) return;
             players.keySet().removeIf(playerId -> !online.contains(playerId));
             if (players.isEmpty()) INSIDE_POPULATIONS.remove(server);
