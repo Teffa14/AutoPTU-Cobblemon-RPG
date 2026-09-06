@@ -15,6 +15,7 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint",
       "io.autoptu.cobblemon.fabric.world.WildEcologyContentRuntime",
       "io.autoptu.cobblemon.fabric.world.CobblemonHabitatPointOfInterestRuntimeSmoke",
+      "io.autoptu.cobblemon.fabric.world.WildAlphaPresentationRuntime",
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildAmbientBehaviorRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmIdleLookRuntime",
