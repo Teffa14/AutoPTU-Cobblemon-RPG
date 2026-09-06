@@ -16,7 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-/** Applies the canonical Marea migration timeline to the existing visible-wild actors. */
+/** Compatibility runtime for existing migration fixtures; normal population lifecycle is global. */
 public final class MareaWildMigrationRuntime implements ModInitializer {
     private static final String POPULATION_ID = CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID;
     private static final Map<MinecraftServer, Boolean> ACTIVE_MIGRATION_PROJECTION = new IdentityHashMap<>();
@@ -37,7 +37,9 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
 
         var population = CanonicalWildPopulationCatalogue.DEFAULT.population(POPULATION_ID)
                 .orElseThrow(() -> new IllegalStateException("missing migrating Marea population: " + POPULATION_ID));
-        var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+        var source = WildPopulationContentRegistry.sourceFor(population)
+                .orElseThrow(() -> new IllegalStateException("missing registered Marea population source: " + POPULATION_ID));
+        var projectedSiteId = source.projectedSiteResolver().projectedSiteId(population, world.getTime());
         if (projectedSiteId.isEmpty()) {
             setProjectionMarkedActive(world.getServer(), false);
             return setMembersActive(world, population, false);
@@ -79,10 +81,6 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
         return visible;
     }
 
-    /**
-     * Compatibility bridge for the authored Marea migration projection.
-     * Persistent visible-actor recovery itself is region-agnostic and shared by every population.
-     */
     static PokemonEntity recoverBoundActor(
             ServerWorld world,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
