@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -13,7 +14,8 @@ import java.util.UUID;
  *
  * Population/region code supplies only a projected actor, habitat center and server-authored
  * behavior profile through {@link WildEcologyProjectionRegistry}. This runtime contains no region,
- * species or PTU rule knowledge.
+ * species or PTU rule knowledge. Cobblemon 1.8 Habitat Blocks may be observed as physical points
+ * of interest only; their spawn configuration is never read as RPG authority.
  */
 public final class WildCalmIdleLookRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -24,6 +26,7 @@ public final class WildCalmIdleLookRuntime implements ModInitializer {
             if (server.getTicks() % UPDATE_INTERVAL_TICKS != 0) return;
             update(server.getOverworld());
         });
+        ServerLifecycleEvents.SERVER_STOPPED.register(CobblemonHabitatPointOfInterest::clear);
     }
 
     static void update(ServerWorld world) {
@@ -47,13 +50,16 @@ public final class WildCalmIdleLookRuntime implements ModInitializer {
         if (horizontalSpeed > profile.maxIdleHorizontalSpeed()) return false;
         if (hasNearbyPlayer(world, actor, profile.playerGuardRadius())) return false;
 
+        var habitatPoi = CobblemonHabitatPointOfInterest.nearest(world, projection);
+        double focusX = habitatPoi.map(pos -> pos.getX() + 0.5D).orElse(projection.habitatCenterX());
+        double focusZ = habitatPoi.map(pos -> pos.getZ() + 0.5D).orElse(projection.habitatCenterZ());
         float yaw = idleFacingYaw(
                 actor.getUuid(),
                 world.getTime(),
                 actor.getX(),
                 actor.getZ(),
-                projection.habitatCenterX(),
-                projection.habitatCenterZ(),
+                focusX,
+                focusZ,
                 profile.calmSegmentTicks(),
                 profile.idleScanDegrees());
         actor.setYaw(yaw);
