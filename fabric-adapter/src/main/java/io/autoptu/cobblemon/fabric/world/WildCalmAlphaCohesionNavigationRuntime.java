@@ -18,9 +18,10 @@ import java.util.UUID;
  *
  * <p>This runtime only runs for visible interaction-active herd members during authored CALM
  * movement windows with no nearby player guard. If the member has drifted beyond its authored
- * cohesion distance, it may start a leash-safe Minecraft navigation path toward the same-population
- * Alpha that was already published by the server ecology projection. The Alpha role has no PTU
- * initiative, movement, targeting, stat, damage, reward or encounter authority.</p>
+ * cohesion distance, it may start a leash-safe Minecraft navigation path toward a safe spacing
+ * point around the same-population Alpha already published by the server ecology projection. The
+ * Alpha role has no PTU initiative, movement, targeting, stat, damage, reward or encounter
+ * authority.</p>
  */
 public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -77,7 +78,13 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
                 || distanceSquared <= cohesionDistance * cohesionDistance
                 || distanceSquared <= MIN_DISTANCE_SQUARED) return false;
 
-        double[] target = new double[] {anchor.getX(), anchor.getZ()};
+        double[] target = cohesionTarget(
+                actor.getX(),
+                actor.getZ(),
+                anchor.getX(),
+                anchor.getZ(),
+                profile.separationDistance(),
+                cohesionDistance);
         if (!WildCalmCollisionNavigationRuntime.navigationTargetInsideLeash(
                 projection.habitatCenterX(),
                 projection.habitatCenterZ(),
@@ -140,6 +147,33 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
                                 horizontalDistanceSquared(actorX, actorZ, candidate.x(), candidate.z()))
                         .thenComparing(AlphaCandidate::actorId))
                 .map(AlphaCandidate::actorId);
+    }
+
+    static double[] cohesionTarget(
+            double memberX,
+            double memberZ,
+            double alphaX,
+            double alphaZ,
+            double separationDistance,
+            double cohesionDistance
+    ) {
+        if (!Double.isFinite(memberX) || !Double.isFinite(memberZ)
+                || !Double.isFinite(alphaX) || !Double.isFinite(alphaZ)
+                || !Double.isFinite(separationDistance) || separationDistance <= 0.0D
+                || !Double.isFinite(cohesionDistance) || cohesionDistance <= separationDistance) {
+            throw new IllegalArgumentException("alpha cohesion target requires finite coordinates and authored spacing");
+        }
+        double dx = alphaX - memberX;
+        double dz = alphaZ - memberZ;
+        double distance = Math.hypot(dx, dz);
+        if (distance <= 0.000001D) return new double[] {memberX, memberZ};
+
+        double safeSpacing = Math.max(separationDistance * 1.5D, cohesionDistance * 0.75D);
+        safeSpacing = Math.min(safeSpacing, cohesionDistance * 0.9D);
+        return new double[] {
+                alphaX - (dx / distance) * safeSpacing,
+                alphaZ - (dz / distance) * safeSpacing
+        };
     }
 
     private static List<AlphaCandidate> candidates(
