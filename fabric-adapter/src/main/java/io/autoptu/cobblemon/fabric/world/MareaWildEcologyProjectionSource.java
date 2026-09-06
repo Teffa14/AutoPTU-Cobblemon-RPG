@@ -45,7 +45,10 @@ final class MareaWildEcologyProjectionSource {
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var projectedSiteId = MareaWildMigrationProjection.projectedSiteId(population, world.getTime());
+            var source = WildPopulationContentRegistry.sourceFor(population)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "missing registered visible wild population source: " + population.populationId()));
+            var projectedSiteId = source.projectedSiteResolver().projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
             var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
                     .orElseThrow(() -> new IllegalStateException(
