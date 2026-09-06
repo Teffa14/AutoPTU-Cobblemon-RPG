@@ -48,7 +48,8 @@ final class WildEcologyProjectionSource {
                         anchor.getX() + 0.5D,
                         anchor.getZ() + 0.5D,
                         population.habitatLeashRadiusBlocks(),
-                        descriptor.behaviorProfile()));
+                        descriptor.behaviorProfile(),
+                        descriptor.presentationProfile(encounter)));
             }
         }
         return List.copyOf(projected);
