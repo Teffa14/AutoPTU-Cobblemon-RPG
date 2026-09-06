@@ -37,13 +37,14 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         }
     }
 
-    record HabitatCue(String populationKey, String displayName, List<HabitatCircle> circles, int visibleActors) {
+    record HabitatCue(String populationKey, String displayName, List<HabitatCircle> circles, int visibleActors, int visibleAlphas) {
         HabitatCue {
             if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
             if (displayName == null || displayName.isBlank()) throw new IllegalArgumentException("displayName is required");
             circles = List.copyOf(circles);
             if (circles.isEmpty()) throw new IllegalArgumentException("at least one habitat circle is required");
             if (visibleActors <= 0) throw new IllegalArgumentException("visibleActors must be positive");
+            if (visibleAlphas < 0 || visibleAlphas > visibleActors) throw new IllegalArgumentException("visibleAlphas must be within visible actor count");
         }
     }
 
@@ -87,6 +88,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     static Map<String, HabitatCue> habitatCues(ServerWorld world) {
         Map<String, List<HabitatCircle>> circlesByPopulation = new LinkedHashMap<>();
         Map<String, Integer> countsByPopulation = new LinkedHashMap<>();
+        Map<String, Integer> alphasByPopulation = new LinkedHashMap<>();
         Map<String, String> labelsByPopulation = new LinkedHashMap<>();
         for (var projection : WildEcologyProjectionRegistry.collect(world)) {
             circlesByPopulation.computeIfAbsent(projection.populationKey(), ignored -> new ArrayList<>())
@@ -95,6 +97,9 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                             projection.habitatCenterZ(),
                             projection.habitatLeashRadiusBlocks()));
             countsByPopulation.merge(projection.populationKey(), 1, Integer::sum);
+            if (projection.socialRole() == WildSocialRole.ALPHA) {
+                alphasByPopulation.merge(projection.populationKey(), 1, Integer::sum);
+            }
             String previousLabel = labelsByPopulation.putIfAbsent(projection.populationKey(), projection.habitatDisplayName());
             if (previousLabel != null && !previousLabel.equals(projection.habitatDisplayName())) {
                 throw new IllegalStateException("inconsistent habitat display name for population: " + projection.populationKey());
@@ -107,7 +112,8 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                     entry.getKey(),
                     labelsByPopulation.getOrDefault(entry.getKey(), entry.getKey()),
                     entry.getValue(),
-                    countsByPopulation.getOrDefault(entry.getKey(), 0)));
+                    countsByPopulation.getOrDefault(entry.getKey(), 0),
+                    alphasByPopulation.getOrDefault(entry.getKey(), 0)));
         }
         return Map.copyOf(habitats);
     }
@@ -122,10 +128,18 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         return false;
     }
 
+    static String announcementText(HabitatCue habitat) {
+        String herd = habitat.visibleActors() == 1
+                ? "1 roaming Pokemon"
+                : habitat.visibleActors() + " roaming Pokemon";
+        String alpha = habitat.visibleAlphas() == 1
+                ? " · Alpha present"
+                : habitat.visibleAlphas() > 1 ? " · " + habitat.visibleAlphas() + " authored Alphas present" : "";
+        return "Wild habitat — " + habitat.displayName() + " · " + herd + alpha;
+    }
+
     private static void announce(ServerPlayerEntity player, HabitatCue habitat) {
-        player.sendMessage(Text.literal(
-                "Wild habitat — " + habitat.displayName() + " · " + habitat.visibleActors() + " roaming Pokemon"
-        ), true);
+        player.sendMessage(Text.literal(announcementText(habitat)), true);
     }
 
     private static Set<String> remembered(MinecraftServer server, UUID playerId) {
