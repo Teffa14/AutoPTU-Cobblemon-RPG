@@ -31,7 +31,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 100;
     private static final int ENGAGEMENT_UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, Map<String, HabitatSnapshot>>> INSIDE_POPULATIONS = new IdentityHashMap<>();
-    private static final Map<MinecraftServer, Map<UUID, UUID>> NEARBY_INTERACTION_ACTORS = new IdentityHashMap<>();
+    private static final Map<MinecraftServer, Map<UUID, NearbyInteractionSnapshot>> NEARBY_INTERACTION_ACTORS = new IdentityHashMap<>();
 
     record HabitatCircle(double centerX, double centerZ, int radiusBlocks) {
         HabitatCircle {
@@ -63,6 +63,13 @@ public final class WildHabitatCueRuntime implements ModInitializer {
 
         static HabitatSnapshot from(HabitatCue habitat) {
             return new HabitatSnapshot(habitat.visibleActors(), habitat.visibleAlphas());
+        }
+    }
+
+    record NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole) {
+        NearbyInteractionSnapshot {
+            if (actorId == null) throw new IllegalArgumentException("actorId is required");
+            if (socialRole == null) throw new IllegalArgumentException("socialRole is required");
         }
     }
 
@@ -120,17 +127,17 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                 continue;
             }
 
-            UUID previousActor = rememberedNearbyInteraction(world.getServer(), playerId);
-            UUID currentActor = nearestInteractionActor(player, projections);
+            NearbyInteractionSnapshot previousActor = rememberedNearbyInteraction(world.getServer(), playerId);
+            NearbyInteractionSnapshot currentActor = nearestInteractionActor(player, projections);
             rememberNearbyInteraction(world.getServer(), playerId, currentActor);
             if (shouldAnnounceNearbyInteraction(previousActor, currentActor)) {
-                player.sendMessage(Text.literal(nearbyInteractionText()), true);
+                player.sendMessage(Text.literal(nearbyInteractionText(currentActor.socialRole())), true);
             }
         }
         forgetOfflineNearbyInteractions(world.getServer(), online);
     }
 
-    static UUID nearestInteractionActor(
+    static NearbyInteractionSnapshot nearestInteractionActor(
             ServerPlayerEntity player,
             List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
         if (player == null || projections == null || projections.isEmpty()) return null;
@@ -143,16 +150,18 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                         .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor projection) ->
                                 player.squaredDistanceTo(projection.actor()))
                         .thenComparing(projection -> projection.actor().getUuid().toString()))
-                .map(projection -> projection.actor().getUuid())
+                .map(projection -> new NearbyInteractionSnapshot(projection.actor().getUuid(), projection.socialRole()))
                 .orElse(null);
     }
 
-    static boolean shouldAnnounceNearbyInteraction(UUID previousActor, UUID currentActor) {
+    static boolean shouldAnnounceNearbyInteraction(NearbyInteractionSnapshot previousActor, NearbyInteractionSnapshot currentActor) {
         return currentActor != null && !currentActor.equals(previousActor);
     }
 
-    static String nearbyInteractionText() {
-        return "Wild Pokemon within reach · interact to inspect encounter";
+    static String nearbyInteractionText(WildSocialRole socialRole) {
+        return socialRole == WildSocialRole.ALPHA
+                ? "Alpha wild Pokemon within reach · interact to inspect encounter"
+                : "Wild Pokemon within reach · interact to inspect encounter";
     }
 
     static Map<String, HabitatCue> habitatCues(ServerWorld world) {
@@ -243,25 +252,25 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         }
     }
 
-    private static UUID rememberedNearbyInteraction(MinecraftServer server, UUID playerId) {
+    private static NearbyInteractionSnapshot rememberedNearbyInteraction(MinecraftServer server, UUID playerId) {
         synchronized (NEARBY_INTERACTION_ACTORS) {
-            Map<UUID, UUID> players = NEARBY_INTERACTION_ACTORS.get(server);
+            Map<UUID, NearbyInteractionSnapshot> players = NEARBY_INTERACTION_ACTORS.get(server);
             return players == null ? null : players.get(playerId);
         }
     }
 
-    private static void rememberNearbyInteraction(MinecraftServer server, UUID playerId, UUID actorId) {
+    private static void rememberNearbyInteraction(MinecraftServer server, UUID playerId, NearbyInteractionSnapshot actor) {
         synchronized (NEARBY_INTERACTION_ACTORS) {
-            Map<UUID, UUID> players = NEARBY_INTERACTION_ACTORS.computeIfAbsent(server, ignored -> new HashMap<>());
-            if (actorId == null) players.remove(playerId);
-            else players.put(playerId, actorId);
+            Map<UUID, NearbyInteractionSnapshot> players = NEARBY_INTERACTION_ACTORS.computeIfAbsent(server, ignored -> new HashMap<>());
+            if (actor == null) players.remove(playerId);
+            else players.put(playerId, actor);
             if (players.isEmpty()) NEARBY_INTERACTION_ACTORS.remove(server);
         }
     }
 
     private static void forgetOfflineNearbyInteractions(MinecraftServer server, Set<UUID> online) {
         synchronized (NEARBY_INTERACTION_ACTORS) {
-            Map<UUID, UUID> players = NEARBY_INTERACTION_ACTORS.get(server);
+            Map<UUID, NearbyInteractionSnapshot> players = NEARBY_INTERACTION_ACTORS.get(server);
             if (players == null) return;
             players.keySet().removeIf(playerId -> !online.contains(playerId));
             if (players.isEmpty()) NEARBY_INTERACTION_ACTORS.remove(server);

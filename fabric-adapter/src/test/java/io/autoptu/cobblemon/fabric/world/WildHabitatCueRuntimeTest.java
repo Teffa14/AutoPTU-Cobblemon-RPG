@@ -127,16 +127,35 @@ final class WildHabitatCueRuntimeTest {
     }
 
     @Test
-    void engagementCueAnnouncesOnlyOnEnteringOrChangingTheNearbyCanonicalActor() {
+    void engagementCueAnnouncesOnActorOrAuthoredSocialRoleChange() {
         UUID first = UUID.fromString("00000000-0000-0000-0000-000000000101");
         UUID second = UUID.fromString("00000000-0000-0000-0000-000000000202");
+        var firstMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.MEMBER);
+        var firstAlpha = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.ALPHA);
+        var secondMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(second, WildSocialRole.MEMBER);
 
-        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(null, first));
-        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(first, first));
-        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(first, second));
-        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(first, null));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(null, firstMember));
+        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, firstMember));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, firstAlpha));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, secondMember));
+        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, null));
+    }
+
+    @Test
+    void engagementCueLabelsOnlyTheServerAuthoredAlphaRole() {
         assertEquals("Wild Pokemon within reach · interact to inspect encounter",
-                WildHabitatCueRuntime.nearbyInteractionText());
+                WildHabitatCueRuntime.nearbyInteractionText(WildSocialRole.MEMBER));
+        assertEquals("Alpha wild Pokemon within reach · interact to inspect encounter",
+                WildHabitatCueRuntime.nearbyInteractionText(WildSocialRole.ALPHA));
+    }
+
+    @Test
+    void nearbySnapshotRequiresCanonicalActorAndRole() {
+        UUID actor = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        assertThrows(IllegalArgumentException.class,
+                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(null, WildSocialRole.MEMBER));
+        assertThrows(IllegalArgumentException.class,
+                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(actor, null));
     }
 
     @Test
