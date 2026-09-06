@@ -1,18 +1,13 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.ecology.MigrationPhase;
+import io.autoptu.cobblemon.fabric.battle.MareaCanonicalWildEncounterBlueprintSource;
 
 import java.util.List;
 
-/**
- * Authored Marea wild-ecology content consumed by region-agnostic Wild* runtimes.
- *
- * <p>This class contains data only. Population projection lifecycle is owned by
- * {@link WildPopulationProjectionProfile} and {@link WildPopulationContentRegistry}; visible actor assembly
- * is owned by the global ecology projection source. Adding another region therefore contributes profiles and
- * behavior data without adding a region-specific runtime.</p>
- */
+/** Authored Marea ecology data consumed by region-agnostic Wild* runtimes. */
 final class MareaWildEcologyContent {
     private static final long LOWER_SHELF_CYCLE_TICKS = 168_000L;
     private static final long LOWER_SHELF_DEPARTURE_TICK = 84_000L;
@@ -23,24 +18,8 @@ final class MareaWildEcologyContent {
     private static final String LOWER_SHELF_STOPOVER_SITE_ID = "ouros.marea.sendero_crossing";
 
     private static final WildBehaviorProfile AMBIENT_BEHAVIOR_PROFILE = new WildBehaviorProfile(
-            14.0D,
-            7.0D,
-            3,
-            5,
-            80L,
-            60L,
-            0.001D,
-            14.0D,
-            35.0F,
-            0.025D,
-            1.0D,
-            2.5D,
-            0.018D,
-            6.0D,
-            0.012D,
-            0.08D,
-            0.04D,
-            1.5D);
+            14.0D, 7.0D, 3, 5, 80L, 60L, 0.001D, 14.0D, 35.0F,
+            0.025D, 1.0D, 2.5D, 0.018D, 6.0D, 0.012D, 0.08D, 0.04D, 1.5D);
 
     private static final List<WildPopulationProjectionProfile> PROJECTION_PROFILES = List.of(
             new WildPopulationProjectionProfile(
@@ -82,10 +61,16 @@ final class MareaWildEcologyContent {
             )
     );
 
-    private static final List<WildEcologyProjectionContentRegistry.Source> ECOLOGY_PROJECTION_SOURCES = List.of(
-            new WildEcologyProjectionContentRegistry.Source(
+    private static final List<WildEcologyDescriptorRegistry.Descriptor> DESCRIPTORS = List.of(
+            new WildEcologyDescriptorRegistry.Descriptor(
                     "fixture.ouros.marea",
                     population -> population.siteId().startsWith("ouros.marea."),
+                    world -> world != null && world.getServer() != null && world == world.getServer().getOverworld(),
+                    PROJECTION_PROFILES,
+                    new MareaCanonicalWildEncounterBlueprintSource(),
+                    encounter -> encounter.speciesStatus() == CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL
+                            && !encounter.fusion()
+                            && "standard".equals(encounter.formId()),
                     AMBIENT_BEHAVIOR_PROFILE)
     );
 
@@ -95,7 +80,15 @@ final class MareaWildEcologyContent {
         return PROJECTION_PROFILES;
     }
 
+    static List<WildEcologyDescriptorRegistry.Descriptor> descriptors() {
+        return DESCRIPTORS;
+    }
+
+    /** Legacy test/fixture view; production registers only {@link #descriptors()}. */
     static List<WildEcologyProjectionContentRegistry.Source> ecologyProjectionSources() {
-        return ECOLOGY_PROJECTION_SOURCES;
+        return DESCRIPTORS.stream()
+                .map(descriptor -> new WildEcologyProjectionContentRegistry.Source(
+                        descriptor.sourceId(), descriptor.populationSelector(), descriptor.behaviorProfile()))
+                .toList();
     }
 }
