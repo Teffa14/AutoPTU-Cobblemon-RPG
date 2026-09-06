@@ -7,36 +7,48 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MareaWildMigrationProjectionTest {
+class MareaWildEcologyContentTest {
     private static final String HOME_SITE = "ouros.marea.sendero_vidrio";
     private static final String STOPOVER_SITE = "ouros.marea.sendero_crossing";
 
     @Test
-    void lowerShelfPopulationMovesThroughDeterministicServerClockPhases() {
+    void lowerShelfMigrationIsAuthoredDataConsumedByTheGlobalProjectionResolver() {
         var population = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
+        var resolver = WildPopulationContentRegistry.projectionResolver(MareaWildEcologyContent.projectionProfiles());
 
-        assertEquals(HOME_SITE, MareaWildMigrationProjection.projectedSiteId(population, 0L).orElseThrow());
-        assertEquals(HOME_SITE, MareaWildMigrationProjection.projectedSiteId(population, 84_000L).orElseThrow());
-        assertTrue(MareaWildMigrationProjection.projectedSiteId(population, 85_000L).isEmpty());
-        assertEquals(STOPOVER_SITE, MareaWildMigrationProjection.projectedSiteId(population, 100_000L).orElseThrow());
-        assertEquals(HOME_SITE, MareaWildMigrationProjection.projectedSiteId(population, 168_000L).orElseThrow());
+        assertEquals(HOME_SITE, resolver.projectedSiteId(population, 0L).orElseThrow());
+        assertEquals(HOME_SITE, resolver.projectedSiteId(population, 84_000L).orElseThrow());
+        assertTrue(resolver.projectedSiteId(population, 85_000L).isEmpty());
+        assertEquals(STOPOVER_SITE, resolver.projectedSiteId(population, 100_000L).orElseThrow());
+        assertEquals(HOME_SITE, resolver.projectedSiteId(population, 168_000L).orElseThrow());
     }
 
     @Test
-    void projectionIsStableAcrossRepeatedResolutionAndLeavesOtherPopulationsAtTheirAuthoredSite() {
+    void repeatedResolutionIsStableAndResidentMareaPopulationFallsBackToItsAuthoredHome() {
         var migrating = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
         var resident = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID)
                 .orElseThrow();
+        var resolver = WildPopulationContentRegistry.projectionResolver(MareaWildEcologyContent.projectionProfiles());
 
-        var first = MareaWildMigrationProjection.projectedSiteId(migrating, 100_000L);
-        var second = MareaWildMigrationProjection.projectedSiteId(migrating, 100_000L);
+        var first = resolver.projectedSiteId(migrating, 100_000L);
+        var second = resolver.projectedSiteId(migrating, 100_000L);
+
         assertEquals(first, second);
-        assertEquals(resident.siteId(), MareaWildMigrationProjection.projectedSiteId(resident, 100_000L).orElseThrow());
+        assertEquals(resident.siteId(), resolver.projectedSiteId(resident, 100_000L).orElseThrow());
+    }
+
+    @Test
+    void contentRegistersOnlyProjectionDataAndCanBeExtendedWithoutAnotherResolverType() {
+        assertEquals(1, MareaWildEcologyContent.projectionProfiles().size());
+        assertEquals(
+                CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
+                MareaWildEcologyContent.projectionProfiles().getFirst().populationId()
+        );
     }
 
     @Test
@@ -60,14 +72,8 @@ class MareaWildMigrationProjectionTest {
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
 
-        assertEquals(
-                population.presenceFootprint(),
-                MareaWildMigrationRuntime.activityFootprint(population, false)
-        );
-        assertEquals(
-                population.retentionFootprint(),
-                MareaWildMigrationRuntime.activityFootprint(population, true)
-        );
+        assertEquals(population.presenceFootprint(), MareaWildMigrationRuntime.activityFootprint(population, false));
+        assertEquals(population.retentionFootprint(), MareaWildMigrationRuntime.activityFootprint(population, true));
     }
 
     @Test
