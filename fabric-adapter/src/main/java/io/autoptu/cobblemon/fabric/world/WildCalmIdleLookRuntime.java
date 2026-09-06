@@ -64,6 +64,17 @@ public final class WildCalmIdleLookRuntime implements ModInitializer {
                 profile.idleScanDegrees());
         actor.setYaw(yaw);
         actor.setHeadYaw(yaw);
+
+        float pitch = habitatPoi
+                .map(pos -> idleFacingPitch(
+                        actor.getY() + actor.getStandingEyeHeight(),
+                        pos.getY() + 0.5D,
+                        actor.getX(),
+                        actor.getZ(),
+                        pos.getX() + 0.5D,
+                        pos.getZ() + 0.5D))
+                .orElse(0.0F);
+        actor.setPitch(pitch);
         return true;
     }
 
@@ -114,6 +125,26 @@ public final class WildCalmIdleLookRuntime implements ModInitializer {
             default -> scanDegrees;
         };
         return wrapDegrees(inwardYaw + scanOffset);
+    }
+
+    static float idleFacingPitch(
+            double actorEyeY,
+            double targetY,
+            double actorX,
+            double actorZ,
+            double targetX,
+            double targetZ
+    ) {
+        if (!Double.isFinite(actorEyeY) || !Double.isFinite(targetY)
+                || !Double.isFinite(actorX) || !Double.isFinite(actorZ)
+                || !Double.isFinite(targetX) || !Double.isFinite(targetZ)) {
+            throw new IllegalArgumentException("idle pitch requires finite actor and target coordinates");
+        }
+        double horizontal = Math.hypot(targetX - actorX, targetZ - actorZ);
+        double vertical = targetY - actorEyeY;
+        if (horizontal <= 0.000001D && Math.abs(vertical) <= 0.000001D) return 0.0F;
+        float pitch = (float) -Math.toDegrees(Math.atan2(vertical, Math.max(horizontal, 0.000001D)));
+        return Math.max(-60.0F, Math.min(60.0F, pitch));
     }
 
     private static float wrapDegrees(float degrees) {
