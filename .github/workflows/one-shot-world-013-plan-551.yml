@@ -1,0 +1,55 @@
+name: One-shot WORLD-013 plan bookkeeping #551
+
+on:
+  push:
+    branches:
+      - world-013-plan-551
+
+permissions:
+  contents: write
+
+jobs:
+  update-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: world-013-plan-551
+      - name: Record shipped WORLD-013 descriptor migration
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("MINECRAFT_RPG_TOOLING_PLAN.md")
+          text = path.read_text(encoding="utf-8")
+          lines = text.splitlines()
+          marker = "| WORLD-013 | NEXT/PARTIAL |"
+          old_next = (
+              "Next migrate `WildPopulationRuntime` and `WildEcologyProjectionSource` to consume `WildEcologyDescriptorRegistry` "
+              "directly, then remove the parallel compatibility registries from the production dependency path once their remaining "
+              "fixture/test callers are isolated. "
+          )
+          replacement = (
+              "PR #551 / merge `4e92ad362bf55ab748b64cfceaa4350cca71f5d6` routes `WildPopulationRuntime` and "
+              "`WildEcologyProjectionSource` directly through `WildEcologyDescriptorRegistry` on Cobblemon 1.8.0, removing "
+              "`WildPopulationContentRegistry` and `WildEcologyProjectionContentRegistry` from those normal production dependency "
+              "paths while retaining their legacy fixture/test views. Next isolate the remaining compatibility-registry callers in "
+              "tests/fixtures and delete the parallel registries once no required caller depends on them. "
+          )
+          matches = [i for i, line in enumerate(lines) if line.startswith(marker)]
+          if len(matches) != 1:
+              raise SystemExit(f"expected one WORLD-013 row, found {len(matches)}")
+          index = matches[0]
+          if old_next not in lines[index]:
+              raise SystemExit("WORLD-013 expected NEXT text not found; refusing broad edit")
+          lines[index] = lines[index].replace(old_next, replacement, 1)
+          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+      - name: Remove one-shot workflow and commit exact plan edit
+        run: |
+          rm .github/workflows/one-shot-world-013-plan-551.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/one-shot-world-013-plan-551.yml
+          git diff --cached --check
+          git commit -m "Record WORLD-013 PR #551"
+          git push origin HEAD:world-013-plan-551
