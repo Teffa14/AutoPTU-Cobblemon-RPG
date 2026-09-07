@@ -45,12 +45,12 @@ public final class VisibleWildPokemonEncounterRuntime {
             if (world.isClient() || hand != Hand.MAIN_HAND || !(player instanceof ServerPlayerEntity serverPlayer)) {
                 return ActionResult.PASS;
             }
-            if (!(entity instanceof PokemonEntity)) return ActionResult.PASS;
+            if (!(entity instanceof PokemonEntity presentationEntity)) return ActionResult.PASS;
 
-            Binding binding = BINDINGS.get(entity.getUuid());
+            Binding binding = BINDINGS.get(presentationEntity.getUuid());
             if (binding == null) return ActionResult.PASS;
-            if (!INTERACTION_ACTIVE.contains(entity.getUuid())) return ActionResult.FAIL;
-            if (!isWithinInteractionDistanceSquared(serverPlayer.squaredDistanceTo(entity))) return ActionResult.FAIL;
+            if (!INTERACTION_ACTIVE.contains(presentationEntity.getUuid())) return ActionResult.FAIL;
+            if (!isEligibleInteractionTarget(serverPlayer, presentationEntity)) return ActionResult.FAIL;
 
             var blueprintRegistry = FabricCanonicalPlayerStoreRuntime
                     .requireWildEncounterBlueprintRegistry(serverPlayer.getServer());
@@ -62,9 +62,10 @@ public final class VisibleWildPokemonEncounterRuntime {
             String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(serverPlayer.getUuid());
             String dimensionId = serverPlayer.getServerWorld().getRegistryKey().getValue().toString();
             WorldEncounterTriggerRequestService.Decision decision = REQUESTS.requestBoundEncounter(
-                    binding.canonicalEncounterId(), canonicalPlayerId, entity.getUuidAsString(),
+                    binding.canonicalEncounterId(), canonicalPlayerId, presentationEntity.getUuidAsString(),
                     binding.zoneId(), binding.contextId(), dimensionId,
-                    entity.getBlockX(), entity.getBlockY(), entity.getBlockZ(), serverPlayer.getServer().getTicks());
+                    presentationEntity.getBlockX(), presentationEntity.getBlockY(), presentationEntity.getBlockZ(),
+                    serverPlayer.getServer().getTicks());
 
             PersistentWorldEncounterPartyHandoffService.Decision handoff =
                     handoffService(serverPlayer.getServer(), blueprintRegistry).reserve(decision.request());
@@ -89,6 +90,23 @@ public final class VisibleWildPokemonEncounterRuntime {
         return Double.isFinite(squaredDistance)
                 && squaredDistance >= 0.0D
                 && squaredDistance <= MAX_INTERACTION_DISTANCE_SQUARED;
+    }
+
+    /**
+     * Shared normal-world interaction gate used by both the physical click and every visible focus
+     * surface. Minecraft visibility is presentation/world geometry only; it is never PTU battle LoS.
+     */
+    static boolean isEligibleInteractionTarget(ServerPlayerEntity player, PokemonEntity presentationEntity) {
+        if (player == null || presentationEntity == null || presentationEntity.isRemoved() || presentationEntity.isInvisible()) {
+            return false;
+        }
+        return isEligibleInteractionTarget(
+                player.squaredDistanceTo(presentationEntity),
+                player.canSee(presentationEntity));
+    }
+
+    static boolean isEligibleInteractionTarget(double squaredDistance, boolean minecraftVisible) {
+        return minecraftVisible && isWithinInteractionDistanceSquared(squaredDistance);
     }
 
     private static PersistentWorldEncounterPartyHandoffService handoffService(
