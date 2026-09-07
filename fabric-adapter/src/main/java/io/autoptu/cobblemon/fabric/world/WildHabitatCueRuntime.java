@@ -160,8 +160,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                     .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                     .filter(candidate -> candidate.actor().getUuid().equals(remembered.actorId()))
                     .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
-                    .filter(candidate -> VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(
-                            player.squaredDistanceTo(candidate.actor())))
+                    .filter(candidate -> VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(player, candidate.actor()))
                     .findFirst()
                     .orElse(null);
             NearbyInteractionSnapshot retainedSnapshot = interactionSnapshot(retained);
@@ -171,8 +170,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         WildEcologyProjectionRegistry.ProjectedActor projection = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
-                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(
-                        player.squaredDistanceTo(candidate.actor())))
+                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(player, candidate.actor()))
                 .min(Comparator
                         .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
                                 player.squaredDistanceTo(candidate.actor()))
