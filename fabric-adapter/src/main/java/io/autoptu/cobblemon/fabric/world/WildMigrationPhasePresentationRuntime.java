@@ -5,6 +5,7 @@ import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.ecology.MigrationPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 
@@ -46,7 +47,7 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
             if (!shouldProject(phase)) continue;
 
             world.spawnParticles(
-                    ParticleTypes.CLOUD,
+                    particleEffect(phase),
                     actor.getX(),
                     actor.getY() + actor.getHeight() * 0.65D,
                     actor.getZ(),
@@ -65,6 +66,19 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
                 || phase == MigrationPhase.DEPARTING
                 || phase == MigrationPhase.ARRIVING
                 || phase == MigrationPhase.RETURNING;
+    }
+
+    static ParticleEffect particleEffect(MigrationPhase phase) {
+        if (!shouldProject(phase)) {
+            throw new IllegalArgumentException("migration phase does not have ambient presentation: " + phase);
+        }
+        return switch (phase) {
+            case PREPARING -> ParticleTypes.CLOUD;
+            case DEPARTING -> ParticleTypes.POOF;
+            case ARRIVING -> ParticleTypes.HAPPY_VILLAGER;
+            case RETURNING -> ParticleTypes.END_ROD;
+            default -> throw new IllegalArgumentException("migration phase does not have ambient presentation: " + phase);
+        };
     }
 
     static int particleCount(MigrationPhase phase) {
