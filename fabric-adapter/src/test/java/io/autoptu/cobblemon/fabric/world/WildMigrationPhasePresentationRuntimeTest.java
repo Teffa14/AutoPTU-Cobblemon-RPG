@@ -1,12 +1,10 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.ecology.MigrationPhase;
-import net.minecraft.particle.ParticleTypes;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,18 +28,18 @@ final class WildMigrationPhasePresentationRuntimeTest {
 
     @Test
     void authoredTransitionPhasesHaveDistinctMinecraftPresentation() {
-        assertSame(ParticleTypes.CLOUD,
-                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.PREPARING));
-        assertSame(ParticleTypes.POOF,
-                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.DEPARTING));
-        assertSame(ParticleTypes.HAPPY_VILLAGER,
-                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.ARRIVING));
-        assertSame(ParticleTypes.END_ROD,
-                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.RETURNING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.GATHERING_CLOUD,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.PREPARING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.DEPARTURE_POOF,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.DEPARTING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.ARRIVAL_SPARKLE,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.ARRIVING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.RETURN_TRAIL,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.RETURNING));
         assertThrows(IllegalArgumentException.class,
-                () -> WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.IN_TRANSIT));
+                () -> WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.IN_TRANSIT));
         assertThrows(IllegalArgumentException.class,
-                () -> WildMigrationPhasePresentationRuntime.particleEffect(null));
+                () -> WildMigrationPhasePresentationRuntime.presentationStyle(null));
     }
 
     @Test
