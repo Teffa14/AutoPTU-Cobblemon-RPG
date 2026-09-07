@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -80,10 +81,15 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
         return null;
     }
 
+    static SimpleParticleType markerParticle(WildSocialRole socialRole) {
+        if (socialRole == null) throw new IllegalArgumentException("socialRole is required");
+        return socialRole == WildSocialRole.ALPHA ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.END_ROD;
+    }
+
     private static void mark(ServerWorld world, WildEcologyProjectionRegistry.ProjectedActor projection) {
         var actor = projection.actor();
         world.spawnParticles(
-                ParticleTypes.END_ROD,
+                markerParticle(projection.socialRole()),
                 actor.getX(),
                 actor.getBoundingBox().maxY + MARKER_HEIGHT_OFFSET,
                 actor.getZ(),
