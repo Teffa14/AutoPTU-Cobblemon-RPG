@@ -37,9 +37,9 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
 
         var population = CanonicalWildPopulationCatalogue.DEFAULT.population(POPULATION_ID)
                 .orElseThrow(() -> new IllegalStateException("missing migrating Marea population: " + POPULATION_ID));
-        var source = WildPopulationContentRegistry.sourceFor(population)
-                .orElseThrow(() -> new IllegalStateException("missing registered Marea population source: " + POPULATION_ID));
-        var projectedSiteId = source.projectedSiteResolver().projectedSiteId(population, world.getTime());
+        var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population)
+                .orElseThrow(() -> new IllegalStateException("missing registered Marea ecology descriptor: " + POPULATION_ID));
+        var projectedSiteId = descriptor.projectedSiteId(population, world.getTime());
         if (projectedSiteId.isEmpty()) {
             setProjectionMarkedActive(world.getServer(), false);
             return setMembersActive(world, population, false);
