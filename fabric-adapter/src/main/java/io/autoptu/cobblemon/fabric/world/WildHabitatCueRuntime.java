@@ -150,6 +150,24 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             ServerPlayerEntity player,
             List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
         if (player == null || projections == null || projections.isEmpty()) return null;
+
+        MinecraftServer server = player.getServer();
+        NearbyInteractionSnapshot remembered = server == null
+                ? null
+                : rememberedNearbyInteraction(server, player.getUuid());
+        if (remembered != null) {
+            WildEcologyProjectionRegistry.ProjectedActor retained = projections.stream()
+                    .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
+                    .filter(candidate -> candidate.actor().getUuid().equals(remembered.actorId()))
+                    .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
+                    .filter(candidate -> VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(
+                            player.squaredDistanceTo(candidate.actor())))
+                    .findFirst()
+                    .orElse(null);
+            NearbyInteractionSnapshot retainedSnapshot = interactionSnapshot(retained);
+            if (retainedSnapshot != null) return retainedSnapshot;
+        }
+
         WildEcologyProjectionRegistry.ProjectedActor projection = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
