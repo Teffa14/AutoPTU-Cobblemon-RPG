@@ -23,6 +23,7 @@
       "io.autoptu.cobblemon.fabric.world.WildCalmHerdAttentionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmAlphaCohesionNavigationRuntime",
       "io.autoptu.cobblemon.fabric.world.WildSocialRolePresentationRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildMigrationPhasePresentationRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmReciprocalYieldRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmCollisionNavigationRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmNavigationRecoveryRuntime",
