@@ -19,6 +19,13 @@ import net.minecraft.server.world.ServerWorld;
 public final class WildMigrationPhasePresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
 
+    enum PresentationStyle {
+        GATHERING_CLOUD,
+        DEPARTURE_POOF,
+        ARRIVAL_SPARKLE,
+        RETURN_TRAIL
+    }
+
     @Override
     public void onInitialize() {
         ServerTickEvents.END_WORLD_TICK.register(world -> {
@@ -47,7 +54,7 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
             if (!shouldProject(phase)) continue;
 
             world.spawnParticles(
-                    particleEffect(phase),
+                    particleEffect(presentationStyle(phase)),
                     actor.getX(),
                     actor.getY() + actor.getHeight() * 0.65D,
                     actor.getZ(),
@@ -68,16 +75,25 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
                 || phase == MigrationPhase.RETURNING;
     }
 
-    static ParticleEffect particleEffect(MigrationPhase phase) {
+    static PresentationStyle presentationStyle(MigrationPhase phase) {
         if (!shouldProject(phase)) {
             throw new IllegalArgumentException("migration phase does not have ambient presentation: " + phase);
         }
         return switch (phase) {
-            case PREPARING -> ParticleTypes.CLOUD;
-            case DEPARTING -> ParticleTypes.POOF;
-            case ARRIVING -> ParticleTypes.HAPPY_VILLAGER;
-            case RETURNING -> ParticleTypes.END_ROD;
+            case PREPARING -> PresentationStyle.GATHERING_CLOUD;
+            case DEPARTING -> PresentationStyle.DEPARTURE_POOF;
+            case ARRIVING -> PresentationStyle.ARRIVAL_SPARKLE;
+            case RETURNING -> PresentationStyle.RETURN_TRAIL;
             default -> throw new IllegalArgumentException("migration phase does not have ambient presentation: " + phase);
+        };
+    }
+
+    private static ParticleEffect particleEffect(PresentationStyle style) {
+        return switch (style) {
+            case GATHERING_CLOUD -> ParticleTypes.CLOUD;
+            case DEPARTURE_POOF -> ParticleTypes.POOF;
+            case ARRIVAL_SPARKLE -> ParticleTypes.HAPPY_VILLAGER;
+            case RETURN_TRAIL -> ParticleTypes.END_ROD;
         };
     }
 
