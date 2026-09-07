@@ -9,6 +9,9 @@ import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 /**
  * Projects explicitly authored WILD migration transitions into Minecraft-only ambient visuals.
  *
@@ -18,6 +21,7 @@ import net.minecraft.server.world.ServerWorld;
  */
 public final class WildMigrationPhasePresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
+    private static final Map<ServerWorld, Map<String, MigrationPhase>> LAST_PHASE_BY_WORLD = new WeakHashMap<>();
 
     enum PresentationStyle {
         GATHERING_CLOUD,
@@ -51,10 +55,12 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
             var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
             if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
             var phase = descriptor.projectionPhase(population, world.getTime()).orElse(null);
+            var previousPhase = rememberPhase(world, encounter.canonicalEncounterId(), phase);
             if (!shouldProject(phase)) continue;
 
+            var style = presentationStyle(phase);
             world.spawnParticles(
-                    particleEffect(presentationStyle(phase)),
+                    particleEffect(style),
                     actor.getX(),
                     actor.getY() + actor.getHeight() * 0.65D,
                     actor.getZ(),
@@ -63,9 +69,30 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
                     0.12D,
                     0.22D,
                     0.012D);
+
+            if (shouldBurst(previousPhase, phase)) {
+                world.spawnParticles(
+                        particleEffect(style),
+                        actor.getX(),
+                        actor.getY() + actor.getHeight() * 0.55D,
+                        actor.getZ(),
+                        transitionBurstCount(phase),
+                        0.42D,
+                        0.24D,
+                        0.42D,
+                        0.035D);
+            }
             projected++;
         }
         return projected;
+    }
+
+    private static MigrationPhase rememberPhase(ServerWorld world, String canonicalEncounterId, MigrationPhase phase) {
+        synchronized (LAST_PHASE_BY_WORLD) {
+            var phases = LAST_PHASE_BY_WORLD.computeIfAbsent(world, ignored -> new java.util.LinkedHashMap<>());
+            if (phase == null) return phases.remove(canonicalEncounterId);
+            return phases.put(canonicalEncounterId, phase);
+        }
     }
 
     static boolean shouldProject(MigrationPhase phase) {
@@ -100,5 +127,21 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
     static int particleCount(MigrationPhase phase) {
         if (!shouldProject(phase)) return 0;
         return phase == MigrationPhase.PREPARING ? 1 : 3;
+    }
+
+    static boolean shouldBurst(MigrationPhase previousPhase, MigrationPhase currentPhase) {
+        if (previousPhase == null || previousPhase == currentPhase) return false;
+        return currentPhase == MigrationPhase.DEPARTING
+                || currentPhase == MigrationPhase.ARRIVING
+                || currentPhase == MigrationPhase.RETURNING;
+    }
+
+    static int transitionBurstCount(MigrationPhase phase) {
+        return switch (phase) {
+            case DEPARTING -> 10;
+            case ARRIVING -> 14;
+            case RETURNING -> 8;
+            default -> 0;
+        };
     }
 }
