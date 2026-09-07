@@ -46,7 +46,7 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
             if (!shouldProject(phase)) continue;
 
             world.spawnParticles(
-                    ParticleTypes.END_ROD,
+                    ParticleTypes.CLOUD,
                     actor.getX(),
                     actor.getY() + actor.getHeight() * 0.65D,
                     actor.getZ(),
