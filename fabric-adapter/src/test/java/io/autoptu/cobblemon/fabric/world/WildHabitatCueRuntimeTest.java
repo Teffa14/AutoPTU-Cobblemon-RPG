@@ -127,6 +127,15 @@ final class WildHabitatCueRuntimeTest {
     }
 
     @Test
+    void engagementCueAndPhysicalClickRequireMinecraftVisibilityAtTheSameBoundary() {
+        assertTrue(VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(0.0D, true));
+        assertTrue(VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(36.0D, true));
+        assertFalse(VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(36.0001D, true));
+        assertFalse(VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(1.0D, false));
+        assertFalse(VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(Double.NaN, true));
+    }
+
+    @Test
     void engagementCueAnnouncesOnActorOrAuthoredIdentityChange() {
         UUID first = UUID.fromString("00000000-0000-0000-0000-000000000101");
         UUID second = UUID.fromString("00000000-0000-0000-0000-000000000202");
