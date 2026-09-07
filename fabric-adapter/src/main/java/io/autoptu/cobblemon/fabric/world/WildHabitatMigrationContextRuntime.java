@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Announces authored migration phase changes to players already inside the projected WILD habitat.
+ * Surfaces authored migration context to players inside the projected WILD habitat.
  *
  * <p>This is Minecraft world context only. Phase, population identity and habitat geometry come from
  * server-owned canonical ecology bindings. Cobblemon remains presentation-only and no PTU battle
@@ -100,7 +100,9 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
                 if (!containsHorizontal(player.getX(), player.getZ(), context)) continue;
                 current.put(context.populationId(), context.phase());
                 MigrationPhase previousPhase = previous.get(context.populationId());
-                if (shouldAnnounce(previousPhase, context.phase())) {
+                if (shouldAnnounceEntry(previousPhase, context.phase())) {
+                    player.sendMessage(Text.literal(entryContextText(context)), true);
+                } else if (shouldAnnounce(previousPhase, context.phase())) {
                     player.sendMessage(Text.literal(announcementText(context)), true);
                 }
             }
@@ -167,8 +169,20 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         return false;
     }
 
+    static boolean shouldAnnounceEntry(MigrationPhase previous, MigrationPhase current) {
+        return previous == null && current != null;
+    }
+
     static boolean shouldAnnounce(MigrationPhase previous, MigrationPhase current) {
         return previous != null && current != null && previous != current;
+    }
+
+    static String entryContextText(HabitatMigrationContext context) {
+        if (context == null) throw new IllegalArgumentException("context is required");
+        return "Wild habitat — "
+                + context.habitatDisplayName()
+                + " · "
+                + WildHabitatCueRuntime.displayMigrationPhase(context.phase());
     }
 
     static String announcementText(HabitatMigrationContext context) {
