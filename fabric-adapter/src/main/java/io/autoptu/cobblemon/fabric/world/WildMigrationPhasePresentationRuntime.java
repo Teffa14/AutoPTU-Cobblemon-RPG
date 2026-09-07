@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -21,6 +22,7 @@ import java.util.WeakHashMap;
  */
 public final class WildMigrationPhasePresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
+    private static final double TRANSITION_ANNOUNCEMENT_RADIUS_SQUARED = 24.0D * 24.0D;
     private static final Map<ServerWorld, Map<String, MigrationPhase>> LAST_PHASE_BY_WORLD = new WeakHashMap<>();
 
     enum PresentationStyle {
@@ -81,6 +83,15 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
                         0.24D,
                         0.42D,
                         0.035D);
+                String announcement = transitionAnnouncementText(
+                        encounter.speciesId(),
+                        projection.habitatDisplayName(),
+                        phase);
+                for (var player : world.getPlayers()) {
+                    if (player.isSpectator()) continue;
+                    if (!shouldAnnounceTransitionToPlayer(player.squaredDistanceTo(actor))) continue;
+                    player.sendMessage(Text.literal(announcement), true);
+                }
             }
             projected++;
         }
@@ -143,5 +154,25 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
             case RETURNING -> 8;
             default -> 0;
         };
+    }
+
+    static boolean shouldAnnounceTransitionToPlayer(double squaredDistance) {
+        return Double.isFinite(squaredDistance)
+                && squaredDistance >= 0.0D
+                && squaredDistance <= TRANSITION_ANNOUNCEMENT_RADIUS_SQUARED;
+    }
+
+    static String transitionAnnouncementText(String speciesId, String habitatDisplayName, MigrationPhase phase) {
+        if (speciesId == null || speciesId.isBlank()) throw new IllegalArgumentException("speciesId is required");
+        if (habitatDisplayName == null || habitatDisplayName.isBlank()) {
+            throw new IllegalArgumentException("habitatDisplayName is required");
+        }
+        if (!shouldBurst(MigrationPhase.PREPARING, phase)) {
+            throw new IllegalArgumentException("phase is not an announced migration transition: " + phase);
+        }
+        return "Wild migration — "
+                + WildHabitatCueRuntime.displaySpeciesName(speciesId)
+                + " · " + WildHabitatCueRuntime.displayMigrationPhase(phase)
+                + " · " + habitatDisplayName.strip();
     }
 }
