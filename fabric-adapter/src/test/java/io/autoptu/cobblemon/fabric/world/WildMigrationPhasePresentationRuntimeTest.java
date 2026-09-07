@@ -51,4 +51,30 @@ final class WildMigrationPhasePresentationRuntimeTest {
         assertEquals(0, WildMigrationPhasePresentationRuntime.particleCount(MigrationPhase.IN_TRANSIT));
         assertEquals(0, WildMigrationPhasePresentationRuntime.particleCount(null));
     }
+
+    @Test
+    void transitionBurstFiresOnlyWhenAuthoredMovementPhaseChanges() {
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldBurst(null, MigrationPhase.DEPARTING));
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldBurst(
+                MigrationPhase.PREPARING, MigrationPhase.PREPARING));
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldBurst(
+                MigrationPhase.COMPLETE, MigrationPhase.PREPARING));
+        assertTrue(WildMigrationPhasePresentationRuntime.shouldBurst(
+                MigrationPhase.PREPARING, MigrationPhase.DEPARTING));
+        assertTrue(WildMigrationPhasePresentationRuntime.shouldBurst(
+                MigrationPhase.IN_TRANSIT, MigrationPhase.ARRIVING));
+        assertTrue(WildMigrationPhasePresentationRuntime.shouldBurst(
+                MigrationPhase.SEASONAL_RESIDENCE, MigrationPhase.RETURNING));
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldBurst(
+                MigrationPhase.DEPARTING, MigrationPhase.IN_TRANSIT));
+    }
+
+    @Test
+    void transitionBurstStrengthStaysPhaseSpecificAndSilentElsewhere() {
+        assertEquals(10, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.DEPARTING));
+        assertEquals(14, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.ARRIVING));
+        assertEquals(8, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.RETURNING));
+        assertEquals(0, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.PREPARING));
+        assertEquals(0, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.IN_TRANSIT));
+    }
 }
