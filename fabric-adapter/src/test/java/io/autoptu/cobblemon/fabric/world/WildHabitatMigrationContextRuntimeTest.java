@@ -11,7 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildHabitatMigrationContextRuntimeTest {
     @Test
-    void phaseChangeAnnouncesOnlyAfterThePlayerHasObservedThatHabitat() {
+    void firstObservationIsEntryContextAndLaterPhaseChangeIsMigrationContext() {
+        assertTrue(WildHabitatMigrationContextRuntime.shouldAnnounceEntry(null, MigrationPhase.PREPARING));
+        assertFalse(WildHabitatMigrationContextRuntime.shouldAnnounceEntry(
+                MigrationPhase.PREPARING, MigrationPhase.PREPARING));
+        assertFalse(WildHabitatMigrationContextRuntime.shouldAnnounceEntry(
+                MigrationPhase.PREPARING, MigrationPhase.DEPARTING));
+
         assertFalse(WildHabitatMigrationContextRuntime.shouldAnnounce(null, MigrationPhase.PREPARING));
         assertFalse(WildHabitatMigrationContextRuntime.shouldAnnounce(
                 MigrationPhase.PREPARING, MigrationPhase.PREPARING));
@@ -22,7 +28,7 @@ final class WildHabitatMigrationContextRuntimeTest {
     }
 
     @Test
-    void habitatBoundaryAndMessageUseOnlyAuthoredWorldContext() {
+    void habitatBoundaryAndMessagesUseOnlyAuthoredWorldContext() {
         var context = new WildHabitatMigrationContextRuntime.HabitatMigrationContext(
                 "ouros.marea.lower_shelf",
                 "Sendero Seasonal Crossing",
@@ -31,6 +37,9 @@ final class WildHabitatMigrationContextRuntimeTest {
 
         assertTrue(WildHabitatMigrationContextRuntime.containsHorizontal(16.0D, -4.0D, context));
         assertFalse(WildHabitatMigrationContextRuntime.containsHorizontal(16.01D, -4.0D, context));
+        assertEquals(
+                "Wild habitat — Sendero Seasonal Crossing · Arriving",
+                WildHabitatMigrationContextRuntime.entryContextText(context));
         assertEquals(
                 "Wild habitat migration — Sendero Seasonal Crossing · Arriving",
                 WildHabitatMigrationContextRuntime.announcementText(context));
