@@ -1,10 +1,13 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.ecology.MigrationPhase;
+import net.minecraft.particle.ParticleTypes;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildMigrationPhasePresentationRuntimeTest {
@@ -23,6 +26,22 @@ final class WildMigrationPhasePresentationRuntimeTest {
         assertFalse(WildMigrationPhasePresentationRuntime.shouldProject(MigrationPhase.SEASONAL_RESIDENCE));
         assertFalse(WildMigrationPhasePresentationRuntime.shouldProject(MigrationPhase.COMPLETE));
         assertFalse(WildMigrationPhasePresentationRuntime.shouldProject(null));
+    }
+
+    @Test
+    void authoredTransitionPhasesHaveDistinctMinecraftPresentation() {
+        assertSame(ParticleTypes.CLOUD,
+                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.PREPARING));
+        assertSame(ParticleTypes.POOF,
+                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.DEPARTING));
+        assertSame(ParticleTypes.HAPPY_VILLAGER,
+                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.ARRIVING));
+        assertSame(ParticleTypes.END_ROD,
+                WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.RETURNING));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.particleEffect(MigrationPhase.IN_TRANSIT));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.particleEffect(null));
     }
 
     @Test
