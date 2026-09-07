@@ -1,6 +1,8 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
+import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
+import io.autoptu.cobblemon.ecology.MigrationPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -17,6 +19,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -67,7 +70,13 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         }
     }
 
-    record NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole, String speciesId, String habitatDisplayName) {
+    record NearbyInteractionSnapshot(
+            UUID actorId,
+            WildSocialRole socialRole,
+            String speciesId,
+            String habitatDisplayName,
+            Optional<MigrationPhase> migrationPhase
+    ) {
         NearbyInteractionSnapshot {
             if (actorId == null) throw new IllegalArgumentException("actorId is required");
             if (socialRole == null) throw new IllegalArgumentException("socialRole is required");
@@ -75,10 +84,15 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             if (habitatDisplayName == null || habitatDisplayName.isBlank()) throw new IllegalArgumentException("habitatDisplayName is required");
             speciesId = speciesId.strip();
             habitatDisplayName = habitatDisplayName.strip();
+            migrationPhase = migrationPhase == null ? Optional.empty() : migrationPhase;
+        }
+
+        NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole, String speciesId, String habitatDisplayName) {
+            this(actorId, socialRole, speciesId, habitatDisplayName, Optional.empty());
         }
 
         NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole) {
-            this(actorId, socialRole, "pokemon", "Wild habitat");
+            this(actorId, socialRole, "pokemon", "Wild habitat", Optional.empty());
         }
     }
 
@@ -152,6 +166,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         if (player == null || projections == null || projections.isEmpty()) return null;
 
         MinecraftServer server = player.getServer();
+        long worldTick = player.getServerWorld().getTime();
         NearbyInteractionSnapshot remembered = server == null
                 ? null
                 : rememberedNearbyInteraction(server, player.getUuid());
@@ -163,7 +178,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                     .filter(candidate -> VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(player, candidate.actor()))
                     .findFirst()
                     .orElse(null);
-            NearbyInteractionSnapshot retainedSnapshot = interactionSnapshot(retained);
+            NearbyInteractionSnapshot retainedSnapshot = interactionSnapshot(retained, worldTick);
             if (retainedSnapshot != null) return retainedSnapshot;
         }
 
@@ -176,20 +191,30 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                                 player.squaredDistanceTo(candidate.actor()))
                         .thenComparing(candidate -> candidate.actor().getUuid().toString()))
                 .orElse(null);
-        return interactionSnapshot(projection);
+        return interactionSnapshot(projection, worldTick);
     }
 
-    static NearbyInteractionSnapshot interactionSnapshot(WildEcologyProjectionRegistry.ProjectedActor projection) {
+    static NearbyInteractionSnapshot interactionSnapshot(
+            WildEcologyProjectionRegistry.ProjectedActor projection,
+            long worldTick
+    ) {
         if (projection == null) return null;
+        if (worldTick < 0L) throw new IllegalArgumentException("worldTick must be >= 0");
         var binding = VisibleWildPokemonEncounterRuntime.binding(projection.actor().getUuid()).orElse(null);
         if (binding == null) return null;
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(binding.canonicalEncounterId()).orElse(null);
         if (encounter == null) return null;
+        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId()).orElse(null);
+        Optional<MigrationPhase> migrationPhase = population == null
+                ? Optional.empty()
+                : WildEcologyDescriptorRegistry.descriptorFor(population)
+                        .flatMap(descriptor -> descriptor.projectionPhase(population, worldTick));
         return new NearbyInteractionSnapshot(
                 projection.actor().getUuid(),
                 projection.socialRole(),
                 encounter.speciesId(),
-                projection.habitatDisplayName());
+                projection.habitatDisplayName(),
+                migrationPhase);
     }
 
     static boolean shouldAnnounceNearbyInteraction(NearbyInteractionSnapshot previousActor, NearbyInteractionSnapshot currentActor) {
@@ -200,7 +225,10 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         if (interaction == null) throw new IllegalArgumentException("interaction is required");
         String species = displaySpeciesName(interaction.speciesId());
         String identity = interaction.socialRole() == WildSocialRole.ALPHA ? "Alpha " + species : species;
-        return identity + " · " + interaction.habitatDisplayName() + " · interact to inspect encounter";
+        String phase = interaction.migrationPhase()
+                .map(value -> " · " + displayMigrationPhase(value))
+                .orElse("");
+        return identity + " · " + interaction.habitatDisplayName() + phase + " · interact to inspect encounter";
     }
 
     static String nearbyInteractionText(WildSocialRole socialRole) {
@@ -228,6 +256,12 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         }
         if (display.length() == 0) throw new IllegalArgumentException("speciesId must contain a species name");
         return display.toString();
+    }
+
+    static String displayMigrationPhase(MigrationPhase phase) {
+        if (phase == null) throw new IllegalArgumentException("phase is required");
+        String normalized = phase.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
     }
 
     static Map<String, HabitatCue> habitatCues(ServerWorld world) {

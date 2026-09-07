@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
+import io.autoptu.cobblemon.ecology.MigrationPhase;
 import io.autoptu.cobblemon.fabric.battle.CanonicalWildEncounterBlueprintSource;
 import net.minecraft.server.world.ServerWorld;
 
@@ -90,6 +91,24 @@ public final class WildEcologyDescriptorRegistry {
                 }
             }
             return Optional.of(population.siteId());
+        }
+
+        /**
+         * Returns an explicitly authored migration phase when this population has a temporal projection profile.
+         * Populations without a migration calendar intentionally return empty instead of inventing a phase.
+         */
+        public Optional<MigrationPhase> projectionPhase(
+                CanonicalWildPopulationCatalogue.PopulationDefinition population,
+                long worldTick
+        ) {
+            if (population == null) throw new IllegalArgumentException("population is required");
+            if (worldTick < 0L) throw new IllegalArgumentException("worldTick must be >= 0");
+            for (WildPopulationProjectionProfile profile : projectionProfiles) {
+                if (profile.populationId().equals(population.populationId())) {
+                    return Optional.of(profile.resolve(population, worldTick).phase());
+                }
+            }
+            return Optional.empty();
         }
 
         public WildSocialRole socialRole(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {

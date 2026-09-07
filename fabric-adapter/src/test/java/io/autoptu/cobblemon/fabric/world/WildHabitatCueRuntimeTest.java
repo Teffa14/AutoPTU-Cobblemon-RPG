@@ -1,8 +1,10 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.ecology.MigrationPhase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -165,6 +167,29 @@ final class WildHabitatCueRuntimeTest {
         assertEquals("Alpha Fletchling · Loma Windbreak · interact to inspect encounter",
                 WildHabitatCueRuntime.nearbyInteractionText(alpha));
         assertEquals("Mr Mime", WildHabitatCueRuntime.displaySpeciesName("cobblemon:mr_mime"));
+    }
+
+    @Test
+    void engagementCueShowsAuthoredMigrationPhaseAndRefreshesWhenItChanges() {
+        UUID actor = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        var stopover = new WildHabitatCueRuntime.NearbyInteractionSnapshot(
+                actor,
+                WildSocialRole.ALPHA,
+                "cobblemon:fletchling",
+                "Sendero Seasonal Crossing",
+                Optional.of(MigrationPhase.STOPOVER));
+        var arriving = new WildHabitatCueRuntime.NearbyInteractionSnapshot(
+                actor,
+                WildSocialRole.ALPHA,
+                "cobblemon:fletchling",
+                "Sendero Seasonal Crossing",
+                Optional.of(MigrationPhase.ARRIVING));
+
+        assertEquals("Alpha Fletchling · Sendero Seasonal Crossing · Stopover · interact to inspect encounter",
+                WildHabitatCueRuntime.nearbyInteractionText(stopover));
+        assertEquals("Seasonal residence", WildHabitatCueRuntime.displayMigrationPhase(MigrationPhase.SEASONAL_RESIDENCE));
+        assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(stopover, stopover));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(stopover, arriving));
     }
 
     @Test
