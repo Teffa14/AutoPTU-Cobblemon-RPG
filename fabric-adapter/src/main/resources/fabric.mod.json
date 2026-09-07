@@ -16,6 +16,7 @@
       "io.autoptu.cobblemon.fabric.world.WildEcologyContentRuntime",
       "io.autoptu.cobblemon.fabric.world.CobblemonHabitatPointOfInterestRuntimeSmoke",
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildInteractionFocusContextRuntime",
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusMarkerRuntime",
       "io.autoptu.cobblemon.fabric.world.WildAmbientBehaviorRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmIdleLookRuntime",
