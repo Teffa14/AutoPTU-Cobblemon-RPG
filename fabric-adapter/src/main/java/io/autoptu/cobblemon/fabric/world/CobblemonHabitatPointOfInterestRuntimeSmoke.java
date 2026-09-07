@@ -76,13 +76,31 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
             ServerWorld world,
             WildEcologyProjectionRegistry.ProjectedActor projection
     ) {
+        BlockPos actorAnchor = projection.actor().getBlockPos();
+        BlockPos nearActor = findLoadedAirProbePosition(
+                world, projection, actorAnchor.getX(), actorAnchor.getY(), actorAnchor.getZ());
+        if (nearActor != null) return nearActor;
+
         int centerX = (int) Math.floor(projection.habitatCenterX());
         int centerZ = (int) Math.floor(projection.habitatCenterZ());
-        int baseY = projection.actor().getBlockY();
+        BlockPos nearCenter = findLoadedAirProbePosition(
+                world, projection, centerX, actorAnchor.getY(), centerZ);
+        if (nearCenter != null) return nearCenter;
+
+        throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke found no loaded air position inside canonical leash");
+    }
+
+    private static BlockPos findLoadedAirProbePosition(
+            ServerWorld world,
+            WildEcologyProjectionRegistry.ProjectedActor projection,
+            int anchorX,
+            int baseY,
+            int anchorZ
+    ) {
         for (int dy = 2; dy <= 8; dy++) {
             for (int dx = -3; dx <= 3; dx++) {
                 for (int dz = -3; dz <= 3; dz++) {
-                    BlockPos candidate = new BlockPos(centerX + dx, baseY + dy, centerZ + dz);
+                    BlockPos candidate = new BlockPos(anchorX + dx, baseY + dy, anchorZ + dz);
                     if (!world.isChunkLoaded(candidate)) continue;
                     if (!WildAmbientBehaviorRuntime.insideHorizontalLeash(
                             candidate.getX() + 0.5D,
@@ -94,6 +112,6 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
                 }
             }
         }
-        throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke found no loaded air position inside canonical leash");
+        return null;
     }
 }
