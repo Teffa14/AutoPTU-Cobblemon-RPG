@@ -81,15 +81,19 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
         return null;
     }
 
-    static SimpleParticleType markerParticle(WildSocialRole socialRole) {
+    static MarkerStyle markerStyle(WildSocialRole socialRole) {
         if (socialRole == null) throw new IllegalArgumentException("socialRole is required");
-        return socialRole == WildSocialRole.ALPHA ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.END_ROD;
+        return socialRole == WildSocialRole.ALPHA ? MarkerStyle.ALPHA : MarkerStyle.MEMBER;
+    }
+
+    private static SimpleParticleType markerParticle(MarkerStyle markerStyle) {
+        return markerStyle == MarkerStyle.ALPHA ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.END_ROD;
     }
 
     private static void mark(ServerWorld world, WildEcologyProjectionRegistry.ProjectedActor projection) {
         var actor = projection.actor();
         world.spawnParticles(
-                markerParticle(projection.socialRole()),
+                markerParticle(markerStyle(projection.socialRole())),
                 actor.getX(),
                 actor.getBoundingBox().maxY + MARKER_HEIGHT_OFFSET,
                 actor.getZ(),
@@ -123,5 +127,10 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
             players.keySet().removeIf(playerId -> !online.contains(playerId));
             if (players.isEmpty()) FOCUSED_ACTORS.remove(server);
         }
+    }
+
+    enum MarkerStyle {
+        MEMBER,
+        ALPHA
     }
 }
