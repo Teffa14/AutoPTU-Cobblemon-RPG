@@ -1,12 +1,11 @@
 package io.autoptu.cobblemon.fabric.world;
 
-import net.minecraft.particle.ParticleTypes;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -24,9 +23,13 @@ final class WildInteractionFocusMarkerRuntimeTest {
     }
 
     @Test
-    void authoredAlphaRoleUsesDistinctPresentationMarkerWithoutCombatInference() {
-        assertSame(ParticleTypes.END_ROD, WildInteractionFocusMarkerRuntime.markerParticle(WildSocialRole.MEMBER));
-        assertSame(ParticleTypes.SOUL_FIRE_FLAME, WildInteractionFocusMarkerRuntime.markerParticle(WildSocialRole.ALPHA));
-        assertThrows(IllegalArgumentException.class, () -> WildInteractionFocusMarkerRuntime.markerParticle(null));
+    void authoredAlphaRoleUsesDistinctPresentationStyleWithoutCombatInference() {
+        assertEquals(
+                WildInteractionFocusMarkerRuntime.MarkerStyle.MEMBER,
+                WildInteractionFocusMarkerRuntime.markerStyle(WildSocialRole.MEMBER));
+        assertEquals(
+                WildInteractionFocusMarkerRuntime.MarkerStyle.ALPHA,
+                WildInteractionFocusMarkerRuntime.markerStyle(WildSocialRole.ALPHA));
+        assertThrows(IllegalArgumentException.class, () -> WildInteractionFocusMarkerRuntime.markerStyle(null));
     }
 }
