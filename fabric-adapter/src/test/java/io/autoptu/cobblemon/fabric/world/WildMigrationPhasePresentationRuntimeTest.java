@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildMigrationPhasePresentationRuntimeTest {
@@ -23,6 +24,22 @@ final class WildMigrationPhasePresentationRuntimeTest {
         assertFalse(WildMigrationPhasePresentationRuntime.shouldProject(MigrationPhase.SEASONAL_RESIDENCE));
         assertFalse(WildMigrationPhasePresentationRuntime.shouldProject(MigrationPhase.COMPLETE));
         assertFalse(WildMigrationPhasePresentationRuntime.shouldProject(null));
+    }
+
+    @Test
+    void authoredTransitionPhasesHaveDistinctMinecraftPresentation() {
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.GATHERING_CLOUD,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.PREPARING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.DEPARTURE_POOF,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.DEPARTING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.ARRIVAL_SPARKLE,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.ARRIVING));
+        assertEquals(WildMigrationPhasePresentationRuntime.PresentationStyle.RETURN_TRAIL,
+                WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.RETURNING));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.presentationStyle(MigrationPhase.IN_TRANSIT));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.presentationStyle(null));
     }
 
     @Test
