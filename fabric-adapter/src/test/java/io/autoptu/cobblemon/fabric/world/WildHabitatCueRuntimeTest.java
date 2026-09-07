@@ -127,22 +127,39 @@ final class WildHabitatCueRuntimeTest {
     }
 
     @Test
-    void engagementCueAnnouncesOnActorOrAuthoredSocialRoleChange() {
+    void engagementCueAnnouncesOnActorOrAuthoredIdentityChange() {
         UUID first = UUID.fromString("00000000-0000-0000-0000-000000000101");
         UUID second = UUID.fromString("00000000-0000-0000-0000-000000000202");
-        var firstMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.MEMBER);
-        var firstAlpha = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.ALPHA);
-        var secondMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(second, WildSocialRole.MEMBER);
+        var firstMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.MEMBER, "fletchling", "Lower Shelf");
+        var firstAlpha = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.ALPHA, "fletchling", "Lower Shelf");
+        var migratedMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(first, WildSocialRole.MEMBER, "fletchling", "Seasonal Crossing");
+        var secondMember = new WildHabitatCueRuntime.NearbyInteractionSnapshot(second, WildSocialRole.MEMBER, "fletchling", "Lower Shelf");
 
         assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(null, firstMember));
         assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, firstMember));
         assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, firstAlpha));
+        assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, migratedMember));
         assertTrue(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, secondMember));
         assertFalse(WildHabitatCueRuntime.shouldAnnounceNearbyInteraction(firstMember, null));
     }
 
     @Test
-    void engagementCueLabelsOnlyTheServerAuthoredAlphaRole() {
+    void engagementCueUsesCanonicalSpeciesAndAuthoredHabitatIdentity() {
+        UUID actor = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        var member = new WildHabitatCueRuntime.NearbyInteractionSnapshot(
+                actor, WildSocialRole.MEMBER, "cobblemon:fletchling", "Sendero Seasonal Crossing");
+        var alpha = new WildHabitatCueRuntime.NearbyInteractionSnapshot(
+                actor, WildSocialRole.ALPHA, "fletchling", "Loma Windbreak");
+
+        assertEquals("Fletchling · Sendero Seasonal Crossing · interact to inspect encounter",
+                WildHabitatCueRuntime.nearbyInteractionText(member));
+        assertEquals("Alpha Fletchling · Loma Windbreak · interact to inspect encounter",
+                WildHabitatCueRuntime.nearbyInteractionText(alpha));
+        assertEquals("Mr Mime", WildHabitatCueRuntime.displaySpeciesName("cobblemon:mr_mime"));
+    }
+
+    @Test
+    void legacyEngagementCueLabelsOnlyTheServerAuthoredAlphaRole() {
         assertEquals("Wild Pokemon within reach · interact to inspect encounter",
                 WildHabitatCueRuntime.nearbyInteractionText(WildSocialRole.MEMBER));
         assertEquals("Alpha wild Pokemon within reach · interact to inspect encounter",
@@ -150,12 +167,16 @@ final class WildHabitatCueRuntimeTest {
     }
 
     @Test
-    void nearbySnapshotRequiresCanonicalActorAndRole() {
+    void nearbySnapshotRequiresCanonicalActorRoleSpeciesAndHabitat() {
         UUID actor = UUID.fromString("00000000-0000-0000-0000-000000000101");
         assertThrows(IllegalArgumentException.class,
-                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(null, WildSocialRole.MEMBER));
+                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(null, WildSocialRole.MEMBER, "fletchling", "Lower Shelf"));
         assertThrows(IllegalArgumentException.class,
-                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(actor, null));
+                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(actor, null, "fletchling", "Lower Shelf"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(actor, WildSocialRole.MEMBER, " ", "Lower Shelf"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new WildHabitatCueRuntime.NearbyInteractionSnapshot(actor, WildSocialRole.MEMBER, "fletchling", " "));
     }
 
     @Test

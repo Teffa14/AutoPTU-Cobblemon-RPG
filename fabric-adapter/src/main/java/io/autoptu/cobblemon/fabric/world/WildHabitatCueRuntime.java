@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -66,10 +67,18 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         }
     }
 
-    record NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole) {
+    record NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole, String speciesId, String habitatDisplayName) {
         NearbyInteractionSnapshot {
             if (actorId == null) throw new IllegalArgumentException("actorId is required");
             if (socialRole == null) throw new IllegalArgumentException("socialRole is required");
+            if (speciesId == null || speciesId.isBlank()) throw new IllegalArgumentException("speciesId is required");
+            if (habitatDisplayName == null || habitatDisplayName.isBlank()) throw new IllegalArgumentException("habitatDisplayName is required");
+            speciesId = speciesId.strip();
+            habitatDisplayName = habitatDisplayName.strip();
+        }
+
+        NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole) {
+            this(actorId, socialRole, "pokemon", "Wild habitat");
         }
     }
 
@@ -131,7 +140,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             NearbyInteractionSnapshot currentActor = nearestInteractionActor(player, projections);
             rememberNearbyInteraction(world.getServer(), playerId, currentActor);
             if (shouldAnnounceNearbyInteraction(previousActor, currentActor)) {
-                player.sendMessage(Text.literal(nearbyInteractionText(currentActor.socialRole())), true);
+                player.sendMessage(Text.literal(nearbyInteractionText(currentActor)), true);
             }
         }
         forgetOfflineNearbyInteractions(world.getServer(), online);
@@ -141,27 +150,68 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             ServerPlayerEntity player,
             List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
         if (player == null || projections == null || projections.isEmpty()) return null;
-        return projections.stream()
-                .filter(projection -> projection != null && !projection.actor().isRemoved())
-                .filter(projection -> VisibleWildPokemonEncounterRuntime.isInteractionActive(projection.actor().getUuid()))
-                .filter(projection -> VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(
-                        player.squaredDistanceTo(projection.actor())))
+        WildEcologyProjectionRegistry.ProjectedActor projection = projections.stream()
+                .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
+                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
+                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isWithinInteractionDistanceSquared(
+                        player.squaredDistanceTo(candidate.actor())))
                 .min(Comparator
-                        .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor projection) ->
-                                player.squaredDistanceTo(projection.actor()))
-                        .thenComparing(projection -> projection.actor().getUuid().toString()))
-                .map(projection -> new NearbyInteractionSnapshot(projection.actor().getUuid(), projection.socialRole()))
+                        .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                                player.squaredDistanceTo(candidate.actor()))
+                        .thenComparing(candidate -> candidate.actor().getUuid().toString()))
                 .orElse(null);
+        return interactionSnapshot(projection);
+    }
+
+    static NearbyInteractionSnapshot interactionSnapshot(WildEcologyProjectionRegistry.ProjectedActor projection) {
+        if (projection == null) return null;
+        var binding = VisibleWildPokemonEncounterRuntime.binding(projection.actor().getUuid()).orElse(null);
+        if (binding == null) return null;
+        var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(binding.canonicalEncounterId()).orElse(null);
+        if (encounter == null) return null;
+        return new NearbyInteractionSnapshot(
+                projection.actor().getUuid(),
+                projection.socialRole(),
+                encounter.speciesId(),
+                projection.habitatDisplayName());
     }
 
     static boolean shouldAnnounceNearbyInteraction(NearbyInteractionSnapshot previousActor, NearbyInteractionSnapshot currentActor) {
         return currentActor != null && !currentActor.equals(previousActor);
     }
 
+    static String nearbyInteractionText(NearbyInteractionSnapshot interaction) {
+        if (interaction == null) throw new IllegalArgumentException("interaction is required");
+        String species = displaySpeciesName(interaction.speciesId());
+        String identity = interaction.socialRole() == WildSocialRole.ALPHA ? "Alpha " + species : species;
+        return identity + " · " + interaction.habitatDisplayName() + " · interact to inspect encounter";
+    }
+
     static String nearbyInteractionText(WildSocialRole socialRole) {
         return socialRole == WildSocialRole.ALPHA
                 ? "Alpha wild Pokemon within reach · interact to inspect encounter"
                 : "Wild Pokemon within reach · interact to inspect encounter";
+    }
+
+    static String displaySpeciesName(String speciesId) {
+        if (speciesId == null || speciesId.isBlank()) throw new IllegalArgumentException("speciesId is required");
+        String normalized = speciesId.strip();
+        int namespace = normalized.lastIndexOf(':');
+        if (namespace >= 0 && namespace + 1 < normalized.length()) normalized = normalized.substring(namespace + 1);
+        StringBuilder display = new StringBuilder(normalized.length());
+        boolean capitalize = true;
+        for (int i = 0; i < normalized.length(); i++) {
+            char c = normalized.charAt(i);
+            if (c == '_' || c == '-') {
+                if (display.length() > 0 && display.charAt(display.length() - 1) != ' ') display.append(' ');
+                capitalize = true;
+                continue;
+            }
+            display.append(capitalize ? Character.toUpperCase(c) : c);
+            capitalize = false;
+        }
+        if (display.length() == 0) throw new IllegalArgumentException("speciesId must contain a species name");
+        return display.toString();
     }
 
     static Map<String, HabitatCue> habitatCues(ServerWorld world) {
