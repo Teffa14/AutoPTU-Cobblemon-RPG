@@ -26,7 +26,8 @@
       "io.autoptu.cobblemon.fabric.world.WildCalmCollisionNavigationRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmNavigationRecoveryRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmNavigationContinuityRuntime",
-      "io.autoptu.cobblemon.fabric.world.WildInteractionFocusHoldRuntime"
+      "io.autoptu.cobblemon.fabric.world.WildInteractionFocusHoldRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildInteractionFocusAttentionRuntime"
     ],
     "client": [
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
