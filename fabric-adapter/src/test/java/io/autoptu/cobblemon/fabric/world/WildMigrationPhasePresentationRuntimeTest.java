@@ -77,4 +77,32 @@ final class WildMigrationPhasePresentationRuntimeTest {
         assertEquals(0, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.PREPARING));
         assertEquals(0, WildMigrationPhasePresentationRuntime.transitionBurstCount(MigrationPhase.IN_TRANSIT));
     }
+
+    @Test
+    void transitionAnnouncementUsesCanonicalSpeciesAuthoredHabitatAndExactRadius() {
+        assertEquals(
+                "Wild migration — Fletchling · Departing · Sendero Seasonal Crossing",
+                WildMigrationPhasePresentationRuntime.transitionAnnouncementText(
+                        "cobblemon:fletchling",
+                        "Sendero Seasonal Crossing",
+                        MigrationPhase.DEPARTING));
+        assertTrue(WildMigrationPhasePresentationRuntime.shouldAnnounceTransitionToPlayer(0.0D));
+        assertTrue(WildMigrationPhasePresentationRuntime.shouldAnnounceTransitionToPlayer(576.0D));
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldAnnounceTransitionToPlayer(576.0001D));
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldAnnounceTransitionToPlayer(Double.NaN));
+        assertFalse(WildMigrationPhasePresentationRuntime.shouldAnnounceTransitionToPlayer(-1.0D));
+    }
+
+    @Test
+    void transitionAnnouncementRejectsNonMovementPhasesAndMissingAuthoredIdentity() {
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.transitionAnnouncementText(
+                        "fletchling", "Lower Shelf", MigrationPhase.PREPARING));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.transitionAnnouncementText(
+                        " ", "Lower Shelf", MigrationPhase.DEPARTING));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildMigrationPhasePresentationRuntime.transitionAnnouncementText(
+                        "fletchling", " ", MigrationPhase.DEPARTING));
+    }
 }
