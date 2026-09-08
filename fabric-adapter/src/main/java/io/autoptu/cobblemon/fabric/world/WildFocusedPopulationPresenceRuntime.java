@@ -21,10 +21,10 @@ import java.util.UUID;
 /**
  * Surfaces the visible population around the player's currently focused canonical WILD.
  *
- * <p>The count, ambient social-role context and optional migration phase come only from server-owned ecology
- * projections and the authored descriptor behind the focused actor. Cobblemon entities provide presentation
- * identity only. This runtime never derives PTU legality, stats, HP, moves, RNG, statuses, capture,
- * encounter outcomes or battle results.</p>
+ * <p>The count, projected habitat, ambient social-role context and optional migration phase come only from
+ * server-owned ecology projections and the authored descriptor behind the focused actor. Cobblemon entities
+ * provide presentation identity only. This runtime never derives PTU legality, stats, HP, moves, RNG,
+ * statuses, capture, encounter outcomes or battle results.</p>
  */
 public final class WildFocusedPopulationPresenceRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -35,7 +35,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             String speciesDisplayName,
             int visibleActors,
             int visibleAlphas,
-            Optional<MigrationPhase> migrationPhase
+            Optional<MigrationPhase> migrationPhase,
+            Optional<String> habitatDisplayName
     ) {
         PopulationPresence {
             if (populationKey == null || populationKey.isBlank()) {
@@ -51,10 +52,25 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             populationKey = populationKey.strip();
             speciesDisplayName = speciesDisplayName.strip();
             migrationPhase = migrationPhase == null ? Optional.empty() : migrationPhase;
+            habitatDisplayName = habitatDisplayName == null ? Optional.empty() : habitatDisplayName;
+            habitatDisplayName = habitatDisplayName.map(String::strip);
+            if (habitatDisplayName.isPresent() && habitatDisplayName.get().isBlank()) {
+                throw new IllegalArgumentException("habitatDisplayName must not be blank when present");
+            }
+        }
+
+        PopulationPresence(
+                String populationKey,
+                String speciesDisplayName,
+                int visibleActors,
+                int visibleAlphas,
+                Optional<MigrationPhase> migrationPhase
+        ) {
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, migrationPhase, Optional.empty());
         }
 
         PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
-            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, Optional.empty());
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, Optional.empty(), Optional.empty());
         }
     }
 
@@ -125,7 +141,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
                 visibleActors,
                 visibleAlphas,
-                focused.migrationPhase());
+                focused.migrationPhase(),
+                Optional.of(focused.habitatDisplayName()));
     }
 
     static boolean shouldAnnounce(PopulationPresence previous, PopulationPresence current) {
@@ -134,7 +151,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         if (!current.populationKey().equals(previous.populationKey())) return true;
         return current.visibleActors() != previous.visibleActors()
                 || current.visibleAlphas() != previous.visibleAlphas()
-                || !current.migrationPhase().equals(previous.migrationPhase());
+                || !current.migrationPhase().equals(previous.migrationPhase())
+                || !current.habitatDisplayName().equals(previous.habitatDisplayName());
     }
 
     static String presenceText(PopulationPresence previous, PopulationPresence current) {
@@ -155,6 +173,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         } else if (current.visibleAlphas() > 1) {
             text.append(" · ").append(current.visibleAlphas()).append(" Alphas visible");
         }
+        current.habitatDisplayName().ifPresent(habitat -> text.append(" · habitat ").append(habitat));
         current.migrationPhase().ifPresent(phase -> text.append(" · ")
                 .append(WildHabitatCueRuntime.displayMigrationPhase(phase)));
         return text.toString();
