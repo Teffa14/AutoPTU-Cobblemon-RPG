@@ -22,10 +22,33 @@ final class WildFocusedPopulationPresenceRuntimeTest {
     }
 
     @Test
-    void messageReportsOnlyServerProjectedPopulationPresence() {
+    void messageReportsInitialServerProjectedPopulationPresence() {
         assertEquals(
                 "Wild population — Fletchling · 3 WILD visible",
-                WildFocusedPopulationPresenceRuntime.presenceText(presence("ouros.marea.lower_shelf", 3)));
+                WildFocusedPopulationPresenceRuntime.presenceText(null, presence("ouros.marea.lower_shelf", 3)));
+    }
+
+    @Test
+    void messageReportsExactVisibleCountTransitionForSamePopulation() {
+        assertEquals(
+                "Wild population — Fletchling · 3 → 2 WILD visible",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        presence("ouros.marea.lower_shelf", 3),
+                        presence("ouros.marea.lower_shelf", 2)));
+        assertEquals(
+                "Wild population — Fletchling · 2 → 4 WILD visible",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        presence("ouros.marea.lower_shelf", 2),
+                        presence("ouros.marea.lower_shelf", 4)));
+    }
+
+    @Test
+    void populationSwitchDoesNotInventAContinuousCountTransition() {
+        assertEquals(
+                "Wild population — Fletchling · 3 WILD visible",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        presence("ouros.marea.lower_shelf", 2),
+                        presence("ouros.sendero.seasonal_crossing", 3)));
     }
 
     @Test
@@ -37,7 +60,7 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new WildFocusedPopulationPresenceRuntime.PopulationPresence("ouros.marea", "Fletchling", 0));
         assertThrows(IllegalArgumentException.class,
-                () -> WildFocusedPopulationPresenceRuntime.presenceText(null));
+                () -> WildFocusedPopulationPresenceRuntime.presenceText(null, null));
     }
 
     private static WildFocusedPopulationPresenceRuntime.PopulationPresence presence(String populationKey, int visibleActors) {
