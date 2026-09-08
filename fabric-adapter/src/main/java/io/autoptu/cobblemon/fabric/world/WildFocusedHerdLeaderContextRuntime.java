@@ -22,9 +22,10 @@ import java.util.UUID;
  *
  * <p>The relationship is resolved only from same-population ecology projections whose social role
  * is explicitly {@link WildSocialRole#ALPHA}. Minecraft positions are used only to describe visible
- * proximity, horizontal separation and coarse compass direction in blocks. Cobblemon brain/herd
- * state and Pokemon gameplay payloads are never authority inputs, and this runtime supplies no PTU
- * leadership, targeting, movement, initiative or battle effects.</p>
+ * proximity, horizontal separation and coarse compass direction in blocks. Authored ecology projection
+ * data supplies the leader's current habitat label so migration context remains server-owned. Cobblemon
+ * brain/herd state and Pokemon gameplay payloads are never authority inputs, and this runtime supplies
+ * no PTU leadership, targeting, movement, initiative or battle effects.</p>
  */
 public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -36,7 +37,9 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
             String speciesDisplayName,
             boolean withinCohesion,
             int horizontalDistanceBlocks,
-            String compassDirection
+            String compassDirection,
+            String leaderHabitatDisplayName,
+            boolean leaderInFocusedHabitat
     ) {
         LeaderContext {
             if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
@@ -44,9 +47,11 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
             if (speciesDisplayName == null || speciesDisplayName.isBlank()) throw new IllegalArgumentException("speciesDisplayName is required");
             if (horizontalDistanceBlocks < 0) throw new IllegalArgumentException("horizontalDistanceBlocks must be non-negative");
             if (compassDirection == null || compassDirection.isBlank()) throw new IllegalArgumentException("compassDirection is required");
+            if (leaderHabitatDisplayName == null || leaderHabitatDisplayName.isBlank()) throw new IllegalArgumentException("leaderHabitatDisplayName is required");
             populationKey = populationKey.strip();
             speciesDisplayName = speciesDisplayName.strip();
             compassDirection = compassDirection.strip();
+            leaderHabitatDisplayName = leaderHabitatDisplayName.strip();
         }
     }
 
@@ -124,7 +129,9 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
                 withinCohesion,
                 distanceBlocks,
-                compassDirection(dx, dz));
+                compassDirection(dx, dz),
+                alpha.habitatDisplayName(),
+                member.habitatDisplayName().equals(alpha.habitatDisplayName()));
     }
 
     static int roundedHorizontalDistanceBlocks(double horizontalDistanceSquared) {
@@ -155,7 +162,9 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 || !current.leaderActorId().equals(previous.leaderActorId())
                 || current.withinCohesion() != previous.withinCohesion()
                 || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks()
-                || !current.compassDirection().equals(previous.compassDirection());
+                || !current.compassDirection().equals(previous.compassDirection())
+                || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName())
+                || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat();
     }
 
     static String contextText(LeaderContext context) {
@@ -163,7 +172,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return "Herd leader — Alpha " + context.speciesDisplayName()
                 + (context.withinCohesion() ? " · nearby" : " · regrouping distance")
                 + " · " + context.horizontalDistanceBlocks() + " blocks"
-                + " · " + context.compassDirection();
+                + " · " + context.compassDirection()
+                + (context.leaderInFocusedHabitat() ? "" : " · leader habitat " + context.leaderHabitatDisplayName());
     }
 
     private static LeaderContext remembered(MinecraftServer server, UUID playerId) {
