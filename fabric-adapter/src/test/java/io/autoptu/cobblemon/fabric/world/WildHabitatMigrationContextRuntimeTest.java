@@ -39,6 +39,19 @@ final class WildHabitatMigrationContextRuntimeTest {
     }
 
     @Test
+    void authoredTransitIsRetainedOnlyWhileTransitRemainsExplicit() {
+        assertTrue(WildHabitatMigrationContextRuntime.shouldRetainTransitContext(MigrationPhase.IN_TRANSIT));
+        assertFalse(WildHabitatMigrationContextRuntime.shouldRetainTransitContext(MigrationPhase.DEPARTING));
+        assertFalse(WildHabitatMigrationContextRuntime.shouldRetainTransitContext(MigrationPhase.ARRIVING));
+        assertFalse(WildHabitatMigrationContextRuntime.shouldRetainTransitContext(null));
+
+        assertTrue(WildHabitatMigrationContextRuntime.shouldAnnounce(
+                MigrationPhase.IN_TRANSIT, MigrationPhase.ARRIVING));
+        assertFalse(WildHabitatMigrationContextRuntime.shouldAnnounceEntry(
+                MigrationPhase.IN_TRANSIT, MigrationPhase.ARRIVING));
+    }
+
+    @Test
     void habitatBoundaryAndMessagesUseOnlyAuthoredWorldContext() {
         var context = new WildHabitatMigrationContextRuntime.HabitatMigrationContext(
                 "ouros.marea.lower_shelf",
