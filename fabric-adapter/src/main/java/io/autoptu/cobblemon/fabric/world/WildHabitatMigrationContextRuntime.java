@@ -32,6 +32,8 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
     private static final int UPDATE_INTERVAL_TICKS = 20;
     private static final Map<MinecraftServer, Map<UUID, Map<String, HabitatMigrationContext>>> OBSERVED_CONTEXTS =
             new IdentityHashMap<>();
+    private static final Map<MinecraftServer, Map<UUID, Map<String, HabitatMigrationContext>>> TRANSIT_CONTEXTS =
+            new IdentityHashMap<>();
 
     record HabitatCircle(double centerX, double centerZ, int radiusBlocks) {
         HabitatCircle {
@@ -59,6 +61,10 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
             populationId = populationId.strip();
             habitatDisplayName = habitatDisplayName.strip();
         }
+
+        HabitatMigrationContext withPhase(MigrationPhase replacementPhase) {
+            return new HabitatMigrationContext(populationId, habitatDisplayName, replacementPhase, circles);
+        }
     }
 
     private record MutableContext(
@@ -78,6 +84,9 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
             synchronized (OBSERVED_CONTEXTS) {
                 OBSERVED_CONTEXTS.remove(server);
             }
+            synchronized (TRANSIT_CONTEXTS) {
+                TRANSIT_CONTEXTS.remove(server);
+            }
         });
     }
 
@@ -91,28 +100,49 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
             online.add(playerId);
             if (player.isSpectator()) {
                 remember(world.getServer(), playerId, Map.of());
+                rememberTransit(world.getServer(), playerId, Map.of());
                 continue;
             }
 
             Map<String, HabitatMigrationContext> previous = remembered(world.getServer(), playerId);
+            Map<String, HabitatMigrationContext> transit = retainedTransit(world.getServer(), playerId);
             Map<String, HabitatMigrationContext> current = new HashMap<>();
+            Map<String, HabitatMigrationContext> nextTransit = new HashMap<>();
+
+            for (Map.Entry<String, HabitatMigrationContext> retained : transit.entrySet()) {
+                MigrationPhase authoredPhase = authoredPhase(world, retained.getKey());
+                if (shouldRetainTransitContext(authoredPhase)) nextTransit.put(retained.getKey(), retained.getValue());
+            }
+
             for (HabitatMigrationContext context : contexts.values()) {
                 if (!containsHorizontal(player.getX(), player.getZ(), context)) continue;
                 current.put(context.populationId(), context);
                 HabitatMigrationContext previousContext = previous.get(context.populationId());
-                MigrationPhase previousPhase = previousContext == null ? null : previousContext.phase();
+                HabitatMigrationContext transitContext = transit.get(context.populationId());
+                MigrationPhase previousPhase = previousContext != null
+                        ? previousContext.phase()
+                        : transitContext == null ? null : transitContext.phase();
                 if (shouldAnnounceEntry(previousPhase, context.phase())) {
                     player.sendMessage(Text.literal(entryContextText(context)), true);
                 } else if (shouldAnnounce(previousPhase, context.phase())) {
                     player.sendMessage(Text.literal(announcementText(context)), true);
                 }
+                nextTransit.remove(context.populationId());
             }
             for (Map.Entry<String, HabitatMigrationContext> observed : previous.entrySet()) {
                 if (current.containsKey(observed.getKey())) continue;
-                if (!contexts.containsKey(observed.getKey())) continue;
-                player.sendMessage(Text.literal(departureContextText(observed.getValue())), true);
+                if (contexts.containsKey(observed.getKey())) {
+                    player.sendMessage(Text.literal(departureContextText(observed.getValue())), true);
+                    continue;
+                }
+                MigrationPhase authoredPhase = authoredPhase(world, observed.getKey());
+                if (shouldAnnounceUnprojected(observed.getValue().phase(), authoredPhase)) {
+                    player.sendMessage(Text.literal(unprojectedMigrationText(observed.getValue(), authoredPhase)), true);
+                    nextTransit.put(observed.getKey(), observed.getValue().withPhase(authoredPhase));
+                }
             }
             remember(world.getServer(), playerId, current);
+            rememberTransit(world.getServer(), playerId, nextTransit);
         }
         forgetOffline(world.getServer(), online);
     }
@@ -165,6 +195,16 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         return Map.copyOf(result);
     }
 
+    static MigrationPhase authoredPhase(ServerWorld world, String populationId) {
+        if (world == null || populationId == null || populationId.isBlank()) return null;
+        CanonicalWildPopulationCatalogue.PopulationDefinition population =
+                CanonicalWildPopulationCatalogue.DEFAULT.population(populationId).orElse(null);
+        if (population == null) return null;
+        var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+        if (descriptor == null || !descriptor.worldEligibility().accepts(world)) return null;
+        return descriptor.projectionPhase(population, world.getTime()).orElse(null);
+    }
+
     static boolean containsHorizontal(double playerX, double playerZ, HabitatMigrationContext context) {
         for (HabitatCircle circle : context.circles()) {
             double dx = playerX - circle.centerX();
@@ -183,6 +223,14 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         return previous != null && current != null && previous != current;
     }
 
+    static boolean shouldAnnounceUnprojected(MigrationPhase previous, MigrationPhase current) {
+        return previous != null && previous != MigrationPhase.IN_TRANSIT && current == MigrationPhase.IN_TRANSIT;
+    }
+
+    static boolean shouldRetainTransitContext(MigrationPhase phase) {
+        return phase == MigrationPhase.IN_TRANSIT;
+    }
+
     static String entryContextText(HabitatMigrationContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
         return "Wild habitat — "
@@ -194,6 +242,15 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
     static String departureContextText(HabitatMigrationContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
         return "Wild habitat no longer nearby — " + context.habitatDisplayName();
+    }
+
+    static String unprojectedMigrationText(HabitatMigrationContext context, MigrationPhase phase) {
+        if (context == null) throw new IllegalArgumentException("context is required");
+        if (phase == null) throw new IllegalArgumentException("phase is required");
+        return "Wild habitat migration — "
+                + context.habitatDisplayName()
+                + " · "
+                + WildHabitatCueRuntime.displayMigrationPhase(phase);
     }
 
     static String announcementText(HabitatMigrationContext context) {
@@ -213,22 +270,53 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         }
     }
 
+    private static Map<String, HabitatMigrationContext> retainedTransit(MinecraftServer server, UUID playerId) {
+        synchronized (TRANSIT_CONTEXTS) {
+            Map<UUID, Map<String, HabitatMigrationContext>> players = TRANSIT_CONTEXTS.get(server);
+            if (players == null) return Map.of();
+            Map<String, HabitatMigrationContext> contexts = players.get(playerId);
+            return contexts == null ? Map.of() : Map.copyOf(contexts);
+        }
+    }
+
     private static void remember(MinecraftServer server, UUID playerId, Map<String, HabitatMigrationContext> contexts) {
-        synchronized (OBSERVED_CONTEXTS) {
+        rememberIn(OBSERVED_CONTEXTS, server, playerId, contexts);
+    }
+
+    private static void rememberTransit(MinecraftServer server, UUID playerId, Map<String, HabitatMigrationContext> contexts) {
+        rememberIn(TRANSIT_CONTEXTS, server, playerId, contexts);
+    }
+
+    private static void rememberIn(
+            Map<MinecraftServer, Map<UUID, Map<String, HabitatMigrationContext>>> store,
+            MinecraftServer server,
+            UUID playerId,
+            Map<String, HabitatMigrationContext> contexts
+    ) {
+        synchronized (store) {
             Map<UUID, Map<String, HabitatMigrationContext>> players =
-                    OBSERVED_CONTEXTS.computeIfAbsent(server, ignored -> new HashMap<>());
+                    store.computeIfAbsent(server, ignored -> new HashMap<>());
             if (contexts.isEmpty()) players.remove(playerId);
             else players.put(playerId, Map.copyOf(contexts));
-            if (players.isEmpty()) OBSERVED_CONTEXTS.remove(server);
+            if (players.isEmpty()) store.remove(server);
         }
     }
 
     private static void forgetOffline(MinecraftServer server, Set<UUID> online) {
-        synchronized (OBSERVED_CONTEXTS) {
-            Map<UUID, Map<String, HabitatMigrationContext>> players = OBSERVED_CONTEXTS.get(server);
+        forgetOfflineIn(OBSERVED_CONTEXTS, server, online);
+        forgetOfflineIn(TRANSIT_CONTEXTS, server, online);
+    }
+
+    private static void forgetOfflineIn(
+            Map<MinecraftServer, Map<UUID, Map<String, HabitatMigrationContext>>> store,
+            MinecraftServer server,
+            Set<UUID> online
+    ) {
+        synchronized (store) {
+            Map<UUID, Map<String, HabitatMigrationContext>> players = store.get(server);
             if (players == null) return;
             players.keySet().removeIf(playerId -> !online.contains(playerId));
-            if (players.isEmpty()) OBSERVED_CONTEXTS.remove(server);
+            if (players.isEmpty()) store.remove(server);
         }
     }
 }
