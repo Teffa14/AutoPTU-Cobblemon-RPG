@@ -123,7 +123,7 @@ public final class WildPopulationRuntime {
         String projectedSiteId = source.projectedSiteId(populationFor(encounter), world.getTime())
                 .orElse(encounter.siteId());
         BlockPos anchor = projectedPresentationAnchor(encounter, projectedSiteId);
-        loadHabitatChunks(world, anchor);
+        loadProjectionAnchorChunk(world, anchor);
         PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
         if (existing != null) {
             bind(existing, encounter);
@@ -362,14 +362,10 @@ public final class WildPopulationRuntime {
                 encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
     }
 
-    private static void loadHabitatChunks(ServerWorld world, BlockPos anchor) {
-        int minChunkX = Math.floorDiv(anchor.getX() - HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        int maxChunkX = Math.floorDiv(anchor.getX() + HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        int minChunkZ = Math.floorDiv(anchor.getZ() - HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        int maxChunkZ = Math.floorDiv(anchor.getZ() + HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) world.getChunk(chunkX, chunkZ);
-        }
+    private static void loadProjectionAnchorChunk(ServerWorld world, BlockPos anchor) {
+        int chunkX = Math.floorDiv(anchor.getX(), 16);
+        int chunkZ = Math.floorDiv(anchor.getZ(), 16);
+        world.getChunk(chunkX, chunkZ);
     }
 
     private static void bind(
