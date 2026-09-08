@@ -19,16 +19,16 @@ import java.util.UUID;
 /**
  * Surfaces the visible population around the player's currently focused canonical WILD.
  *
- * <p>The count comes only from server-owned ecology projections that share the focused actor's
- * canonical population key. Cobblemon entities provide presentation identity only. This runtime
- * never derives PTU legality, stats, HP, moves, RNG, statuses, capture, encounter outcomes or
- * battle results.</p>
+ * <p>The count and ambient social-role context come only from server-owned ecology projections
+ * that share the focused actor's canonical population key. Cobblemon entities provide presentation
+ * identity only. This runtime never derives PTU legality, stats, HP, moves, RNG, statuses, capture,
+ * encounter outcomes or battle results.</p>
  */
 public final class WildFocusedPopulationPresenceRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, PopulationPresence>> REMEMBERED = new IdentityHashMap<>();
 
-    record PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors) {
+    record PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
         PopulationPresence {
             if (populationKey == null || populationKey.isBlank()) {
                 throw new IllegalArgumentException("populationKey is required");
@@ -37,6 +37,9 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 throw new IllegalArgumentException("speciesDisplayName is required");
             }
             if (visibleActors <= 0) throw new IllegalArgumentException("visibleActors must be positive");
+            if (visibleAlphas < 0 || visibleAlphas > visibleActors) {
+                throw new IllegalArgumentException("visibleAlphas must be between zero and visibleActors");
+            }
             populationKey = populationKey.strip();
             speciesDisplayName = speciesDisplayName.strip();
         }
@@ -95,23 +98,28 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
 
         String populationKey = focusedProjection.populationKey();
         int visibleActors = 0;
+        int visibleAlphas = 0;
         for (WildEcologyProjectionRegistry.ProjectedActor projection : projections) {
             if (projection == null || projection.actor().isRemoved()) continue;
-            if (populationKey.equals(projection.populationKey())) visibleActors++;
+            if (!populationKey.equals(projection.populationKey())) continue;
+            visibleActors++;
+            if (projection.socialRole() == WildSocialRole.ALPHA) visibleAlphas++;
         }
         if (visibleActors <= 0) return null;
 
         return new PopulationPresence(
                 populationKey,
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
-                visibleActors);
+                visibleActors,
+                visibleAlphas);
     }
 
     static boolean shouldAnnounce(PopulationPresence previous, PopulationPresence current) {
         if (current == null) return false;
         if (previous == null) return true;
         if (!current.populationKey().equals(previous.populationKey())) return true;
-        return current.visibleActors() != previous.visibleActors();
+        return current.visibleActors() != previous.visibleActors()
+                || current.visibleAlphas() != previous.visibleAlphas();
     }
 
     static String presenceText(PopulationPresence previous, PopulationPresence current) {
@@ -122,11 +130,17 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 && previous.visibleActors() != current.visibleActors()) {
             count = previous.visibleActors() + " → " + current.visibleActors();
         }
-        return "Wild population — "
-                + current.speciesDisplayName()
-                + " · "
-                + count
-                + " WILD visible";
+        StringBuilder text = new StringBuilder("Wild population — ")
+                .append(current.speciesDisplayName())
+                .append(" · ")
+                .append(count)
+                .append(" WILD visible");
+        if (current.visibleAlphas() == 1) {
+            text.append(" · Alpha visible");
+        } else if (current.visibleAlphas() > 1) {
+            text.append(" · ").append(current.visibleAlphas()).append(" Alphas visible");
+        }
+        return text.toString();
     }
 
     private static PopulationPresence remembered(MinecraftServer server, UUID playerId) {
