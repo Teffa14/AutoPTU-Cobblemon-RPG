@@ -74,7 +74,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             PopulationPresence previous = remembered(server, playerId);
             remember(server, playerId, current);
             if (shouldAnnounce(previous, current)) {
-                player.sendMessage(Text.literal(presenceText(current)), true);
+                player.sendMessage(Text.literal(presenceText(previous, current)), true);
             }
         }
         forgetOffline(server, online);
@@ -114,12 +114,18 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         return current.visibleActors() != previous.visibleActors();
     }
 
-    static String presenceText(PopulationPresence presence) {
-        if (presence == null) throw new IllegalArgumentException("presence is required");
+    static String presenceText(PopulationPresence previous, PopulationPresence current) {
+        if (current == null) throw new IllegalArgumentException("current presence is required");
+        String count = Integer.toString(current.visibleActors());
+        if (previous != null
+                && current.populationKey().equals(previous.populationKey())
+                && previous.visibleActors() != current.visibleActors()) {
+            count = previous.visibleActors() + " → " + current.visibleActors();
+        }
         return "Wild population — "
-                + presence.speciesDisplayName()
+                + current.speciesDisplayName()
                 + " · "
-                + presence.visibleActors()
+                + count
                 + " WILD visible";
     }
 
