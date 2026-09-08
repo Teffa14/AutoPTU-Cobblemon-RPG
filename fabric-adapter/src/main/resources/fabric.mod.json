@@ -18,6 +18,8 @@
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildHabitatMigrationContextRuntime",
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusContextRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildFocusedPopulationPresenceRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildFocusedHerdLeaderContextRuntime",
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusMarkerRuntime",
       "io.autoptu.cobblemon.fabric.world.WildAmbientBehaviorRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmIdleLookRuntime",

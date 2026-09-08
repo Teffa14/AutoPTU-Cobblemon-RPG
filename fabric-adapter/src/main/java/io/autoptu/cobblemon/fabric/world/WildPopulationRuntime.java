@@ -123,8 +123,14 @@ public final class WildPopulationRuntime {
         String projectedSiteId = source.projectedSiteId(populationFor(encounter), world.getTime())
                 .orElse(encounter.siteId());
         BlockPos anchor = projectedPresentationAnchor(encounter, projectedSiteId);
-        loadHabitatChunks(world, anchor);
-        PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
+
+        // A dormant canonical binding gets first claim on reactivation. Recovery loads only that
+        // presentation body's last-known chunk, allowing Minecraft to deserialize the same UUID.
+        PokemonEntity existing = WildVisibleActorRecovery.recoverBoundActor(world, encounter);
+        if (existing == null) {
+            loadProjectionAnchorChunk(world, anchor);
+            existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
+        }
         if (existing != null) {
             bind(existing, encounter);
             keepInProjectedHabitat(existing, encounter, projectedSiteId);
@@ -161,10 +167,10 @@ public final class WildPopulationRuntime {
         if (source == null || !source.worldEligibility().accepts(world)) return null;
         var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
         if (boundUuid.isPresent()) {
-            var loaded = world.getEntity(boundUuid.get());
-            if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                applyCurrentProjection(world, pokemonEntity, encounter, source);
-                return pokemonEntity;
+            PokemonEntity actor = WildVisibleActorRecovery.recoverBoundActor(world, encounter);
+            if (actor != null) {
+                applyCurrentProjection(world, actor, encounter, source);
+                return actor;
             }
             return null;
         }
@@ -188,7 +194,7 @@ public final class WildPopulationRuntime {
             var projectedSiteId = source.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) {
                 setPopulationMarkedActive(world.getServer(), population.populationId(), false);
-                hibernateLoadedPopulation(world, population);
+                hibernatePopulation(world, population);
                 continue;
             }
             var projectedSite = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
@@ -203,7 +209,7 @@ public final class WildPopulationRuntime {
             );
             setPopulationMarkedActive(world.getServer(), population.populationId(), active);
             if (!active) {
-                hibernateLoadedPopulation(world, population);
+                hibernatePopulation(world, population);
                 continue;
             }
 
@@ -253,16 +259,21 @@ public final class WildPopulationRuntime {
         setPopulationProjectionActive(actor, active);
     }
 
-    private static void hibernateLoadedPopulation(
+    private static void hibernatePopulation(
             ServerWorld world,
             CanonicalWildPopulationCatalogue.PopulationDefinition population
     ) {
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
             var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
             if (boundUuid.isEmpty()) continue;
+
+            // Hibernation is canonical even when Minecraft has already unloaded the presentation chunk.
+            // Keep the encounter -> UUID binding, but immediately revoke interaction eligibility.
+            VisibleWildPokemonEncounterRuntime.setInteractionActive(boundUuid.get(), false);
+
             var loaded = world.getEntity(boundUuid.get());
             if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                setPopulationProjectionActive(pokemonEntity, false);
+                pokemonEntity.setInvisible(true);
             }
         }
     }
@@ -362,14 +373,10 @@ public final class WildPopulationRuntime {
                 encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
     }
 
-    private static void loadHabitatChunks(ServerWorld world, BlockPos anchor) {
-        int minChunkX = Math.floorDiv(anchor.getX() - HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        int maxChunkX = Math.floorDiv(anchor.getX() + HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        int minChunkZ = Math.floorDiv(anchor.getZ() - HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        int maxChunkZ = Math.floorDiv(anchor.getZ() + HABITAT_SEARCH_RADIUS_BLOCKS, 16);
-        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) world.getChunk(chunkX, chunkZ);
-        }
+    private static void loadProjectionAnchorChunk(ServerWorld world, BlockPos anchor) {
+        int chunkX = Math.floorDiv(anchor.getX(), 16);
+        int chunkZ = Math.floorDiv(anchor.getZ(), 16);
+        world.getChunk(chunkX, chunkZ);
     }
 
     private static void bind(

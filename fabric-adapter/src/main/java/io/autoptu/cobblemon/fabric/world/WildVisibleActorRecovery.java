@@ -2,8 +2,8 @@ package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
-import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -25,22 +25,35 @@ public final class WildVisibleActorRecovery {
         if (world == null) throw new IllegalArgumentException("world is required");
         if (encounter == null) throw new IllegalArgumentException("encounter is required");
 
-        PokemonEntity actor = loadedActor(world, encounter.canonicalEncounterId());
+        String encounterId = encounter.canonicalEncounterId();
+        PokemonEntity actor = loadedActor(world, encounterId);
         if (actor != null) return actor;
-        if (VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId()).isEmpty()) return null;
 
-        BlockPos home = canonicalHomeAnchor(encounter);
-        int leash = populationFor(encounter).habitatLeashRadiusBlocks();
-        int minChunkX = Math.floorDiv(home.getX() - leash, 16);
-        int maxChunkX = Math.floorDiv(home.getX() + leash, 16);
-        int minChunkZ = Math.floorDiv(home.getZ() - leash, 16);
-        int maxChunkZ = Math.floorDiv(home.getZ() + leash, 16);
-        for (int x = minChunkX; x <= maxChunkX; x++) {
-            for (int z = minChunkZ; z <= maxChunkZ; z++) {
-                world.getChunk(x, z);
-            }
+        var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounterId);
+        if (boundUuid.isEmpty()) return null;
+
+        PokemonEntity presentation = VisibleWildPokemonEncounterRuntime.binding(boundUuid.get())
+                .map(VisibleWildPokemonEncounterRuntime.Binding::presentationEntity)
+                .orElse(null);
+        if (presentation == null) return null;
+
+        // During immediate hibernation/reactivation Minecraft can temporarily stop indexing the
+        // presentation body while the entity itself is still live. Preserve that exact canonical
+        // UUID instead of manufacturing a replacement merely because world.getEntity cannot see it.
+        if (!presentation.isRemoved() && presentation.getWorld() == world) return presentation;
+
+        var reason = presentation.getRemovalReason();
+        if (reason != null && (reason.shouldDestroy() || reason == Entity.RemovalReason.CHANGED_DIMENSION)) {
+            return null;
         }
-        return loadedActor(world, encounter.canonicalEncounterId());
+
+        // Ordinary chunk unloads retain the canonical binding. Load only the presentation body's
+        // last-known chunk so Minecraft can deserialize the same UUID. This avoids both the former
+        // leash-wide chunk fan-out and replacement of a valid dormant actor.
+        int chunkX = Math.floorDiv(presentation.getBlockX(), 16);
+        int chunkZ = Math.floorDiv(presentation.getBlockZ(), 16);
+        world.getChunk(chunkX, chunkZ);
+        return loadedActor(world, encounterId);
     }
 
     public static BlockPos canonicalHomeAnchor(
@@ -61,13 +74,5 @@ public final class WildVisibleActorRecovery {
         if (bound.isEmpty()) return null;
         var entity = world.getEntity(bound.get());
         return entity instanceof PokemonEntity pokemon && !pokemon.isRemoved() ? pokemon : null;
-    }
-
-    private static CanonicalWildPopulationCatalogue.PopulationDefinition populationFor(
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
-    ) {
-        return CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "missing canonical wild population for recovery: " + encounter.populationId()));
     }
 }
