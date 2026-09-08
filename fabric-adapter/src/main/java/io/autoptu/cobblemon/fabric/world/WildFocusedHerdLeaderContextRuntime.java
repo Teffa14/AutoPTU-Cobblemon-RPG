@@ -22,18 +22,26 @@ import java.util.UUID;
  *
  * <p>The relationship is resolved only from same-population ecology projections whose social role
  * is explicitly {@link WildSocialRole#ALPHA}. Minecraft positions are used only to describe visible
- * proximity. Cobblemon brain/herd state and Pokemon gameplay payloads are never authority inputs,
- * and this runtime supplies no PTU leadership, targeting, movement, initiative or battle effects.</p>
+ * proximity and horizontal separation in blocks. Cobblemon brain/herd state and Pokemon gameplay
+ * payloads are never authority inputs, and this runtime supplies no PTU leadership, targeting,
+ * movement, initiative or battle effects.</p>
  */
 public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, LeaderContext>> REMEMBERED = new IdentityHashMap<>();
 
-    record LeaderContext(String populationKey, UUID leaderActorId, String speciesDisplayName, boolean withinCohesion) {
+    record LeaderContext(
+            String populationKey,
+            UUID leaderActorId,
+            String speciesDisplayName,
+            boolean withinCohesion,
+            int horizontalDistanceBlocks
+    ) {
         LeaderContext {
             if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
             if (leaderActorId == null) throw new IllegalArgumentException("leaderActorId is required");
             if (speciesDisplayName == null || speciesDisplayName.isBlank()) throw new IllegalArgumentException("speciesDisplayName is required");
+            if (horizontalDistanceBlocks < 0) throw new IllegalArgumentException("horizontalDistanceBlocks must be non-negative");
             populationKey = populationKey.strip();
             speciesDisplayName = speciesDisplayName.strip();
         }
@@ -101,15 +109,27 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 .orElse(null);
         if (alpha == null) return null;
 
-        double cohesion = member.behaviorProfile().cohesionDistance();
         double dx = alpha.actor().getX() - member.actor().getX();
         double dz = alpha.actor().getZ() - member.actor().getZ();
-        boolean withinCohesion = dx * dx + dz * dz <= cohesion * cohesion;
+        double horizontalDistanceSquared = dx * dx + dz * dz;
+        double cohesion = member.behaviorProfile().cohesionDistance();
+        boolean withinCohesion = horizontalDistanceSquared <= cohesion * cohesion;
+        int distanceBlocks = roundedHorizontalDistanceBlocks(horizontalDistanceSquared);
         return new LeaderContext(
                 member.populationKey(),
                 alpha.actor().getUuid(),
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
-                withinCohesion);
+                withinCohesion,
+                distanceBlocks);
+    }
+
+    static int roundedHorizontalDistanceBlocks(double horizontalDistanceSquared) {
+        if (!Double.isFinite(horizontalDistanceSquared) || horizontalDistanceSquared < 0.0D) {
+            throw new IllegalArgumentException("horizontalDistanceSquared must be finite and non-negative");
+        }
+        double distance = Math.sqrt(horizontalDistanceSquared);
+        if (distance >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
+        return (int) Math.round(distance);
     }
 
     static boolean shouldAnnounce(LeaderContext previous, LeaderContext current) {
@@ -117,13 +137,15 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return previous == null
                 || !current.populationKey().equals(previous.populationKey())
                 || !current.leaderActorId().equals(previous.leaderActorId())
-                || current.withinCohesion() != previous.withinCohesion();
+                || current.withinCohesion() != previous.withinCohesion()
+                || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks();
     }
 
     static String contextText(LeaderContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
         return "Herd leader — Alpha " + context.speciesDisplayName()
-                + (context.withinCohesion() ? " · nearby" : " · regrouping distance");
+                + (context.withinCohesion() ? " · nearby" : " · regrouping distance")
+                + " · " + context.horizontalDistanceBlocks() + " blocks";
     }
 
     private static LeaderContext remembered(MinecraftServer server, UUID playerId) {
