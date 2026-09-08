@@ -41,6 +41,9 @@ final class WildHabitatMigrationContextRuntimeTest {
                 "Wild habitat — Sendero Seasonal Crossing · Arriving",
                 WildHabitatMigrationContextRuntime.entryContextText(context));
         assertEquals(
+                "Wild habitat no longer nearby — Sendero Seasonal Crossing",
+                WildHabitatMigrationContextRuntime.departureContextText(context));
+        assertEquals(
                 "Wild habitat migration — Sendero Seasonal Crossing · Arriving",
                 WildHabitatMigrationContextRuntime.announcementText(context));
     }
