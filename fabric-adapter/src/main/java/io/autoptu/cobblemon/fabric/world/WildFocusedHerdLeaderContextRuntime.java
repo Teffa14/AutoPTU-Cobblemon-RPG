@@ -21,11 +21,12 @@ import java.util.UUID;
  * Surfaces the authored herd leader relationship for a player's focused canonical WILD member.
  *
  * <p>The relationship is resolved only from same-population ecology projections whose social role
- * is explicitly {@link WildSocialRole#ALPHA}. Minecraft positions are used only to describe visible
- * proximity, horizontal separation and coarse compass direction in blocks. Authored ecology projection
- * data supplies the leader's current habitat label so migration context remains server-owned. Cobblemon
- * brain/herd state and Pokemon gameplay payloads are never authority inputs, and this runtime supplies
- * no PTU leadership, targeting, movement, initiative or battle effects.</p>
+ * is explicitly {@link WildSocialRole#ALPHA}. Minecraft positions and vanilla server visibility are
+ * used only to describe visible proximity, horizontal separation, coarse compass direction, and
+ * whether world geometry currently obscures the projected leader from that player. Authored ecology
+ * projection data supplies the leader's current habitat label so migration context remains server-owned.
+ * Cobblemon brain/herd state and Pokemon gameplay payloads are never authority inputs, and this runtime
+ * supplies no PTU leadership, targeting, movement, line-of-sight legality, initiative or battle effects.</p>
  */
 public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -39,7 +40,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
             int horizontalDistanceBlocks,
             String compassDirection,
             String leaderHabitatDisplayName,
-            boolean leaderInFocusedHabitat
+            boolean leaderInFocusedHabitat,
+            boolean leaderVisibleToPlayer
     ) {
         LeaderContext {
             if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
@@ -131,7 +133,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 distanceBlocks,
                 compassDirection(dx, dz),
                 alpha.habitatDisplayName(),
-                member.habitatDisplayName().equals(alpha.habitatDisplayName()));
+                member.habitatDisplayName().equals(alpha.habitatDisplayName()),
+                player.canSee(alpha.actor()));
     }
 
     static int roundedHorizontalDistanceBlocks(double horizontalDistanceSquared) {
@@ -164,7 +167,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks()
                 || !current.compassDirection().equals(previous.compassDirection())
                 || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName())
-                || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat();
+                || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat()
+                || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer();
     }
 
     static String contextText(LeaderContext context) {
@@ -173,6 +177,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 + (context.withinCohesion() ? " · nearby" : " · regrouping distance")
                 + " · " + context.horizontalDistanceBlocks() + " blocks"
                 + " · " + context.compassDirection()
+                + (context.leaderVisibleToPlayer() ? " · visible" : " · obscured")
                 + (context.leaderInFocusedHabitat() ? "" : " · leader habitat " + context.leaderHabitatDisplayName());
     }
 
