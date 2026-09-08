@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Surfaces changes in the visible population around the player's currently focused canonical WILD.
+ * Surfaces the visible population around the player's currently focused canonical WILD.
  *
  * <p>The count comes only from server-owned ecology projections that share the focused actor's
  * canonical population key. Cobblemon entities provide presentation identity only. This runtime
@@ -108,20 +108,19 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
     }
 
     static boolean shouldAnnounce(PopulationPresence previous, PopulationPresence current) {
-        if (current == null || previous == null) return false;
-        if (!current.populationKey().equals(previous.populationKey())) return false;
+        if (current == null) return false;
+        if (previous == null) return true;
+        if (!current.populationKey().equals(previous.populationKey())) return true;
         return current.visibleActors() != previous.visibleActors();
     }
 
     static String presenceText(PopulationPresence presence) {
         if (presence == null) throw new IllegalArgumentException("presence is required");
-        String noun = presence.visibleActors() == 1 ? "WILD visible" : "WILD visible";
         return "Wild population — "
                 + presence.speciesDisplayName()
                 + " · "
                 + presence.visibleActors()
-                + " "
-                + noun;
+                + " WILD visible";
     }
 
     private static PopulationPresence remembered(MinecraftServer server, UUID playerId) {
