@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.ecology.MigrationPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -13,14 +14,15 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Surfaces the visible population around the player's currently focused canonical WILD.
  *
- * <p>The count and ambient social-role context come only from server-owned ecology projections
- * that share the focused actor's canonical population key. Cobblemon entities provide presentation
+ * <p>The count, ambient social-role context and optional migration phase come only from server-owned ecology
+ * projections and the authored descriptor behind the focused actor. Cobblemon entities provide presentation
  * identity only. This runtime never derives PTU legality, stats, HP, moves, RNG, statuses, capture,
  * encounter outcomes or battle results.</p>
  */
@@ -28,7 +30,13 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, PopulationPresence>> REMEMBERED = new IdentityHashMap<>();
 
-    record PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
+    record PopulationPresence(
+            String populationKey,
+            String speciesDisplayName,
+            int visibleActors,
+            int visibleAlphas,
+            Optional<MigrationPhase> migrationPhase
+    ) {
         PopulationPresence {
             if (populationKey == null || populationKey.isBlank()) {
                 throw new IllegalArgumentException("populationKey is required");
@@ -42,6 +50,11 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             }
             populationKey = populationKey.strip();
             speciesDisplayName = speciesDisplayName.strip();
+            migrationPhase = migrationPhase == null ? Optional.empty() : migrationPhase;
+        }
+
+        PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, Optional.empty());
         }
     }
 
@@ -111,7 +124,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 populationKey,
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
                 visibleActors,
-                visibleAlphas);
+                visibleAlphas,
+                focused.migrationPhase());
     }
 
     static boolean shouldAnnounce(PopulationPresence previous, PopulationPresence current) {
@@ -119,7 +133,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         if (previous == null) return true;
         if (!current.populationKey().equals(previous.populationKey())) return true;
         return current.visibleActors() != previous.visibleActors()
-                || current.visibleAlphas() != previous.visibleAlphas();
+                || current.visibleAlphas() != previous.visibleAlphas()
+                || !current.migrationPhase().equals(previous.migrationPhase());
     }
 
     static String presenceText(PopulationPresence previous, PopulationPresence current) {
@@ -140,6 +155,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         } else if (current.visibleAlphas() > 1) {
             text.append(" · ").append(current.visibleAlphas()).append(" Alphas visible");
         }
+        current.migrationPhase().ifPresent(phase -> text.append(" · ")
+                .append(WildHabitatCueRuntime.displayMigrationPhase(phase)));
         return text.toString();
     }
 
