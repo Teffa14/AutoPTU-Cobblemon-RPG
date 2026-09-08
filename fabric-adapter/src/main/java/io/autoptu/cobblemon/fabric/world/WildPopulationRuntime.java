@@ -123,8 +123,14 @@ public final class WildPopulationRuntime {
         String projectedSiteId = source.projectedSiteId(populationFor(encounter), world.getTime())
                 .orElse(encounter.siteId());
         BlockPos anchor = projectedPresentationAnchor(encounter, projectedSiteId);
-        loadProjectionAnchorChunk(world, anchor);
-        PokemonEntity existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
+
+        // A dormant canonical binding gets first claim on reactivation. Recovery loads only that
+        // presentation body's last-known chunk, allowing Minecraft to deserialize the same UUID.
+        PokemonEntity existing = WildVisibleActorRecovery.recoverBoundActor(world, encounter);
+        if (existing == null) {
+            loadProjectionAnchorChunk(world, anchor);
+            existing = findExisting(world, encounter.canonicalEncounterId(), anchor);
+        }
         if (existing != null) {
             bind(existing, encounter);
             keepInProjectedHabitat(existing, encounter, projectedSiteId);
@@ -161,10 +167,10 @@ public final class WildPopulationRuntime {
         if (source == null || !source.worldEligibility().accepts(world)) return null;
         var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
         if (boundUuid.isPresent()) {
-            var loaded = world.getEntity(boundUuid.get());
-            if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                applyCurrentProjection(world, pokemonEntity, encounter, source);
-                return pokemonEntity;
+            PokemonEntity actor = WildVisibleActorRecovery.recoverBoundActor(world, encounter);
+            if (actor != null) {
+                applyCurrentProjection(world, actor, encounter, source);
+                return actor;
             }
             return null;
         }
