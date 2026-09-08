@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildFocusedPopulationPresenceRuntimeTest {
     @Test
-    void announcesInitialFocusPopulationSwitchCountAuthoredAlphaMigrationAndHabitatChanges() {
+    void announcesInitialFocusPopulationSwitchCountAuthoredAlphaMigrationHabitatAndSpreadChanges() {
         var two = presence("ouros.marea.lower_shelf", 2, 0);
         var three = presence("ouros.marea.lower_shelf", 3, 0);
         var alphaPresent = presence("ouros.marea.lower_shelf", 3, 1);
@@ -20,6 +20,10 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         var departing = presence("ouros.marea.lower_shelf", 3, 1, MigrationPhase.DEPARTING);
         var lowerShelf = presenceAt("ouros.marea.lower_shelf", 3, 1, MigrationPhase.DEPARTING, "Marea Lower Shelf");
         var upperShelf = presenceAt("ouros.marea.lower_shelf", 3, 1, MigrationPhase.DEPARTING, "Marea Upper Shelf");
+        var cohesive = presenceWithSpread("ouros.marea.lower_shelf", 3, 1,
+                WildFocusedPopulationPresenceRuntime.GroupSpread.COHESIVE);
+        var dispersed = presenceWithSpread("ouros.marea.lower_shelf", 3, 1,
+                WildFocusedPopulationPresenceRuntime.GroupSpread.DISPERSED);
         var otherPopulation = presence("ouros.sendero.seasonal_crossing", 3, 0);
 
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(null, two));
@@ -32,8 +36,26 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(preparing, preparing));
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(lowerShelf, upperShelf));
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(lowerShelf, lowerShelf));
+        assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(cohesive, dispersed));
+        assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(cohesive, cohesive));
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, otherPopulation));
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, null));
+    }
+
+    @Test
+    void classifiesGroupSpreadFromAuthoredPresentationThresholds() {
+        WildBehaviorProfile profile = new WildBehaviorProfile(12.0D, 5.0D, 2, 3, 60L, 20L, 0.01D, 6.0D, 30.0F);
+
+        assertEquals(WildFocusedPopulationPresenceRuntime.GroupSpread.ALONE,
+                WildFocusedPopulationPresenceRuntime.classifyGroupSpread(1, 0.0D, profile));
+        assertEquals(WildFocusedPopulationPresenceRuntime.GroupSpread.CLUSTERED,
+                WildFocusedPopulationPresenceRuntime.classifyGroupSpread(2, profile.separationDistance(), profile));
+        assertEquals(WildFocusedPopulationPresenceRuntime.GroupSpread.COHESIVE,
+                WildFocusedPopulationPresenceRuntime.classifyGroupSpread(2, profile.separationDistance() + 0.1D, profile));
+        assertEquals(WildFocusedPopulationPresenceRuntime.GroupSpread.COHESIVE,
+                WildFocusedPopulationPresenceRuntime.classifyGroupSpread(3, profile.cohesionDistance(), profile));
+        assertEquals(WildFocusedPopulationPresenceRuntime.GroupSpread.DISPERSED,
+                WildFocusedPopulationPresenceRuntime.classifyGroupSpread(3, profile.cohesionDistance() + 0.1D, profile));
     }
 
     @Test
@@ -51,6 +73,23 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         assertEquals(
                 "Wild population — Fletchling · 4 WILD visible · 2 Alphas visible",
                 WildFocusedPopulationPresenceRuntime.presenceText(null, presence("ouros.marea.lower_shelf", 4, 2)));
+    }
+
+    @Test
+    void messageReportsObservedGroupSpreadAsMinecraftPresentationContext() {
+        assertEquals(
+                "Wild population — Fletchling · 3 WILD visible · Alpha visible · cohesive",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        null,
+                        presenceWithSpread("ouros.marea.lower_shelf", 3, 1,
+                                WildFocusedPopulationPresenceRuntime.GroupSpread.COHESIVE)));
+        assertEquals(
+                "Wild population — Fletchling · 3 WILD visible · spread out",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        presenceWithSpread("ouros.marea.lower_shelf", 3, 0,
+                                WildFocusedPopulationPresenceRuntime.GroupSpread.COHESIVE),
+                        presenceWithSpread("ouros.marea.lower_shelf", 3, 0,
+                                WildFocusedPopulationPresenceRuntime.GroupSpread.DISPERSED)));
     }
 
     @Test
@@ -106,6 +145,7 @@ final class WildFocusedPopulationPresenceRuntimeTest {
 
     @Test
     void invalidPresenceFailsClosed() {
+        WildBehaviorProfile profile = new WildBehaviorProfile(12.0D, 5.0D, 2, 3, 60L, 20L, 0.01D, 6.0D, 30.0F);
         assertThrows(IllegalArgumentException.class,
                 () -> new WildFocusedPopulationPresenceRuntime.PopulationPresence("", "Fletchling", 1, 0));
         assertThrows(IllegalArgumentException.class,
@@ -119,6 +159,12 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new WildFocusedPopulationPresenceRuntime.PopulationPresence(
                         "ouros.marea", "Fletchling", 1, 0, Optional.empty(), Optional.of("   ")));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildFocusedPopulationPresenceRuntime.classifyGroupSpread(0, 0.0D, profile));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildFocusedPopulationPresenceRuntime.classifyGroupSpread(1, -1.0D, profile));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildFocusedPopulationPresenceRuntime.classifyGroupSpread(1, 0.0D, null));
         assertThrows(IllegalArgumentException.class,
                 () -> WildFocusedPopulationPresenceRuntime.presenceText(null, null));
     }
@@ -163,5 +209,21 @@ final class WildFocusedPopulationPresenceRuntimeTest {
                 visibleAlphas,
                 Optional.of(phase),
                 Optional.of(habitatDisplayName));
+    }
+
+    private static WildFocusedPopulationPresenceRuntime.PopulationPresence presenceWithSpread(
+            String populationKey,
+            int visibleActors,
+            int visibleAlphas,
+            WildFocusedPopulationPresenceRuntime.GroupSpread spread
+    ) {
+        return new WildFocusedPopulationPresenceRuntime.PopulationPresence(
+                populationKey,
+                "Fletchling",
+                visibleActors,
+                visibleAlphas,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(spread));
     }
 }
