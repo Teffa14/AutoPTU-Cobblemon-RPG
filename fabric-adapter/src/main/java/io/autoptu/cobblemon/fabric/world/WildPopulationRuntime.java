@@ -188,7 +188,7 @@ public final class WildPopulationRuntime {
             var projectedSiteId = source.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) {
                 setPopulationMarkedActive(world.getServer(), population.populationId(), false);
-                hibernateLoadedPopulation(world, population);
+                hibernatePopulation(world, population);
                 continue;
             }
             var projectedSite = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
@@ -203,7 +203,7 @@ public final class WildPopulationRuntime {
             );
             setPopulationMarkedActive(world.getServer(), population.populationId(), active);
             if (!active) {
-                hibernateLoadedPopulation(world, population);
+                hibernatePopulation(world, population);
                 continue;
             }
 
@@ -253,16 +253,21 @@ public final class WildPopulationRuntime {
         setPopulationProjectionActive(actor, active);
     }
 
-    private static void hibernateLoadedPopulation(
+    private static void hibernatePopulation(
             ServerWorld world,
             CanonicalWildPopulationCatalogue.PopulationDefinition population
     ) {
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
             var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
             if (boundUuid.isEmpty()) continue;
+
+            // Hibernation is canonical even when Minecraft has already unloaded the presentation chunk.
+            // Keep the encounter -> UUID binding, but immediately revoke interaction eligibility.
+            VisibleWildPokemonEncounterRuntime.setInteractionActive(boundUuid.get(), false);
+
             var loaded = world.getEntity(boundUuid.get());
             if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                setPopulationProjectionActive(pokemonEntity, false);
+                pokemonEntity.setInvisible(true);
             }
         }
     }
