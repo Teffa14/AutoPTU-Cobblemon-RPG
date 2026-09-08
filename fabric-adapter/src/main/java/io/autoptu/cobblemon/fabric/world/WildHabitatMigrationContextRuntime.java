@@ -109,8 +109,14 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
             }
             for (Map.Entry<String, HabitatMigrationContext> observed : previous.entrySet()) {
                 if (current.containsKey(observed.getKey())) continue;
-                if (!contexts.containsKey(observed.getKey())) continue;
-                player.sendMessage(Text.literal(departureContextText(observed.getValue())), true);
+                if (contexts.containsKey(observed.getKey())) {
+                    player.sendMessage(Text.literal(departureContextText(observed.getValue())), true);
+                    continue;
+                }
+                MigrationPhase authoredPhase = authoredPhase(world, observed.getKey());
+                if (shouldAnnounceUnprojected(observed.getValue().phase(), authoredPhase)) {
+                    player.sendMessage(Text.literal(unprojectedMigrationText(observed.getValue(), authoredPhase)), true);
+                }
             }
             remember(world.getServer(), playerId, current);
         }
@@ -165,6 +171,16 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         return Map.copyOf(result);
     }
 
+    static MigrationPhase authoredPhase(ServerWorld world, String populationId) {
+        if (world == null || populationId == null || populationId.isBlank()) return null;
+        CanonicalWildPopulationCatalogue.PopulationDefinition population =
+                CanonicalWildPopulationCatalogue.DEFAULT.population(populationId).orElse(null);
+        if (population == null) return null;
+        var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+        if (descriptor == null || !descriptor.worldEligibility().accepts(world)) return null;
+        return descriptor.projectionPhase(population, world.getTime()).orElse(null);
+    }
+
     static boolean containsHorizontal(double playerX, double playerZ, HabitatMigrationContext context) {
         for (HabitatCircle circle : context.circles()) {
             double dx = playerX - circle.centerX();
@@ -183,6 +199,10 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         return previous != null && current != null && previous != current;
     }
 
+    static boolean shouldAnnounceUnprojected(MigrationPhase previous, MigrationPhase current) {
+        return previous != null && previous != MigrationPhase.IN_TRANSIT && current == MigrationPhase.IN_TRANSIT;
+    }
+
     static String entryContextText(HabitatMigrationContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
         return "Wild habitat — "
@@ -194,6 +214,15 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
     static String departureContextText(HabitatMigrationContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
         return "Wild habitat no longer nearby — " + context.habitatDisplayName();
+    }
+
+    static String unprojectedMigrationText(HabitatMigrationContext context, MigrationPhase phase) {
+        if (context == null) throw new IllegalArgumentException("context is required");
+        if (phase == null) throw new IllegalArgumentException("phase is required");
+        return "Wild habitat migration — "
+                + context.habitatDisplayName()
+                + " · "
+                + WildHabitatCueRuntime.displayMigrationPhase(phase);
     }
 
     static String announcementText(HabitatMigrationContext context) {
