@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.world;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -31,13 +32,24 @@ public final class WildVisibleActorRecovery {
         var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounterId);
         if (boundUuid.isEmpty()) return null;
 
-        // Ordinary chunk unloads retain the canonical binding. Load only the presentation body's
-        // last-known chunk so Minecraft can deserialize the same UUID. This avoids both the former
-        // leash-wide chunk fan-out and replacement of a valid dormant actor.
         PokemonEntity presentation = VisibleWildPokemonEncounterRuntime.binding(boundUuid.get())
                 .map(VisibleWildPokemonEncounterRuntime.Binding::presentationEntity)
                 .orElse(null);
         if (presentation == null) return null;
+
+        // During immediate hibernation/reactivation Minecraft can temporarily stop indexing the
+        // presentation body while the entity itself is still live. Preserve that exact canonical
+        // UUID instead of manufacturing a replacement merely because world.getEntity cannot see it.
+        if (!presentation.isRemoved() && presentation.getWorld() == world) return presentation;
+
+        var reason = presentation.getRemovalReason();
+        if (reason != null && (reason.shouldDestroy() || reason == Entity.RemovalReason.CHANGED_DIMENSION)) {
+            return null;
+        }
+
+        // Ordinary chunk unloads retain the canonical binding. Load only the presentation body's
+        // last-known chunk so Minecraft can deserialize the same UUID. This avoids both the former
+        // leash-wide chunk fan-out and replacement of a valid dormant actor.
         int chunkX = Math.floorDiv(presentation.getBlockX(), 16);
         int chunkZ = Math.floorDiv(presentation.getBlockZ(), 16);
         world.getChunk(chunkX, chunkZ);
