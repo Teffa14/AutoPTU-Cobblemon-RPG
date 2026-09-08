@@ -9,15 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildFocusedPopulationPresenceRuntimeTest {
     @Test
-    void announcesOnlyCountChangesWithinTheSameCanonicalPopulation() {
+    void announcesInitialFocusPopulationSwitchAndCountChanges() {
         var two = presence("ouros.marea.lower_shelf", 2);
         var three = presence("ouros.marea.lower_shelf", 3);
         var otherPopulation = presence("ouros.sendero.seasonal_crossing", 3);
 
-        assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(null, two));
+        assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(null, two));
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, two));
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, three));
-        assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, otherPopulation));
+        assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, otherPopulation));
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, null));
     }
 
