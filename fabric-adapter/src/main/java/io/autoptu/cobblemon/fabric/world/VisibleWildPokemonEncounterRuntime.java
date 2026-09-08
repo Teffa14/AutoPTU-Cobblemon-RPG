@@ -143,7 +143,12 @@ public final class VisibleWildPokemonEncounterRuntime {
     public static void bind(PokemonEntity presentationEntity, String canonicalEncounterId, String zoneId, String contextId) {
         if (presentationEntity == null) throw new IllegalArgumentException("presentationEntity is required");
         String encounterId = requireId(canonicalEncounterId, "canonicalEncounterId");
-        Binding binding = new Binding(encounterId, requireId(zoneId, "zoneId"), requireId(contextId, "contextId"));
+        Binding binding = new Binding(
+                encounterId,
+                requireId(zoneId, "zoneId"),
+                requireId(contextId, "contextId"),
+                presentationEntity
+        );
         UUID currentUuid = presentationEntity.getUuid();
         UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
         if (previousUuid != null && !previousUuid.equals(currentUuid)) {
@@ -172,9 +177,16 @@ public final class VisibleWildPokemonEncounterRuntime {
     }
 
     static void setInteractionActive(UUID entityUuid, boolean active) {
-        if (entityUuid == null || !BINDINGS.containsKey(entityUuid)) return;
+        if (entityUuid == null) return;
+        Binding binding = BINDINGS.get(entityUuid);
+        if (binding == null) return;
         if (active) INTERACTION_ACTIVE.add(entityUuid);
         else INTERACTION_ACTIVE.remove(entityUuid);
+
+        // The binding retains the canonical presentation body across an ordinary chunk unload.
+        // Synchronize only Minecraft visibility with the server-owned interaction state; never read
+        // the Cobblemon Pokemon payload or infer battle legality from this presentation flag.
+        binding.presentationEntity().setInvisible(!active);
     }
 
     static Optional<UUID> boundEntityUuid(String canonicalEncounterId) {
@@ -192,5 +204,10 @@ public final class VisibleWildPokemonEncounterRuntime {
         return value.strip();
     }
 
-    record Binding(String canonicalEncounterId, String zoneId, String contextId) {}
+    record Binding(
+            String canonicalEncounterId,
+            String zoneId,
+            String contextId,
+            PokemonEntity presentationEntity
+    ) {}
 }
