@@ -21,9 +21,9 @@ import java.util.UUID;
 /**
  * Surfaces the visible population around the player's currently focused canonical WILD.
  *
- * <p>The count, focused social role, projected habitat, ambient social-role context, group spread and optional
- * migration phase come only from server-owned ecology projections and the authored descriptor behind the focused
- * actor. Cobblemon entities provide presentation identity and observed Minecraft geometry only. This runtime never
+ * <p>The count, explicitly requested Alpha presentation, projected habitat, group spread and optional migration
+ * phase come only from server-owned ecology projections and the authored descriptor behind the focused actor.
+ * Cobblemon entities provide presentation identity and observed Minecraft geometry only. This runtime never
  * derives PTU legality, stats, HP, moves, RNG, statuses, capture, encounter outcomes or battle results.</p>
  */
 public final class WildFocusedPopulationPresenceRuntime implements ModInitializer {
@@ -183,7 +183,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 .toList();
         for (WildEcologyProjectionRegistry.ProjectedActor projection : population) {
             visibleActors++;
-            if (projection.socialRole() == WildSocialRole.ALPHA) visibleAlphas++;
+            if (projection.presentationCapabilities().nativeAlphaVisual()) visibleAlphas++;
         }
         for (int left = 0; left < population.size(); left++) {
             for (int right = left + 1; right < population.size(); right++) {
@@ -194,6 +194,9 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         }
         if (visibleActors <= 0) return null;
 
+        Optional<WildSocialRole> focusedPresentedRole = focusedProjection.presentationCapabilities().nativeAlphaVisual()
+                ? Optional.of(focusedProjection.socialRole())
+                : Optional.empty();
         return new PopulationPresence(
                 populationKey,
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
@@ -205,7 +208,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                         visibleActors,
                         Math.sqrt(maxPairDistanceSquared),
                         focusedProjection.behaviorProfile())),
-                Optional.of(focusedProjection.socialRole()));
+                focusedPresentedRole);
     }
 
     static GroupSpread classifyGroupSpread(int visibleActors, double maxPairDistance, WildBehaviorProfile behaviorProfile) {
