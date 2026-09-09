@@ -28,6 +28,15 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
+    void cueTrailLengthScalesWithObservedDistanceBeyondAuthoredCohesion() {
+        assertEquals(2, WildHerdRegroupingPresentationRuntime.cueTrailPointCount(5.0D, 5.0D));
+        assertEquals(2, WildHerdRegroupingPresentationRuntime.cueTrailPointCount(8.9D, 5.0D));
+        assertEquals(3, WildHerdRegroupingPresentationRuntime.cueTrailPointCount(9.0D, 5.0D));
+        assertEquals(4, WildHerdRegroupingPresentationRuntime.cueTrailPointCount(13.0D, 5.0D));
+        assertEquals(5, WildHerdRegroupingPresentationRuntime.cueTrailPointCount(500.0D, 5.0D));
+    }
+
+    @Test
     void cueHeightScalesWithObservedDistanceBeyondAuthoredCohesion() {
         assertEquals(0.18D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(5.0D, 5.0D), EPSILON);
         assertEquals(0.20D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(6.0D, 5.0D), EPSILON);
@@ -93,6 +102,18 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
+    void scaledCueTrailUsesBoundedPointCountAndStillStopsAtLeader() {
+        var far = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, -12.0D, 5);
+        assertEquals(5, far.size());
+        assertEquals(-1.75D, far.get(4).z(), EPSILON);
+
+        var close = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.30D, 0.40D, 5);
+        assertEquals(2, close.size());
+        assertEquals(0.30D, close.get(1).x(), EPSILON);
+        assertEquals(0.40D, close.get(1).z(), EPSILON);
+    }
+
+    @Test
     void invalidMinecraftGeometryFailsClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.isOutsideCohesion(Double.NaN, 0.0D, 6.0D));
@@ -107,6 +128,10 @@ final class WildHerdRegroupingPresentationRuntimeTest {
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueParticleCount(10.0D, Double.POSITIVE_INFINITY));
         assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueTrailPointCount(Double.NaN, 5.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueTrailPointCount(10.0D, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueVerticalOffset(Double.POSITIVE_INFINITY, 5.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueVerticalOffset(10.0D, -1.0D));
@@ -118,5 +143,9 @@ final class WildHerdRegroupingPresentationRuntimeTest {
                 () -> WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(Double.NaN, 0.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(1.0D, 0.0D, 0));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(1.0D, 0.0D, 6));
     }
 }
