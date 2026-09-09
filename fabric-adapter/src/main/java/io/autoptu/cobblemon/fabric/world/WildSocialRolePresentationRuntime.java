@@ -6,6 +6,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 
+import java.util.List;
+
 /**
  * Projects explicitly server-authored wild presentation capabilities into Minecraft-only visuals.
  *
@@ -16,6 +18,8 @@ import net.minecraft.server.world.ServerWorld;
  */
 public final class WildSocialRolePresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
+    private static final int BASE_LEADER_PARTICLES = 2;
+    private static final int MAX_LEADER_PARTICLES = 8;
 
     @Override
     public void onInitialize() {
@@ -27,8 +31,9 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
 
     static int project(ServerWorld world) {
         if (world == null) return 0;
+        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
         int projected = 0;
-        for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (var projection : projections) {
             var actor = projection.actor();
             if (actor.isRemoved()) continue;
             if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
@@ -37,13 +42,45 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
             projectNativeAlphaVisual(actor, capabilities.nativeAlphaVisual());
             if (!capabilities.herdLeaderPresentation() || actor.isInvisible()) continue;
 
+            int gatheredMembers = gatheredHerdMemberCount(projection, projections);
             world.spawnParticles(
                     ParticleTypes.END_ROD,
                     actor.getX(), actor.getY() + actor.getHeight() + 0.35D, actor.getZ(),
-                    2, 0.18D, 0.08D, 0.18D, 0.005D);
+                    particleCountForHerdMemberCount(gatheredMembers), 0.18D, 0.08D, 0.18D, 0.005D);
             projected++;
         }
         return projected;
+    }
+
+    /**
+     * Counts only active, visible, same-population Minecraft projections inside the ecology-authored cohesion
+     * envelope. The count controls marker density only; it does not create herd AI, encounter or PTU semantics.
+     */
+    static int gatheredHerdMemberCount(
+            WildEcologyProjectionRegistry.ProjectedActor leader,
+            List<WildEcologyProjectionRegistry.ProjectedActor> projections
+    ) {
+        if (leader == null) throw new IllegalArgumentException("leader is required");
+        if (projections == null) throw new IllegalArgumentException("projections are required");
+        double cohesion = leader.behaviorProfile().cohesionDistance();
+        double cohesionSquared = cohesion * cohesion;
+        int gathered = 0;
+        for (var candidate : projections) {
+            if (candidate == null || candidate.actor().isRemoved() || candidate.actor().isInvisible()) continue;
+            if (candidate.actor().getUuid().equals(leader.actor().getUuid())) continue;
+            if (!leader.populationKey().equals(candidate.populationKey())) continue;
+            if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid())) continue;
+            double dx = candidate.actor().getX() - leader.actor().getX();
+            double dz = candidate.actor().getZ() - leader.actor().getZ();
+            if (dx * dx + dz * dz <= cohesionSquared) gathered++;
+        }
+        return gathered;
+    }
+
+    static int particleCountForHerdMemberCount(int gatheredMembers) {
+        if (gatheredMembers < 0) throw new IllegalArgumentException("gatheredMembers must be non-negative");
+        long requested = (long) BASE_LEADER_PARTICLES + gatheredMembers;
+        return (int) Math.min(MAX_LEADER_PARTICLES, requested);
     }
 
     /** Mirrors only Cobblemon's synchronized entity presentation bit, never Pokemon#setIsAlpha. */
