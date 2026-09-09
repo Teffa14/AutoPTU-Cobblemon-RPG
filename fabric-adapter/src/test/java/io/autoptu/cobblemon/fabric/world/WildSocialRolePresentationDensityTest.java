@@ -16,8 +16,19 @@ final class WildSocialRolePresentationDensityTest {
     }
 
     @Test
+    void markerSpreadExpandsWithGatheredMembersAndStaysBounded() {
+        assertEquals(0.12D, WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(0), 0.000001D);
+        assertEquals(0.15D, WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(1), 0.000001D);
+        assertEquals(0.24D, WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(4), 0.000001D);
+        assertEquals(0.30D, WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(6), 0.000001D);
+        assertEquals(0.30D, WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(Integer.MAX_VALUE), 0.000001D);
+    }
+
+    @Test
     void invalidGatheredMemberCountFailsClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> WildSocialRolePresentationRuntime.particleCountForHerdMemberCount(-1));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(-1));
     }
 }
