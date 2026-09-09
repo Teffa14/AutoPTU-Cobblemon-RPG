@@ -20,6 +20,9 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
     private static final int BASE_LEADER_PARTICLES = 2;
     private static final int MAX_LEADER_PARTICLES = 8;
+    private static final double BASE_LEADER_SPREAD = 0.12D;
+    private static final double MAX_LEADER_SPREAD = 0.30D;
+    private static final double SPREAD_PER_GATHERED_MEMBER = 0.03D;
 
     @Override
     public void onInitialize() {
@@ -43,10 +46,11 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
             if (!capabilities.herdLeaderPresentation() || actor.isInvisible()) continue;
 
             int gatheredMembers = gatheredHerdMemberCount(projection, projections);
+            double markerSpread = markerSpreadForHerdMemberCount(gatheredMembers);
             world.spawnParticles(
                     ParticleTypes.END_ROD,
                     actor.getX(), actor.getY() + actor.getHeight() + 0.35D, actor.getZ(),
-                    particleCountForHerdMemberCount(gatheredMembers), 0.18D, 0.08D, 0.18D, 0.005D);
+                    particleCountForHerdMemberCount(gatheredMembers), markerSpread, 0.08D, markerSpread, 0.005D);
             projected++;
         }
         return projected;
@@ -54,7 +58,8 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
 
     /**
      * Counts only active, visible, same-population Minecraft projections inside the ecology-authored cohesion
-     * envelope. The count controls marker density only; it does not create herd AI, encounter or PTU semantics.
+     * envelope. The count controls marker density and spread only; it does not create herd AI, encounter or PTU
+     * semantics.
      */
     static int gatheredHerdMemberCount(
             WildEcologyProjectionRegistry.ProjectedActor leader,
@@ -78,9 +83,19 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
     }
 
     static int particleCountForHerdMemberCount(int gatheredMembers) {
-        if (gatheredMembers < 0) throw new IllegalArgumentException("gatheredMembers must be non-negative");
+        requireNonNegativeGatheredMembers(gatheredMembers);
         long requested = (long) BASE_LEADER_PARTICLES + gatheredMembers;
         return (int) Math.min(MAX_LEADER_PARTICLES, requested);
+    }
+
+    static double markerSpreadForHerdMemberCount(int gatheredMembers) {
+        requireNonNegativeGatheredMembers(gatheredMembers);
+        double requested = BASE_LEADER_SPREAD + gatheredMembers * SPREAD_PER_GATHERED_MEMBER;
+        return Math.min(MAX_LEADER_SPREAD, requested);
+    }
+
+    private static void requireNonNegativeGatheredMembers(int gatheredMembers) {
+        if (gatheredMembers < 0) throw new IllegalArgumentException("gatheredMembers must be non-negative");
     }
 
     /** Mirrors only Cobblemon's synchronized entity presentation bit, never Pokemon#setIsAlpha. */
