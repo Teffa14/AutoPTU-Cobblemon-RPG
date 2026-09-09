@@ -37,7 +37,7 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
-    void cueCenterPointsTowardObservedCanonicalLeader() {
+    void cueCenterPointsTowardObservedCanonicalLeaderWithoutPassingIt() {
         var north = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, -12.0D);
         assertEquals(0.0D, north.x(), EPSILON);
         assertEquals(-0.35D, north.z(), EPSILON);
@@ -47,13 +47,18 @@ final class WildHerdRegroupingPresentationRuntimeTest {
         assertEquals(0.28D, diagonal.z(), EPSILON);
         assertEquals(0.35D, Math.hypot(diagonal.x(), diagonal.z()), EPSILON);
 
+        var close = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.12D, 0.16D);
+        assertEquals(0.12D, close.x(), EPSILON);
+        assertEquals(0.16D, close.z(), EPSILON);
+        assertEquals(0.20D, Math.hypot(close.x(), close.z()), EPSILON);
+
         var coincident = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, 0.0D);
         assertEquals(0.0D, coincident.x(), EPSILON);
         assertEquals(0.0D, coincident.z(), EPSILON);
     }
 
     @Test
-    void cueTrailCreatesThreeObservedBreadcrumbsTowardLeader() {
+    void cueTrailCreatesObservedBreadcrumbsTowardLeaderWithoutOvershooting() {
         var north = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, -12.0D);
         assertEquals(3, north.size());
         assertEquals(-0.35D, north.get(0).z(), EPSILON);
@@ -68,6 +73,18 @@ final class WildHerdRegroupingPresentationRuntimeTest {
         assertEquals(1.05D, Math.hypot(diagonal.get(2).x(), diagonal.get(2).z()), EPSILON);
         assertTrue(diagonal.get(2).x() > diagonal.get(1).x());
         assertTrue(diagonal.get(2).z() > diagonal.get(1).z());
+
+        var close = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.30D, 0.40D);
+        assertEquals(2, close.size());
+        assertEquals(0.35D, Math.hypot(close.get(0).x(), close.get(0).z()), EPSILON);
+        assertEquals(0.50D, Math.hypot(close.get(1).x(), close.get(1).z()), EPSILON);
+        assertEquals(0.30D, close.get(1).x(), EPSILON);
+        assertEquals(0.40D, close.get(1).z(), EPSILON);
+
+        var veryClose = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.12D, 0.16D);
+        assertEquals(1, veryClose.size());
+        assertEquals(0.12D, veryClose.get(0).x(), EPSILON);
+        assertEquals(0.16D, veryClose.get(0).z(), EPSILON);
 
         var coincident = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, 0.0D);
         assertEquals(1, coincident.size());
