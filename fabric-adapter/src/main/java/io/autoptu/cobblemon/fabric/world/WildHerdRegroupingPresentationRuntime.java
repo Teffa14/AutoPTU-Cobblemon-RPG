@@ -20,6 +20,9 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
     private static final int MAX_PARTICLE_COUNT = 6;
     private static final double EXCESS_BLOCKS_PER_EXTRA_PARTICLE = 4.0D;
     private static final double CUE_OFFSET_TOWARD_LEADER = 0.35D;
+    private static final double BASE_CUE_HEIGHT = 0.18D;
+    private static final double MAX_CUE_HEIGHT = 0.42D;
+    private static final double EXTRA_HEIGHT_PER_EXCESS_BLOCK = 0.02D;
 
     record CueOffset(double x, double z) {
         CueOffset {
@@ -51,11 +54,13 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
             double cohesionDistance = member.behaviorProfile().cohesionDistance();
             if (!isOutsideCohesion(dx, dz, cohesionDistance)) continue;
 
-            int particleCount = cueParticleCount(Math.sqrt(dx * dx + dz * dz), cohesionDistance);
+            double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+            int particleCount = cueParticleCount(horizontalDistance, cohesionDistance);
+            double cueHeight = cueVerticalOffset(horizontalDistance, cohesionDistance);
             CueOffset cueOffset = cueOffsetTowardLeader(-dx, -dz);
             world.spawnParticles(
                     ParticleTypes.CLOUD,
-                    member.actor().getX() + cueOffset.x(), member.actor().getY() + member.actor().getHeight() + 0.18D,
+                    member.actor().getX() + cueOffset.x(), member.actor().getY() + member.actor().getHeight() + cueHeight,
                     member.actor().getZ() + cueOffset.z(),
                     particleCount, 0.10D, 0.05D, 0.10D, 0.003D);
             projected++;
@@ -76,15 +81,25 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
     }
 
     static int cueParticleCount(double horizontalDistance, double cohesionDistance) {
+        validateDistances(horizontalDistance, cohesionDistance);
+        double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
+        int extra = (int) Math.floor(excess / EXCESS_BLOCKS_PER_EXTRA_PARTICLE);
+        return Math.min(MAX_PARTICLE_COUNT, BASE_PARTICLE_COUNT + extra);
+    }
+
+    static double cueVerticalOffset(double horizontalDistance, double cohesionDistance) {
+        validateDistances(horizontalDistance, cohesionDistance);
+        double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
+        return Math.min(MAX_CUE_HEIGHT, BASE_CUE_HEIGHT + excess * EXTRA_HEIGHT_PER_EXCESS_BLOCK);
+    }
+
+    private static void validateDistances(double horizontalDistance, double cohesionDistance) {
         if (!Double.isFinite(horizontalDistance) || horizontalDistance < 0.0D) {
             throw new IllegalArgumentException("horizontalDistance must be finite and non-negative");
         }
         if (!Double.isFinite(cohesionDistance) || cohesionDistance < 0.0D) {
             throw new IllegalArgumentException("cohesionDistance must be finite and non-negative");
         }
-        double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
-        int extra = (int) Math.floor(excess / EXCESS_BLOCKS_PER_EXTRA_PARTICLE);
-        return Math.min(MAX_PARTICLE_COUNT, BASE_PARTICLE_COUNT + extra);
     }
 
     static CueOffset cueOffsetTowardLeader(double leaderDx, double leaderDz) {
