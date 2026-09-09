@@ -1,0 +1,84 @@
+package io.autoptu.cobblemon.fabric.world;
+
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * Projects a Minecraft-only regrouping cue for canonical WILD herd members outside authored cohesion.
+ *
+ * <p>The cue consumes only server-owned population identity, authored ecology behavior and observed Minecraft
+ * positions. It does not move actors, create encounter legality, infer Cobblemon herd AI or apply PTU effects.</p>
+ */
+public final class WildHerdRegroupingPresentationRuntime implements ModInitializer {
+    private static final int UPDATE_INTERVAL_TICKS = 20;
+
+    @Override
+    public void onInitialize() {
+        ServerTickEvents.END_WORLD_TICK.register(world -> {
+            if (world.getTime() % UPDATE_INTERVAL_TICKS != 0L) return;
+            project(world);
+        });
+    }
+
+    static int project(ServerWorld world) {
+        if (world == null) return 0;
+        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        int projected = 0;
+        for (var member : projections) {
+            if (!isActiveVisibleMember(member)) continue;
+            var leader = nearestActiveLeader(member, projections);
+            if (leader == null) continue;
+
+            double dx = member.actor().getX() - leader.actor().getX();
+            double dz = member.actor().getZ() - leader.actor().getZ();
+            if (!isOutsideCohesion(dx, dz, member.behaviorProfile().cohesionDistance())) continue;
+
+            world.spawnParticles(
+                    ParticleTypes.CLOUD,
+                    member.actor().getX(), member.actor().getY() + member.actor().getHeight() + 0.18D, member.actor().getZ(),
+                    2, 0.10D, 0.05D, 0.10D, 0.003D);
+            projected++;
+        }
+        return projected;
+    }
+
+    static boolean isOutsideCohesion(double dx, double dz, double cohesionDistance) {
+        if (!Double.isFinite(dx) || !Double.isFinite(dz)) {
+            throw new IllegalArgumentException("member offset must be finite");
+        }
+        if (!Double.isFinite(cohesionDistance) || cohesionDistance < 0.0D) {
+            throw new IllegalArgumentException("cohesionDistance must be finite and non-negative");
+        }
+        double distanceSquared = dx * dx + dz * dz;
+        double cohesionSquared = cohesionDistance * cohesionDistance;
+        return distanceSquared > cohesionSquared;
+    }
+
+    private static boolean isActiveVisibleMember(WildEcologyProjectionRegistry.ProjectedActor candidate) {
+        if (candidate == null || candidate.socialRole() == WildSocialRole.ALPHA) return false;
+        if (candidate.actor().isRemoved() || candidate.actor().isInvisible()) return false;
+        return VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid());
+    }
+
+    private static WildEcologyProjectionRegistry.ProjectedActor nearestActiveLeader(
+            WildEcologyProjectionRegistry.ProjectedActor member,
+            List<WildEcologyProjectionRegistry.ProjectedActor> projections
+    ) {
+        return projections.stream()
+                .filter(candidate -> candidate != null)
+                .filter(candidate -> candidate.socialRole() == WildSocialRole.ALPHA)
+                .filter(candidate -> candidate.presentationCapabilities().herdLeaderPresentation())
+                .filter(candidate -> member.populationKey().equals(candidate.populationKey()))
+                .filter(candidate -> !candidate.actor().isRemoved() && !candidate.actor().isInvisible())
+                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
+                .min(Comparator.comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                                member.actor().squaredDistanceTo(candidate.actor()))
+                        .thenComparing(candidate -> candidate.actor().getUuid()))
+                .orElse(null);
+    }
+}
