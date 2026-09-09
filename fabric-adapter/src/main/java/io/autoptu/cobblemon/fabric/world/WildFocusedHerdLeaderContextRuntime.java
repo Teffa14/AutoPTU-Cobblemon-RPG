@@ -32,7 +32,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
     private static final Map<MinecraftServer, Map<UUID, LeaderContext>> REMEMBERED = new IdentityHashMap<>();
 
     record LeaderContext(String populationKey, UUID leaderActorId, String speciesDisplayName, boolean withinSeparation,
-                         boolean withinCohesion, int clusteredMemberCount, int nearbyMemberCount,
+                         boolean withinCohesion, int clusteredMemberCount, int nearbyMemberCount, int stragglerMemberCount,
                          int horizontalDistanceBlocks, int verticalOffsetBlocks, String compassDirection,
                          String leaderHabitatDisplayName, boolean leaderInFocusedHabitat, boolean leaderVisibleToPlayer,
                          boolean leaderMoving) {
@@ -43,6 +43,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
             if (withinSeparation && !withinCohesion) throw new IllegalArgumentException("withinSeparation requires withinCohesion");
             if (clusteredMemberCount < 0) throw new IllegalArgumentException("clusteredMemberCount must be non-negative");
             if (nearbyMemberCount < 0) throw new IllegalArgumentException("nearbyMemberCount must be non-negative");
+            if (stragglerMemberCount < 0) throw new IllegalArgumentException("stragglerMemberCount must be non-negative");
             if (horizontalDistanceBlocks < 0) throw new IllegalArgumentException("horizontalDistanceBlocks must be non-negative");
             if (compassDirection == null || compassDirection.isBlank()) throw new IllegalArgumentException("compassDirection is required");
             if (leaderHabitatDisplayName == null || leaderHabitatDisplayName.isBlank()) throw new IllegalArgumentException("leaderHabitatDisplayName is required");
@@ -53,9 +54,11 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         }
     }
 
-    record HerdCounts(int clusteredMembers, int nearbyMembers) {
+    record HerdCounts(int clusteredMembers, int nearbyMembers, int stragglerMembers) {
         HerdCounts {
-            if (clusteredMembers < 0 || nearbyMembers < 0) throw new IllegalArgumentException("herd counts must be non-negative");
+            if (clusteredMembers < 0 || nearbyMembers < 0 || stragglerMembers < 0) {
+                throw new IllegalArgumentException("herd counts must be non-negative");
+            }
         }
     }
 
@@ -107,9 +110,9 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         HerdCounts counts = herdCounts(alpha, member.populationKey(), separation, cohesion, projections);
         return new LeaderContext(member.populationKey(), alpha.actor().getUuid(), WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
                 horizontalDistanceSquared <= separation * separation, horizontalDistanceSquared <= cohesion * cohesion,
-                counts.clusteredMembers(), counts.nearbyMembers(), roundedHorizontalDistanceBlocks(horizontalDistanceSquared),
-                roundedVerticalOffsetBlocks(dy), compassDirection(dx, dz), alpha.habitatDisplayName(),
-                member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()),
+                counts.clusteredMembers(), counts.nearbyMembers(), counts.stragglerMembers(),
+                roundedHorizontalDistanceBlocks(horizontalDistanceSquared), roundedVerticalOffsetBlocks(dy), compassDirection(dx, dz),
+                alpha.habitatDisplayName(), member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()),
                 isMoving(alpha.actor().getVelocity().x, alpha.actor().getVelocity().z));
     }
 
@@ -124,6 +127,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         double cohesionSquared = cohesion * cohesion;
         int clustered = 0;
         int nearby = 0;
+        int straggler = 0;
         for (var candidate : projections) {
             if (candidate == null || candidate.actor().isRemoved() || candidate.actor().isInvisible()) continue;
             if (candidate.actor().getUuid().equals(alpha.actor().getUuid())) continue;
@@ -134,8 +138,9 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
             double horizontalDistanceSquared = dx * dx + dz * dz;
             if (horizontalDistanceSquared <= separationSquared) clustered++;
             else if (horizontalDistanceSquared <= cohesionSquared) nearby++;
+            else straggler++;
         }
-        return new HerdCounts(clustered, nearby);
+        return new HerdCounts(clustered, nearby, straggler);
     }
 
     static boolean isMoving(double velocityX, double velocityZ) {
@@ -172,7 +177,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
 
     static String herdShapeText(LeaderContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
-        return "herd " + context.clusteredMemberCount() + " clustered · " + context.nearbyMemberCount() + " nearby";
+        return "herd " + context.clusteredMemberCount() + " clustered · " + context.nearbyMemberCount() + " nearby · "
+                + context.stragglerMemberCount() + " regrouping";
     }
 
     static String compassDirection(double dx, double dz) {
@@ -189,6 +195,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return previous == null || !current.populationKey().equals(previous.populationKey()) || !current.leaderActorId().equals(previous.leaderActorId())
                 || current.withinSeparation() != previous.withinSeparation() || current.withinCohesion() != previous.withinCohesion()
                 || current.clusteredMemberCount() != previous.clusteredMemberCount() || current.nearbyMemberCount() != previous.nearbyMemberCount()
+                || current.stragglerMemberCount() != previous.stragglerMemberCount()
                 || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks() || current.verticalOffsetBlocks() != previous.verticalOffsetBlocks()
                 || !current.compassDirection().equals(previous.compassDirection()) || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName())
                 || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat() || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer()
