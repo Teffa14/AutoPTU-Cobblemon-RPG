@@ -11,22 +11,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildFocusedHerdLeaderContextRuntimeTest {
     @Test
-    void announcesInitialLeaderIdentityPopulationProximityDistanceElevationDirectionHabitatAndVisibilityChanges() {
+    void announcesInitialLeaderIdentityPopulationProximityDistanceElevationDirectionHabitatVisibilityAndMovementChanges() {
         UUID alphaOne = UUID.fromString("00000000-0000-0000-0000-000000000001");
         UUID alphaTwo = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        var clustered = context("ouros.marea.lower_shelf", alphaOne, true, true, 5, 0, "N", "Marea Lower Shelf", true, true);
-        var nearby = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 0, "N", "Marea Lower Shelf", true, true);
-        var elevated = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 4, "N", "Marea Lower Shelf", true, true);
-        var turned = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 4, "NE", "Marea Lower Shelf", true, true);
-        var obscured = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 4, "NE", "Marea Lower Shelf", true, false);
-        var distant = context("ouros.marea.lower_shelf", alphaOne, false, false, 14, 4, "NE", "Marea Lower Shelf", true, false);
-        var migrated = context("ouros.marea.lower_shelf", alphaOne, false, false, 14, 4, "NE", "Marea Upper Shelf", false, false);
-        var replacement = context("ouros.marea.lower_shelf", alphaTwo, false, false, 14, 4, "NE", "Marea Upper Shelf", false, false);
-        var otherPopulation = context("ouros.sendero.crossing", alphaTwo, false, false, 14, 4, "NE", "Marea Upper Shelf", false, false);
+        var clustered = context("ouros.marea.lower_shelf", alphaOne, true, true, 5, 0, "N", "Marea Lower Shelf", true, true, false);
+        var moving = context("ouros.marea.lower_shelf", alphaOne, true, true, 5, 0, "N", "Marea Lower Shelf", true, true, true);
+        var nearby = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 0, "N", "Marea Lower Shelf", true, true, true);
+        var elevated = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 4, "N", "Marea Lower Shelf", true, true, true);
+        var turned = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 4, "NE", "Marea Lower Shelf", true, true, true);
+        var obscured = context("ouros.marea.lower_shelf", alphaOne, false, true, 6, 4, "NE", "Marea Lower Shelf", true, false, true);
+        var distant = context("ouros.marea.lower_shelf", alphaOne, false, false, 14, 4, "NE", "Marea Lower Shelf", true, false, true);
+        var migrated = context("ouros.marea.lower_shelf", alphaOne, false, false, 14, 4, "NE", "Marea Upper Shelf", false, false, true);
+        var replacement = context("ouros.marea.lower_shelf", alphaTwo, false, false, 14, 4, "NE", "Marea Upper Shelf", false, false, true);
+        var otherPopulation = context("ouros.sendero.crossing", alphaTwo, false, false, 14, 4, "NE", "Marea Upper Shelf", false, false, true);
 
         assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(null, clustered));
         assertFalse(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(clustered, clustered));
-        assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(clustered, nearby));
+        assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(clustered, moving));
+        assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(moving, nearby));
         assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(nearby, elevated));
         assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(elevated, turned));
         assertTrue(WildFocusedHerdLeaderContextRuntime.shouldAnnounce(turned, obscured));
@@ -38,25 +40,34 @@ final class WildFocusedHerdLeaderContextRuntimeTest {
     }
 
     @Test
-    void textReportsAuthoredProximityMinecraftElevationVisibilityAndLeaderHabitat() {
+    void textReportsAuthoredProximityMinecraftElevationVisibilityMovementAndLeaderHabitat() {
         UUID alpha = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        var clusteredVisible = context("ouros.marea.lower_shelf", alpha, true, true, 5, 4, "NE", "Marea Lower Shelf", true, true);
-        var nearbyObscured = context("ouros.marea.lower_shelf", alpha, false, true, 8, -2, "NE", "Marea Lower Shelf", true, false);
-        var acrossHabitat = context("ouros.marea.lower_shelf", alpha, false, false, 14, 0, "W", "Marea Upper Shelf", false, false);
+        var clusteredVisible = context("ouros.marea.lower_shelf", alpha, true, true, 5, 4, "NE", "Marea Lower Shelf", true, true, true);
+        var nearbyObscured = context("ouros.marea.lower_shelf", alpha, false, true, 8, -2, "NE", "Marea Lower Shelf", true, false, false);
+        var acrossHabitat = context("ouros.marea.lower_shelf", alpha, false, false, 14, 0, "W", "Marea Upper Shelf", false, false, false);
 
-        assertEquals("Herd leader — Alpha Fletchling · clustered · 5 blocks · NE · 4 blocks above · visible · same habitat",
+        assertEquals("Herd leader — Alpha Fletchling · clustered · 5 blocks · NE · 4 blocks above · visible · moving · same habitat",
                 WildFocusedHerdLeaderContextRuntime.contextText(clusteredVisible));
-        assertEquals("Herd leader — Alpha Fletchling · nearby · 8 blocks · NE · 2 blocks below · obscured · same habitat",
+        assertEquals("Herd leader — Alpha Fletchling · nearby · 8 blocks · NE · 2 blocks below · obscured · holding · same habitat",
                 WildFocusedHerdLeaderContextRuntime.contextText(nearbyObscured));
-        assertEquals("Herd leader — Alpha Fletchling · regrouping distance · 14 blocks · W · same level · obscured · leader habitat Marea Upper Shelf",
+        assertEquals("Herd leader — Alpha Fletchling · regrouping distance · 14 blocks · W · same level · obscured · holding · leader habitat Marea Upper Shelf",
                 WildFocusedHerdLeaderContextRuntime.contextText(acrossHabitat));
+    }
+
+    @Test
+    void observedHorizontalVelocityIsPresentationOnlyMovementSignal() {
+        assertFalse(WildFocusedHerdLeaderContextRuntime.isMoving(0.0D, 0.0D));
+        assertFalse(WildFocusedHerdLeaderContextRuntime.isMoving(0.009D, 0.0D));
+        assertTrue(WildFocusedHerdLeaderContextRuntime.isMoving(0.01D, 0.0D));
+        assertTrue(WildFocusedHerdLeaderContextRuntime.isMoving(-0.02D, 0.03D));
+        assertThrows(IllegalArgumentException.class, () -> WildFocusedHerdLeaderContextRuntime.isMoving(Double.NaN, 0.0D));
     }
 
     @Test
     void invalidProximityCombinationFailsClosed() {
         UUID alpha = UUID.fromString("00000000-0000-0000-0000-000000000001");
         assertThrows(IllegalArgumentException.class,
-                () -> context("ouros.marea.lower_shelf", alpha, true, false, 5, 0, "N", "Marea", true, true));
+                () -> context("ouros.marea.lower_shelf", alpha, true, false, 5, 0, "N", "Marea", true, true, false));
     }
 
     @Test
@@ -107,17 +118,17 @@ final class WildFocusedHerdLeaderContextRuntimeTest {
     void leaderContextRejectsUnusableIdentityDistanceDirectionOrHabitat() {
         UUID alpha = UUID.fromString("00000000-0000-0000-0000-000000000001");
         assertThrows(IllegalArgumentException.class,
-                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext(" ", alpha, "Fletchling", false, true, 5, 0, "N", "Marea", true, true));
+                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext(" ", alpha, "Fletchling", false, true, 5, 0, "N", "Marea", true, true, false));
         assertThrows(IllegalArgumentException.class,
-                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", null, "Fletchling", false, true, 5, 0, "N", "Marea", true, true));
+                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", null, "Fletchling", false, true, 5, 0, "N", "Marea", true, true, false));
         assertThrows(IllegalArgumentException.class,
-                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, " ", false, true, 5, 0, "N", "Marea", true, true));
+                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, " ", false, true, 5, 0, "N", "Marea", true, true, false));
         assertThrows(IllegalArgumentException.class,
-                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, "Fletchling", false, true, -1, 0, "N", "Marea", true, true));
+                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, "Fletchling", false, true, -1, 0, "N", "Marea", true, true, false));
         assertThrows(IllegalArgumentException.class,
-                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, "Fletchling", false, true, 5, 0, " ", "Marea", true, true));
+                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, "Fletchling", false, true, 5, 0, " ", "Marea", true, true, false));
         assertThrows(IllegalArgumentException.class,
-                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, "Fletchling", false, true, 5, 0, "N", " ", true, true));
+                () -> new WildFocusedHerdLeaderContextRuntime.LeaderContext("ouros.marea.lower_shelf", alpha, "Fletchling", false, true, 5, 0, "N", " ", true, true, false));
     }
 
     private static WildFocusedHerdLeaderContextRuntime.LeaderContext context(
@@ -130,10 +141,11 @@ final class WildFocusedHerdLeaderContextRuntimeTest {
             String direction,
             String leaderHabitat,
             boolean sameHabitat,
-            boolean visible
+            boolean visible,
+            boolean moving
     ) {
         return new WildFocusedHerdLeaderContextRuntime.LeaderContext(
                 populationKey, alpha, "Fletchling", withinSeparation, withinCohesion, distance, verticalOffset,
-                direction, leaderHabitat, sameHabitat, visible);
+                direction, leaderHabitat, sameHabitat, visible, moving);
     }
 }
