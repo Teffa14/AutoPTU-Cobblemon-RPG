@@ -16,6 +16,9 @@ import java.util.List;
  */
 public final class WildHerdRegroupingPresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
+    private static final int BASE_PARTICLE_COUNT = 2;
+    private static final int MAX_PARTICLE_COUNT = 6;
+    private static final double EXCESS_BLOCKS_PER_EXTRA_PARTICLE = 4.0D;
 
     @Override
     public void onInitialize() {
@@ -36,12 +39,14 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
 
             double dx = member.actor().getX() - leader.actor().getX();
             double dz = member.actor().getZ() - leader.actor().getZ();
-            if (!isOutsideCohesion(dx, dz, member.behaviorProfile().cohesionDistance())) continue;
+            double cohesionDistance = member.behaviorProfile().cohesionDistance();
+            if (!isOutsideCohesion(dx, dz, cohesionDistance)) continue;
 
+            int particleCount = cueParticleCount(Math.sqrt(dx * dx + dz * dz), cohesionDistance);
             world.spawnParticles(
                     ParticleTypes.CLOUD,
                     member.actor().getX(), member.actor().getY() + member.actor().getHeight() + 0.18D, member.actor().getZ(),
-                    2, 0.10D, 0.05D, 0.10D, 0.003D);
+                    particleCount, 0.10D, 0.05D, 0.10D, 0.003D);
             projected++;
         }
         return projected;
@@ -57,6 +62,18 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         double distanceSquared = dx * dx + dz * dz;
         double cohesionSquared = cohesionDistance * cohesionDistance;
         return distanceSquared > cohesionSquared;
+    }
+
+    static int cueParticleCount(double horizontalDistance, double cohesionDistance) {
+        if (!Double.isFinite(horizontalDistance) || horizontalDistance < 0.0D) {
+            throw new IllegalArgumentException("horizontalDistance must be finite and non-negative");
+        }
+        if (!Double.isFinite(cohesionDistance) || cohesionDistance < 0.0D) {
+            throw new IllegalArgumentException("cohesionDistance must be finite and non-negative");
+        }
+        double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
+        int extra = (int) Math.floor(excess / EXCESS_BLOCKS_PER_EXTRA_PARTICLE);
+        return Math.min(MAX_PARTICLE_COUNT, BASE_PARTICLE_COUNT + extra);
     }
 
     private static boolean isActiveVisibleMember(WildEcologyProjectionRegistry.ProjectedActor candidate) {
