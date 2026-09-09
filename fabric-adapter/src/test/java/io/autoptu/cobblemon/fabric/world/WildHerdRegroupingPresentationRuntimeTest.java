@@ -19,6 +19,14 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
+    void cueCadenceEscalatesOnlyAfterFourObservedBlocksBeyondCohesion() {
+        assertEquals(20, WildHerdRegroupingPresentationRuntime.cueIntervalTicks(5.0D, 5.0D));
+        assertEquals(20, WildHerdRegroupingPresentationRuntime.cueIntervalTicks(8.999D, 5.0D));
+        assertEquals(10, WildHerdRegroupingPresentationRuntime.cueIntervalTicks(9.0D, 5.0D));
+        assertEquals(10, WildHerdRegroupingPresentationRuntime.cueIntervalTicks(500.0D, 5.0D));
+    }
+
+    @Test
     void cueDensityScalesWithObservedDistanceBeyondAuthoredCohesion() {
         assertEquals(2, WildHerdRegroupingPresentationRuntime.cueParticleCount(5.0D, 5.0D));
         assertEquals(2, WildHerdRegroupingPresentationRuntime.cueParticleCount(8.9D, 5.0D));
@@ -123,6 +131,10 @@ final class WildHerdRegroupingPresentationRuntimeTest {
                 () -> WildHerdRegroupingPresentationRuntime.isOutsideCohesion(0.0D, 0.0D, -1.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.isOutsideCohesion(0.0D, 0.0D, Double.NaN));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueIntervalTicks(Double.NaN, 5.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueIntervalTicks(10.0D, Double.POSITIVE_INFINITY));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueParticleCount(Double.NaN, 5.0D));
         assertThrows(IllegalArgumentException.class,
