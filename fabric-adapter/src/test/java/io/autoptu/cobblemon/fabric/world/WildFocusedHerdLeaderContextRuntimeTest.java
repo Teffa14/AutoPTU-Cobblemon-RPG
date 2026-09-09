@@ -44,9 +44,9 @@ final class WildFocusedHerdLeaderContextRuntimeTest {
         var nearbyObscured = context("ouros.marea.lower_shelf", alpha, true, 5, -2, "NE", "Marea Lower Shelf", true, false);
         var acrossHabitat = context("ouros.marea.lower_shelf", alpha, false, 14, 0, "W", "Marea Upper Shelf", false, false);
 
-        assertEquals("Herd leader — Alpha Fletchling · nearby · 5 blocks · NE · 4 blocks above · visible",
+        assertEquals("Herd leader — Alpha Fletchling · nearby · 5 blocks · NE · 4 blocks above · visible · same habitat",
                 WildFocusedHerdLeaderContextRuntime.contextText(nearbyVisible));
-        assertEquals("Herd leader — Alpha Fletchling · nearby · 5 blocks · NE · 2 blocks below · obscured",
+        assertEquals("Herd leader — Alpha Fletchling · nearby · 5 blocks · NE · 2 blocks below · obscured · same habitat",
                 WildFocusedHerdLeaderContextRuntime.contextText(nearbyObscured));
         assertEquals("Herd leader — Alpha Fletchling · regrouping distance · 14 blocks · W · same level · obscured · leader habitat Marea Upper Shelf",
                 WildFocusedHerdLeaderContextRuntime.contextText(acrossHabitat));
