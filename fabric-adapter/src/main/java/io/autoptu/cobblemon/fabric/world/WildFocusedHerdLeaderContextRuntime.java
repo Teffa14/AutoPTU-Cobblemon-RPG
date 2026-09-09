@@ -71,10 +71,10 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
     static LeaderContext contextFor(ServerPlayerEntity player, List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
         if (player == null || projections == null || projections.isEmpty()) return null;
         var focused = WildHabitatCueRuntime.nearestInteractionActor(player, projections);
-        if (focused == null || focused.presentationCapabilities().herdLeaderPresentation()) return null;
+        if (focused == null) return null;
         var member = projections.stream().filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> candidate.actor().getUuid().equals(focused.actorId())).findFirst().orElse(null);
-        if (member == null) return null;
+        if (member == null || member.presentationCapabilities().herdLeaderPresentation()) return null;
         var alpha = projections.stream()
                 .filter(candidate -> candidate != null)
                 .filter(candidate -> candidate.socialRole() == WildSocialRole.ALPHA)
