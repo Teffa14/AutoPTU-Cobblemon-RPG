@@ -19,7 +19,8 @@ public final class WildEcologyProjectionRegistry {
             double habitatCenterZ,
             int habitatLeashRadiusBlocks,
             WildBehaviorProfile behaviorProfile,
-            WildSocialRole socialRole
+            WildSocialRole socialRole,
+            WildEcologyDescriptorRegistry.PresentationCapabilities presentationCapabilities
     ) {
         public ProjectedActor {
             Objects.requireNonNull(actor, "actor");
@@ -27,6 +28,7 @@ public final class WildEcologyProjectionRegistry {
             habitatDisplayName = Objects.requireNonNull(habitatDisplayName, "habitatDisplayName").strip();
             Objects.requireNonNull(behaviorProfile, "behaviorProfile");
             Objects.requireNonNull(socialRole, "socialRole");
+            Objects.requireNonNull(presentationCapabilities, "presentationCapabilities");
             if (populationKey.isEmpty()) throw new IllegalArgumentException("populationKey must not be blank");
             if (habitatDisplayName.isEmpty()) throw new IllegalArgumentException("habitatDisplayName must not be blank");
             if (!Double.isFinite(habitatCenterX) || !Double.isFinite(habitatCenterZ)) throw new IllegalArgumentException("habitat center must be finite");
@@ -34,15 +36,22 @@ public final class WildEcologyProjectionRegistry {
         }
 
         public ProjectedActor(PokemonEntity actor, String populationKey, String habitatDisplayName, double habitatCenterX,
+                              double habitatCenterZ, int habitatLeashRadiusBlocks, WildBehaviorProfile behaviorProfile,
+                              WildSocialRole socialRole) {
+            this(actor, populationKey, habitatDisplayName, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks,
+                    behaviorProfile, socialRole, WildEcologyDescriptorRegistry.PresentationCapabilities.NONE);
+        }
+
+        public ProjectedActor(PokemonEntity actor, String populationKey, String habitatDisplayName, double habitatCenterX,
                               double habitatCenterZ, int habitatLeashRadiusBlocks, WildBehaviorProfile behaviorProfile) {
             this(actor, populationKey, habitatDisplayName, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks,
-                    behaviorProfile, WildSocialRole.MEMBER);
+                    behaviorProfile, WildSocialRole.MEMBER, WildEcologyDescriptorRegistry.PresentationCapabilities.NONE);
         }
 
         public ProjectedActor(PokemonEntity actor, String populationKey, double habitatCenterX, double habitatCenterZ,
                               int habitatLeashRadiusBlocks, WildBehaviorProfile behaviorProfile) {
             this(actor, populationKey, populationKey, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks,
-                    behaviorProfile, WildSocialRole.MEMBER);
+                    behaviorProfile, WildSocialRole.MEMBER, WildEcologyDescriptorRegistry.PresentationCapabilities.NONE);
         }
     }
 
