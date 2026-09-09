@@ -19,6 +19,15 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
     private static final int BASE_PARTICLE_COUNT = 2;
     private static final int MAX_PARTICLE_COUNT = 6;
     private static final double EXCESS_BLOCKS_PER_EXTRA_PARTICLE = 4.0D;
+    private static final double CUE_OFFSET_TOWARD_LEADER = 0.35D;
+
+    record CueOffset(double x, double z) {
+        CueOffset {
+            if (!Double.isFinite(x) || !Double.isFinite(z)) {
+                throw new IllegalArgumentException("cue offset must be finite");
+            }
+        }
+    }
 
     @Override
     public void onInitialize() {
@@ -43,9 +52,11 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
             if (!isOutsideCohesion(dx, dz, cohesionDistance)) continue;
 
             int particleCount = cueParticleCount(Math.sqrt(dx * dx + dz * dz), cohesionDistance);
+            CueOffset cueOffset = cueOffsetTowardLeader(-dx, -dz);
             world.spawnParticles(
                     ParticleTypes.CLOUD,
-                    member.actor().getX(), member.actor().getY() + member.actor().getHeight() + 0.18D, member.actor().getZ(),
+                    member.actor().getX() + cueOffset.x(), member.actor().getY() + member.actor().getHeight() + 0.18D,
+                    member.actor().getZ() + cueOffset.z(),
                     particleCount, 0.10D, 0.05D, 0.10D, 0.003D);
             projected++;
         }
@@ -74,6 +85,16 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
         int extra = (int) Math.floor(excess / EXCESS_BLOCKS_PER_EXTRA_PARTICLE);
         return Math.min(MAX_PARTICLE_COUNT, BASE_PARTICLE_COUNT + extra);
+    }
+
+    static CueOffset cueOffsetTowardLeader(double leaderDx, double leaderDz) {
+        if (!Double.isFinite(leaderDx) || !Double.isFinite(leaderDz)) {
+            throw new IllegalArgumentException("leader offset must be finite");
+        }
+        double horizontalDistance = Math.hypot(leaderDx, leaderDz);
+        if (horizontalDistance == 0.0D) return new CueOffset(0.0D, 0.0D);
+        double scale = CUE_OFFSET_TOWARD_LEADER / horizontalDistance;
+        return new CueOffset(leaderDx * scale, leaderDz * scale);
     }
 
     private static boolean isActiveVisibleMember(WildEcologyProjectionRegistry.ProjectedActor candidate) {
