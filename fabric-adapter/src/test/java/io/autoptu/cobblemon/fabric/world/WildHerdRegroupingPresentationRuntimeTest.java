@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildHerdRegroupingPresentationRuntimeTest {
+    private static final double EPSILON = 1.0E-9D;
+
     @Test
     void marksOnlyObservedOffsetsOutsideAuthoredCohesion() {
         assertFalse(WildHerdRegroupingPresentationRuntime.isOutsideCohesion(0.0D, 0.0D, 6.0D));
@@ -26,6 +28,22 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
+    void cueCenterPointsTowardObservedCanonicalLeader() {
+        var north = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, -12.0D);
+        assertEquals(0.0D, north.x(), EPSILON);
+        assertEquals(-0.35D, north.z(), EPSILON);
+
+        var diagonal = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(3.0D, 4.0D);
+        assertEquals(0.21D, diagonal.x(), EPSILON);
+        assertEquals(0.28D, diagonal.z(), EPSILON);
+        assertEquals(0.35D, Math.hypot(diagonal.x(), diagonal.z()), EPSILON);
+
+        var coincident = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, 0.0D);
+        assertEquals(0.0D, coincident.x(), EPSILON);
+        assertEquals(0.0D, coincident.z(), EPSILON);
+    }
+
+    @Test
     void invalidMinecraftGeometryFailsClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.isOutsideCohesion(Double.NaN, 0.0D, 6.0D));
@@ -39,5 +57,9 @@ final class WildHerdRegroupingPresentationRuntimeTest {
                 () -> WildHerdRegroupingPresentationRuntime.cueParticleCount(Double.NaN, 5.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueParticleCount(10.0D, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(Double.NaN, 0.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, Double.NEGATIVE_INFINITY));
     }
 }
