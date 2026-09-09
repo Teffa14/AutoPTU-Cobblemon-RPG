@@ -138,7 +138,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return "Herd leader — Alpha " + context.speciesDisplayName() + (context.withinCohesion() ? " · nearby" : " · regrouping distance")
                 + " · " + context.horizontalDistanceBlocks() + " blocks · " + context.compassDirection() + " · " + verticalRelationText(context.verticalOffsetBlocks())
                 + (context.leaderVisibleToPlayer() ? " · visible" : " · obscured")
-                + (context.leaderInFocusedHabitat() ? "" : " · leader habitat " + context.leaderHabitatDisplayName());
+                + (context.leaderInFocusedHabitat() ? " · same habitat" : " · leader habitat " + context.leaderHabitatDisplayName());
     }
 
     private static LeaderContext remembered(MinecraftServer server, UUID playerId) { synchronized (REMEMBERED) { Map<UUID, LeaderContext> players = REMEMBERED.get(server); return players == null ? null : players.get(playerId); } }
