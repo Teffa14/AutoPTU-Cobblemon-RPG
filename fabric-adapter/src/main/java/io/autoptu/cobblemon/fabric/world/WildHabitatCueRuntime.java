@@ -75,7 +75,8 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             WildSocialRole socialRole,
             String speciesId,
             String habitatDisplayName,
-            Optional<MigrationPhase> migrationPhase
+            Optional<MigrationPhase> migrationPhase,
+            boolean alphaPresentation
     ) {
         NearbyInteractionSnapshot {
             if (actorId == null) throw new IllegalArgumentException("actorId is required");
@@ -87,12 +88,22 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             migrationPhase = migrationPhase == null ? Optional.empty() : migrationPhase;
         }
 
+        NearbyInteractionSnapshot(
+                UUID actorId,
+                WildSocialRole socialRole,
+                String speciesId,
+                String habitatDisplayName,
+                Optional<MigrationPhase> migrationPhase
+        ) {
+            this(actorId, socialRole, speciesId, habitatDisplayName, migrationPhase, socialRole == WildSocialRole.ALPHA);
+        }
+
         NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole, String speciesId, String habitatDisplayName) {
-            this(actorId, socialRole, speciesId, habitatDisplayName, Optional.empty());
+            this(actorId, socialRole, speciesId, habitatDisplayName, Optional.empty(), socialRole == WildSocialRole.ALPHA);
         }
 
         NearbyInteractionSnapshot(UUID actorId, WildSocialRole socialRole) {
-            this(actorId, socialRole, "pokemon", "Wild habitat", Optional.empty());
+            this(actorId, socialRole, "pokemon", "Wild habitat", Optional.empty(), socialRole == WildSocialRole.ALPHA);
         }
     }
 
@@ -214,7 +225,8 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                 projection.socialRole(),
                 encounter.speciesId(),
                 projection.habitatDisplayName(),
-                migrationPhase);
+                migrationPhase,
+                projection.presentationCapabilities().nativeAlphaVisual());
     }
 
     static boolean shouldAnnounceNearbyInteraction(NearbyInteractionSnapshot previousActor, NearbyInteractionSnapshot currentActor) {
@@ -224,7 +236,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     static String nearbyInteractionText(NearbyInteractionSnapshot interaction) {
         if (interaction == null) throw new IllegalArgumentException("interaction is required");
         String species = displaySpeciesName(interaction.speciesId());
-        String identity = interaction.socialRole() == WildSocialRole.ALPHA ? "Alpha " + species : species;
+        String identity = interaction.alphaPresentation() ? "Alpha " + species : species;
         String phase = interaction.migrationPhase()
                 .map(value -> " · " + displayMigrationPhase(value))
                 .orElse("");
@@ -276,7 +288,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                             projection.habitatCenterZ(),
                             projection.habitatLeashRadiusBlocks()));
             countsByPopulation.merge(projection.populationKey(), 1, Integer::sum);
-            if (projection.socialRole() == WildSocialRole.ALPHA) {
+            if (projection.presentationCapabilities().nativeAlphaVisual()) {
                 alphasByPopulation.merge(projection.populationKey(), 1, Integer::sum);
             }
             String previousLabel = labelsByPopulation.putIfAbsent(projection.populationKey(), projection.habitatDisplayName());
