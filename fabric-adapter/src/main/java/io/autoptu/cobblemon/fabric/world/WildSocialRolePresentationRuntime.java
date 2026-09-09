@@ -7,14 +7,12 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 
 /**
- * Projects explicitly server-authored wild social roles into Minecraft-only ambient visuals.
+ * Projects explicitly server-authored wild presentation capabilities into Minecraft-only visuals.
  *
- * <p>Alpha designation comes only from the registered ecology descriptor. For canonical projected
- * WILD actors the runtime mirrors that authored role into Cobblemon's synchronized entity-only
- * alpha presentation flag while deliberately leaving {@code Pokemon.isAlpha} untouched. That keeps
- * Cobblemon's persistent alpha gameplay, moveset, stats and herd AI outside the RPG authority path.
- * This runtime never reads species, level, stats, moves, abilities, HP, Cobblemon BattleState,
- * encounter priority or PTU mechanics.</p>
+ * <p>The ecology descriptor must explicitly request native Alpha presentation and herd-leader presentation.
+ * The runtime mirrors only that request into Cobblemon's synchronized entity-only alpha presentation flag while
+ * deliberately leaving {@code Pokemon.isAlpha} untouched. Cobblemon persistent alpha gameplay, alpha movesets,
+ * stats and herd AI therefore remain outside RPG authority.</p>
  */
 public final class WildSocialRolePresentationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 20;
@@ -35,29 +33,20 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
             if (actor.isRemoved()) continue;
             if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
-            boolean alpha = projection.socialRole() == WildSocialRole.ALPHA;
-            projectNativeAlphaVisual(actor, alpha);
-            if (!alpha || actor.isInvisible()) continue;
+            var capabilities = projection.presentationCapabilities();
+            projectNativeAlphaVisual(actor, capabilities.nativeAlphaVisual());
+            if (!capabilities.herdLeaderPresentation() || actor.isInvisible()) continue;
 
             world.spawnParticles(
                     ParticleTypes.END_ROD,
-                    actor.getX(),
-                    actor.getY() + actor.getHeight() + 0.35D,
-                    actor.getZ(),
-                    2,
-                    0.18D,
-                    0.08D,
-                    0.18D,
-                    0.005D);
+                    actor.getX(), actor.getY() + actor.getHeight() + 0.35D, actor.getZ(),
+                    2, 0.18D, 0.08D, 0.18D, 0.005D);
             projected++;
         }
         return projected;
     }
 
-    /**
-     * Mirrors only the synchronized entity presentation bit. Never call Pokemon#setIsAlpha here:
-     * that Cobblemon model property participates in persistent/gameplay alpha behavior.
-     */
+    /** Mirrors only Cobblemon's synchronized entity presentation bit, never Pokemon#setIsAlpha. */
     static boolean projectNativeAlphaVisual(PokemonEntity actor, boolean alpha) {
         if (actor == null || actor.isRemoved()) return false;
         var alphaData = PokemonEntity.getIS_ALPHA();
