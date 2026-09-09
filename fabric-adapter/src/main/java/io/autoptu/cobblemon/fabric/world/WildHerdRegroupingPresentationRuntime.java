@@ -16,7 +16,10 @@ import java.util.List;
  * positions. It does not move actors, create encounter legality, infer Cobblemon herd AI or apply PTU effects.</p>
  */
 public final class WildHerdRegroupingPresentationRuntime implements ModInitializer {
-    private static final int UPDATE_INTERVAL_TICKS = 20;
+    private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final int BASE_CUE_INTERVAL_TICKS = 20;
+    private static final int URGENT_CUE_INTERVAL_TICKS = 10;
+    private static final double URGENT_EXCESS_BLOCKS = 4.0D;
     private static final int BASE_PARTICLE_COUNT = 2;
     private static final int MAX_PARTICLE_COUNT = 6;
     private static final double EXCESS_BLOCKS_PER_EXTRA_PARTICLE = 4.0D;
@@ -59,6 +62,8 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
             if (!isOutsideCohesion(dx, dz, cohesionDistance)) continue;
 
             double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+            int cueIntervalTicks = cueIntervalTicks(horizontalDistance, cohesionDistance);
+            if (world.getTime() % cueIntervalTicks != 0L) continue;
             int particleCount = cueParticleCount(horizontalDistance, cohesionDistance);
             double cueHeight = cueVerticalOffset(horizontalDistance, cohesionDistance);
             int trailPoints = cueTrailPointCount(horizontalDistance, cohesionDistance);
@@ -86,6 +91,12 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         double distanceSquared = dx * dx + dz * dz;
         double cohesionSquared = cohesionDistance * cohesionDistance;
         return distanceSquared > cohesionSquared;
+    }
+
+    static int cueIntervalTicks(double horizontalDistance, double cohesionDistance) {
+        validateDistances(horizontalDistance, cohesionDistance);
+        double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
+        return excess >= URGENT_EXCESS_BLOCKS ? URGENT_CUE_INTERVAL_TICKS : BASE_CUE_INTERVAL_TICKS;
     }
 
     static int cueParticleCount(double horizontalDistance, double cohesionDistance) {
