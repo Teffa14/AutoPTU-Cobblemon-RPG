@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String ENABLE_PROPERTY = "autoptu.liveMareaWildPresenceSmoke";
+    private static final int VERTICAL_PROBE_RADIUS_BLOCKS = 16;
+    private static final int MAX_HORIZONTAL_PROBE_RADIUS_BLOCKS = 24;
 
     @Override
     public void onInitialize() {
@@ -97,9 +99,12 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
             int baseY,
             int anchorZ
     ) {
-        for (int dy = 2; dy <= 8; dy++) {
-            for (int dx = -3; dx <= 3; dx++) {
-                for (int dz = -3; dz <= 3; dz++) {
+        int horizontalRadius = Math.min(
+                projection.habitatLeashRadiusBlocks(),
+                MAX_HORIZONTAL_PROBE_RADIUS_BLOCKS);
+        for (int dy = -VERTICAL_PROBE_RADIUS_BLOCKS; dy <= VERTICAL_PROBE_RADIUS_BLOCKS; dy++) {
+            for (int dx = -horizontalRadius; dx <= horizontalRadius; dx++) {
+                for (int dz = -horizontalRadius; dz <= horizontalRadius; dz++) {
                     BlockPos candidate = new BlockPos(anchorX + dx, baseY + dy, anchorZ + dz);
                     if (!world.isChunkLoaded(candidate)) continue;
                     if (!WildAmbientBehaviorRuntime.insideHorizontalLeash(
