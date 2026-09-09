@@ -113,7 +113,7 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         }
         double horizontalDistance = Math.hypot(leaderDx, leaderDz);
         if (horizontalDistance == 0.0D) return new CueOffset(0.0D, 0.0D);
-        double scale = CUE_OFFSET_TOWARD_LEADER / horizontalDistance;
+        double scale = Math.min(CUE_OFFSET_TOWARD_LEADER, horizontalDistance) / horizontalDistance;
         return new CueOffset(leaderDx * scale, leaderDz * scale);
     }
 
@@ -127,8 +127,9 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         double unitZ = leaderDz / horizontalDistance;
         List<CueOffset> offsets = new ArrayList<>(CUE_TRAIL_POINTS);
         for (int index = 1; index <= CUE_TRAIL_POINTS; index++) {
-            double distance = CUE_OFFSET_TOWARD_LEADER * index;
+            double distance = Math.min(CUE_OFFSET_TOWARD_LEADER * index, horizontalDistance);
             offsets.add(new CueOffset(unitX * distance, unitZ * distance));
+            if (distance >= horizontalDistance) break;
         }
         return List.copyOf(offsets);
     }
