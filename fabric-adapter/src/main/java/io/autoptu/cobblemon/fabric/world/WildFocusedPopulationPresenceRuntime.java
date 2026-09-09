@@ -1,5 +1,6 @@
 package io.autoptu.cobblemon.fabric.world;
 
+import io.autoptu.cobblemon.ecology.MigrationPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -13,22 +14,48 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Surfaces the visible population around the player's currently focused canonical WILD.
  *
- * <p>The count and ambient social-role context come only from server-owned ecology projections
- * that share the focused actor's canonical population key. Cobblemon entities provide presentation
- * identity only. This runtime never derives PTU legality, stats, HP, moves, RNG, statuses, capture,
- * encounter outcomes or battle results.</p>
+ * <p>The count, projected habitat, ambient social-role context, group spread and optional migration phase come
+ * only from server-owned ecology projections and the authored descriptor behind the focused actor. Cobblemon
+ * entities provide presentation identity and observed Minecraft geometry only. This runtime never derives PTU
+ * legality, stats, HP, moves, RNG, statuses, capture, encounter outcomes or battle results.</p>
  */
 public final class WildFocusedPopulationPresenceRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, PopulationPresence>> REMEMBERED = new IdentityHashMap<>();
 
-    record PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
+    enum GroupSpread {
+        ALONE("alone"),
+        CLUSTERED("clustered"),
+        COHESIVE("cohesive"),
+        DISPERSED("spread out");
+
+        private final String displayText;
+
+        GroupSpread(String displayText) {
+            this.displayText = displayText;
+        }
+
+        String displayText() {
+            return displayText;
+        }
+    }
+
+    record PopulationPresence(
+            String populationKey,
+            String speciesDisplayName,
+            int visibleActors,
+            int visibleAlphas,
+            Optional<MigrationPhase> migrationPhase,
+            Optional<String> habitatDisplayName,
+            Optional<GroupSpread> groupSpread
+    ) {
         PopulationPresence {
             if (populationKey == null || populationKey.isBlank()) {
                 throw new IllegalArgumentException("populationKey is required");
@@ -42,6 +69,41 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             }
             populationKey = populationKey.strip();
             speciesDisplayName = speciesDisplayName.strip();
+            migrationPhase = migrationPhase == null ? Optional.empty() : migrationPhase;
+            habitatDisplayName = habitatDisplayName == null ? Optional.empty() : habitatDisplayName;
+            groupSpread = groupSpread == null ? Optional.empty() : groupSpread;
+            habitatDisplayName = habitatDisplayName.map(String::strip);
+            if (habitatDisplayName.isPresent() && habitatDisplayName.get().isBlank()) {
+                throw new IllegalArgumentException("habitatDisplayName must not be blank when present");
+            }
+        }
+
+        PopulationPresence(
+                String populationKey,
+                String speciesDisplayName,
+                int visibleActors,
+                int visibleAlphas,
+                Optional<MigrationPhase> migrationPhase,
+                Optional<String> habitatDisplayName
+        ) {
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, migrationPhase, habitatDisplayName,
+                    Optional.empty());
+        }
+
+        PopulationPresence(
+                String populationKey,
+                String speciesDisplayName,
+                int visibleActors,
+                int visibleAlphas,
+                Optional<MigrationPhase> migrationPhase
+        ) {
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, migrationPhase, Optional.empty(),
+                    Optional.empty());
+        }
+
+        PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, Optional.empty(), Optional.empty(),
+                    Optional.empty());
         }
     }
 
@@ -99,11 +161,21 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         String populationKey = focusedProjection.populationKey();
         int visibleActors = 0;
         int visibleAlphas = 0;
-        for (WildEcologyProjectionRegistry.ProjectedActor projection : projections) {
-            if (projection == null || projection.actor().isRemoved()) continue;
-            if (!populationKey.equals(projection.populationKey())) continue;
+        double maxPairDistanceSquared = 0.0D;
+        List<WildEcologyProjectionRegistry.ProjectedActor> population = projections.stream()
+                .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
+                .filter(candidate -> populationKey.equals(candidate.populationKey()))
+                .toList();
+        for (WildEcologyProjectionRegistry.ProjectedActor projection : population) {
             visibleActors++;
             if (projection.socialRole() == WildSocialRole.ALPHA) visibleAlphas++;
+        }
+        for (int left = 0; left < population.size(); left++) {
+            for (int right = left + 1; right < population.size(); right++) {
+                double dx = population.get(left).actor().getX() - population.get(right).actor().getX();
+                double dz = population.get(left).actor().getZ() - population.get(right).actor().getZ();
+                maxPairDistanceSquared = Math.max(maxPairDistanceSquared, dx * dx + dz * dz);
+            }
         }
         if (visibleActors <= 0) return null;
 
@@ -111,7 +183,25 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 populationKey,
                 WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
                 visibleActors,
-                visibleAlphas);
+                visibleAlphas,
+                focused.migrationPhase(),
+                Optional.of(focused.habitatDisplayName()),
+                Optional.of(classifyGroupSpread(
+                        visibleActors,
+                        Math.sqrt(maxPairDistanceSquared),
+                        focusedProjection.behaviorProfile())));
+    }
+
+    static GroupSpread classifyGroupSpread(int visibleActors, double maxPairDistance, WildBehaviorProfile behaviorProfile) {
+        if (visibleActors <= 0) throw new IllegalArgumentException("visibleActors must be positive");
+        if (!Double.isFinite(maxPairDistance) || maxPairDistance < 0.0D) {
+            throw new IllegalArgumentException("maxPairDistance must be finite and non-negative");
+        }
+        if (behaviorProfile == null) throw new IllegalArgumentException("behaviorProfile is required");
+        if (visibleActors == 1) return GroupSpread.ALONE;
+        if (maxPairDistance <= behaviorProfile.separationDistance()) return GroupSpread.CLUSTERED;
+        if (maxPairDistance <= behaviorProfile.cohesionDistance()) return GroupSpread.COHESIVE;
+        return GroupSpread.DISPERSED;
     }
 
     static boolean shouldAnnounce(PopulationPresence previous, PopulationPresence current) {
@@ -119,7 +209,10 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         if (previous == null) return true;
         if (!current.populationKey().equals(previous.populationKey())) return true;
         return current.visibleActors() != previous.visibleActors()
-                || current.visibleAlphas() != previous.visibleAlphas();
+                || current.visibleAlphas() != previous.visibleAlphas()
+                || !current.migrationPhase().equals(previous.migrationPhase())
+                || !current.habitatDisplayName().equals(previous.habitatDisplayName())
+                || !current.groupSpread().equals(previous.groupSpread());
     }
 
     static String presenceText(PopulationPresence previous, PopulationPresence current) {
@@ -140,6 +233,10 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         } else if (current.visibleAlphas() > 1) {
             text.append(" · ").append(current.visibleAlphas()).append(" Alphas visible");
         }
+        current.groupSpread().ifPresent(spread -> text.append(" · ").append(spread.displayText()));
+        current.habitatDisplayName().ifPresent(habitat -> text.append(" · habitat ").append(habitat));
+        current.migrationPhase().ifPresent(phase -> text.append(" · ")
+                .append(WildHabitatCueRuntime.displayMigrationPhase(phase)));
         return text.toString();
     }
 

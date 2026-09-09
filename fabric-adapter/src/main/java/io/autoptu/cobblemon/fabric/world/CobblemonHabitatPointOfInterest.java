@@ -21,7 +21,7 @@ import java.util.Optional;
  * authority remains in AutoPTU-owned descriptors and blueprints.</p>
  */
 final class CobblemonHabitatPointOfInterest {
-    private static final int VERTICAL_SCAN_RADIUS_BLOCKS = 8;
+    private static final int VERTICAL_SCAN_RADIUS_BLOCKS = 16;
     private static final int MAX_HORIZONTAL_SCAN_RADIUS_BLOCKS = 24;
     private static final int CACHE_TICKS = 100;
     private static final Map<MinecraftServer, Map<String, CachedPoint>> CACHE = new IdentityHashMap<>();
