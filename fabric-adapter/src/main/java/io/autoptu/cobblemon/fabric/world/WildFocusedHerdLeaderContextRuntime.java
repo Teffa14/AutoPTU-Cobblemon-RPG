@@ -22,16 +22,19 @@ import java.util.UUID;
  *
  * <p>The relationship is resolved only from same-population ecology projections whose social role is explicitly
  * {@link WildSocialRole#ALPHA} and whose descriptor explicitly requests herd-leader presentation. Minecraft
- * positions and vanilla server visibility only describe proximity, separation, direction and occlusion. No
- * Cobblemon herd AI or Pokemon gameplay payload is an authority input, and this runtime supplies no PTU effects.</p>
+ * positions, observed velocity and vanilla server visibility only describe proximity, separation, direction,
+ * movement and occlusion. No Cobblemon herd AI or Pokemon gameplay payload is an authority input, and this
+ * runtime supplies no PTU effects.</p>
  */
 public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final double MOVING_HORIZONTAL_SPEED_SQUARED = 0.0001D;
     private static final Map<MinecraftServer, Map<UUID, LeaderContext>> REMEMBERED = new IdentityHashMap<>();
 
     record LeaderContext(String populationKey, UUID leaderActorId, String speciesDisplayName, boolean withinSeparation,
                          boolean withinCohesion, int horizontalDistanceBlocks, int verticalOffsetBlocks, String compassDirection,
-                         String leaderHabitatDisplayName, boolean leaderInFocusedHabitat, boolean leaderVisibleToPlayer) {
+                         String leaderHabitatDisplayName, boolean leaderInFocusedHabitat, boolean leaderVisibleToPlayer,
+                         boolean leaderMoving) {
         LeaderContext {
             if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
             if (leaderActorId == null) throw new IllegalArgumentException("leaderActorId is required");
@@ -95,7 +98,13 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return new LeaderContext(member.populationKey(), alpha.actor().getUuid(), WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
                 horizontalDistanceSquared <= separation * separation, horizontalDistanceSquared <= cohesion * cohesion,
                 roundedHorizontalDistanceBlocks(horizontalDistanceSquared), roundedVerticalOffsetBlocks(dy), compassDirection(dx, dz),
-                alpha.habitatDisplayName(), member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()));
+                alpha.habitatDisplayName(), member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()),
+                isMoving(alpha.actor().getVelocity().x, alpha.actor().getVelocity().z));
+    }
+
+    static boolean isMoving(double velocityX, double velocityZ) {
+        if (!Double.isFinite(velocityX) || !Double.isFinite(velocityZ)) throw new IllegalArgumentException("horizontal velocity must be finite");
+        return velocityX * velocityX + velocityZ * velocityZ >= MOVING_HORIZONTAL_SPEED_SQUARED;
     }
 
     static int roundedHorizontalDistanceBlocks(double horizontalDistanceSquared) {
@@ -140,7 +149,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 || current.withinSeparation() != previous.withinSeparation() || current.withinCohesion() != previous.withinCohesion()
                 || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks() || current.verticalOffsetBlocks() != previous.verticalOffsetBlocks()
                 || !current.compassDirection().equals(previous.compassDirection()) || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName())
-                || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat() || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer();
+                || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat() || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer()
+                || current.leaderMoving() != previous.leaderMoving();
     }
 
     static String contextText(LeaderContext context) {
@@ -148,6 +158,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return "Herd leader — Alpha " + context.speciesDisplayName() + " · " + proximityText(context)
                 + " · " + context.horizontalDistanceBlocks() + " blocks · " + context.compassDirection() + " · " + verticalRelationText(context.verticalOffsetBlocks())
                 + (context.leaderVisibleToPlayer() ? " · visible" : " · obscured")
+                + (context.leaderMoving() ? " · moving" : " · holding")
                 + (context.leaderInFocusedHabitat() ? " · same habitat" : " · leader habitat " + context.leaderHabitatDisplayName());
     }
 
