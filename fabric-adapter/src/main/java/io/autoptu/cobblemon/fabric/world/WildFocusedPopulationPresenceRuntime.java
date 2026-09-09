@@ -21,10 +21,10 @@ import java.util.UUID;
 /**
  * Surfaces the visible population around the player's currently focused canonical WILD.
  *
- * <p>The count, projected habitat, ambient social-role context, group spread and optional migration phase come
- * only from server-owned ecology projections and the authored descriptor behind the focused actor. Cobblemon
- * entities provide presentation identity and observed Minecraft geometry only. This runtime never derives PTU
- * legality, stats, HP, moves, RNG, statuses, capture, encounter outcomes or battle results.</p>
+ * <p>The count, focused social role, projected habitat, ambient social-role context, group spread and optional
+ * migration phase come only from server-owned ecology projections and the authored descriptor behind the focused
+ * actor. Cobblemon entities provide presentation identity and observed Minecraft geometry only. This runtime never
+ * derives PTU legality, stats, HP, moves, RNG, statuses, capture, encounter outcomes or battle results.</p>
  */
 public final class WildFocusedPopulationPresenceRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -54,7 +54,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             int visibleAlphas,
             Optional<MigrationPhase> migrationPhase,
             Optional<String> habitatDisplayName,
-            Optional<GroupSpread> groupSpread
+            Optional<GroupSpread> groupSpread,
+            Optional<WildSocialRole> focusedSocialRole
     ) {
         PopulationPresence {
             if (populationKey == null || populationKey.isBlank()) {
@@ -72,6 +73,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             migrationPhase = migrationPhase == null ? Optional.empty() : migrationPhase;
             habitatDisplayName = habitatDisplayName == null ? Optional.empty() : habitatDisplayName;
             groupSpread = groupSpread == null ? Optional.empty() : groupSpread;
+            focusedSocialRole = focusedSocialRole == null ? Optional.empty() : focusedSocialRole;
             habitatDisplayName = habitatDisplayName.map(String::strip);
             if (habitatDisplayName.isPresent() && habitatDisplayName.get().isBlank()) {
                 throw new IllegalArgumentException("habitatDisplayName must not be blank when present");
@@ -84,10 +86,23 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 int visibleActors,
                 int visibleAlphas,
                 Optional<MigrationPhase> migrationPhase,
+                Optional<String> habitatDisplayName,
+                Optional<GroupSpread> groupSpread
+        ) {
+            this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, migrationPhase, habitatDisplayName,
+                    groupSpread, Optional.empty());
+        }
+
+        PopulationPresence(
+                String populationKey,
+                String speciesDisplayName,
+                int visibleActors,
+                int visibleAlphas,
+                Optional<MigrationPhase> migrationPhase,
                 Optional<String> habitatDisplayName
         ) {
             this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, migrationPhase, habitatDisplayName,
-                    Optional.empty());
+                    Optional.empty(), Optional.empty());
         }
 
         PopulationPresence(
@@ -98,12 +113,12 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 Optional<MigrationPhase> migrationPhase
         ) {
             this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, migrationPhase, Optional.empty(),
-                    Optional.empty());
+                    Optional.empty(), Optional.empty());
         }
 
         PopulationPresence(String populationKey, String speciesDisplayName, int visibleActors, int visibleAlphas) {
             this(populationKey, speciesDisplayName, visibleActors, visibleAlphas, Optional.empty(), Optional.empty(),
-                    Optional.empty());
+                    Optional.empty(), Optional.empty());
         }
     }
 
@@ -189,7 +204,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 Optional.of(classifyGroupSpread(
                         visibleActors,
                         Math.sqrt(maxPairDistanceSquared),
-                        focusedProjection.behaviorProfile())));
+                        focusedProjection.behaviorProfile())),
+                Optional.of(focusedProjection.socialRole()));
     }
 
     static GroupSpread classifyGroupSpread(int visibleActors, double maxPairDistance, WildBehaviorProfile behaviorProfile) {
@@ -212,7 +228,8 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
                 || current.visibleAlphas() != previous.visibleAlphas()
                 || !current.migrationPhase().equals(previous.migrationPhase())
                 || !current.habitatDisplayName().equals(previous.habitatDisplayName())
-                || !current.groupSpread().equals(previous.groupSpread());
+                || !current.groupSpread().equals(previous.groupSpread())
+                || !current.focusedSocialRole().equals(previous.focusedSocialRole());
     }
 
     static String presenceText(PopulationPresence previous, PopulationPresence current) {
@@ -232,6 +249,9 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
             text.append(" · Alpha visible");
         } else if (current.visibleAlphas() > 1) {
             text.append(" · ").append(current.visibleAlphas()).append(" Alphas visible");
+        }
+        if (current.focusedSocialRole().orElse(null) == WildSocialRole.ALPHA) {
+            text.append(" · focused Alpha");
         }
         current.groupSpread().ifPresent(spread -> text.append(" · ").append(spread.displayText()));
         current.habitatDisplayName().ifPresent(habitat -> text.append(" · habitat ").append(habitat));
