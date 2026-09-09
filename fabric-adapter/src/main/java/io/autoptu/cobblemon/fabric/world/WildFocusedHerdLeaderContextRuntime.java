@@ -29,13 +29,14 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
     private static final int UPDATE_INTERVAL_TICKS = 10;
     private static final Map<MinecraftServer, Map<UUID, LeaderContext>> REMEMBERED = new IdentityHashMap<>();
 
-    record LeaderContext(String populationKey, UUID leaderActorId, String speciesDisplayName, boolean withinCohesion,
-                         int horizontalDistanceBlocks, int verticalOffsetBlocks, String compassDirection,
+    record LeaderContext(String populationKey, UUID leaderActorId, String speciesDisplayName, boolean withinSeparation,
+                         boolean withinCohesion, int horizontalDistanceBlocks, int verticalOffsetBlocks, String compassDirection,
                          String leaderHabitatDisplayName, boolean leaderInFocusedHabitat, boolean leaderVisibleToPlayer) {
         LeaderContext {
             if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
             if (leaderActorId == null) throw new IllegalArgumentException("leaderActorId is required");
             if (speciesDisplayName == null || speciesDisplayName.isBlank()) throw new IllegalArgumentException("speciesDisplayName is required");
+            if (withinSeparation && !withinCohesion) throw new IllegalArgumentException("withinSeparation requires withinCohesion");
             if (horizontalDistanceBlocks < 0) throw new IllegalArgumentException("horizontalDistanceBlocks must be non-negative");
             if (compassDirection == null || compassDirection.isBlank()) throw new IllegalArgumentException("compassDirection is required");
             if (leaderHabitatDisplayName == null || leaderHabitatDisplayName.isBlank()) throw new IllegalArgumentException("leaderHabitatDisplayName is required");
@@ -89,10 +90,12 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         double dy = alpha.actor().getY() - member.actor().getY();
         double dz = alpha.actor().getZ() - member.actor().getZ();
         double horizontalDistanceSquared = dx * dx + dz * dz;
+        double separation = member.behaviorProfile().separationDistance();
         double cohesion = member.behaviorProfile().cohesionDistance();
         return new LeaderContext(member.populationKey(), alpha.actor().getUuid(), WildHabitatCueRuntime.displaySpeciesName(focused.speciesId()),
-                horizontalDistanceSquared <= cohesion * cohesion, roundedHorizontalDistanceBlocks(horizontalDistanceSquared), roundedVerticalOffsetBlocks(dy),
-                compassDirection(dx, dz), alpha.habitatDisplayName(), member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()));
+                horizontalDistanceSquared <= separation * separation, horizontalDistanceSquared <= cohesion * cohesion,
+                roundedHorizontalDistanceBlocks(horizontalDistanceSquared), roundedVerticalOffsetBlocks(dy), compassDirection(dx, dz),
+                alpha.habitatDisplayName(), member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()));
     }
 
     static int roundedHorizontalDistanceBlocks(double horizontalDistanceSquared) {
@@ -115,6 +118,13 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return magnitude + (magnitude == 1L ? " block " : " blocks ") + (verticalOffsetBlocks > 0 ? "above" : "below");
     }
 
+    static String proximityText(LeaderContext context) {
+        if (context == null) throw new IllegalArgumentException("context is required");
+        if (context.withinSeparation()) return "clustered";
+        if (context.withinCohesion()) return "nearby";
+        return "regrouping distance";
+    }
+
     static String compassDirection(double dx, double dz) {
         if (!Double.isFinite(dx) || !Double.isFinite(dz)) throw new IllegalArgumentException("leader offset must be finite");
         if (dx == 0.0D && dz == 0.0D) return "here";
@@ -127,15 +137,15 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
     static boolean shouldAnnounce(LeaderContext previous, LeaderContext current) {
         if (current == null) return false;
         return previous == null || !current.populationKey().equals(previous.populationKey()) || !current.leaderActorId().equals(previous.leaderActorId())
-                || current.withinCohesion() != previous.withinCohesion() || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks()
-                || current.verticalOffsetBlocks() != previous.verticalOffsetBlocks() || !current.compassDirection().equals(previous.compassDirection())
-                || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName()) || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat()
-                || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer();
+                || current.withinSeparation() != previous.withinSeparation() || current.withinCohesion() != previous.withinCohesion()
+                || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks() || current.verticalOffsetBlocks() != previous.verticalOffsetBlocks()
+                || !current.compassDirection().equals(previous.compassDirection()) || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName())
+                || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat() || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer();
     }
 
     static String contextText(LeaderContext context) {
         if (context == null) throw new IllegalArgumentException("context is required");
-        return "Herd leader — Alpha " + context.speciesDisplayName() + (context.withinCohesion() ? " · nearby" : " · regrouping distance")
+        return "Herd leader — Alpha " + context.speciesDisplayName() + " · " + proximityText(context)
                 + " · " + context.horizontalDistanceBlocks() + " blocks · " + context.compassDirection() + " · " + verticalRelationText(context.verticalOffsetBlocks())
                 + (context.leaderVisibleToPlayer() ? " · visible" : " · obscured")
                 + (context.leaderInFocusedHabitat() ? " · same habitat" : " · leader habitat " + context.leaderHabitatDisplayName());
