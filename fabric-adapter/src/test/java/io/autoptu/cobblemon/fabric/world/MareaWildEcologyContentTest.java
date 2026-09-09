@@ -14,53 +14,53 @@ class MareaWildEcologyContentTest {
     private static final String STOPOVER_SITE = "ouros.marea.sendero_crossing";
 
     @Test
-    void lowerShelfMigrationIsAuthoredDataConsumedByTheGlobalProjectionResolver() {
+    void lowerShelfMigrationIsAuthoredDataConsumedByCanonicalDescriptor() {
         var population = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
-        var resolver = WildPopulationContentRegistry.projectionResolver(MareaWildEcologyContent.projectionProfiles());
+        var descriptor = MareaWildEcologyContent.descriptors().getFirst();
 
-        assertEquals(HOME_SITE, resolver.projectedSiteId(population, 0L).orElseThrow());
-        assertEquals(HOME_SITE, resolver.projectedSiteId(population, 84_000L).orElseThrow());
-        assertTrue(resolver.projectedSiteId(population, 85_000L).isEmpty());
-        assertEquals(STOPOVER_SITE, resolver.projectedSiteId(population, 100_000L).orElseThrow());
-        assertEquals(HOME_SITE, resolver.projectedSiteId(population, 168_000L).orElseThrow());
+        assertEquals(HOME_SITE, descriptor.projectedSiteId(population, 0L).orElseThrow());
+        assertEquals(HOME_SITE, descriptor.projectedSiteId(population, 84_000L).orElseThrow());
+        assertTrue(descriptor.projectedSiteId(population, 85_000L).isEmpty());
+        assertEquals(STOPOVER_SITE, descriptor.projectedSiteId(population, 100_000L).orElseThrow());
+        assertEquals(HOME_SITE, descriptor.projectedSiteId(population, 168_000L).orElseThrow());
     }
 
     @Test
-    void repeatedResolutionIsStableAndResidentMareaPopulationFallsBackToItsAuthoredHome() {
+    void repeatedDescriptorResolutionIsStableAndResidentPopulationFallsBackToAuthoredHome() {
         var migrating = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
         var resident = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID)
                 .orElseThrow();
-        var resolver = WildPopulationContentRegistry.projectionResolver(MareaWildEcologyContent.projectionProfiles());
+        var descriptor = MareaWildEcologyContent.descriptors().getFirst();
 
-        var first = resolver.projectedSiteId(migrating, 100_000L);
-        var second = resolver.projectedSiteId(migrating, 100_000L);
+        var first = descriptor.projectedSiteId(migrating, 100_000L);
+        var second = descriptor.projectedSiteId(migrating, 100_000L);
 
         assertEquals(first, second);
-        assertEquals(resident.siteId(), resolver.projectedSiteId(resident, 100_000L).orElseThrow());
+        assertEquals(resident.siteId(), descriptor.projectedSiteId(resident, 100_000L).orElseThrow());
     }
 
     @Test
-    void contentRegistersProjectionAndBehaviorDataWithoutARegionalRuntime() {
+    void contentExposesOneCanonicalDescriptorWithoutParallelProjectionView() {
         assertEquals(1, MareaWildEcologyContent.projectionProfiles().size());
         assertEquals(
                 CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
                 MareaWildEcologyContent.projectionProfiles().getFirst().populationId()
         );
-        assertEquals(1, MareaWildEcologyContent.ecologyProjectionSources().size());
+        assertEquals(1, MareaWildEcologyContent.descriptors().size());
 
-        var source = MareaWildEcologyContent.ecologyProjectionSources().getFirst();
+        var descriptor = MareaWildEcologyContent.descriptors().getFirst();
         var marea = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
-        assertEquals("fixture.ouros.marea", source.sourceId());
-        assertTrue(source.populationSelector().test(marea));
-        assertNotNull(source.behaviorProfile());
-        assertSame(source.behaviorProfile(), MareaWildEcologyContent.ecologyProjectionSources().getFirst().behaviorProfile());
+        assertEquals("fixture.ouros.marea", descriptor.sourceId());
+        assertTrue(descriptor.populationSelector().test(marea));
+        assertNotNull(descriptor.behaviorProfile());
+        assertSame(descriptor.behaviorProfile(), MareaWildEcologyContent.descriptors().getFirst().behaviorProfile());
     }
 
     @Test
