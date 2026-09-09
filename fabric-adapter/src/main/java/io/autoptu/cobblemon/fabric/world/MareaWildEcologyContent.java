@@ -40,7 +40,7 @@ final class MareaWildEcologyContent {
                             WildPopulationProjectionProfile.Window.site(LOWER_SHELF_OUTBOUND_TRANSIT_END_TICK, LOWER_SHELF_STOPOVER_END_TICK, MigrationPhase.STOPOVER, LOWER_SHELF_STOPOVER_SITE_ID),
                             WildPopulationProjectionProfile.Window.site(LOWER_SHELF_STOPOVER_END_TICK, LOWER_SHELF_FINAL_TRANSIT_END_TICK, MigrationPhase.IN_TRANSIT, LOWER_SHELF_STOPOVER_SITE_ID),
                             WildPopulationProjectionProfile.Window.site(LOWER_SHELF_FINAL_TRANSIT_END_TICK, LOWER_SHELF_ARRIVAL_END_TICK, MigrationPhase.ARRIVING, LOWER_SHELF_STOPOVER_SITE_ID),
-                            WildPopulationProjectionProfile.Window.site(LOWER_SHELF_ARRIVAL_END_TICK, LOWER_SHELF_CYCLE_TICKS, MigrationPhase.SEASONAL_RESIDENCE, LOWER_SHELF_STOPOVER_SITE_ID)))));
+                            WildPopulationProjectionProfile.Window.site(LOWER_SHELF_ARRIVAL_END_TICK, LOWER_SHELF_CYCLE_TICKS, MigrationPhase.SEASONAL_RESIDENCE, LOWER_SHELF_STOPOVER_SITE_ID))));
 
     private static final List<WildEcologyDescriptorRegistry.Descriptor> DESCRIPTORS = List.of(
             new WildEcologyDescriptorRegistry.Descriptor(
