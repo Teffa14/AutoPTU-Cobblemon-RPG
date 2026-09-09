@@ -53,6 +53,29 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
+    void cueTrailCreatesThreeObservedBreadcrumbsTowardLeader() {
+        var north = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, -12.0D);
+        assertEquals(3, north.size());
+        assertEquals(-0.35D, north.get(0).z(), EPSILON);
+        assertEquals(-0.70D, north.get(1).z(), EPSILON);
+        assertEquals(-1.05D, north.get(2).z(), EPSILON);
+        assertEquals(0.0D, north.get(2).x(), EPSILON);
+
+        var diagonal = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(3.0D, 4.0D);
+        assertEquals(3, diagonal.size());
+        assertEquals(0.35D, Math.hypot(diagonal.get(0).x(), diagonal.get(0).z()), EPSILON);
+        assertEquals(0.70D, Math.hypot(diagonal.get(1).x(), diagonal.get(1).z()), EPSILON);
+        assertEquals(1.05D, Math.hypot(diagonal.get(2).x(), diagonal.get(2).z()), EPSILON);
+        assertTrue(diagonal.get(2).x() > diagonal.get(1).x());
+        assertTrue(diagonal.get(2).z() > diagonal.get(1).z());
+
+        var coincident = WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, 0.0D);
+        assertEquals(1, coincident.size());
+        assertEquals(0.0D, coincident.get(0).x(), EPSILON);
+        assertEquals(0.0D, coincident.get(0).z(), EPSILON);
+    }
+
+    @Test
     void invalidMinecraftGeometryFailsClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.isOutsideCohesion(Double.NaN, 0.0D, 6.0D));
@@ -74,5 +97,9 @@ final class WildHerdRegroupingPresentationRuntimeTest {
                 () -> WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(Double.NaN, 0.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, Double.NEGATIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(Double.NaN, 0.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueTrailTowardLeader(0.0D, Double.POSITIVE_INFINITY));
     }
 }
