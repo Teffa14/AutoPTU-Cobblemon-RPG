@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
     private static final int MAX_PARTICLE_COUNT = 6;
     private static final double EXCESS_BLOCKS_PER_EXTRA_PARTICLE = 4.0D;
     private static final double CUE_OFFSET_TOWARD_LEADER = 0.35D;
+    private static final int CUE_TRAIL_POINTS = 3;
     private static final double BASE_CUE_HEIGHT = 0.18D;
     private static final double MAX_CUE_HEIGHT = 0.42D;
     private static final double EXTRA_HEIGHT_PER_EXCESS_BLOCK = 0.02D;
@@ -57,12 +59,15 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
             double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
             int particleCount = cueParticleCount(horizontalDistance, cohesionDistance);
             double cueHeight = cueVerticalOffset(horizontalDistance, cohesionDistance);
-            CueOffset cueOffset = cueOffsetTowardLeader(-dx, -dz);
-            world.spawnParticles(
-                    ParticleTypes.CLOUD,
-                    member.actor().getX() + cueOffset.x(), member.actor().getY() + member.actor().getHeight() + cueHeight,
-                    member.actor().getZ() + cueOffset.z(),
-                    particleCount, 0.10D, 0.05D, 0.10D, 0.003D);
+            List<CueOffset> cueTrail = cueTrailTowardLeader(-dx, -dz);
+            for (int index = 0; index < cueTrail.size(); index++) {
+                CueOffset cueOffset = cueTrail.get(index);
+                world.spawnParticles(
+                        ParticleTypes.CLOUD,
+                        member.actor().getX() + cueOffset.x(), member.actor().getY() + member.actor().getHeight() + cueHeight,
+                        member.actor().getZ() + cueOffset.z(),
+                        index == 0 ? particleCount : 1, 0.10D, 0.05D, 0.10D, 0.003D);
+            }
             projected++;
         }
         return projected;
@@ -110,6 +115,22 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         if (horizontalDistance == 0.0D) return new CueOffset(0.0D, 0.0D);
         double scale = CUE_OFFSET_TOWARD_LEADER / horizontalDistance;
         return new CueOffset(leaderDx * scale, leaderDz * scale);
+    }
+
+    static List<CueOffset> cueTrailTowardLeader(double leaderDx, double leaderDz) {
+        if (!Double.isFinite(leaderDx) || !Double.isFinite(leaderDz)) {
+            throw new IllegalArgumentException("leader offset must be finite");
+        }
+        double horizontalDistance = Math.hypot(leaderDx, leaderDz);
+        if (horizontalDistance == 0.0D) return List.of(new CueOffset(0.0D, 0.0D));
+        double unitX = leaderDx / horizontalDistance;
+        double unitZ = leaderDz / horizontalDistance;
+        List<CueOffset> offsets = new ArrayList<>(CUE_TRAIL_POINTS);
+        for (int index = 1; index <= CUE_TRAIL_POINTS; index++) {
+            double distance = CUE_OFFSET_TOWARD_LEADER * index;
+            offsets.add(new CueOffset(unitX * distance, unitZ * distance));
+        }
+        return List.copyOf(offsets);
     }
 
     private static boolean isActiveVisibleMember(WildEcologyProjectionRegistry.ProjectedActor candidate) {
