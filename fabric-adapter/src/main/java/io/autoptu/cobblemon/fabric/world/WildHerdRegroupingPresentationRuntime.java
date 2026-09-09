@@ -21,7 +21,9 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
     private static final int MAX_PARTICLE_COUNT = 6;
     private static final double EXCESS_BLOCKS_PER_EXTRA_PARTICLE = 4.0D;
     private static final double CUE_OFFSET_TOWARD_LEADER = 0.35D;
-    private static final int CUE_TRAIL_POINTS = 3;
+    private static final int BASE_CUE_TRAIL_POINTS = 2;
+    private static final int MAX_CUE_TRAIL_POINTS = 5;
+    private static final double EXCESS_BLOCKS_PER_EXTRA_TRAIL_POINT = 4.0D;
     private static final double BASE_CUE_HEIGHT = 0.18D;
     private static final double MAX_CUE_HEIGHT = 0.42D;
     private static final double EXTRA_HEIGHT_PER_EXCESS_BLOCK = 0.02D;
@@ -59,7 +61,8 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
             double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
             int particleCount = cueParticleCount(horizontalDistance, cohesionDistance);
             double cueHeight = cueVerticalOffset(horizontalDistance, cohesionDistance);
-            List<CueOffset> cueTrail = cueTrailTowardLeader(-dx, -dz);
+            int trailPoints = cueTrailPointCount(horizontalDistance, cohesionDistance);
+            List<CueOffset> cueTrail = cueTrailTowardLeader(-dx, -dz, trailPoints);
             for (int index = 0; index < cueTrail.size(); index++) {
                 CueOffset cueOffset = cueTrail.get(index);
                 world.spawnParticles(
@@ -92,6 +95,13 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         return Math.min(MAX_PARTICLE_COUNT, BASE_PARTICLE_COUNT + extra);
     }
 
+    static int cueTrailPointCount(double horizontalDistance, double cohesionDistance) {
+        validateDistances(horizontalDistance, cohesionDistance);
+        double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
+        int extra = (int) Math.floor(excess / EXCESS_BLOCKS_PER_EXTRA_TRAIL_POINT);
+        return Math.min(MAX_CUE_TRAIL_POINTS, BASE_CUE_TRAIL_POINTS + extra);
+    }
+
     static double cueVerticalOffset(double horizontalDistance, double cohesionDistance) {
         validateDistances(horizontalDistance, cohesionDistance);
         double excess = Math.max(0.0D, horizontalDistance - cohesionDistance);
@@ -118,15 +128,22 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
     }
 
     static List<CueOffset> cueTrailTowardLeader(double leaderDx, double leaderDz) {
+        return cueTrailTowardLeader(leaderDx, leaderDz, 3);
+    }
+
+    static List<CueOffset> cueTrailTowardLeader(double leaderDx, double leaderDz, int maxPoints) {
         if (!Double.isFinite(leaderDx) || !Double.isFinite(leaderDz)) {
             throw new IllegalArgumentException("leader offset must be finite");
+        }
+        if (maxPoints < 1 || maxPoints > MAX_CUE_TRAIL_POINTS) {
+            throw new IllegalArgumentException("maxPoints must be between 1 and " + MAX_CUE_TRAIL_POINTS);
         }
         double horizontalDistance = Math.hypot(leaderDx, leaderDz);
         if (horizontalDistance == 0.0D) return List.of(new CueOffset(0.0D, 0.0D));
         double unitX = leaderDx / horizontalDistance;
         double unitZ = leaderDz / horizontalDistance;
-        List<CueOffset> offsets = new ArrayList<>(CUE_TRAIL_POINTS);
-        for (int index = 1; index <= CUE_TRAIL_POINTS; index++) {
+        List<CueOffset> offsets = new ArrayList<>(maxPoints);
+        for (int index = 1; index <= maxPoints; index++) {
             double distance = Math.min(CUE_OFFSET_TOWARD_LEADER * index, horizontalDistance);
             offsets.add(new CueOffset(unitX * distance, unitZ * distance));
             if (distance >= horizontalDistance) break;
