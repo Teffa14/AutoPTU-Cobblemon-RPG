@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildFocusedPopulationPresenceRuntimeTest {
     @Test
-    void announcesInitialFocusPopulationSwitchCountAuthoredAlphaMigrationHabitatAndSpreadChanges() {
+    void announcesInitialFocusPopulationSwitchCountAuthoredAlphaMigrationHabitatSpreadAndFocusedRoleChanges() {
         var two = presence("ouros.marea.lower_shelf", 2, 0);
         var three = presence("ouros.marea.lower_shelf", 3, 0);
         var alphaPresent = presence("ouros.marea.lower_shelf", 3, 1);
@@ -24,6 +24,8 @@ final class WildFocusedPopulationPresenceRuntimeTest {
                 WildFocusedPopulationPresenceRuntime.GroupSpread.COHESIVE);
         var dispersed = presenceWithSpread("ouros.marea.lower_shelf", 3, 1,
                 WildFocusedPopulationPresenceRuntime.GroupSpread.DISPERSED);
+        var focusedMember = presenceWithRole("ouros.marea.lower_shelf", 3, 1, WildSocialRole.MEMBER);
+        var focusedAlpha = presenceWithRole("ouros.marea.lower_shelf", 3, 1, WildSocialRole.ALPHA);
         var otherPopulation = presence("ouros.sendero.seasonal_crossing", 3, 0);
 
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(null, two));
@@ -38,6 +40,8 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(lowerShelf, lowerShelf));
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(cohesive, dispersed));
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(cohesive, cohesive));
+        assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(focusedMember, focusedAlpha));
+        assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(focusedAlpha, focusedAlpha));
         assertTrue(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, otherPopulation));
         assertFalse(WildFocusedPopulationPresenceRuntime.shouldAnnounce(two, null));
     }
@@ -73,6 +77,20 @@ final class WildFocusedPopulationPresenceRuntimeTest {
         assertEquals(
                 "Wild population — Fletchling · 4 WILD visible · 2 Alphas visible",
                 WildFocusedPopulationPresenceRuntime.presenceText(null, presence("ouros.marea.lower_shelf", 4, 2)));
+    }
+
+    @Test
+    void messageIdentifiesWhenTheFocusedCanonicalActorIsTheAuthoredAlpha() {
+        assertEquals(
+                "Wild population — Fletchling · 3 WILD visible · Alpha visible · focused Alpha",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        null,
+                        presenceWithRole("ouros.marea.lower_shelf", 3, 1, WildSocialRole.ALPHA)));
+        assertEquals(
+                "Wild population — Fletchling · 3 WILD visible · Alpha visible",
+                WildFocusedPopulationPresenceRuntime.presenceText(
+                        null,
+                        presenceWithRole("ouros.marea.lower_shelf", 3, 1, WildSocialRole.MEMBER)));
     }
 
     @Test
@@ -225,5 +243,22 @@ final class WildFocusedPopulationPresenceRuntimeTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of(spread));
+    }
+
+    private static WildFocusedPopulationPresenceRuntime.PopulationPresence presenceWithRole(
+            String populationKey,
+            int visibleActors,
+            int visibleAlphas,
+            WildSocialRole role
+    ) {
+        return new WildFocusedPopulationPresenceRuntime.PopulationPresence(
+                populationKey,
+                "Fletchling",
+                visibleActors,
+                visibleAlphas,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(role));
     }
 }
