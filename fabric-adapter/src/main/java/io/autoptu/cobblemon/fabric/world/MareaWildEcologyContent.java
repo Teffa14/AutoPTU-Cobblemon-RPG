@@ -34,39 +34,13 @@ final class MareaWildEcologyContent {
                     CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
                     LOWER_SHELF_CYCLE_TICKS,
                     List.of(
-                            WildPopulationProjectionProfile.Window.home(
-                                    0L, LOWER_SHELF_DEPARTURE_TICK, MigrationPhase.PREPARING),
-                            WildPopulationProjectionProfile.Window.home(
-                                    LOWER_SHELF_DEPARTURE_TICK,
-                                    LOWER_SHELF_DEPARTURE_TICK + 1L,
-                                    MigrationPhase.DEPARTING),
-                            WildPopulationProjectionProfile.Window.hidden(
-                                    LOWER_SHELF_DEPARTURE_TICK + 1L,
-                                    LOWER_SHELF_OUTBOUND_TRANSIT_END_TICK,
-                                    MigrationPhase.IN_TRANSIT),
-                            WildPopulationProjectionProfile.Window.site(
-                                    LOWER_SHELF_OUTBOUND_TRANSIT_END_TICK,
-                                    LOWER_SHELF_STOPOVER_END_TICK,
-                                    MigrationPhase.STOPOVER,
-                                    LOWER_SHELF_STOPOVER_SITE_ID),
-                            WildPopulationProjectionProfile.Window.site(
-                                    LOWER_SHELF_STOPOVER_END_TICK,
-                                    LOWER_SHELF_FINAL_TRANSIT_END_TICK,
-                                    MigrationPhase.IN_TRANSIT,
-                                    LOWER_SHELF_STOPOVER_SITE_ID),
-                            WildPopulationProjectionProfile.Window.site(
-                                    LOWER_SHELF_FINAL_TRANSIT_END_TICK,
-                                    LOWER_SHELF_ARRIVAL_END_TICK,
-                                    MigrationPhase.ARRIVING,
-                                    LOWER_SHELF_STOPOVER_SITE_ID),
-                            WildPopulationProjectionProfile.Window.site(
-                                    LOWER_SHELF_ARRIVAL_END_TICK,
-                                    LOWER_SHELF_CYCLE_TICKS,
-                                    MigrationPhase.SEASONAL_RESIDENCE,
-                                    LOWER_SHELF_STOPOVER_SITE_ID)
-                    )
-            )
-    );
+                            WildPopulationProjectionProfile.Window.home(0L, LOWER_SHELF_DEPARTURE_TICK, MigrationPhase.PREPARING),
+                            WildPopulationProjectionProfile.Window.home(LOWER_SHELF_DEPARTURE_TICK, LOWER_SHELF_DEPARTURE_TICK + 1L, MigrationPhase.DEPARTING),
+                            WildPopulationProjectionProfile.Window.hidden(LOWER_SHELF_DEPARTURE_TICK + 1L, LOWER_SHELF_OUTBOUND_TRANSIT_END_TICK, MigrationPhase.IN_TRANSIT),
+                            WildPopulationProjectionProfile.Window.site(LOWER_SHELF_OUTBOUND_TRANSIT_END_TICK, LOWER_SHELF_STOPOVER_END_TICK, MigrationPhase.STOPOVER, LOWER_SHELF_STOPOVER_SITE_ID),
+                            WildPopulationProjectionProfile.Window.site(LOWER_SHELF_STOPOVER_END_TICK, LOWER_SHELF_FINAL_TRANSIT_END_TICK, MigrationPhase.IN_TRANSIT, LOWER_SHELF_STOPOVER_SITE_ID),
+                            WildPopulationProjectionProfile.Window.site(LOWER_SHELF_FINAL_TRANSIT_END_TICK, LOWER_SHELF_ARRIVAL_END_TICK, MigrationPhase.ARRIVING, LOWER_SHELF_STOPOVER_SITE_ID),
+                            WildPopulationProjectionProfile.Window.site(LOWER_SHELF_ARRIVAL_END_TICK, LOWER_SHELF_CYCLE_TICKS, MigrationPhase.SEASONAL_RESIDENCE, LOWER_SHELF_STOPOVER_SITE_ID)))));
 
     private static final List<WildEcologyDescriptorRegistry.Descriptor> DESCRIPTORS = List.of(
             new WildEcologyDescriptorRegistry.Descriptor(
@@ -76,29 +50,20 @@ final class MareaWildEcologyContent {
                     PROJECTION_PROFILES,
                     new MareaCanonicalWildEncounterBlueprintSource(),
                     encounter -> encounter.speciesStatus() == CanonicalWildEncounterCatalogue.SpeciesStatus.OFFICIAL
-                            && !encounter.fusion()
-                            && "standard".equals(encounter.formId()),
+                            && !encounter.fusion() && "standard".equals(encounter.formId()),
                     AMBIENT_BEHAVIOR_PROFILE,
+                    encounter -> AUTHORED_ALPHA_ENCOUNTERS.contains(encounter.canonicalEncounterId()) ? WildSocialRole.ALPHA : WildSocialRole.MEMBER,
                     encounter -> AUTHORED_ALPHA_ENCOUNTERS.contains(encounter.canonicalEncounterId())
-                            ? WildSocialRole.ALPHA
-                            : WildSocialRole.MEMBER)
-    );
+                            ? WildEcologyDescriptorRegistry.PresentationCapabilities.ALPHA_HERD_LEADER
+                            : WildEcologyDescriptorRegistry.PresentationCapabilities.NONE));
 
     private MareaWildEcologyContent() {}
-
-    static List<WildPopulationProjectionProfile> projectionProfiles() {
-        return PROJECTION_PROFILES;
-    }
-
-    static List<WildEcologyDescriptorRegistry.Descriptor> descriptors() {
-        return DESCRIPTORS;
-    }
+    static List<WildPopulationProjectionProfile> projectionProfiles() { return PROJECTION_PROFILES; }
+    static List<WildEcologyDescriptorRegistry.Descriptor> descriptors() { return DESCRIPTORS; }
 
     /** Legacy test/fixture view; production registers only {@link #descriptors()}. */
     static List<WildEcologyProjectionContentRegistry.Source> ecologyProjectionSources() {
-        return DESCRIPTORS.stream()
-                .map(descriptor -> new WildEcologyProjectionContentRegistry.Source(
-                        descriptor.sourceId(), descriptor.populationSelector(), descriptor.behaviorProfile()))
-                .toList();
+        return DESCRIPTORS.stream().map(descriptor -> new WildEcologyProjectionContentRegistry.Source(
+                descriptor.sourceId(), descriptor.populationSelector(), descriptor.behaviorProfile())).toList();
     }
 }
