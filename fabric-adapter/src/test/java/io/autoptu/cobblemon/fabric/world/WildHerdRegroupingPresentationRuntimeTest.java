@@ -28,6 +28,15 @@ final class WildHerdRegroupingPresentationRuntimeTest {
     }
 
     @Test
+    void cueHeightScalesWithObservedDistanceBeyondAuthoredCohesion() {
+        assertEquals(0.18D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(5.0D, 5.0D), EPSILON);
+        assertEquals(0.20D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(6.0D, 5.0D), EPSILON);
+        assertEquals(0.30D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(11.0D, 5.0D), EPSILON);
+        assertEquals(0.42D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(17.0D, 5.0D), EPSILON);
+        assertEquals(0.42D, WildHerdRegroupingPresentationRuntime.cueVerticalOffset(500.0D, 5.0D), EPSILON);
+    }
+
+    @Test
     void cueCenterPointsTowardObservedCanonicalLeader() {
         var north = WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(0.0D, -12.0D);
         assertEquals(0.0D, north.x(), EPSILON);
@@ -57,6 +66,10 @@ final class WildHerdRegroupingPresentationRuntimeTest {
                 () -> WildHerdRegroupingPresentationRuntime.cueParticleCount(Double.NaN, 5.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueParticleCount(10.0D, Double.POSITIVE_INFINITY));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueVerticalOffset(Double.POSITIVE_INFINITY, 5.0D));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildHerdRegroupingPresentationRuntime.cueVerticalOffset(10.0D, -1.0D));
         assertThrows(IllegalArgumentException.class,
                 () -> WildHerdRegroupingPresentationRuntime.cueOffsetTowardLeader(Double.NaN, 0.0D));
         assertThrows(IllegalArgumentException.class,
