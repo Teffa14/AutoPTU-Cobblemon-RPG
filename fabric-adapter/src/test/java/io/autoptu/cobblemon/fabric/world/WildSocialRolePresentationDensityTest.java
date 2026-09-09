@@ -25,10 +25,21 @@ final class WildSocialRolePresentationDensityTest {
     }
 
     @Test
+    void markerHeightRisesWithGatheredMembersAndStaysBounded() {
+        assertEquals(0.35D, WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(0), 0.000001D);
+        assertEquals(0.40D, WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(1), 0.000001D);
+        assertEquals(0.55D, WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(4), 0.000001D);
+        assertEquals(0.65D, WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(6), 0.000001D);
+        assertEquals(0.65D, WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(Integer.MAX_VALUE), 0.000001D);
+    }
+
+    @Test
     void invalidGatheredMemberCountFailsClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> WildSocialRolePresentationRuntime.particleCountForHerdMemberCount(-1));
         assertThrows(IllegalArgumentException.class,
                 () -> WildSocialRolePresentationRuntime.markerSpreadForHerdMemberCount(-1));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(-1));
     }
 }
