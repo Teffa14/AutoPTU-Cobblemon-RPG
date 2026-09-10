@@ -63,6 +63,19 @@ class WildEcologyDescriptorRegistryTest {
     }
 
     @Test
+    void nonAlphaRoleCannotAcquireAlphaPresentationCapabilities() {
+        var base = MareaWildEcologyContent.descriptors().getFirst();
+        var descriptor = new WildEcologyDescriptorRegistry.Descriptor(
+                "test.member-alpha-capability",
+                base.populationSelector(), base.worldEligibility(), base.projectionProfiles(), base.blueprintSource(),
+                base.projectionEligibility(), base.behaviorProfile(), encounter -> WildSocialRole.MEMBER,
+                encounter -> WildEcologyDescriptorRegistry.PresentationCapabilities.ALPHA_HERD_LEADER);
+        var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(CanonicalWildEncounterCatalogue.MAREA_FIRST_FLETCHLING_ID).orElseThrow();
+        assertEquals(WildSocialRole.MEMBER, descriptor.socialRole(encounter));
+        assertEquals(WildEcologyDescriptorRegistry.PresentationCapabilities.NONE, descriptor.presentationCapabilities(encounter));
+    }
+
+    @Test
     void descriptorRejectsDuplicateProjectionCalendarsForOnePopulation() {
         var profile = MareaWildEcologyContent.projectionProfiles().getFirst();
         var base = MareaWildEcologyContent.descriptors().getFirst();
