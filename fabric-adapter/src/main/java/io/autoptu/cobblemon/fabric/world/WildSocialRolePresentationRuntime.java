@@ -42,10 +42,11 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
         for (var projection : projections) {
             var actor = projection.actor();
             if (actor.isRemoved()) continue;
-            if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
+            boolean interactionActive = VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid());
             var capabilities = projection.presentationCapabilities();
-            projectNativeAlphaVisual(actor, capabilities.nativeAlphaVisual());
+            projectNativeAlphaVisual(actor, shouldProjectNativeAlphaVisual(interactionActive, capabilities));
+            if (!interactionActive) continue;
             if (!capabilities.herdLeaderPresentation() || actor.isInvisible()) continue;
 
             int gatheredMembers = gatheredHerdMemberCount(projection, projections);
@@ -58,6 +59,19 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
             projected++;
         }
         return projected;
+    }
+
+    /**
+     * An authored native-Alpha visual is valid only while the visible WILD remains interaction-active.
+     * Reservation/battle handoff therefore clears the synchronized presentation bit instead of leaving a stale
+     * world marker behind. This method controls presentation only and never changes canonical encounter state.
+     */
+    static boolean shouldProjectNativeAlphaVisual(
+            boolean interactionActive,
+            WildEcologyDescriptorRegistry.PresentationCapabilities capabilities
+    ) {
+        if (capabilities == null) throw new IllegalArgumentException("capabilities are required");
+        return interactionActive && capabilities.nativeAlphaVisual();
     }
 
     /**
