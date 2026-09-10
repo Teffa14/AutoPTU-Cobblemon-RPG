@@ -282,6 +282,9 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         Map<String, Integer> alphasByPopulation = new LinkedHashMap<>();
         Map<String, String> labelsByPopulation = new LinkedHashMap<>();
         for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+            if (!contributesToHabitatCue(VisibleWildPokemonEncounterRuntime.isInteractionActive(projection.actor().getUuid()))) {
+                continue;
+            }
             circlesByPopulation.computeIfAbsent(projection.populationKey(), ignored -> new ArrayList<>())
                     .add(new HabitatCircle(
                             projection.habitatCenterX(),
@@ -307,6 +310,10 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                     alphasByPopulation.getOrDefault(entry.getKey(), 0)));
         }
         return Map.copyOf(habitats);
+    }
+
+    static boolean contributesToHabitatCue(boolean interactionActive) {
+        return interactionActive;
     }
 
     static boolean containsHorizontal(double playerX, double playerZ, HabitatCue habitat) {
