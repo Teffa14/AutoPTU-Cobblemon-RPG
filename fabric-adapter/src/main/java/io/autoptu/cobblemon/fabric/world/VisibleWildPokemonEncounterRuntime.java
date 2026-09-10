@@ -184,9 +184,15 @@ public final class VisibleWildPokemonEncounterRuntime {
         else INTERACTION_ACTIVE.remove(entityUuid);
 
         // The binding retains the canonical presentation body across an ordinary chunk unload.
-        // Synchronize only Minecraft visibility with the server-owned interaction state; never read
-        // the Cobblemon Pokemon payload or infer battle legality from this presentation flag.
-        binding.presentationEntity().setInvisible(!active);
+        // Synchronize only Minecraft world/presentation state with the server-owned interaction state;
+        // never read the Cobblemon Pokemon payload or infer battle legality from these projection controls.
+        PokemonEntity actor = binding.presentationEntity();
+        actor.setInvisible(!active);
+        if (!active) {
+            actor.getNavigation().stop();
+            var velocity = actor.getVelocity();
+            actor.setVelocity(0.0D, velocity.y, 0.0D);
+        }
     }
 
     static Optional<UUID> boundEntityUuid(String canonicalEncounterId) {
