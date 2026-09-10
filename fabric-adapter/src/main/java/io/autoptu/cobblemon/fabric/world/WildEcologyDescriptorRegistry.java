@@ -139,6 +139,10 @@ public final class WildEcologyDescriptorRegistry {
             if (encounter == null) throw new IllegalArgumentException("encounter is required");
             PresentationCapabilities capabilities = presentationCapabilitiesResolver.apply(encounter);
             if (capabilities == null) throw new IllegalStateException("wild ecology presentation capability resolver returned null for " + encounter.canonicalEncounterId());
+            if (socialRole(encounter) != WildSocialRole.ALPHA
+                    && (capabilities.nativeAlphaVisual() || capabilities.herdLeaderPresentation())) {
+                return PresentationCapabilities.NONE;
+            }
             return capabilities;
         }
     }
