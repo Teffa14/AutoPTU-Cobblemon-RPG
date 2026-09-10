@@ -19,9 +19,9 @@ import java.util.UUID;
  * <p>This runtime only runs for visible interaction-active herd members during authored CALM
  * movement windows with no nearby player guard. If the member has drifted beyond its authored
  * cohesion distance, it may start a leash-safe Minecraft navigation path toward a safe spacing
- * point around the same-population Alpha already published by the server ecology projection. The
- * Alpha role has no PTU initiative, movement, targeting, stat, damage, reward or encounter
- * authority.</p>
+ * point around a same-population Alpha whose server-authored ecology descriptor explicitly enables
+ * herd-leader presentation. The Alpha role alone never grants leadership. This presentation has no
+ * PTU initiative, movement, targeting, stat, damage, reward or encounter authority.</p>
  */
 public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -137,6 +137,7 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
                 .filter(candidate -> candidate != null)
                 .filter(candidate -> candidate.actorId() != null && !candidate.actorId().equals(actorId))
                 .filter(candidate -> candidate.socialRole() == WildSocialRole.ALPHA)
+                .filter(AlphaCandidate::herdLeaderPresentation)
                 .filter(AlphaCandidate::interactionActive)
                 .filter(candidate -> populationKey.equals(candidate.populationKey()))
                 .filter(candidate -> Double.isFinite(candidate.x()) && Double.isFinite(candidate.z()))
@@ -190,6 +191,7 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
                     actor.getX(),
                     actor.getZ(),
                     candidate.socialRole(),
+                    candidate.presentationCapabilities().herdLeaderPresentation(),
                     VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())));
         }
         return List.copyOf(candidates);
@@ -221,6 +223,7 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
             double x,
             double z,
             WildSocialRole socialRole,
+            boolean herdLeaderPresentation,
             boolean interactionActive
     ) {}
 }
