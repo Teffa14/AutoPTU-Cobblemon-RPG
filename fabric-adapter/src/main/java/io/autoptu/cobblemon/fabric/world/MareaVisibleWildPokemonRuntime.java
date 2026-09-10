@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
  *
  * <p>Normal activation, reconciliation, provisioning orchestration, binding and actor lifecycle now
  * belong to {@link WildPopulationRuntime}. Marea contributes authored content through
- * {@link WildPopulationContentRegistry}; this class no longer owns production lifecycle policy.</p>
+ * {@link WildEcologyDescriptorRegistry}; this class no longer owns production lifecycle policy.</p>
  */
 public final class MareaVisibleWildPokemonRuntime {
     private MareaVisibleWildPokemonRuntime() {}
