@@ -153,6 +153,10 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         long worldTick = world.getTime();
 
         for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+            if (!contributesToMigrationContext(
+                    VisibleWildPokemonEncounterRuntime.isInteractionActive(projection.actor().getUuid()))) {
+                continue;
+            }
             var binding = VisibleWildPokemonEncounterRuntime.binding(projection.actor().getUuid()).orElse(null);
             if (binding == null) continue;
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter =
@@ -193,6 +197,10 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
                     context.populationId(), context.habitatDisplayName(), context.phase(), context.circles()));
         }
         return Map.copyOf(result);
+    }
+
+    static boolean contributesToMigrationContext(boolean interactionActive) {
+        return interactionActive;
     }
 
     static MigrationPhase authoredPhase(ServerWorld world, String populationId) {
