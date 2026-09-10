@@ -48,7 +48,7 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var projectedSiteId = WildPopulationContentRegistry.projectedSiteId(population, world.getTime());
+            var projectedSiteId = WildEcologyDescriptorRegistry.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
@@ -110,18 +110,6 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
         return path != null && actor.getNavigation().startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
     }
 
-    /**
-     * Finds a Minecraft-native path toward the already-authored CALM X/Z destination.
-     *
-     * The actor's current Y remains the first attempt for flat terrain. If Minecraft reports a
-     * different motion-blocking surface at the exact target column, a second attempt uses that
-     * surface height. The target column and every accepted path node must remain on locally stable
-     * Minecraft surface. Consecutive path-node surfaces may climb or descend by at most one block,
-     * so ordinary slopes remain usable while abrupt ledges are rejected. Every node must also have
-     * clear actor-sized presentation volume before movement starts, including no overlap with another
-     * interaction-active visible wild Pokemon. This only supplies Minecraft presentation geometry;
-     * X/Z destination and leash authority remain unchanged.
-     */
     static Path findLeashSafeNativePath(
             PokemonEntity actor,
             double centerX,
