@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,6 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class WildAmbientBehaviorRuntimeTest {
     private static final UUID ACTOR = UUID.fromString("00000000-0000-0000-0000-000000000111");
     private static final UUID SIBLING = UUID.fromString("00000000-0000-0000-0000-000000000222");
+
+    @Test
+    void ambientPresentationStopsDuringEncounterReservationOrBattleHandoff() {
+        assertTrue(WildAmbientBehaviorRuntime.ambientPresentationAllowed(true));
+        assertFalse(WildAmbientBehaviorRuntime.ambientPresentationAllowed(false));
+    }
 
     @Test
     void roamingTargetIsDeterministicInsideAnyAuthoredHabitatLeash() {
