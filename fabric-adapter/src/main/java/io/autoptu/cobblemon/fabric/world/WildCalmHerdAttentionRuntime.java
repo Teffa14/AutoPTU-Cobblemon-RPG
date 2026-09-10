@@ -15,12 +15,12 @@ import java.util.UUID;
  * Generic server-owned herd attention for visible wild actors during CALM rest windows.
  *
  * <p>The presentation anchor is selected only from interaction-active actors already published by
- * the canonical ecology projection for the same population. Canonically authored Alpha actors are
- * preferred inside the same cohesion radius; otherwise the nearest eligible member remains the
- * anchor. Selection uses only server-owned ecology role, server-observed world position and stable
- * Minecraft actor identity. Species, level, stats, moves, abilities and Cobblemon gameplay state are
- * never read. The anchor is presentation-only and has no PTU initiative, leadership or battle
- * semantics.</p>
+ * the canonical ecology projection for the same population. An authored Alpha receives leader
+ * preference only when its descriptor explicitly enables herd-leader presentation; otherwise it is
+ * treated like any other nearby presentation anchor. Selection uses only server-owned ecology role,
+ * authored presentation capability, server-observed world position and stable Minecraft actor
+ * identity. Species, level, stats, moves, abilities and Cobblemon gameplay state are never read.
+ * The anchor is presentation-only and has no PTU initiative, leadership or battle semantics.</p>
  */
 public final class WildCalmHerdAttentionRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
@@ -103,7 +103,9 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
                 })
                 .min(Comparator
                         .comparingInt((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
-                                socialRolePriority(candidate.socialRole()))
+                                socialRolePriority(
+                                        candidate.socialRole(),
+                                        candidate.presentationCapabilities().herdLeaderPresentation()))
                         .thenComparingDouble(candidate -> horizontalDistanceSquared(actor, candidate.actor()))
                         .thenComparing(candidate -> candidate.actor().getUuid()));
     }
@@ -134,7 +136,8 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
                     return distanceSquared > MIN_ANCHOR_DISTANCE_SQUARED && distanceSquared <= maxDistanceSquared;
                 })
                 .min(Comparator
-                        .comparingInt((AnchorCandidate candidate) -> socialRolePriority(candidate.socialRole()))
+                        .comparingInt((AnchorCandidate candidate) ->
+                                socialRolePriority(candidate.socialRole(), candidate.herdLeaderPresentation()))
                         .thenComparingDouble(candidate ->
                                 horizontalDistanceSquared(actorX, actorZ, candidate.x(), candidate.z()))
                         .thenComparing(AnchorCandidate::actorId))
@@ -151,8 +154,8 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
         return deterministicPreferredAnchorIdentity(actorId, actorX, actorZ, cohesionDistance, candidates);
     }
 
-    private static int socialRolePriority(WildSocialRole role) {
-        return role == WildSocialRole.ALPHA ? 0 : 1;
+    private static int socialRolePriority(WildSocialRole role, boolean herdLeaderPresentation) {
+        return role == WildSocialRole.ALPHA && herdLeaderPresentation ? 0 : 1;
     }
 
     private static double horizontalDistanceSquared(PokemonEntity first, PokemonEntity second) {
@@ -184,9 +187,13 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
         return false;
     }
 
-    record AnchorCandidate(UUID actorId, double x, double z, WildSocialRole socialRole) {
+    record AnchorCandidate(UUID actorId, double x, double z, WildSocialRole socialRole, boolean herdLeaderPresentation) {
         AnchorCandidate(UUID actorId, double x, double z) {
-            this(actorId, x, z, WildSocialRole.MEMBER);
+            this(actorId, x, z, WildSocialRole.MEMBER, false);
+        }
+
+        AnchorCandidate(UUID actorId, double x, double z, WildSocialRole socialRole) {
+            this(actorId, x, z, socialRole, socialRole == WildSocialRole.ALPHA);
         }
     }
 }

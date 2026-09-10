@@ -25,6 +25,18 @@ final class WildCalmHerdAttentionRuntimeTest {
     }
 
     @Test
+    void alphaWithoutHerdLeaderCapabilityHasNoLeaderPreference() {
+        List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(
+                        LOW, 8.0D, 0.0D, WildSocialRole.ALPHA, false),
+                new WildCalmHerdAttentionRuntime.AnchorCandidate(
+                        HIGH, 2.0D, 0.0D, WildSocialRole.MEMBER, false));
+
+        assertEquals(HIGH, WildCalmHerdAttentionRuntime.deterministicPreferredAnchorIdentity(
+                SELF, 0.0D, 0.0D, 10.0D, candidates).orElseThrow());
+    }
+
+    @Test
     void nearestEligibleMemberWinsWhenNoAlphaIsEligible() {
         List<WildCalmHerdAttentionRuntime.AnchorCandidate> candidates = List.of(
                 new WildCalmHerdAttentionRuntime.AnchorCandidate(LOW, 8.0D, 0.0D),
