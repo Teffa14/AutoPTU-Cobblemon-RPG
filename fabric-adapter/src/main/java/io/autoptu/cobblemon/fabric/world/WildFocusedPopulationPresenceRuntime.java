@@ -169,6 +169,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         WildEcologyProjectionRegistry.ProjectedActor focusedProjection = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> candidate.actor().getUuid().equals(focused.actorId()))
+                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
                 .findFirst()
                 .orElse(null);
         if (focusedProjection == null) return null;
@@ -180,6 +181,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         List<WildEcologyProjectionRegistry.ProjectedActor> population = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> populationKey.equals(candidate.populationKey()))
+                .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
                 .toList();
         for (WildEcologyProjectionRegistry.ProjectedActor projection : population) {
             visibleActors++;
