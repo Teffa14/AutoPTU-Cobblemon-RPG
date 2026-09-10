@@ -4,13 +4,16 @@ import com.cobblemon.mod.common.CobblemonBlocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.Heightmap;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Read-only bridge from Cobblemon 1.8 Habitat Blocks to AutoPTU ambient ecology presentation.
@@ -22,6 +25,8 @@ import java.util.Optional;
  */
 final class CobblemonHabitatPointOfInterest {
     private static final int VERTICAL_SCAN_RADIUS_BLOCKS = 16;
+    private static final int SURFACE_SCAN_BELOW_BLOCKS = 4;
+    private static final int SURFACE_SCAN_ABOVE_BLOCKS = 2;
     private static final int MAX_HORIZONTAL_SCAN_RADIUS_BLOCKS = 24;
     private static final int CACHE_TICKS = 100;
     private static final Map<MinecraftServer, Map<String, CachedPoint>> CACHE = new IdentityHashMap<>();
@@ -65,38 +70,68 @@ final class CobblemonHabitatPointOfInterest {
                 projection.habitatLeashRadiusBlocks(),
                 MAX_HORIZONTAL_SCAN_RADIUS_BLOCKS);
         int centerX = (int) Math.floor(projection.habitatCenterX());
-        int centerY = projection.actor().getBlockY();
+        int actorY = projection.actor().getBlockY();
         int centerZ = (int) Math.floor(projection.habitatCenterZ());
-        List<BlockPos> candidates = new ArrayList<>();
+        Set<BlockPos> candidates = new LinkedHashSet<>();
 
         double leashSquared = (double) projection.habitatLeashRadiusBlocks()
                 * projection.habitatLeashRadiusBlocks();
         for (int dx = -horizontalRadius; dx <= horizontalRadius; dx++) {
             for (int dz = -horizontalRadius; dz <= horizontalRadius; dz++) {
-                double worldX = centerX + dx + 0.5D;
-                double worldZ = centerZ + dz + 0.5D;
+                int x = centerX + dx;
+                int z = centerZ + dz;
+                double worldX = x + 0.5D;
+                double worldZ = z + 0.5D;
                 double leashDx = worldX - projection.habitatCenterX();
                 double leashDz = worldZ - projection.habitatCenterZ();
                 if (leashDx * leashDx + leashDz * leashDz > leashSquared) continue;
 
-                for (int dy = -VERTICAL_SCAN_RADIUS_BLOCKS; dy <= VERTICAL_SCAN_RADIUS_BLOCKS; dy++) {
-                    BlockPos pos = new BlockPos(centerX + dx, centerY + dy, centerZ + dz);
-                    if (!world.isChunkLoaded(pos)) continue;
-                    if (world.getBlockState(pos).isOf(CobblemonBlocks.HABITAT_BLOCK)) {
-                        candidates.add(pos);
-                    }
-                }
+                BlockPos loadedProbe = new BlockPos(x, actorY, z);
+                if (!world.isChunkLoaded(loadedProbe)) continue;
+
+                scanVerticalWindow(
+                        world,
+                        x,
+                        z,
+                        actorY - VERTICAL_SCAN_RADIUS_BLOCKS,
+                        actorY + VERTICAL_SCAN_RADIUS_BLOCKS,
+                        candidates);
+
+                int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+                scanVerticalWindow(
+                        world,
+                        x,
+                        z,
+                        surfaceY - SURFACE_SCAN_BELOW_BLOCKS,
+                        surfaceY + SURFACE_SCAN_ABOVE_BLOCKS,
+                        candidates);
             }
         }
 
         return selectNearest(
-                candidates,
+                new ArrayList<>(candidates),
                 projection.actor().getX(),
                 projection.actor().getY(),
                 projection.actor().getZ(),
                 projection.habitatCenterX(),
                 projection.habitatCenterZ(),
                 projection.habitatLeashRadiusBlocks());
+    }
+
+    private static void scanVerticalWindow(
+            ServerWorld world,
+            int x,
+            int z,
+            int minY,
+            int maxY,
+            Set<BlockPos> candidates
+    ) {
+        for (int y = minY; y <= maxY; y++) {
+            BlockPos pos = new BlockPos(x, y, z);
+            if (world.getBlockState(pos).isOf(CobblemonBlocks.HABITAT_BLOCK)) {
+                candidates.add(pos.toImmutable());
+            }
+        }
     }
 
     static Optional<BlockPos> selectNearest(

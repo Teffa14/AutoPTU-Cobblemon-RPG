@@ -53,6 +53,13 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
             if (actor.isRemoved() || actor.isInvisible()) continue;
             liveActors.add(actor.getUuid());
 
+            boolean interactionActive = VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid());
+            if (!ambientPresentationAllowed(interactionActive)) {
+                controllers.remove(actor.getUuid());
+                suspendInteractionInactivePresentation(actor);
+                continue;
+            }
+
             ServerPlayerEntity nearest = nearestPlayer(world, actor);
             WildBehaviorProfile profile = projection.behaviorProfile();
             AmbientPokemonBehaviorController controller = controllers.computeIfAbsent(
@@ -64,6 +71,28 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
         }
 
         controllers.keySet().removeIf(uuid -> !liveActors.contains(uuid));
+    }
+
+    /**
+     * Ambient ecology is a world-presentation concern and participates only while the visible actor is available
+     * for world interaction. A durable encounter reservation or battle handoff owns the actor transition, so the
+     * ecology runtime must stop contributing roaming, recovery, alarm or herd motion until world interaction is
+     * reactivated. This policy does not imply PTU movement legality or battle state.
+     */
+    static boolean ambientPresentationAllowed(boolean interactionActive) {
+        return interactionActive;
+    }
+
+    /**
+     * Stops only Minecraft presentation locomotion while an actor is reserved for encounter/battle transition.
+     * Vertical velocity is preserved so Minecraft gravity/fluid presentation remains native; no canonical RPG or
+     * PTU state is mutated here.
+     */
+    static void suspendInteractionInactivePresentation(PokemonEntity actor) {
+        if (actor == null || actor.isRemoved()) return;
+        actor.getNavigation().stop();
+        actor.setVelocity(0.0D, actor.getVelocity().y, 0.0D);
+        actor.velocityModified = true;
     }
 
     private static ServerPlayerEntity nearestPlayer(ServerWorld world, PokemonEntity actor) {
@@ -144,6 +173,8 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
             if (candidate.actor().getUuid().equals(actor.actor().getUuid())) continue;
             if (!candidate.populationKey().equals(actor.populationKey())) continue;
             if (candidate.actor().isRemoved() || candidate.actor().isInvisible()) continue;
+            if (!ambientPresentationAllowed(
+                    VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))) continue;
             double distance = actor.actor().squaredDistanceTo(candidate.actor());
             if (distance < nearestDistance) {
                 nearestDistance = distance;
