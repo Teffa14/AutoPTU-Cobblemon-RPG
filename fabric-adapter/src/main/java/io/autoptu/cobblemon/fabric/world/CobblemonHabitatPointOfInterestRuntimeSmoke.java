@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
  * Dedicated-server probe for the Cobblemon 1.8 Habitat Block presentation bridge.
  *
  * <p>The probe places one default Habitat Block only for the duration of this synchronous method,
- * verifies its real 1.8 block-entity type and AutoPTU POI discovery, then restores air before a
- * server tick can let Cobblemon's native spawner execute. It never reads or writes habitat spawn
- * configuration.</p>
+ * verifies its real 1.8 block-entity type and AutoPTU POI discovery, then restores the exact
+ * previous block state before a server tick can let Cobblemon's native spawner execute. It never
+ * reads or writes habitat spawn configuration.</p>
  */
 public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
@@ -40,10 +40,10 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
         }
 
         var projection = projections.getFirst();
-        BlockPos probePos = findAirProbePosition(world, projection);
+        BlockPos probePos = findProbePosition(world, projection);
         BlockState original = world.getBlockState(probePos);
-        if (!original.isAir()) {
-            throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke requires a temporary air probe position");
+        if (world.getBlockEntity(probePos) != null) {
+            throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke must not replace a block entity");
         }
 
         CobblemonHabitatPointOfInterest.clear(server);
@@ -74,30 +74,38 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
         }
     }
 
-    private static BlockPos findAirProbePosition(
+    private static BlockPos findProbePosition(
             ServerWorld world,
             WildEcologyProjectionRegistry.ProjectedActor projection
     ) {
         BlockPos actorAnchor = projection.actor().getBlockPos();
-        BlockPos nearActor = findLoadedAirProbePosition(
-                world, projection, actorAnchor.getX(), actorAnchor.getY(), actorAnchor.getZ());
+        BlockPos nearActor = findLoadedProbePosition(
+                world, projection, actorAnchor.getX(), actorAnchor.getY(), actorAnchor.getZ(), true);
         if (nearActor != null) return nearActor;
 
         int centerX = (int) Math.floor(projection.habitatCenterX());
         int centerZ = (int) Math.floor(projection.habitatCenterZ());
-        BlockPos nearCenter = findLoadedAirProbePosition(
-                world, projection, centerX, actorAnchor.getY(), centerZ);
+        BlockPos nearCenter = findLoadedProbePosition(
+                world, projection, centerX, actorAnchor.getY(), centerZ, true);
         if (nearCenter != null) return nearCenter;
 
-        throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke found no loaded air position inside canonical leash");
+        nearActor = findLoadedProbePosition(
+                world, projection, actorAnchor.getX(), actorAnchor.getY(), actorAnchor.getZ(), false);
+        if (nearActor != null) return nearActor;
+        nearCenter = findLoadedProbePosition(
+                world, projection, centerX, actorAnchor.getY(), centerZ, false);
+        if (nearCenter != null) return nearCenter;
+
+        throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke found no safe loaded probe position inside canonical leash");
     }
 
-    private static BlockPos findLoadedAirProbePosition(
+    private static BlockPos findLoadedProbePosition(
             ServerWorld world,
             WildEcologyProjectionRegistry.ProjectedActor projection,
             int anchorX,
             int baseY,
-            int anchorZ
+            int anchorZ,
+            boolean airOnly
     ) {
         int horizontalRadius = Math.min(
                 projection.habitatLeashRadiusBlocks(),
@@ -113,7 +121,11 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
                             projection.habitatCenterX(),
                             projection.habitatCenterZ(),
                             projection.habitatLeashRadiusBlocks())) continue;
-                    if (world.getBlockState(candidate).isAir()) return candidate;
+                    BlockState state = world.getBlockState(candidate);
+                    if (airOnly && !state.isAir()) continue;
+                    if (world.getBlockEntity(candidate) != null) continue;
+                    if (state.isOf(CobblemonBlocks.HABITAT_BLOCK)) continue;
+                    return candidate;
                 }
             }
         }
