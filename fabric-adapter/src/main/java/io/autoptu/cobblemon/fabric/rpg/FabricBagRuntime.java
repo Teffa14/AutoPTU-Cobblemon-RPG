@@ -70,7 +70,9 @@ public final class FabricBagRuntime {
 
     /**
      * Normal-player bag surface. Every page transition re-reads canonical inventory, clamps the requested page
-     * against current server state and builds a fresh read-only slot-to-canonical-instance mapping.
+     * against current server state and builds a fresh read-only slot-to-canonical-instance mapping. The same
+     * server pass also computes an informational item-use preflight for every displayed stack. Clicking a stack
+     * never trusts that snapshot: the server re-resolves the exact canonical stack and runs canUse again.
      */
     static int openPlayerBagScreen(ServerPlayerEntity player, int requestedPage) {
         if (!hasCanonicalTrainer(player)) return 0;
@@ -82,6 +84,11 @@ public final class FabricBagRuntime {
             return 1;
         }
 
+        CanonicalItemUseService itemUseService = useService(player);
+        List<CanonicalItemUseService.Decision> readiness = bag.entries().stream()
+                .map(entry -> itemUseService.canUse(usePreflightRequest(playerId, entry.itemInstanceId())))
+                .toList();
+
         int page = FabricCanonicalBagScreenHandler.clampPage(requestedPage, bag.entries().size());
         int pageCount = FabricCanonicalBagScreenHandler.pageCount(bag.entries().size());
         player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
@@ -89,6 +96,7 @@ public final class FabricBagRuntime {
                         syncId,
                         playerInventory,
                         bag.entries(),
+                        readiness,
                         page),
                 Text.literal("AutoPTU Bag " + (page + 1) + "/" + pageCount)));
         return 1;
@@ -109,14 +117,8 @@ public final class FabricBagRuntime {
             return 0;
         }
 
-        CanonicalItemUseService.Decision decision = useService(player).canUse(new CanonicalItemUseService.Request(
-                playerId,
-                entry.itemInstanceId(),
-                playerId,
-                USE_PREFLIGHT_CONTEXT,
-                true,
-                true
-        ));
+        CanonicalItemUseService.Decision decision = useService(player).canUse(
+                usePreflightRequest(playerId, entry.itemInstanceId()));
         player.sendMessage(Text.literal(formatUsePreflight(entry.itemInstanceId(), decision)), true);
         return decision.allowed() ? 1 : 0;
     }
@@ -135,19 +137,24 @@ public final class FabricBagRuntime {
 
         CanonicalItemUseService useService = useService(player);
         for (CanonicalBagQueryService.BagEntry entry : inspection.entries()) {
-            CanonicalItemUseService.Decision decision = useService.canUse(new CanonicalItemUseService.Request(
-                    playerId,
-                    entry.itemInstanceId(),
-                    playerId,
-                    USE_PREFLIGHT_CONTEXT,
-                    true,
-                    true
-            ));
+            CanonicalItemUseService.Decision decision = useService.canUse(
+                    usePreflightRequest(playerId, entry.itemInstanceId()));
             player.sendMessage(Text.literal(formatUsePreflight(entry.itemInstanceId(), decision)), false);
         }
         player.sendMessage(Text.literal(
                 "Use preflight validates canonical ownership/availability only; authored effects and PTU legality remain separate authority."), false);
         return 1;
+    }
+
+    private static CanonicalItemUseService.Request usePreflightRequest(String playerId, String itemInstanceId) {
+        return new CanonicalItemUseService.Request(
+                playerId,
+                itemInstanceId,
+                playerId,
+                USE_PREFLIGHT_CONTEXT,
+                true,
+                true
+        );
     }
 
     private static ServerPlayerEntity requireCanonicalPlayer(ServerCommandSource source) {
