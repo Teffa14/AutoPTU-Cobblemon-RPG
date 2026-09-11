@@ -5,6 +5,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.GenericContainerScreenHandler;
@@ -94,8 +95,9 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         SimpleInventory inventory = new SimpleInventory(SLOT_COUNT);
         for (int index = 0; index < pageEntries.size(); index++) {
             CanonicalBagQueryService.BagEntry entry = pageEntries.get(index);
-            ItemStack display = new ItemStack(Items.PAPER);
-            display.set(DataComponentTypes.CUSTOM_NAME, Text.literal(displayName(entry)));
+            BagItemPresentation presentation = presentationFor(entry.templateId());
+            ItemStack display = new ItemStack(presentation.icon());
+            display.set(DataComponentTypes.CUSTOM_NAME, Text.literal(displayName(entry, presentation)));
             inventory.setStack(index, display);
         }
 
@@ -123,7 +125,14 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
     }
 
     static String displayName(CanonicalBagQueryService.BagEntry entry) {
-        StringBuilder name = new StringBuilder(entry.templateId())
+        return displayName(entry, presentationFor(entry.templateId()));
+    }
+
+    private static String displayName(
+            CanonicalBagQueryService.BagEntry entry,
+            BagItemPresentation presentation
+    ) {
+        StringBuilder name = new StringBuilder(presentation.displayName())
                 .append(" x").append(entry.quantity())
                 .append(" | available ").append(entry.availableQuantity());
         if (entry.reservedQuantity() > 0) {
@@ -134,6 +143,22 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         }
         return name.toString();
     }
+
+    /**
+     * Server-authored visual catalogue only. These vanilla icons and labels communicate identity in the
+     * Minecraft bag UI; they never grant item effects, target legality, healing, capture or PTU outcomes.
+     * Unknown canonical templates fail closed to a neutral paper icon while retaining their exact id.
+     */
+    private static BagItemPresentation presentationFor(String templateId) {
+        return switch (templateId) {
+            case "field_ration" -> new BagItemPresentation(Items.BREAD, "Field Ration");
+            case "basic_bandage" -> new BagItemPresentation(Items.WHITE_WOOL, "Basic Bandage");
+            case "revive_kit" -> new BagItemPresentation(Items.TOTEM_OF_UNDYING, "Revive Kit");
+            default -> new BagItemPresentation(Items.PAPER, templateId);
+        };
+    }
+
+    private record BagItemPresentation(Item icon, String displayName) {}
 
     private record PageProjection(
             SimpleInventory inventory,
