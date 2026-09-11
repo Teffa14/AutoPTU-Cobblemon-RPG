@@ -18,10 +18,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Surfaces the authored herd leader relationship for a player's focused canonical WILD member.
+ * Surfaces the authored herd leader relationship for a player's focused canonical WILD projection.
  *
  * <p>The relationship is resolved only from same-population ecology projections whose social role is explicitly
- * {@link WildSocialRole#ALPHA} and whose descriptor explicitly requests herd-leader presentation. Minecraft
+ * {@link WildSocialRole#ALPHA} and whose descriptor explicitly requests herd-leader presentation. Focusing that
+ * authored leader directly surfaces the same server-owned herd context instead of suppressing it. Minecraft
  * positions, observed velocity and vanilla server visibility only describe proximity, separation, direction,
  * movement, group shape and occlusion. No Cobblemon herd AI or Pokemon gameplay payload is an authority input,
  * and this runtime supplies no PTU effects.</p>
@@ -90,8 +91,10 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         if (focused == null) return null;
         var member = projections.stream().filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> candidate.actor().getUuid().equals(focused.actorId())).findFirst().orElse(null);
-        if (member == null || member.presentationCapabilities().herdLeaderPresentation()) return null;
-        var alpha = projections.stream()
+        if (member == null) return null;
+        var alpha = isAuthoredHerdLeader(member.socialRole(), member.presentationCapabilities())
+                ? member
+                : projections.stream()
                 .filter(candidate -> candidate != null)
                 .filter(candidate -> candidate.socialRole() == WildSocialRole.ALPHA)
                 .filter(candidate -> candidate.presentationCapabilities().herdLeaderPresentation())
@@ -114,6 +117,13 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 roundedHorizontalDistanceBlocks(horizontalDistanceSquared), roundedVerticalOffsetBlocks(dy), compassDirection(dx, dz),
                 alpha.habitatDisplayName(), member.habitatDisplayName().equals(alpha.habitatDisplayName()), player.canSee(alpha.actor()),
                 isMoving(alpha.actor().getVelocity().x, alpha.actor().getVelocity().z));
+    }
+
+    static boolean isAuthoredHerdLeader(
+            WildSocialRole socialRole,
+            WildEcologyDescriptorRegistry.PresentationCapabilities capabilities
+    ) {
+        return socialRole == WildSocialRole.ALPHA && capabilities != null && capabilities.herdLeaderPresentation();
     }
 
     static HerdCounts herdCounts(WildEcologyProjectionRegistry.ProjectedActor alpha, String populationKey, double separation,
