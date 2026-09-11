@@ -4,7 +4,10 @@ import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.ecology.MigrationPhase;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,8 +33,8 @@ class WildPopulationProjectionProfileTest {
     }
 
     @Test
-    void registryComposesAuthoredProfilesAndKeepsUnprofiledPopulationsAtHome() {
-        var resolver = WildPopulationContentRegistry.projectionResolver(List.of(profile()));
+    void fixtureResolverComposesAuthoredProfilesAndKeepsUnprofiledPopulationsAtHome() {
+        var resolver = projectionResolver(List.of(profile()));
         var resident = new CanonicalWildPopulationCatalogue.PopulationDefinition(
                 "ouros.other.wild.resident.v1",
                 "ouros.other.home",
@@ -44,9 +47,9 @@ class WildPopulationProjectionProfileTest {
     }
 
     @Test
-    void registryRejectsMultipleProfilesForTheSamePopulation() {
+    void fixtureResolverRejectsMultipleProfilesForTheSamePopulation() {
         assertThrows(IllegalArgumentException.class, () ->
-                WildPopulationContentRegistry.projectionResolver(List.of(profile(), profile())));
+                projectionResolver(List.of(profile(), profile())));
     }
 
     @Test
@@ -84,6 +87,34 @@ class WildPopulationProjectionProfileTest {
                 POPULATION.populationId(),
                 100L,
                 List.of(WildPopulationProjectionProfile.Window.home(0L, 99L, MigrationPhase.PREPARING))));
+    }
+
+    private static ProjectedSiteResolver projectionResolver(List<WildPopulationProjectionProfile> profiles) {
+        if (profiles == null) throw new IllegalArgumentException("profiles are required");
+        Map<String, WildPopulationProjectionProfile> byPopulation = new LinkedHashMap<>();
+        for (WildPopulationProjectionProfile profile : profiles) {
+            if (profile == null) throw new IllegalArgumentException("projection profile is required");
+            WildPopulationProjectionProfile previous = byPopulation.putIfAbsent(profile.populationId(), profile);
+            if (previous != null) {
+                throw new IllegalArgumentException("multiple projection profiles for population: " + profile.populationId());
+            }
+        }
+        Map<String, WildPopulationProjectionProfile> immutableProfiles = Map.copyOf(byPopulation);
+        return (population, worldTick) -> {
+            if (population == null) throw new IllegalArgumentException("population is required");
+            WildPopulationProjectionProfile profile = immutableProfiles.get(population.populationId());
+            return profile == null
+                    ? Optional.of(population.siteId())
+                    : profile.projectedSiteId(population, worldTick);
+        };
+    }
+
+    @FunctionalInterface
+    private interface ProjectedSiteResolver {
+        Optional<String> projectedSiteId(
+                CanonicalWildPopulationCatalogue.PopulationDefinition population,
+                long worldTick
+        );
     }
 
     private static WildPopulationProjectionProfile profile() {
