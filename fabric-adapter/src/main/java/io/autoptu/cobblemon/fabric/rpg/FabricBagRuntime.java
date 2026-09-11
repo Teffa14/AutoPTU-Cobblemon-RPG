@@ -14,13 +14,15 @@ import net.minecraft.text.ClickEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /** Read-only player bag fallback backed only by durable canonical item state. */
 public final class FabricBagRuntime {
-    private static final String USE_PREFLIGHT_CONTEXT = "bag_inspection";
+    private static final double ITEM_USE_OBSERVATION_DISTANCE = 5.0D;
 
     private FabricBagRuntime() {}
 
@@ -71,8 +73,9 @@ public final class FabricBagRuntime {
     /**
      * Normal-player bag surface. Every page transition re-reads canonical inventory, clamps the requested page
      * against current server state and builds a fresh read-only slot-to-canonical-instance mapping. The same
-     * server pass also computes an informational item-use preflight for every displayed stack. Clicking a stack
-     * never trusts that snapshot: the server re-resolves the exact canonical stack and runs canUse again.
+     * server pass also computes an informational item-use preflight for every displayed stack against the world
+     * target currently observed by the server. Clicking a stack never trusts that snapshot: the server re-resolves
+     * the exact canonical stack, observes the world again and runs canUse again.
      */
     static int openPlayerBagScreen(ServerPlayerEntity player, int requestedPage) {
         if (!hasCanonicalTrainer(player)) return 0;
@@ -86,7 +89,7 @@ public final class FabricBagRuntime {
 
         CanonicalItemUseService itemUseService = useService(player);
         List<CanonicalItemUseService.Decision> readiness = bag.entries().stream()
-                .map(entry -> itemUseService.canUse(usePreflightRequest(playerId, entry.itemInstanceId())))
+                .map(entry -> itemUseService.canUse(usePreflightRequest(player, playerId, entry.itemInstanceId())))
                 .toList();
 
         int page = FabricCanonicalBagScreenHandler.clampPage(requestedPage, bag.entries().size());
@@ -118,7 +121,7 @@ public final class FabricBagRuntime {
         }
 
         CanonicalItemUseService.Decision decision = useService(player).canUse(
-                usePreflightRequest(playerId, entry.itemInstanceId()));
+                usePreflightRequest(player, playerId, entry.itemInstanceId()));
         player.sendMessage(Text.literal(formatUsePreflight(entry.itemInstanceId(), decision)), true);
         return decision.allowed() ? 1 : 0;
     }
@@ -138,23 +141,51 @@ public final class FabricBagRuntime {
         CanonicalItemUseService useService = useService(player);
         for (CanonicalBagQueryService.BagEntry entry : inspection.entries()) {
             CanonicalItemUseService.Decision decision = useService.canUse(
-                    usePreflightRequest(playerId, entry.itemInstanceId()));
+                    usePreflightRequest(player, playerId, entry.itemInstanceId()));
             player.sendMessage(Text.literal(formatUsePreflight(entry.itemInstanceId(), decision)), false);
         }
         player.sendMessage(Text.literal(
-                "Use preflight validates canonical ownership/availability only; authored effects and PTU legality remain separate authority."), false);
+                "Use preflight validates canonical ownership/availability and server-observed Minecraft context only; PTU target legality and authored effects remain separate authority."), false);
         return 1;
     }
 
-    private static CanonicalItemUseService.Request usePreflightRequest(String playerId, String itemInstanceId) {
+    /**
+     * Build an informational item-use request from observations made on the authoritative server thread.
+     * A block under the crosshair becomes descriptive context only. Five-block Minecraft observation range is
+     * not PTU range/LoS or item targeting legality. With no observed block, the authenticated Trainer is the
+     * neutral self target. A later authoritative effect flow must perform its own PTU validation.
+     */
+    private static CanonicalItemUseService.Request usePreflightRequest(
+            ServerPlayerEntity player,
+            String playerId,
+            String itemInstanceId
+    ) {
+        ItemUseObservation observation = observeItemUse(player, playerId);
         return new CanonicalItemUseService.Request(
                 playerId,
                 itemInstanceId,
-                playerId,
-                USE_PREFLIGHT_CONTEXT,
+                observation.targetId(),
+                observation.contextId(),
                 true,
                 true
         );
+    }
+
+    private static ItemUseObservation observeItemUse(ServerPlayerEntity player, String playerId) {
+        HitResult hit = player.raycast(ITEM_USE_OBSERVATION_DISTANCE, 0.0F, false);
+        String targetId = "self:" + playerId;
+        if (hit.getType() == HitResult.Type.BLOCK && hit instanceof BlockHitResult blockHit) {
+            targetId = blockTargetId(
+                    blockHit.getBlockPos().getX(),
+                    blockHit.getBlockPos().getY(),
+                    blockHit.getBlockPos().getZ());
+        }
+        String contextId = "world:" + player.getWorld().getRegistryKey().getValue();
+        return new ItemUseObservation(targetId, contextId);
+    }
+
+    static String blockTargetId(int x, int y, int z) {
+        return "block:" + x + "," + y + "," + z;
     }
 
     private static ServerPlayerEntity requireCanonicalPlayer(ServerCommandSource source) {
@@ -202,7 +233,9 @@ public final class FabricBagRuntime {
     static String formatUsePreflight(String itemInstanceId, CanonicalItemUseService.Decision decision) {
         if (decision.allowed()) {
             return "Use preflight | stack " + itemInstanceId
-                    + " | ready | available " + decision.availableQuantity();
+                    + " | ready | available " + decision.availableQuantity()
+                    + " | target " + decision.targetId()
+                    + " | context " + decision.contextId();
         }
         return "Use preflight | stack " + itemInstanceId + " | blocked | " + decision.reason();
     }
@@ -272,4 +305,6 @@ public final class FabricBagRuntime {
         }
         return List.copyOf(lines);
     }
+
+    private record ItemUseObservation(String targetId, String contextId) {}
 }
