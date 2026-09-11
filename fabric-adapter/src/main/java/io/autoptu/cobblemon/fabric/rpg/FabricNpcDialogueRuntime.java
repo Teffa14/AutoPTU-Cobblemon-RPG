@@ -113,7 +113,7 @@ public final class FabricNpcDialogueRuntime {
             this.player = player;
             this.npcEntityId = npcEntityId;
             this.dialogue = dialogue;
-            this.displayedText = dialogue.openingLine();
+            this.displayedText = openingText();
             refresh();
         }
 
@@ -241,6 +241,19 @@ public final class FabricNpcDialogueRuntime {
                     FabricCanonicalPlayerStoreRuntime.requireWorldStoryRepository(player.getServer()),
                     FabricCanonicalPlayerStoreRuntime.requireNpcRelationshipRepository(player.getServer())
             ).inspect(playerId, dialogue.npcId());
+        }
+
+        private String openingText() {
+            CanonicalNpcDialogueViewService.DialogueView view = currentView();
+            CanonicalNpcDialogueViewService.OptionView acceptedQuest = view.options().stream()
+                    .filter(CanonicalNpcDialogueViewService.OptionView::acceptedQuest)
+                    .findFirst()
+                    .orElse(null);
+            if (acceptedQuest == null || acceptedQuest.questId() == null) return view.openingLine();
+            String title = CanonicalQuestCatalogue.DEFAULT.quest(acceptedQuest.questId())
+                    .map(CanonicalQuestCatalogue.Quest::title)
+                    .orElse(acceptedQuest.questId());
+            return "Current assignment: " + title + ". " + view.openingLine();
         }
 
         private void refresh() {
