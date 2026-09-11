@@ -70,6 +70,48 @@ final class CanonicalNpcDialogueViewServiceTest {
     }
 
     @Test
+    void cedarRangerOpeningReflectsPersistedApproachChoiceAfterRepositoryReopen() {
+        String observePlayer = "trainer:cedar-observe-opening";
+        String directPlayer = "trainer:cedar-direct-opening";
+        var journals = new FileCanonicalQuestJournalRepository(tempDir);
+        var stories = new FileCanonicalWorldStoryRepository(tempDir);
+        var storyService = new CanonicalWorldStoryService(CanonicalWorldStoryCatalogue.DEFAULT, stories);
+
+        var initial = new CanonicalNpcDialogueViewService(
+                CanonicalNpcDialogueCatalogue.DEFAULT,
+                CanonicalQuestCatalogue.DEFAULT,
+                journals,
+                stories
+        ).inspect(observePlayer, "cedar-ranger");
+        assertEquals(
+                "Welcome to Cedar Meadow. The Pokemon here react to how you approach them, so watch the field before you commit.",
+                initial.openingLine()
+        );
+
+        storyService.choose(observePlayer, "cedar-meadow-approach", "observe-first");
+        storyService.choose(directPlayer, "cedar-meadow-approach", "engage-directly");
+
+        var reopened = new CanonicalNpcDialogueViewService(
+                CanonicalNpcDialogueCatalogue.DEFAULT,
+                CanonicalQuestCatalogue.DEFAULT,
+                new FileCanonicalQuestJournalRepository(tempDir),
+                new FileCanonicalWorldStoryRepository(tempDir)
+        );
+        assertEquals(
+                "You watched before stepping into Cedar Meadow. Tell me what changed after contact so we can compare observation with reaction.",
+                reopened.inspect(observePlayer, "cedar-ranger").openingLine()
+        );
+        assertEquals(
+                "You approached Cedar Meadow directly. That is still field evidence; now separate what you saw before arrival from what reacted afterward.",
+                reopened.inspect(directPlayer, "cedar-ranger").openingLine()
+        );
+        assertEquals(
+                "Three uneven deliveries and half the market already has one perfect explanation. I would rather know what actually happened.",
+                reopened.inspect(observePlayer, "ouros.npc.ivo_serrat").openingLine()
+        );
+    }
+
+    @Test
     void taroProjectsPersistedNereaRelationshipAsQuestEligibility() {
         String playerId = "trainer:relationship-dialogue";
         var journals = new FileCanonicalQuestJournalRepository(tempDir);
