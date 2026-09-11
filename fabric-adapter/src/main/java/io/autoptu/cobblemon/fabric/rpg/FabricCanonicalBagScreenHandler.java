@@ -1,6 +1,7 @@
 package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalBagQueryService;
+import io.autoptu.cobblemon.authority.CanonicalItemUseService;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,8 +19,8 @@ import java.util.List;
 
 /**
  * Read-only vanilla-backed screen for the server-authoritative canonical bag.
- * Visible stacks and navigation controls are presentation only. Item clicks carry only a slot index;
- * the server maps that index back to the canonical item instance captured for this page and revalidates
+ * Visible stacks, readiness labels and navigation controls are presentation only. Item clicks carry only a slot
+ * index; the server maps that index back to the canonical item instance captured for this page and revalidates
  * current canonical state before reporting item-use readiness. Page changes re-read canonical inventory.
  */
 final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandler {
@@ -37,9 +38,10 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
             int syncId,
             PlayerInventory playerInventory,
             List<CanonicalBagQueryService.BagEntry> entries,
+            List<CanonicalItemUseService.Decision> readiness,
             int page
     ) {
-        this(syncId, playerInventory, createPage(entries, page));
+        this(syncId, playerInventory, createPage(entries, readiness, page));
     }
 
     private FabricCanonicalBagScreenHandler(
@@ -85,19 +87,29 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         return Math.max(0, Math.min(requestedPage, pageCount(entryCount) - 1));
     }
 
-    private static PageProjection createPage(List<CanonicalBagQueryService.BagEntry> entries, int requestedPage) {
+    private static PageProjection createPage(
+            List<CanonicalBagQueryService.BagEntry> entries,
+            List<CanonicalItemUseService.Decision> readiness,
+            int requestedPage
+    ) {
+        if (readiness.size() != entries.size()) {
+            throw new IllegalArgumentException("bag readiness projection must match canonical entry count");
+        }
+
         int pageCount = pageCount(entries.size());
         int page = clampPage(requestedPage, entries.size());
         int fromIndex = page * ITEMS_PER_PAGE;
         int toIndex = Math.min(entries.size(), fromIndex + ITEMS_PER_PAGE);
         List<CanonicalBagQueryService.BagEntry> pageEntries = entries.subList(fromIndex, toIndex);
+        List<CanonicalItemUseService.Decision> pageReadiness = readiness.subList(fromIndex, toIndex);
 
         SimpleInventory inventory = new SimpleInventory(SLOT_COUNT);
         for (int index = 0; index < pageEntries.size(); index++) {
             CanonicalBagQueryService.BagEntry entry = pageEntries.get(index);
+            CanonicalItemUseService.Decision decision = pageReadiness.get(index);
             BagItemPresentation presentation = presentationFor(entry.templateId());
             ItemStack display = new ItemStack(presentation.icon());
-            display.set(DataComponentTypes.CUSTOM_NAME, Text.literal(displayName(entry, presentation)));
+            display.set(DataComponentTypes.CUSTOM_NAME, Text.literal(displayName(entry, presentation, decision)));
             inventory.setStack(index, display);
         }
 
@@ -124,13 +136,17 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
                 pageCount);
     }
 
-    static String displayName(CanonicalBagQueryService.BagEntry entry) {
-        return displayName(entry, presentationFor(entry.templateId()));
+    static String displayName(
+            CanonicalBagQueryService.BagEntry entry,
+            CanonicalItemUseService.Decision decision
+    ) {
+        return displayName(entry, presentationFor(entry.templateId()), decision);
     }
 
     private static String displayName(
             CanonicalBagQueryService.BagEntry entry,
-            BagItemPresentation presentation
+            BagItemPresentation presentation,
+            CanonicalItemUseService.Decision decision
     ) {
         StringBuilder name = new StringBuilder(presentation.displayName())
                 .append(" x").append(entry.quantity())
@@ -140,6 +156,11 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         }
         if (entry.transactionLocked()) {
             name.append(" | locked");
+        }
+        if (decision.allowed()) {
+            name.append(" | use ready");
+        } else {
+            name.append(" | use blocked: ").append(decision.reason());
         }
         return name.toString();
     }
