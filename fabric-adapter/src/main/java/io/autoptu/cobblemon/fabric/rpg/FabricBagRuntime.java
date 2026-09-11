@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalBagQueryService;
+import io.autoptu.cobblemon.authority.CanonicalItemUseService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -15,6 +16,8 @@ import java.util.List;
 
 /** Read-only player bag fallback backed only by durable canonical item state. */
 public final class FabricBagRuntime {
+    private static final String USE_PREFLIGHT_CONTEXT = "bag_inspection";
+
     private FabricBagRuntime() {}
 
     public static void register() {
@@ -51,6 +54,21 @@ public final class FabricBagRuntime {
             return 0;
         }
         for (String line : formatInspectionLines(inspection)) player.sendMessage(Text.literal(line), false);
+
+        CanonicalItemUseService useService = useService(player);
+        for (CanonicalBagQueryService.BagEntry entry : inspection.entries()) {
+            CanonicalItemUseService.Decision decision = useService.canUse(new CanonicalItemUseService.Request(
+                    playerId,
+                    entry.itemInstanceId(),
+                    playerId,
+                    USE_PREFLIGHT_CONTEXT,
+                    true,
+                    true
+            ));
+            player.sendMessage(Text.literal(formatUsePreflight(entry.itemInstanceId(), decision)), false);
+        }
+        player.sendMessage(Text.literal(
+                "Use preflight validates canonical ownership/availability only; authored effects and PTU legality remain separate authority."), false);
         return 1;
     }
 
@@ -71,6 +89,20 @@ public final class FabricBagRuntime {
     private static CanonicalBagQueryService service(ServerPlayerEntity player) {
         return new CanonicalBagQueryService(
                 FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()));
+    }
+
+    private static CanonicalItemUseService useService(ServerPlayerEntity player) {
+        return new CanonicalItemUseService(
+                FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()),
+                FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()));
+    }
+
+    static String formatUsePreflight(String itemInstanceId, CanonicalItemUseService.Decision decision) {
+        if (decision.allowed()) {
+            return "Use preflight | stack " + itemInstanceId
+                    + " | ready | available " + decision.availableQuantity();
+        }
+        return "Use preflight | stack " + itemInstanceId + " | blocked | " + decision.reason();
     }
 
     static List<String> formatLines(CanonicalBagQueryService.BagSnapshot bag) {
