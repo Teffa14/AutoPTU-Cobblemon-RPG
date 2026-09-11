@@ -29,6 +29,7 @@ import java.util.UUID;
  */
 public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer {
     private static final int UPDATE_INTERVAL_TICKS = 10;
+    private static final int DISTANCE_ANNOUNCE_STEP_BLOCKS = 4;
     private static final double MOVING_HORIZONTAL_SPEED_SQUARED = 0.0001D;
     private static final Map<MinecraftServer, Map<UUID, LeaderContext>> REMEMBERED = new IdentityHashMap<>();
 
@@ -165,6 +166,11 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return (int) Math.round(distance);
     }
 
+    static int distanceAnnouncementBand(int horizontalDistanceBlocks) {
+        if (horizontalDistanceBlocks < 0) throw new IllegalArgumentException("horizontalDistanceBlocks must be non-negative");
+        return horizontalDistanceBlocks / DISTANCE_ANNOUNCE_STEP_BLOCKS;
+    }
+
     static int roundedVerticalOffsetBlocks(double verticalOffset) {
         if (!Double.isFinite(verticalOffset)) throw new IllegalArgumentException("verticalOffset must be finite");
         if (verticalOffset >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
@@ -206,7 +212,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 || current.withinSeparation() != previous.withinSeparation() || current.withinCohesion() != previous.withinCohesion()
                 || current.clusteredMemberCount() != previous.clusteredMemberCount() || current.nearbyMemberCount() != previous.nearbyMemberCount()
                 || current.stragglerMemberCount() != previous.stragglerMemberCount()
-                || current.horizontalDistanceBlocks() != previous.horizontalDistanceBlocks() || current.verticalOffsetBlocks() != previous.verticalOffsetBlocks()
+                || distanceAnnouncementBand(current.horizontalDistanceBlocks()) != distanceAnnouncementBand(previous.horizontalDistanceBlocks())
+                || current.verticalOffsetBlocks() != previous.verticalOffsetBlocks()
                 || !current.compassDirection().equals(previous.compassDirection()) || !current.leaderHabitatDisplayName().equals(previous.leaderHabitatDisplayName())
                 || current.leaderInFocusedHabitat() != previous.leaderInFocusedHabitat() || current.leaderVisibleToPlayer() != previous.leaderVisibleToPlayer()
                 || current.leaderMoving() != previous.leaderMoving();
