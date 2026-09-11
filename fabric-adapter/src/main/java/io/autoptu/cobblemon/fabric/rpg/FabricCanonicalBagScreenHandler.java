@@ -17,41 +17,58 @@ import java.util.List;
 
 /**
  * Read-only vanilla-backed screen for the server-authoritative canonical bag.
- * The visible paper stacks are presentation only. Slot clicks carry only a slot index;
- * the server maps that index back to the canonical item instance captured when the screen opened
- * and revalidates the stack against current canonical state before reporting item-use readiness.
+ * Visible stacks and navigation controls are presentation only. Item clicks carry only a slot index;
+ * the server maps that index back to the canonical item instance captured for this page and revalidates
+ * current canonical state before reporting item-use readiness. Page changes re-read canonical inventory.
  */
 final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandler {
     static final int SLOT_COUNT = 54;
+    static final int ITEMS_PER_PAGE = 45;
+    static final int PREVIOUS_PAGE_SLOT = 45;
+    static final int PAGE_STATUS_SLOT = 49;
+    static final int NEXT_PAGE_SLOT = 53;
 
     private final List<String> canonicalItemInstanceIds;
+    private final int page;
+    private final int pageCount;
 
     FabricCanonicalBagScreenHandler(
             int syncId,
             PlayerInventory playerInventory,
-            List<CanonicalBagQueryService.BagEntry> entries
+            List<CanonicalBagQueryService.BagEntry> entries,
+            int page
     ) {
-        this(syncId, playerInventory, createDisplayInventory(entries), itemInstanceIds(entries));
+        this(syncId, playerInventory, createPage(entries, page));
     }
 
     private FabricCanonicalBagScreenHandler(
             int syncId,
             PlayerInventory playerInventory,
-            SimpleInventory displayInventory,
-            List<String> canonicalItemInstanceIds
+            PageProjection projection
     ) {
-        super(ScreenHandlerType.GENERIC_9X6, syncId, playerInventory, displayInventory, 6);
-        this.canonicalItemInstanceIds = canonicalItemInstanceIds;
+        super(ScreenHandlerType.GENERIC_9X6, syncId, playerInventory, projection.inventory(), 6);
+        this.canonicalItemInstanceIds = projection.itemInstanceIds();
+        this.page = projection.page();
+        this.pageCount = projection.pageCount();
     }
 
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
-        if (slotIndex >= 0 && slotIndex < canonicalItemInstanceIds.size()
-                && player instanceof ServerPlayerEntity serverPlayer) {
+        if (!(player instanceof ServerPlayerEntity serverPlayer)) return;
+
+        if (slotIndex >= 0 && slotIndex < canonicalItemInstanceIds.size()) {
             FabricBagRuntime.inspectItemUse(serverPlayer, canonicalItemInstanceIds.get(slotIndex));
+            return;
         }
-        // Deliberately do not call super: canonical bag presentation and the player's Minecraft
-        // inventory are read-only while this screen is open, so placeholder stacks cannot escape.
+        if (slotIndex == PREVIOUS_PAGE_SLOT && page > 0) {
+            FabricBagRuntime.openPlayerBagScreen(serverPlayer, page - 1);
+            return;
+        }
+        if (slotIndex == NEXT_PAGE_SLOT && page + 1 < pageCount) {
+            FabricBagRuntime.openPlayerBagScreen(serverPlayer, page + 1);
+        }
+        // Deliberately do not call super: canonical bag presentation, controls and the player's
+        // Minecraft inventory are read-only while this screen is open, so placeholders cannot escape.
     }
 
     @Override
@@ -59,23 +76,50 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         return ItemStack.EMPTY;
     }
 
-    private static SimpleInventory createDisplayInventory(List<CanonicalBagQueryService.BagEntry> entries) {
+    static int pageCount(int entryCount) {
+        return Math.max(1, (entryCount + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE);
+    }
+
+    static int clampPage(int requestedPage, int entryCount) {
+        return Math.max(0, Math.min(requestedPage, pageCount(entryCount) - 1));
+    }
+
+    private static PageProjection createPage(List<CanonicalBagQueryService.BagEntry> entries, int requestedPage) {
+        int pageCount = pageCount(entries.size());
+        int page = clampPage(requestedPage, entries.size());
+        int fromIndex = page * ITEMS_PER_PAGE;
+        int toIndex = Math.min(entries.size(), fromIndex + ITEMS_PER_PAGE);
+        List<CanonicalBagQueryService.BagEntry> pageEntries = entries.subList(fromIndex, toIndex);
+
         SimpleInventory inventory = new SimpleInventory(SLOT_COUNT);
-        int limit = Math.min(entries.size(), SLOT_COUNT);
-        for (int index = 0; index < limit; index++) {
-            CanonicalBagQueryService.BagEntry entry = entries.get(index);
+        for (int index = 0; index < pageEntries.size(); index++) {
+            CanonicalBagQueryService.BagEntry entry = pageEntries.get(index);
             ItemStack display = new ItemStack(Items.PAPER);
             display.set(DataComponentTypes.CUSTOM_NAME, Text.literal(displayName(entry)));
             inventory.setStack(index, display);
         }
-        return inventory;
-    }
 
-    private static List<String> itemInstanceIds(List<CanonicalBagQueryService.BagEntry> entries) {
-        return entries.stream()
-                .limit(SLOT_COUNT)
-                .map(CanonicalBagQueryService.BagEntry::itemInstanceId)
-                .toList();
+        if (page > 0) {
+            ItemStack previous = new ItemStack(Items.ARROW);
+            previous.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Previous page"));
+            inventory.setStack(PREVIOUS_PAGE_SLOT, previous);
+        }
+
+        ItemStack status = new ItemStack(Items.MAP);
+        status.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Page " + (page + 1) + " / " + pageCount));
+        inventory.setStack(PAGE_STATUS_SLOT, status);
+
+        if (page + 1 < pageCount) {
+            ItemStack next = new ItemStack(Items.ARROW);
+            next.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Next page"));
+            inventory.setStack(NEXT_PAGE_SLOT, next);
+        }
+
+        return new PageProjection(
+                inventory,
+                pageEntries.stream().map(CanonicalBagQueryService.BagEntry::itemInstanceId).toList(),
+                page,
+                pageCount);
     }
 
     static String displayName(CanonicalBagQueryService.BagEntry entry) {
@@ -90,4 +134,11 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         }
         return name.toString();
     }
+
+    private record PageProjection(
+            SimpleInventory inventory,
+            List<String> itemInstanceIds,
+            int page,
+            int pageCount
+    ) {}
 }
