@@ -136,13 +136,6 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
                 pageCount);
     }
 
-    static String displayName(
-            CanonicalBagQueryService.BagEntry entry,
-            CanonicalItemUseService.Decision decision
-    ) {
-        return displayName(entry, presentationFor(entry.templateId()), decision);
-    }
-
     private static String displayName(
             CanonicalBagQueryService.BagEntry entry,
             BagItemPresentation presentation,
@@ -157,12 +150,15 @@ final class FabricCanonicalBagScreenHandler extends GenericContainerScreenHandle
         if (entry.transactionLocked()) {
             name.append(" | locked");
         }
-        if (decision.allowed()) {
-            name.append(" | use ready");
-        } else {
-            name.append(" | use blocked: ").append(decision.reason());
-        }
+        name.append(readinessLabel(decision));
         return name.toString();
+    }
+
+    /** Pure formatter for server-authored preflight state; it does not initialize Minecraft item registries. */
+    static String readinessLabel(CanonicalItemUseService.Decision decision) {
+        return decision.allowed()
+                ? " | use ready"
+                : " | use blocked: " + decision.reason();
     }
 
     /**
