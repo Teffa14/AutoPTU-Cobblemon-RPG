@@ -9,7 +9,10 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +42,15 @@ public final class FabricBagRuntime {
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
         CanonicalBagQueryService service = service(player);
         CanonicalBagQueryService.BagSnapshot bag = service.inspect(playerId);
-        for (String line : formatLines(bag)) player.sendMessage(Text.literal(line), false);
+        player.sendMessage(Text.literal("AutoPTU bag"), false);
+        if (bag.entries().isEmpty()) {
+            player.sendMessage(Text.literal("Canonical inventory is empty."), false);
+            return 1;
+        }
+        for (CanonicalBagQueryService.BagEntry entry : bag.entries()) {
+            player.sendMessage(renderInteractiveEntry(entry), false);
+        }
+        player.sendMessage(Text.literal(formatTotals(bag)), false);
         return 1;
     }
 
@@ -97,6 +108,17 @@ public final class FabricBagRuntime {
                 FabricCanonicalPlayerStoreRuntime.requireAssetRepository(player.getServer()));
     }
 
+    private static Text renderInteractiveEntry(CanonicalBagQueryService.BagEntry entry) {
+        MutableText line = Text.literal(formatEntryLine(entry));
+        Text checkUse = Text.literal(" [check use]").styled(style -> style
+                .withColor(Formatting.AQUA)
+                .withUnderline(true)
+                .withClickEvent(new ClickEvent(
+                        ClickEvent.Action.RUN_COMMAND,
+                        "/autoptu bag inspect " + entry.itemInstanceId())));
+        return line.append(checkUse);
+    }
+
     static String formatUsePreflight(String itemInstanceId, CanonicalItemUseService.Decision decision) {
         if (decision.allowed()) {
             return "Use preflight | stack " + itemInstanceId
@@ -114,26 +136,34 @@ public final class FabricBagRuntime {
         }
 
         for (CanonicalBagQueryService.BagEntry entry : bag.entries()) {
-            StringBuilder line = new StringBuilder()
-                    .append(entry.templateId())
-                    .append(" x").append(entry.quantity())
-                    .append(" | available ").append(entry.availableQuantity());
-            if (entry.reservedQuantity() > 0) {
-                line.append(" | reserved ").append(entry.reservedQuantity());
-            }
-            if (entry.reservationConsumed()) {
-                line.append(" | transaction lock after consumption");
-            } else if (entry.transactionLocked()) {
-                line.append(" | transaction lock");
-            }
-            line.append(" | stack ").append(entry.itemInstanceId());
-            lines.add(line.toString());
+            lines.add(formatEntryLine(entry));
         }
-        lines.add("Totals: quantity " + bag.totalQuantity()
+        lines.add(formatTotals(bag));
+        return List.copyOf(lines);
+    }
+
+    private static String formatEntryLine(CanonicalBagQueryService.BagEntry entry) {
+        StringBuilder line = new StringBuilder()
+                .append(entry.templateId())
+                .append(" x").append(entry.quantity())
+                .append(" | available ").append(entry.availableQuantity());
+        if (entry.reservedQuantity() > 0) {
+            line.append(" | reserved ").append(entry.reservedQuantity());
+        }
+        if (entry.reservationConsumed()) {
+            line.append(" | transaction lock after consumption");
+        } else if (entry.transactionLocked()) {
+            line.append(" | transaction lock");
+        }
+        line.append(" | stack ").append(entry.itemInstanceId());
+        return line.toString();
+    }
+
+    private static String formatTotals(CanonicalBagQueryService.BagSnapshot bag) {
+        return "Totals: quantity " + bag.totalQuantity()
                 + ", available " + bag.totalAvailable()
                 + ", reserved " + bag.totalReserved()
-                + ", locks " + bag.transactionLocks());
-        return List.copyOf(lines);
+                + ", locks " + bag.transactionLocks();
     }
 
     static List<String> formatInspectionLines(CanonicalBagQueryService.ItemInspection inspection) {
