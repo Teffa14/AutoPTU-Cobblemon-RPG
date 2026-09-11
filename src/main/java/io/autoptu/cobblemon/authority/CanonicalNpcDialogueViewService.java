@@ -11,6 +11,10 @@ import java.util.Set;
  * grants rewards, infers PTU legality, or trusts client/Cobblemon gameplay data.</p>
  */
 public final class CanonicalNpcDialogueViewService {
+    private static final String CEDAR_RANGER_NPC_ID = "cedar-ranger";
+    private static final String CEDAR_OBSERVE_FIRST_FLAG = "cedar_meadow_observe_first";
+    private static final String CEDAR_ENGAGE_DIRECTLY_FLAG = "cedar_meadow_engage_directly";
+
     private final CanonicalNpcDialogueCatalogue dialogueCatalogue;
     private final CanonicalQuestCatalogue questCatalogue;
     private final FileCanonicalQuestJournalRepository questJournals;
@@ -58,7 +62,24 @@ public final class CanonicalNpcDialogueViewService {
         List<OptionView> options = dialogue.options().stream()
                 .map(option -> project(playerId, option, journal, storyFlags))
                 .toList();
-        return new DialogueView(dialogue.npcId(), dialogue.displayName(), dialogue.openingLine(), options, journal.revision());
+        return new DialogueView(
+                dialogue.npcId(),
+                dialogue.displayName(),
+                openingLine(dialogue, storyFlags),
+                options,
+                journal.revision()
+        );
+    }
+
+    private String openingLine(CanonicalNpcDialogueCatalogue.Dialogue dialogue, Set<String> storyFlags) {
+        if (!CEDAR_RANGER_NPC_ID.equals(dialogue.npcId())) return dialogue.openingLine();
+        if (storyFlags.contains(CEDAR_OBSERVE_FIRST_FLAG)) {
+            return "You watched before stepping into Cedar Meadow. Tell me what changed after contact so we can compare observation with reaction.";
+        }
+        if (storyFlags.contains(CEDAR_ENGAGE_DIRECTLY_FLAG)) {
+            return "You approached Cedar Meadow directly. That is still field evidence; now separate what you saw before arrival from what reacted afterward.";
+        }
+        return dialogue.openingLine();
     }
 
     private OptionView project(
