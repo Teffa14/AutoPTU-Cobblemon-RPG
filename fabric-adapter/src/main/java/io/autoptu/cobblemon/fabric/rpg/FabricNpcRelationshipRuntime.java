@@ -35,12 +35,15 @@ public final class FabricNpcRelationshipRuntime {
                     FabricCanonicalPlayerStoreRuntime.requireNpcRelationshipRepository(serverPlayer.getServer())
             ).observeContact(playerId, npcId);
 
+            String name = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue(npcId)
+                    .map(CanonicalNpcDialogueCatalogue.Dialogue::displayName)
+                    .orElse(npcId);
             if (result.newlyMet()) {
-                String name = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue(npcId)
-                        .map(CanonicalNpcDialogueCatalogue.Dialogue::displayName)
-                        .orElse(npcId);
                 serverPlayer.sendMessage(Text.literal(
                         "Relationship established: " + name + " — reputation " + result.relationship().reputation()), false);
+            } else {
+                serverPlayer.sendMessage(Text.literal(
+                        "Known contact: " + name + " — reputation " + result.relationship().reputation()), true);
             }
 
             var objectiveEvent = new CanonicalQuestObjectiveService(
@@ -49,9 +52,6 @@ public final class FabricNpcRelationshipRuntime {
                     FabricCanonicalPlayerStoreRuntime.requireQuestObjectiveRepository(serverPlayer.getServer())
             ).observe(playerId, CanonicalQuestObjectiveCatalogue.npcTalkedEvent(npcId));
             if (objectiveEvent.changed()) {
-                String name = CanonicalNpcDialogueCatalogue.DEFAULT.dialogue(npcId)
-                        .map(CanonicalNpcDialogueCatalogue.Dialogue::displayName)
-                        .orElse(npcId);
                 serverPlayer.sendMessage(Text.literal("Quest updated: you spoke with " + name + "."), false);
             }
             return ActionResult.PASS;
