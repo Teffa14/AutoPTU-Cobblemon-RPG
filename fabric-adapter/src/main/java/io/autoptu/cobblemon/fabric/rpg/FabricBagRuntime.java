@@ -63,11 +63,16 @@ public final class FabricBagRuntime {
         return 1;
     }
 
-    /**
-     * Normal-player bag surface. The screen receives a server-created read-only projection and slot
-     * clicks are mapped back to canonical item instance ids before current state is revalidated.
-     */
+    /** Open the first server-authoritative bag page. */
     static int openPlayerBagScreen(ServerPlayerEntity player) {
+        return openPlayerBagScreen(player, 0);
+    }
+
+    /**
+     * Normal-player bag surface. Every page transition re-reads canonical inventory, clamps the requested page
+     * against current server state and builds a fresh read-only slot-to-canonical-instance mapping.
+     */
+    static int openPlayerBagScreen(ServerPlayerEntity player, int requestedPage) {
         if (!hasCanonicalTrainer(player)) return 0;
 
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
@@ -77,18 +82,15 @@ public final class FabricBagRuntime {
             return 1;
         }
 
-        if (bag.entries().size() > FabricCanonicalBagScreenHandler.SLOT_COUNT) {
-            player.sendMessage(Text.literal(
-                    "Showing the first " + FabricCanonicalBagScreenHandler.SLOT_COUNT
-                            + " canonical stacks. Additional bag pages are not live yet."), false);
-        }
-
+        int page = FabricCanonicalBagScreenHandler.clampPage(requestedPage, bag.entries().size());
+        int pageCount = FabricCanonicalBagScreenHandler.pageCount(bag.entries().size());
         player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, ignoredPlayer) -> new FabricCanonicalBagScreenHandler(
                         syncId,
                         playerInventory,
-                        bag.entries()),
-                Text.literal("AutoPTU Bag")));
+                        bag.entries(),
+                        page),
+                Text.literal("AutoPTU Bag " + (page + 1) + "/" + pageCount)));
         return 1;
     }
 
