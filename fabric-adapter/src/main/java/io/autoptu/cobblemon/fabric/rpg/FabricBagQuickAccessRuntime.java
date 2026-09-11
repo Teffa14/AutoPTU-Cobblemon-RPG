@@ -9,7 +9,7 @@ import net.minecraft.util.TypedActionResult;
 /**
  * Normal Minecraft access to the canonical bag without trusting Minecraft inventory contents.
  * Sneak + use with a vanilla Bundle is only an input gesture. The server ignores the Bundle's
- * contents and re-reads the authenticated Trainer's canonical bag before projecting any stacks.
+ * contents and re-reads the authenticated Trainer's canonical bag before opening its projection.
  */
 public final class FabricBagQuickAccessRuntime {
     private FabricBagQuickAccessRuntime() {}
@@ -28,7 +28,7 @@ public final class FabricBagQuickAccessRuntime {
                 return TypedActionResult.fail(player.getStackInHand(hand));
             }
 
-            int shown = FabricBagRuntime.showPlayerBag(serverPlayer);
+            int shown = FabricBagRuntime.openPlayerBagScreen(serverPlayer);
             return shown > 0
                     ? TypedActionResult.success(player.getStackInHand(hand))
                     : TypedActionResult.fail(player.getStackInHand(hand));
