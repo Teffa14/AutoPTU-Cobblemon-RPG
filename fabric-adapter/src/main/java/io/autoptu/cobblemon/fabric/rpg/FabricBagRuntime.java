@@ -6,6 +6,7 @@ import io.autoptu.cobblemon.authority.CanonicalItemUseService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -42,20 +43,14 @@ public final class FabricBagRuntime {
     }
 
     /**
-     * Reusable server-side bag projection for normal Minecraft entrypoints.
+     * Reusable server-side bag projection for command/bootstrap surfaces.
      * The caller supplies only the authenticated server player; canonical inventory truth is always re-read here.
      */
     static int showPlayerBag(ServerPlayerEntity player) {
-        if (player.getServer() == null) return 0;
+        if (!hasCanonicalTrainer(player)) return 0;
 
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
-            player.sendMessage(Text.literal("Canonical Trainer state is not loaded."), true);
-            return 0;
-        }
-
-        CanonicalBagQueryService service = service(player);
-        CanonicalBagQueryService.BagSnapshot bag = service.inspect(playerId);
+        CanonicalBagQueryService.BagSnapshot bag = service(player).inspect(playerId);
         player.sendMessage(Text.literal("AutoPTU bag"), false);
         if (bag.entries().isEmpty()) {
             player.sendMessage(Text.literal("Canonical inventory is empty."), false);
@@ -66,6 +61,62 @@ public final class FabricBagRuntime {
         }
         player.sendMessage(Text.literal(formatTotals(bag)), false);
         return 1;
+    }
+
+    /**
+     * Normal-player bag surface. The screen receives a server-created read-only projection and slot
+     * clicks are mapped back to canonical item instance ids before current state is revalidated.
+     */
+    static int openPlayerBagScreen(ServerPlayerEntity player) {
+        if (!hasCanonicalTrainer(player)) return 0;
+
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        CanonicalBagQueryService.BagSnapshot bag = service(player).inspect(playerId);
+        if (bag.entries().isEmpty()) {
+            player.sendMessage(Text.literal("Canonical inventory is empty."), true);
+            return 1;
+        }
+
+        if (bag.entries().size() > FabricCanonicalBagScreenHandler.SLOT_COUNT) {
+            player.sendMessage(Text.literal(
+                    "Showing the first " + FabricCanonicalBagScreenHandler.SLOT_COUNT
+                            + " canonical stacks. Additional bag pages are not live yet."), false);
+        }
+
+        player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
+                (syncId, playerInventory, ignoredPlayer) -> new FabricCanonicalBagScreenHandler(
+                        syncId,
+                        playerInventory,
+                        bag.entries()),
+                Text.literal("AutoPTU Bag")));
+        return 1;
+    }
+
+    /** Revalidate one server-selected canonical stack without executing any item effect. */
+    static int inspectItemUse(ServerPlayerEntity player, String itemInstanceId) {
+        if (!hasCanonicalTrainer(player)) return 0;
+
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        CanonicalBagQueryService.ItemInspection inspection = service(player).inspectItem(playerId, itemInstanceId);
+        CanonicalBagQueryService.BagEntry entry = inspection.entries().stream()
+                .filter(candidate -> candidate.itemInstanceId().equals(itemInstanceId))
+                .findFirst()
+                .orElse(null);
+        if (entry == null) {
+            player.sendMessage(Text.literal("That canonical stack changed. Reopen the bag."), true);
+            return 0;
+        }
+
+        CanonicalItemUseService.Decision decision = useService(player).canUse(new CanonicalItemUseService.Request(
+                playerId,
+                entry.itemInstanceId(),
+                playerId,
+                USE_PREFLIGHT_CONTEXT,
+                true,
+                true
+        ));
+        player.sendMessage(Text.literal(formatUsePreflight(entry.itemInstanceId(), decision)), true);
+        return decision.allowed() ? 1 : 0;
     }
 
     private static int inspect(ServerCommandSource source, String itemKey) {
@@ -103,12 +154,18 @@ public final class FabricBagRuntime {
             source.sendError(Text.literal("AutoPTU bag must be requested by an authenticated player."));
             return null;
         }
+        if (!hasCanonicalTrainer(player)) return null;
+        return player;
+    }
+
+    private static boolean hasCanonicalTrainer(ServerPlayerEntity player) {
+        if (player.getServer() == null) return false;
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
         if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
-            source.sendError(Text.literal("Canonical Trainer state is not loaded."));
-            return null;
+            player.sendMessage(Text.literal("Canonical Trainer state is not loaded."), true);
+            return false;
         }
-        return player;
+        return true;
     }
 
     private static CanonicalBagQueryService service(ServerPlayerEntity player) {
