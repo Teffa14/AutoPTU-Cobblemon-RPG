@@ -38,8 +38,22 @@ public final class FabricBagRuntime {
     private static int show(ServerCommandSource source) {
         ServerPlayerEntity player = requireCanonicalPlayer(source);
         if (player == null) return 0;
+        return showPlayerBag(player);
+    }
+
+    /**
+     * Reusable server-side bag projection for normal Minecraft entrypoints.
+     * The caller supplies only the authenticated server player; canonical inventory truth is always re-read here.
+     */
+    static int showPlayerBag(ServerPlayerEntity player) {
+        if (player.getServer() == null) return 0;
 
         String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
+            player.sendMessage(Text.literal("Canonical Trainer state is not loaded."), true);
+            return 0;
+        }
+
         CanonicalBagQueryService service = service(player);
         CanonicalBagQueryService.BagSnapshot bag = service.inspect(playerId);
         player.sendMessage(Text.literal("AutoPTU bag"), false);
