@@ -1,0 +1,40 @@
+name: ADM-002 Plan Bookkeeping
+
+on:
+  push:
+    branches:
+      - rpg/adm-002-player-validate
+
+permissions:
+  contents: write
+
+jobs:
+  update-plan:
+    if: github.event.head_commit.message != 'ADM-002: record canonical plan'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rpg/adm-002-player-validate
+          fetch-depth: 0
+      - name: Patch canonical plan exactly once
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          old = '| ADM-002 | TODO | `/autoptu admin player validate <player>` |'
+          new = '| ADM-002 | LIVE/PARTIAL | `/autoptu admin player validate <player>` — PR #617 / implementation head `50779e71e4f7a78e4394676e02d162d3ff286492`; permission-level-2 operators resolve an online Minecraft player through the server-owned UUID-derived canonical identity and perform read-only structural consistency checks across Trainer, party, bag/reservation and persisted progression projections. Owner mismatches, duplicate structural identities and aggregate bag/lock inconsistencies fail visibly; missing progression is surfaced as a warning rather than becoming invented PTU/progression policy. Offline identity resolution and broader whole-save validation remain follow-up work. |'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one ADM-002 TODO row, found {text.count(old)}')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/adm-002-plan-bookkeeping.yml
+      - name: Commit canonical bookkeeping
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/adm-002-plan-bookkeeping.yml
+          git diff --cached --check
+          git commit -m 'ADM-002: record canonical plan'
+          git push origin HEAD:rpg/adm-002-player-validate
