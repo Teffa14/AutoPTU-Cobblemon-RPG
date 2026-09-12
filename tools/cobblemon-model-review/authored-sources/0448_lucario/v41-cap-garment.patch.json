@@ -1,0 +1,102 @@
+{
+  "format": "ouros.blockbench-authored-cosmetic-patch.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "concept": "Owner Reference Replica — Blue/White Maid Lucario V41",
+  "artStatus": "ARTISTIC FAIL",
+  "reviewState": "BLOCKBENCH_REVIEW_PENDING",
+  "authoringIntent": "First V41 macro-form slice only. Low folded cap, fitted bodice, split apron and sleeve cuffs. No V40/V4 cosmetic geometry is reused.",
+  "officialBaseline": {
+    "cobblemonVersion": "1.7.3",
+    "minecraftVersion": "1.21.1",
+    "loader": "fabric",
+    "modrinthVersionId": "kF7CvxTo",
+    "modelPath": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json",
+    "modelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
+    "officialBoneCount": 87
+  },
+  "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0448_lucario.json",
+  "designRules": {
+    "inheritRejectedCosmeticGeometry": false,
+    "thinFlexibleFormsPreferred": true,
+    "dominantRectangularApronFaceAllowed": false,
+    "stackedCapSlabsAllowed": false,
+    "requiredViewsBeforeProduction": [
+      "front",
+      "left",
+      "right",
+      "back",
+      "three_quarter",
+      "gameplay_160"
+    ]
+  },
+  "bones": [
+    {
+      "name": "ouros_v41_cap",
+      "parent": "head_angle",
+      "pivot": [0, 38.8, -0.2],
+      "cubes": [
+        {"origin": [-4.7, 38.15, -1.55], "size": [4.5, 1.15, 3.15], "pivot": [-2.2, 38.75, 0.0], "rotation": [-4, 0, -12], "uv": [80, 63]},
+        {"origin": [0.15, 38.2, -1.5], "size": [4.35, 1.05, 3.0], "pivot": [2.2, 38.75, 0.0], "rotation": [-3, 0, 9], "uv": [81, 63]},
+        {"origin": [-3.65, 39.0, 0.95], "size": [7.1, 0.48, 1.75], "pivot": [0, 39.2, 1.75], "rotation": [-11, 0, 2], "uv": [82, 63]},
+        {"origin": [-4.35, 37.85, -4.55], "size": [8.6, 0.32, 3.1], "pivot": [0, 38.0, -2.95], "rotation": [-10, 0, 0], "uv": [83, 63]},
+        {"origin": [-5.15, 37.75, -1.15], "size": [1.25, 0.62, 2.5], "pivot": [-4.5, 38.1, 0.0], "rotation": [0, -6, -18], "uv": [84, 63]},
+        {"origin": [3.95, 37.8, -1.05], "size": [1.15, 0.58, 2.35], "pivot": [4.5, 38.1, 0.0], "rotation": [0, 5, 15], "uv": [85, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v41_bodice",
+      "parent": "torso3",
+      "pivot": [0, 28.4, -2.7],
+      "cubes": [
+        {"origin": [-4.15, 24.9, -4.12], "size": [3.95, 5.7, 0.34], "pivot": [-2.1, 27.8, -3.95], "rotation": [0, 0, -4], "uv": [80, 63]},
+        {"origin": [0.2, 24.95, -4.1], "size": [3.85, 5.55, 0.34], "pivot": [2.1, 27.75, -3.93], "rotation": [0, 0, 4], "uv": [81, 63]},
+        {"origin": [-4.55, 25.3, -3.55], "size": [0.42, 4.75, 5.15], "pivot": [-4.3, 27.7, -0.95], "rotation": [0, 0, -3], "uv": [82, 63]},
+        {"origin": [4.08, 25.35, -3.5], "size": [0.42, 4.65, 5.05], "pivot": [4.3, 27.7, -0.95], "rotation": [0, 0, 3], "uv": [83, 63]},
+        {"origin": [-3.3, 29.55, -4.35], "size": [2.8, 0.42, 0.35], "pivot": [-1.9, 29.75, -4.18], "rotation": [0, 0, -9], "uv": [84, 63]},
+        {"origin": [0.5, 29.55, -4.34], "size": [2.8, 0.42, 0.35], "pivot": [1.9, 29.75, -4.17], "rotation": [0, 0, 9], "uv": [85, 63]},
+        {"origin": [-1.75, 27.2, -4.48], "size": [3.5, 2.55, 0.22], "pivot": [0, 28.45, -4.37], "rotation": [0, 0, 45], "uv": [86, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v41_apron",
+      "parent": "torso",
+      "pivot": [0, 20.2, -3.4],
+      "cubes": [
+        {"origin": [-5.9, 19.45, -4.05], "size": [11.8, 1.0, 0.58], "pivot": [0, 19.95, -3.76], "rotation": [3, 0, 0], "uv": [80, 63]},
+        {"origin": [-5.15, 11.2, -4.25], "size": [4.15, 8.45, 0.28], "pivot": [-3.05, 19.4, -4.1], "rotation": [1, 0, 7], "uv": [81, 63]},
+        {"origin": [-3.75, 10.35, -4.42], "size": [3.75, 9.05, 0.26], "pivot": [-1.9, 19.2, -4.28], "rotation": [1, 0, -3], "uv": [82, 63]},
+        {"origin": [0.0, 10.7, -4.4], "size": [3.7, 8.7, 0.26], "pivot": [1.85, 19.2, -4.27], "rotation": [1, 0, 4], "uv": [83, 63]},
+        {"origin": [1.05, 11.55, -4.22], "size": [4.05, 8.05, 0.28], "pivot": [3.05, 19.4, -4.08], "rotation": [1, 0, -7], "uv": [84, 63]},
+        {"origin": [-5.55, 10.8, -3.78], "size": [1.35, 7.8, 0.42], "pivot": [-4.85, 18.6, -3.57], "rotation": [0, -4, 8], "uv": [85, 63]},
+        {"origin": [4.2, 11.15, -3.76], "size": [1.3, 7.4, 0.42], "pivot": [4.85, 18.6, -3.55], "rotation": [0, 4, -8], "uv": [86, 63]},
+        {"origin": [-4.8, 10.15, -4.52], "size": [3.4, 0.34, 0.24], "pivot": [-3.1, 10.32, -4.4], "rotation": [0, 0, 7], "uv": [87, 63]},
+        {"origin": [1.4, 10.55, -4.5], "size": [3.35, 0.34, 0.24], "pivot": [3.08, 10.72, -4.38], "rotation": [0, 0, -7], "uv": [87, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v41_left_sleeve",
+      "parent": "arm_left2",
+      "pivot": [10.4, 29.6, -0.4],
+      "cubes": [
+        {"origin": [8.65, 27.55, -2.35], "size": [3.75, 4.0, 3.9], "inflate": 0.08, "pivot": [10.5, 29.55, -0.4], "rotation": [0, 0, -4], "uv": [80, 63]},
+        {"origin": [9.05, 27.25, -2.58], "size": [3.05, 0.42, 4.35], "pivot": [10.55, 27.45, -0.4], "rotation": [0, 0, -5], "uv": [84, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v41_right_sleeve",
+      "parent": "arm_right2",
+      "pivot": [-10.4, 29.6, -0.4],
+      "cubes": [
+        {"origin": [-12.4, 27.55, -2.35], "size": [3.75, 4.0, 3.9], "inflate": 0.08, "pivot": [-10.5, 29.55, -0.4], "rotation": [0, 0, 4], "uv": [81, 63]},
+        {"origin": [-12.1, 27.25, -2.58], "size": [3.05, 0.42, 4.35], "pivot": [-10.55, 27.45, -0.4], "rotation": [0, 0, 5], "uv": [85, 63]}
+      ]
+    }
+  ],
+  "sliceMetrics": {
+    "cosmeticBoneCount": 5,
+    "cosmeticCubeCount": 26,
+    "dominantSystems": ["cap", "bodice", "split_apron", "sleeves"],
+    "nextRequiredStep": "Open exact official Lucario baseline plus this authored patch in Blockbench, inspect six required views and rebuild any macro-form that reads as slab/stack before production materialization."
+  }
+}
