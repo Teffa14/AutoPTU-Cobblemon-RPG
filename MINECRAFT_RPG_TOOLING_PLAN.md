@@ -407,7 +407,7 @@ These are required for operations, testing and recovery. They must never be norm
 | ID | Status | Command |
 |---|---|---|
 | ADM-001 | LIVE/PARTIAL | `/autoptu admin player inspect <player>` — PR #616 / implementation head `9ca83ad66a86218e422d1d526dbffbe56ea5f155`; permission-level-2 operators resolve an online Minecraft player to the canonical UUID-derived Trainer and read Trainer, progression, party and bag/reservation summaries from server-owned repositories without mutating RPG or PTU state. Offline identity resolution remains follow-up work. |
-| ADM-002 | TODO | `/autoptu admin player validate <player>` |
+| ADM-002 | LIVE/PARTIAL | `/autoptu admin player validate <player>` — PR #617 / implementation head `50779e71e4f7a78e4394676e02d162d3ff286492`; permission-level-2 operators resolve an online Minecraft player through the server-owned UUID-derived canonical identity and perform read-only structural consistency checks across Trainer, party, bag/reservation and persisted progression projections. Owner mismatches, duplicate structural identities and aggregate bag/lock inconsistencies fail visibly; missing progression is surfaced as a warning rather than becoming invented PTU/progression policy. Offline identity resolution and broader whole-save validation remain follow-up work. |
 | ADM-003 | TODO | `/autoptu admin pokemon inspect <pokemonId>` |
 | ADM-004 | TODO | `/autoptu admin party inspect <player>` |
 | ADM-005 | TODO | `/autoptu admin inventory inspect <player>` |
