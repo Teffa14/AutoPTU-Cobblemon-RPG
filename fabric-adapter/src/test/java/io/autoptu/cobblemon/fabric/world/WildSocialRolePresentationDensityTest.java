@@ -43,6 +43,19 @@ final class WildSocialRolePresentationDensityTest {
     }
 
     @Test
+    void gatheredHerdRingAppearsOnlyWithNearbyMembersAndStaysBounded() {
+        assertEquals(0, WildSocialRolePresentationRuntime.herdRingPointCountForGatheredMembers(0));
+        assertEquals(4, WildSocialRolePresentationRuntime.herdRingPointCountForGatheredMembers(1));
+        assertEquals(7, WildSocialRolePresentationRuntime.herdRingPointCountForGatheredMembers(4));
+        assertEquals(10, WildSocialRolePresentationRuntime.herdRingPointCountForGatheredMembers(20));
+
+        assertEquals(0.0D, WildSocialRolePresentationRuntime.herdRingRadiusForGatheredMembers(0), 0.000001D);
+        assertEquals(0.55D, WildSocialRolePresentationRuntime.herdRingRadiusForGatheredMembers(1), 0.000001D);
+        assertEquals(0.79D, WildSocialRolePresentationRuntime.herdRingRadiusForGatheredMembers(4), 0.000001D);
+        assertEquals(1.10D, WildSocialRolePresentationRuntime.herdRingRadiusForGatheredMembers(20), 0.000001D);
+    }
+
+    @Test
     void invalidGatheredMemberCountFailsClosed() {
         assertThrows(IllegalArgumentException.class,
                 () -> WildSocialRolePresentationRuntime.particleCountForHerdMemberCount(-1));
@@ -52,5 +65,9 @@ final class WildSocialRolePresentationDensityTest {
                 () -> WildSocialRolePresentationRuntime.markerVerticalSpreadForHerdMemberCount(-1));
         assertThrows(IllegalArgumentException.class,
                 () -> WildSocialRolePresentationRuntime.markerHeightForHerdMemberCount(-1));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildSocialRolePresentationRuntime.herdRingPointCountForGatheredMembers(-1));
+        assertThrows(IllegalArgumentException.class,
+                () -> WildSocialRolePresentationRuntime.herdRingRadiusForGatheredMembers(-1));
     }
 }
