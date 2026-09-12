@@ -13,16 +13,18 @@ public final class FabricPokemonInspectionAdminRuntime {
     private FabricPokemonInspectionAdminRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("admin")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("pokemon")
-                                        .then(CommandManager.literal("inspect")
-                                                .then(CommandManager.argument("pokemonId", StringArgumentType.word())
-                                                        .executes(context -> inspect(
-                                                                context.getSource(),
-                                                                StringArgumentType.getString(context, "pokemonId"))))))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var pokemonIdArgument = CommandManager.argument("pokemonId", StringArgumentType.word())
+                    .executes(context -> inspect(
+                            context.getSource(),
+                            StringArgumentType.getString(context, "pokemonId")));
+            var inspectCommand = CommandManager.literal("inspect").then(pokemonIdArgument);
+            var pokemonCommand = CommandManager.literal("pokemon").then(inspectCommand);
+            var adminCommand = CommandManager.literal("admin")
+                    .requires(source -> source.hasPermissionLevel(2))
+                    .then(pokemonCommand);
+            dispatcher.register(CommandManager.literal("autoptu").then(adminCommand));
+        });
     }
 
     private static int inspect(ServerCommandSource source, String pokemonId) {
