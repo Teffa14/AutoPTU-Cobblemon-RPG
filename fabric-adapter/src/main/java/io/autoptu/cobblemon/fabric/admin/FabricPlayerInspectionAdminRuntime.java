@@ -25,27 +25,32 @@ public final class FabricPlayerInspectionAdminRuntime {
 
     public static void register() {
         FabricPokemonInspectionAdminRuntime.register();
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("admin")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("player")
-                                        .then(CommandManager.literal("inspect")
-                                                .then(CommandManager.argument("player", StringArgumentType.word())
-                                                        .executes(context -> inspect(
-                                                                context.getSource(),
-                                                                StringArgumentType.getString(context, "player")))))
-                                        .then(CommandManager.literal("validate")
-                                                .then(CommandManager.argument("player", StringArgumentType.word())
-                                                        .executes(context -> validate(
-                                                                context.getSource(),
-                                                                StringArgumentType.getString(context, "player"))))))
-                                .then(CommandManager.literal("inventory")
-                                        .then(CommandManager.literal("inspect")
-                                                .then(CommandManager.argument("player", StringArgumentType.word())
-                                                        .executes(context -> inspectInventory(
-                                                                context.getSource(),
-                                                                StringArgumentType.getString(context, "player"))))))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var playerCommands = CommandManager.literal("player")
+                    .then(CommandManager.literal("inspect")
+                            .then(CommandManager.argument("player", StringArgumentType.word())
+                                    .executes(context -> inspect(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "player")))))
+                    .then(CommandManager.literal("validate")
+                            .then(CommandManager.argument("player", StringArgumentType.word())
+                                    .executes(context -> validate(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "player")))));
+
+            var inventoryCommands = CommandManager.literal("inventory")
+                    .then(CommandManager.literal("inspect")
+                            .then(CommandManager.argument("player", StringArgumentType.word())
+                                    .executes(context -> inspectInventory(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "player")))));
+
+            dispatcher.register(CommandManager.literal("autoptu")
+                    .then(CommandManager.literal("admin")
+                            .requires(source -> source.hasPermissionLevel(2))
+                            .then(playerCommands)
+                            .then(inventoryCommands)));
+        });
     }
 
     private static int inspect(ServerCommandSource source, String playerName) {
