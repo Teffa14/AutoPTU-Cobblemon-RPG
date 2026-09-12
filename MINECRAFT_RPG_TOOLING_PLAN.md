@@ -483,7 +483,7 @@ When any of these are incomplete upstream, skip them and continue with another s
 - Held-item or consumable battle rules not executed/emitted authoritatively by AutoPTU-Java.
 - Trainer Feature/perk rules, action costs, frequency classification, usage limits or effects not executed/emitted or otherwise supplied as authoritative PTU content.
 - Capture legality/RNG/outcome until an authoritative contract exists.
-- PTU evolution, level-up and move-learning legality until upstream contract exists.
+- PTU evolution, level-up and move-learning legality until an authoritative contract exists.
 - Tactical AI policy until upstream owns it.
 - Any battle hit, crit, damage, target legality, resource consumption or result supplied as trusted client truth.
 - Any Cobblemon Pokemon/BattleState/gameplay field used as canonical encounter or battle input.
