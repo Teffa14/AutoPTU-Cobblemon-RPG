@@ -23,9 +23,17 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
     private static final double BASE_LEADER_SPREAD = 0.12D;
     private static final double MAX_LEADER_SPREAD = 0.30D;
     private static final double SPREAD_PER_GATHERED_MEMBER = 0.03D;
+    private static final double BASE_LEADER_VERTICAL_SPREAD = 0.08D;
+    private static final double MAX_LEADER_VERTICAL_SPREAD = 0.20D;
+    private static final double VERTICAL_SPREAD_PER_GATHERED_MEMBER = 0.02D;
     private static final double BASE_LEADER_MARKER_HEIGHT = 0.35D;
     private static final double MAX_LEADER_MARKER_HEIGHT = 0.65D;
     private static final double HEIGHT_PER_GATHERED_MEMBER = 0.05D;
+    private static final int BASE_HERD_RING_POINTS = 4;
+    private static final int MAX_HERD_RING_POINTS = 10;
+    private static final double BASE_HERD_RING_RADIUS = 0.55D;
+    private static final double MAX_HERD_RING_RADIUS = 1.10D;
+    private static final double HERD_RING_RADIUS_PER_GATHERED_MEMBER = 0.08D;
 
     @Override
     public void onInitialize() {
@@ -51,11 +59,13 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
 
             int gatheredMembers = gatheredHerdMemberCount(projection, projections);
             double markerSpread = markerSpreadForHerdMemberCount(gatheredMembers);
+            double markerVerticalSpread = markerVerticalSpreadForHerdMemberCount(gatheredMembers);
             double markerHeight = markerHeightForHerdMemberCount(gatheredMembers);
             world.spawnParticles(
                     ParticleTypes.END_ROD,
                     actor.getX(), actor.getY() + actor.getHeight() + markerHeight, actor.getZ(),
-                    particleCountForHerdMemberCount(gatheredMembers), markerSpread, 0.08D, markerSpread, 0.005D);
+                    particleCountForHerdMemberCount(gatheredMembers), markerSpread, markerVerticalSpread, markerSpread, 0.005D);
+            projectGatheredHerdRing(world, actor, gatheredMembers);
             projected++;
         }
         return projected;
@@ -76,8 +86,8 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
 
     /**
      * Counts only active, visible, same-population Minecraft projections inside the ecology-authored cohesion
-     * envelope. The count controls marker density, spread and height only; it does not create herd AI, encounter
-     * or PTU semantics.
+     * envelope. The count controls marker density, spread, height and the optional gathered-herd ring only; it does
+     * not create herd AI, encounter or PTU semantics.
      */
     static int gatheredHerdMemberCount(
             WildEcologyProjectionRegistry.ProjectedActor leader,
@@ -112,10 +122,46 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
         return Math.min(MAX_LEADER_SPREAD, requested);
     }
 
+    static double markerVerticalSpreadForHerdMemberCount(int gatheredMembers) {
+        requireNonNegativeGatheredMembers(gatheredMembers);
+        double requested = BASE_LEADER_VERTICAL_SPREAD + gatheredMembers * VERTICAL_SPREAD_PER_GATHERED_MEMBER;
+        return Math.min(MAX_LEADER_VERTICAL_SPREAD, requested);
+    }
+
     static double markerHeightForHerdMemberCount(int gatheredMembers) {
         requireNonNegativeGatheredMembers(gatheredMembers);
         double requested = BASE_LEADER_MARKER_HEIGHT + gatheredMembers * HEIGHT_PER_GATHERED_MEMBER;
         return Math.min(MAX_LEADER_MARKER_HEIGHT, requested);
+    }
+
+    static int herdRingPointCountForGatheredMembers(int gatheredMembers) {
+        requireNonNegativeGatheredMembers(gatheredMembers);
+        if (gatheredMembers == 0) return 0;
+        long requested = (long) BASE_HERD_RING_POINTS + gatheredMembers - 1L;
+        return (int) Math.min(MAX_HERD_RING_POINTS, requested);
+    }
+
+    static double herdRingRadiusForGatheredMembers(int gatheredMembers) {
+        requireNonNegativeGatheredMembers(gatheredMembers);
+        if (gatheredMembers == 0) return 0.0D;
+        double requested = BASE_HERD_RING_RADIUS + (gatheredMembers - 1) * HERD_RING_RADIUS_PER_GATHERED_MEMBER;
+        return Math.min(MAX_HERD_RING_RADIUS, requested);
+    }
+
+    private static void projectGatheredHerdRing(ServerWorld world, PokemonEntity actor, int gatheredMembers) {
+        int points = herdRingPointCountForGatheredMembers(gatheredMembers);
+        if (points == 0) return;
+        double radius = herdRingRadiusForGatheredMembers(gatheredMembers);
+        double y = actor.getY() + 0.12D;
+        for (int index = 0; index < points; index++) {
+            double angle = (Math.PI * 2.0D * index) / points;
+            world.spawnParticles(
+                    ParticleTypes.END_ROD,
+                    actor.getX() + Math.cos(angle) * radius,
+                    y,
+                    actor.getZ() + Math.sin(angle) * radius,
+                    1, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
     }
 
     private static void requireNonNegativeGatheredMembers(int gatheredMembers) {
