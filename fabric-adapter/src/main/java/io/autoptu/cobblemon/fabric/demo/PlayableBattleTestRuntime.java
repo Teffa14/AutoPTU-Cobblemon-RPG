@@ -5,6 +5,8 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import io.autoptu.cobblemon.fabric.network.FabricBattleHudNetworking;
+import io.autoptu.cobblemon.fabric.network.FabricBattleHudPayload;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
@@ -34,6 +36,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -49,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class PlayableBattleTestRuntime {
     private static final int DEMO_HP = 30;
+    private static final int DEMO_LEVEL = 5;
     private static final int TURN_DELAY_TICKS = 30;
     private static final int LUNGE_TICKS = 8;
     private static final int CLEANUP_TICKS = 80;
@@ -80,6 +84,10 @@ public final class PlayableBattleTestRuntime {
             handler.player.sendMessage(Text.literal("AutoPTU playable battle test is installed."), false);
             handler.player.sendMessage(Text.literal(
                     "Choose a Pokemon: /autoptu testbattle bulbasaur, charmander, or squirtle"), false);
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            Session session = ACTIVE.get(handler.player.getUuid());
+            if (session != null) session.cleanupNow();
         });
     }
 
@@ -239,6 +247,7 @@ public final class PlayableBattleTestRuntime {
             );
             this.random = new PythonRandom(20260823);
             updateNameplates();
+            updateHud("Battle ready");
         }
 
         private void announceStart() {
@@ -312,16 +321,19 @@ public final class PlayableBattleTestRuntime {
             lungeReturn = attackerOrigin;
             lungeRemaining = LUNGE_TICKS;
 
+            String battleMessage;
             if (event.hit()) {
                 PRESENTATION.projectDisplayedHealth(targetEntity, event.targetHp(), event.damage());
-                player.sendMessage(Text.literal(
-                        attackerName + " attacks " + targetName + " for " + event.damage()
-                                + " damage. HP: " + event.targetHp() + "/" + DEMO_HP
-                                + (event.crit() ? " CRITICAL" : "")), false);
+                battleMessage = attackerName + " attacks " + targetName + " for " + event.damage()
+                        + " damage. HP: " + event.targetHp() + "/" + DEMO_HP
+                        + (event.crit() ? " CRITICAL" : "");
+                player.sendMessage(Text.literal(battleMessage), false);
             } else {
-                player.sendMessage(Text.literal(attackerName + " attacks, but misses."), false);
+                battleMessage = attackerName + " attacks, but misses.";
+                player.sendMessage(Text.literal(battleMessage), false);
             }
             updateNameplates();
+            updateHud(battleMessage);
 
             if (event.targetHp() == 0) {
                 finish(attackerName, targetName);
@@ -335,11 +347,34 @@ public final class PlayableBattleTestRuntime {
             nameplate(enemyEntity, enemyPokemonName, enemyState.hp());
         }
 
+        private void updateHud(String message) {
+            FabricBattleHudNetworking.send(player, new FabricBattleHudPayload(
+                    true,
+                    hudCombatant(playerPokemonName, playerState.hp()),
+                    hudCombatant(enemyPokemonName, enemyState.hp()),
+                    message,
+                    false
+            ));
+        }
+
+        private static FabricBattleHudPayload.Combatant hudCombatant(String name, int hp) {
+            return new FabricBattleHudPayload.Combatant(
+                    name,
+                    name.toLowerCase(Locale.ROOT),
+                    DEMO_LEVEL,
+                    hp,
+                    DEMO_HP,
+                    ""
+            );
+        }
+
         private void finish(String winner, String loser) {
             finished = true;
             cleanupRemaining = CLEANUP_TICKS;
-            player.sendMessage(Text.literal("BATTLE OVER - WINNER: " + winner + " | LOSER: " + loser), false);
+            String result = "BATTLE OVER - WINNER: " + winner + " | LOSER: " + loser;
+            player.sendMessage(Text.literal(result), false);
             player.sendMessage(Text.literal("This first vertical test does not commit XP, items or campaign results."), false);
+            updateHud(result);
         }
 
         private void cleanupNow() {
@@ -347,6 +382,7 @@ public final class PlayableBattleTestRuntime {
             playerEntity.discard();
             enemyEntity.discard();
             ACTIVE.remove(player.getUuid(), this);
+            FabricBattleHudNetworking.clear(player);
         }
 
         private static void nameplate(PokemonEntity entity, String name, int hp) {
