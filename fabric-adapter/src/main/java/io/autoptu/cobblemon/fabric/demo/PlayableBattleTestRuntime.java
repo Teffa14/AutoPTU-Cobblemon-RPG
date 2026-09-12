@@ -264,7 +264,8 @@ public final class PlayableBattleTestRuntime {
         }
 
         private void announceStart() {
-            player.sendMessage(Text.literal("AutoPTU ADMIN DEMO: " + playerPokemonName + " vs " + enemyPokemonName), false);
+            player.sendMessage(Text.literal("AutoPTU TEST: " + playerPokemonName + " vs " + enemyPokemonName), false);
+            player.sendMessage(Text.literal("Admin demo surface: /autoptu admin battle demo <species> <opponent>"), false);
             player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
             player.sendMessage(Text.literal("This demo does not read or commit canonical party, progression, inventory or battle results."), false);
         }
