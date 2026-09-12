@@ -24,6 +24,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static int resourceReadyTicks;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
+    private static boolean sceneRelocated;
     private static boolean shapeSceneStarted;
     private static boolean cameraPlaced;
     private static int phase;
@@ -36,10 +37,10 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            shapeSceneStarted = cameraPlaced = done = false;
+            sceneRelocated = shapeSceneStarted = cameraPlaced = done = false;
             phase = 0;
             phaseStart = -1;
-            nextPhaseAllowedTick = 80;
+            nextPhaseAllowedTick = 110;
             captureIndex = 0;
             LOGGER.info("AutoPTU battle visual evidence client joined; PTU shape capture armed");
         });
@@ -53,23 +54,31 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
         if (ticksSinceJoin <= 40 && client.currentScreen != null) client.setScreen(null);
         if (client.getNetworkHandler() == null) return;
 
-        if (!shapeSceneStarted && ticksSinceJoin >= 60) {
+        if (!sceneRelocated && ticksSinceJoin >= 54) {
+            // Move the disposable QA scene away from authored spawn content so evidence contains
+            // only the attack-shape actors. The relative move keeps the current flat-world floor.
+            client.getNetworkHandler().sendChatCommand("tp @s ~128 ~ ~128");
+            sceneRelocated = true;
+            LOGGER.info("AutoPTU PTU-shape evidence moved to isolated QA capture ground");
+            return;
+        }
+        if (sceneRelocated && !shapeSceneStarted && ticksSinceJoin >= 76) {
             client.getNetworkHandler().sendChatCommand("autoptu admin shapeviz start");
             shapeSceneStarted = true;
             LOGGER.info("AutoPTU PTU-shape scene requested");
             return;
         }
-        if (shapeSceneStarted && !cameraPlaced && ticksSinceJoin >= 66) {
+        if (shapeSceneStarted && !cameraPlaced && ticksSinceJoin >= 84) {
             // QA evidence only: use a moderately elevated diagonal view so the complete actors remain
             // visible while circular/conical/corridor ground footprints retain depth. Production
             // battle-camera behavior is unchanged.
-            client.getNetworkHandler().sendChatCommand("tp @s ~5 ~7 ~-10 -15 30");
+            client.getNetworkHandler().sendChatCommand("tp @s ~6 ~9 ~-14 -6 30");
             cameraPlaced = true;
             LOGGER.info("AutoPTU PTU-shape evidence camera placed at diagonal footprint-readable angle");
             return;
         }
         if (cameraPlaced) sanitizeCaptureHud(client);
-        if (!cameraPlaced || ticksSinceJoin < 80) return;
+        if (!cameraPlaced || ticksSinceJoin < 110) return;
 
         if (phaseStart < 0) {
             if (ticksSinceJoin < nextPhaseAllowedTick) return;
@@ -121,6 +130,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
 
     private static void sanitizeCaptureHud(MinecraftClient client) {
         client.options.getChatVisibility().setValue(ChatVisibility.HIDDEN);
+        client.options.hudHidden = true;
         client.inGameHud.getChatHud().clear(false);
         client.getToastManager().clear();
     }

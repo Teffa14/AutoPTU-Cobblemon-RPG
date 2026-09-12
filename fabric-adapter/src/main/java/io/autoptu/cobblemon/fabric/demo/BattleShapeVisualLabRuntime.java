@@ -64,12 +64,12 @@ public final class BattleShapeVisualLabRuntime {
         ServerWorld world = player.getServerWorld();
         BlockPos base = player.getBlockPos();
         Session s = new Session();
-        s.actors.add(spawn(world, "charizard", base.add(0, 0, 0)));
+        s.actors.add(spawn(world, "charizard", base.add(0, 0, 0), -90.0F));
         // Keep QA targets compact so their models do not hide the floor footprint being inspected.
-        s.actors.add(spawn(world, "pikachu", base.add(8, 0, 0)));
-        s.actors.add(spawn(world, "riolu", base.add(8, 0, 2)));
-        s.actors.add(spawn(world, "eevee", base.add(10, 0, -2)));
-        s.actors.add(spawn(world, "lucario", base.add(12, 0, 3)));
+        s.actors.add(spawn(world, "pikachu", base.add(8, 0, 0), 90.0F));
+        s.actors.add(spawn(world, "riolu", base.add(8, 0, 2), 90.0F));
+        s.actors.add(spawn(world, "eevee", base.add(10, 0, -2), 90.0F));
+        s.actors.add(spawn(world, "lucario", base.add(12, 0, 3), 90.0F));
         s.origins.add(base.add(0,0,0));
         s.origins.add(base.add(8,0,0));
         s.origins.add(base.add(8,0,2));
@@ -327,13 +327,14 @@ public final class BattleShapeVisualLabRuntime {
         return s;
     }
 
-    private static PokemonEntity spawn(ServerWorld world, String speciesId, BlockPos pos) {
+    private static PokemonEntity spawn(ServerWorld world, String speciesId, BlockPos pos, float yaw) {
         Species species = PokemonSpecies.INSTANCE.getByName(speciesId);
         if (species == null) throw new IllegalStateException("missing Cobblemon species " + speciesId);
         Pokemon pokemon = new Pokemon(); pokemon.setSpecies(species);
         PokemonEntity entity = new PokemonEntity(world, pokemon, CobblemonEntities.POKEMON);
         entity.setAiDisabled(true);
-        entity.refreshPositionAndAngles(pos.getX()+0.5D, pos.getY(), pos.getZ()+0.5D, 0.0F, 0.0F);
+        entity.refreshPositionAndAngles(pos.getX()+0.5D, pos.getY(), pos.getZ()+0.5D, yaw, 0.0F);
+        entity.setHeadYaw(yaw);
         if (!world.spawnEntity(entity)) throw new IllegalStateException("failed to spawn QA actor");
         return entity;
     }
