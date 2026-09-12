@@ -66,7 +66,7 @@ final class CanonicalPlayerStateValidationServiceTest {
                         "wrong-progression-owner", 2, 125L, 4L)));
 
         assertFalse(report.valid());
-        assertEquals(10, report.errorCount());
+        assertEquals(11, report.errorCount());
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("TRAINER_OWNER_MISMATCH")));
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("PARTY_DUPLICATE_SLOT")));
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("PARTY_DUPLICATE_POKEMON")));
