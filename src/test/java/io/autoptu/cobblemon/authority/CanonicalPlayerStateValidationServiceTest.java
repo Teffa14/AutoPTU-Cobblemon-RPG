@@ -72,6 +72,7 @@ final class CanonicalPlayerStateValidationServiceTest {
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("PARTY_DUPLICATE_POKEMON")));
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("BAG_DUPLICATE_ITEM_INSTANCE")));
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("BAG_TOTAL_QUANTITY_MISMATCH")));
+        assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("BAG_LOCK_COUNT_MISMATCH")));
         assertTrue(report.issues().stream().anyMatch(issue -> issue.code().equals("PROGRESSION_OWNER_MISMATCH")));
     }
 
