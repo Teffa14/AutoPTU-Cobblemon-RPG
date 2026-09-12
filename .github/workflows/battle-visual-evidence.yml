@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p test-evidence/battle test-evidence/diagnostics graphical-client/mods graphical-server/mods
+          mkdir -p test-evidence/battle test-evidence/review test-evidence/diagnostics graphical-client/mods graphical-server/mods
           cp fabric-adapter/build/production-smoke/mods/*.jar graphical-client/mods/
           cp fabric-adapter/build/production-smoke/mods/*.jar graphical-server/mods/
           printf 'eula=true\n' > graphical-server/eula.txt
@@ -51,7 +51,7 @@ jobs:
           [{"uuid":"43d6469a-bef9-3d6f-bbb3-3ad8e4494453","name":"AutoPTUVisual","level":4,"bypassesPlayerLimit":true}]
           EOF
           curl -fsSL -o graphical-server/fabric-server-launch.jar 'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
-      - name: Launch authoritative battle and capture frames
+      - name: Launch PTU attack-shape lab and capture frames
         shell: bash
         run: |
           set -euo pipefail
@@ -80,24 +80,62 @@ jobs:
           raise SystemExit(subprocess.call(cmd,cwd=root))
           PY
           client_pid=$!
-          ready='graphical-client/screenshots/autoptu-battle-ready.png'; first='graphical-client/screenshots/autoptu-battle-first-strike.png'; counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
           capture_ready=0
           for _ in $(seq 1 280); do
-            if [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] && grep -q 'AutoPTU TEST: Charmander vs Pikachu' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured ready window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-first-move window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-counter-move window' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
+            if [ -s graphical-client/screenshots/autoptu-ranged-09.png ] \
+              && [ -s graphical-client/screenshots/autoptu-aoe-09.png ] \
+              && [ -s graphical-client/screenshots/autoptu-blast-09.png ] \
+              && [ -s graphical-client/screenshots/autoptu-line-09.png ] \
+              && grep -q 'completed line window' graphical-client/logs/latest.log 2>/dev/null; then
+              capture_ready=1
+              break
+            fi
             kill -0 "$client_pid" 2>/dev/null || { cat graphical-client.log; exit 1; }
             sleep 1
           done
           [ "$capture_ready" -eq 1 ] || { cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; }
-          cp "$ready" "$first" "$counter" test-evidence/battle/
+          cp graphical-client/screenshots/autoptu-ranged-*.png test-evidence/battle/
+          cp graphical-client/screenshots/autoptu-aoe-*.png test-evidence/battle/
+          cp graphical-client/screenshots/autoptu-blast-*.png test-evidence/battle/
+          cp graphical-client/screenshots/autoptu-line-*.png test-evidence/battle/
           for frame in test-evidence/battle/*.png; do
             colors="$(identify -format '%k' "$frame")"; geometry="$(identify -format '%wx%h' "$frame")"
             echo "Captured $(basename "$frame") ${geometry} ${colors} colors"
             [ "$colors" -ge 64 ] || exit 1
           done
-          grep 'AutoPTU TEST: Charmander vs Pikachu' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured ready window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-first-move window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-counter-move window' graphical-client/logs/latest.log
+          montage \
+            -background '#111318' -fill white -font DejaVu-Sans \
+            -label '%f' test-evidence/battle/autoptu-ranged-{03,05,07}.png \
+            -tile 3x1 -geometry 426x240+8+28 \
+            test-evidence/review/ranged-motion-strip.png
+          montage \
+            -background '#111318' -fill white -font DejaVu-Sans \
+            -label '%f' test-evidence/battle/autoptu-aoe-{03,05,07}.png \
+            -tile 3x1 -geometry 426x240+8+28 \
+            test-evidence/review/aoe-pulse-strip.png
+          montage \
+            -background '#111318' -fill white -font DejaVu-Sans \
+            -label '%f' test-evidence/battle/autoptu-blast-{03,05,07}.png \
+            -tile 3x1 -geometry 426x240+8+28 \
+            test-evidence/review/blast-front-strip.png
+          montage \
+            -background '#111318' -fill white -font DejaVu-Sans \
+            -label '%f' test-evidence/battle/autoptu-line-{03,05,07}.png \
+            -tile 3x1 -geometry 426x240+8+28 \
+            test-evidence/review/line-pulse-strip.png
+          montage \
+            -background '#111318' -fill white -font DejaVu-Sans -label '%f' \
+            test-evidence/battle/autoptu-ranged-05.png \
+            test-evidence/battle/autoptu-aoe-05.png \
+            test-evidence/battle/autoptu-blast-05.png \
+            test-evidence/battle/autoptu-line-05.png \
+            -tile 2x2 -geometry 640x360+10+30 \
+            test-evidence/review/attack-shape-overview.png
+          identify test-evidence/review/*.png
+          grep 'AutoPTU shape evidence completed ranged window' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed aoe window' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed blast window' graphical-client/logs/latest.log
+          grep 'AutoPTU shape evidence completed line window' graphical-client/logs/latest.log
       - name: Collect graphical diagnostics
         if: always()
         shell: bash
@@ -112,9 +150,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: battle-visual-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          name: battle-shape-visual-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 14
           if-no-files-found: warn
           path: |
             test-evidence/battle/**
+            test-evidence/review/**
             test-evidence/diagnostics/**
