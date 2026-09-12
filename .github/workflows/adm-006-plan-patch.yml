@@ -1,0 +1,38 @@
+name: Temporary ADM-006 canonical-plan patch
+
+on:
+  push:
+    branches:
+      - feature/adm-006-quest-inspection
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/adm-006-quest-inspection
+          fetch-depth: 0
+      - name: Patch exactly one canonical plan row
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          old = '| ADM-006 | TODO | `/autoptu admin quest inspect <player> [quest]` |'
+          new = '| ADM-006 | LIVE/PARTIAL | `/autoptu admin quest inspect <player> [quest]` — PR #623 / implementation head `11df1e6898ed9b9921643323867acc5474db781c`; permission-level-2 operators resolve an online Minecraft player to the server-owned UUID-derived canonical identity and inspect the durable canonical quest journal, authored quest metadata and persisted objective progress without observing objective events, advancing quests, claiming rewards, mutating progression/PTU state or trusting Cobblemon gameplay data. Offline identity resolution remains follow-up work. |'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one ADM-006 TODO row, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+      - name: Remove temporary workflow and commit canonical plan
+        run: |
+          git rm .github/workflows/adm-006-plan-patch.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "ADM-006: record canonical quest inspection"
+          git push origin HEAD:feature/adm-006-quest-inspection
