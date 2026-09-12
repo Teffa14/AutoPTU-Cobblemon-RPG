@@ -1,0 +1,120 @@
+name: Lucario V41 Meshy Probe
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'tools/cobblemon-model-review/v41/meshy_poly_mesh_probe.geo.json'
+      - 'tools/cobblemon-model-review/blockbench_meshy_probe.mjs'
+      - '.github/workflows/lucario-v41-meshy-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  meshy-probe:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install probe dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+
+      - name: Download pinned Blockbench and Meshy
+        run: |
+          set -euo pipefail
+          mkdir -p .meshy-probe
+          curl --fail --silent --show-error --location --retry 4 \
+            'https://github.com/JannisX11/blockbench/releases/download/v5.1.6/Blockbench_5.1.6.AppImage' \
+            -o .meshy-probe/blockbench.AppImage
+          chmod +x .meshy-probe/blockbench.AppImage
+          (cd .meshy-probe && ./blockbench.AppImage --appimage-extract >/dev/null)
+          curl --fail --silent --show-error --location --retry 4 \
+            'https://raw.githubusercontent.com/JannisX11/blockbench-plugins/a769d1db1dc2d27f2c6efaea9ef6565eb7ff23d8/plugins/meshy/meshy.js' \
+            -o .meshy-probe/meshy.js
+          grep -F '"version":"1.0.5"' .meshy-probe/meshy.js
+
+      - name: Build neutral probe texture
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from PIL import Image, ImageDraw
+          im=Image.new('RGBA',(64,64),(241,244,250,255))
+          d=ImageDraw.Draw(im)
+          d.rectangle((2,2,61,61),outline=(95,118,188,255),width=3)
+          d.line((2,32,61,32),fill=(170,184,223,255),width=2)
+          im.save('.meshy-probe/probe.png')
+          PY
+
+      - name: Load Meshy before Bedrock parse and prove poly_mesh round trip
+        run: |
+          set -euo pipefail
+          log="$PWD/.meshy-probe/blockbench.log"
+          userdata="$PWD/.meshy-probe/userdata"
+          output="$PWD/.meshy-probe/output"
+          mkdir -p "$userdata" "$output"
+          cleanup() {
+            pid="${1:-}"
+            if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi
+            pkill -f "$PWD/.meshy-probe/squashfs-root/blockbench" 2>/dev/null || true
+            pkill -f "$PWD/.meshy-probe/squashfs-root/AppRun" 2>/dev/null || true
+          }
+          trap 'cleanup "${pid:-}"' EXIT
+
+          xvfb-run -a -s '-screen 0 1400x1000x24' env APPDIR="$PWD/.meshy-probe/squashfs-root" \
+            .meshy-probe/squashfs-root/AppRun \
+            --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle \
+            --remote-debugging-port=9331 --userData "$userdata" >"$log" 2>&1 &
+          pid=$!
+
+          ready=0
+          for _ in $(seq 1 90); do
+            if curl --fail --silent 'http://127.0.0.1:9331/json/version' >/dev/null 2>&1; then ready=1; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; exit 1; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat "$log"; exit 1; fi
+
+          node tools/cobblemon-model-review/blockbench_meshy_probe.mjs \
+            --endpoint 'http://127.0.0.1:9331' \
+            --model tools/cobblemon-model-review/v41/meshy_poly_mesh_probe.geo.json \
+            --meshy .meshy-probe/meshy.js \
+            --texture .meshy-probe/probe.png \
+            --output-dir "$output"
+
+          python - <<'PY'
+          import json
+          p=json.load(open('.meshy-probe/output/probe-report.json',encoding='utf-8'))
+          assert p['meshyLoaded'] is True, p
+          assert p['meshCount'] >= 1, p
+          assert p['vertexCount'] == 10, p
+          assert p['faceCount'] == 4, p
+          assert p['compiledPolyMesh']['positions'] >= 10, p
+          assert p['compiledPolyMesh']['polys'] == 4, p
+          print('MESHY PROBE PASS')
+          print(json.dumps(p,indent=2))
+          PY
+
+      - name: Upload Meshy probe evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lucario-v41-meshy-probe
+          path: .meshy-probe/output
+          if-no-files-found: warn
+          retention-days: 30

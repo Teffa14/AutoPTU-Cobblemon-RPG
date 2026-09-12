@@ -1,6 +1,8 @@
 # Cobblemon Professional Skin Pipeline
 
-This is the production-engineering contract for premium Ouros Cobblemon skins. It complements `cobblemon-skin-art-direction.md`; it does not replace owner artistic judgment.
+This is the production-engineering contract for premium Ouros Cobblemon skins. It complements `cobblemon-skin-art-direction.md` and `cobblemon-skin-blockbench-authoring.md`; it does not replace owner artistic judgment.
+
+The Blockbench-first authoring standard dated 2026-08-31 supersedes older language that treated a Python builder as the artistic modeling interface.
 
 ## Objective
 
@@ -46,15 +48,21 @@ The professional manifest pins:
 
 It also queries the official Modrinth project at review time and rejects the manifest if its pinned release is no longer the latest listed stable release compatible with the declared Minecraft version and loader.
 
-### 3. Deterministic builder
+### 3. Blockbench-first authored source and deterministic materialization
 
-Every production skin has one declared Python builder and argv in its professional manifest.
+Premium artistic macro-forms are authored visually in Blockbench under `docs/cobblemon-skin-blockbench-authoring.md`.
 
-`run_manifest_builder.py` reruns that exact builder in GitHub and requires the resulting model and texture bytes to match the committed SHA-256 values. A builder that cannot reproduce committed production bytes is not production-ready.
+The professional manifest must bind the candidate to a committed authored source, its SHA-256, the pinned Blockbench version used for authoring/review, and a deterministic materialization command. The authored source is where silhouette, contour, taper, overlap, negative space, pivots and visual attachment are decided.
+
+`run_manifest_builder.py` remains the current execution hook for backward compatibility, but for a Blockbench-first candidate that command is a materializer/validator. It may extract the official baseline, merge or copy explicitly authored `ouros_*` geometry, generate deterministic metadata and verify exact production bytes. It must not redesign signature geometry through procedural `origin + size + rotation` cuboid stacks.
+
+The reproducibility contract is:
+
+`exact official pinned baseline + committed Blockbench-authored source + deterministic materializer = exact committed production bytes`
 
 The same reproducibility contract covers production resolver/routing files; a correct model with stale or hand-edited runtime routing does not pass.
 
-This removes the old pattern where a model could be committed but the repository could no longer prove how to regenerate it.
+Legacy procedural builders may remain for fixtures and historical candidates. They are not a precedent for authoring new premium macro-forms.
 
 ### 4. Immutable anatomy, flexible authored surface treatment
 
@@ -78,7 +86,7 @@ This is only a structural floor. The professional Blockbench pass must still ins
 
 ### 6. Matched-camera Blockbench evidence
 
-Blockbench remains the independent viewer. The manifest pins Blockbench version + AppImage SHA-256.
+Blockbench is both the premium artistic authoring surface and the independent evidence viewer. The manifest pins Blockbench version + AppImage SHA-256.
 
 The generic professional review uses the exact official model/texture/animation and the exact committed production model/texture stack. The official reference generates the camera profile; the candidate reuses that same profile.
 
@@ -95,11 +103,15 @@ Minimum evidence bundle:
 
 Never fabricate an animation state that does not exist in the official species assets.
 
+The evidence loop is iterative. A failed macro-form is reopened in Blockbench and rebuilt. It is not repaired by adding more procedural cubes in Python.
+
 ### 7. Automated visual floor, not automated taste
 
 `validate_blockbench_evidence.py` verifies evidence dimensions/hashes and can enforce a low minimum matched-camera pixel/silhouette delta versus the official Pokemon. This prevents no-op or nearly unchanged candidates from pretending to be transformations.
 
 These metrics are intentionally not a beauty score. Passing them does not mean premium quality. The pipeline records `artApprovalGrantedByTooling: false`.
+
+New geometry QA should additionally flag anti-pattern evidence such as repeated large dimensions/orientations, dominant rectangular cloth faces and stacked-slab macro-forms. Those checks are rejection aids, not automated approval.
 
 ### 8. Professional review manifest on every production change
 
@@ -112,7 +124,8 @@ The manifest binds together:
 - exact reference dossier;
 - source hashes;
 - production hashes/counts;
-- deterministic builder;
+- authored-source path/hash and authoring mode for Blockbench-first candidates;
+- deterministic materializer/build command;
 - body/overlay derivation;
 - Blockbench configuration;
 - required evidence filenames;
@@ -141,12 +154,12 @@ CI green means technically reproducible and reviewable. It never means artistica
 
 ## GitHub workflow architecture
 
-The pipeline should converge on two reusable layers:
+The pipeline converges on two reusable layers:
 
-1. **Professional Skin Quality Gate** — lightweight PR gate for manifests, reference contract and deterministic metadata.
-2. **Professional Blockbench Review** — reusable/heavy workflow that regenerates the model, downloads the exact official JAR and Blockbench binary, validates source/anatomy/texture/attachment, captures matched-camera evidence, builds the contact sheet and uploads the evidence artifact.
+1. **Professional Skin Quality Gate** — lightweight PR gate for manifests, reference contract, authored-source metadata and deterministic metadata.
+2. **Professional Blockbench Review** — reusable/heavy workflow that materializes the model without redesigning it, downloads the exact official JAR and Blockbench binary, validates source/anatomy/texture/attachment, captures matched-camera evidence, builds the contact sheet and uploads the evidence artifact.
 
-The repository uses only the reusable generic review plus a changed-manifest dispatcher. Species-specific generation/review workflows and rejected one-off builders are legacy and must not be restored. A species is configured exclusively through its professional manifest.
+The repository uses only the reusable generic review plus a changed-manifest dispatcher. Species-specific generation/review workflows and rejected one-off procedural art builders are legacy and must not be restored as the primary premium authoring path. A species is configured through its professional manifest and committed authored source.
 
 See `docs/cobblemon-skin-studio-runbook.md` for the exact operator workflow and owner release protocol.
 
@@ -158,11 +171,15 @@ Even a perfectly green technical pipeline must be rejected when the result reads
 - box armor or cuboid scaffolding;
 - generic portal/cage silhouette;
 - repeated bars/slabs;
+- stacked large cuboids pretending to be curved cloth;
+- dominant rectangular faces on garments or organic forms;
 - disconnected rear hardware;
 - flat or muddy repaint;
 - detail noise with no macro-form hierarchy;
 - weak rear/side composition;
 - fantasy that disappears at gameplay scale;
 - a distinctive third-party design copied too literally.
+
+A high cube count is not automatically bad. A repeated macro-cuboid stack is. Fine low-poly contour work may legitimately use many small pieces when each piece contributes controlled taper, direction, overlap or silhouette flow.
 
 The workflow exists to make these problems easier to see and harder to hide, not to replace the owner deciding whether the result is actually premium.

@@ -1,0 +1,207 @@
+name: Lucario V41 Blockbench Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'tools/cobblemon-model-review/v41/lucario_v41_scene_seed.json'
+      - 'tools/cobblemon-model-review/materialize_lucario_v41_preview.py'
+      - '.github/workflows/lucario-v41-blockbench-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blockbench-preview:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Blockbench preview dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow==11.3.0
+          npm install --no-save --ignore-scripts playwright-core@1.55.0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb libgtk-3-0 libnss3 libxss1 libgbm1 libasound2t64
+
+      - name: Enforce Lucario same-species reference gate first
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_species_reference_dossier.py \
+            docs/cobblemon-skin-reference-dossiers/0448_lucario.json \
+            --expected-species lucario
+
+      - name: Materialize V41 preview from official prefix plus new scene seed
+        run: |
+          set -euo pipefail
+          rm -rf .v41-preview
+          python tools/cobblemon-model-review/materialize_lucario_v41_preview.py \
+            --workdir .v41-preview
+
+      - name: Download exact official Cobblemon source and validate anatomy/attachment
+        run: |
+          set -euo pipefail
+          rm -rf .professional-review
+          python tools/cobblemon-model-review/prepare_professional_review_assets.py \
+            .v41-preview/0448_lucario.json \
+            --workdir .professional-review
+
+      - name: Read validated preview runtime
+        id: runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          data=json.load(open('.professional-review/review-runtime.json',encoding='utf-8'))
+          bb=data['blockbench']; ev=data['evidence']
+          values={
+            'bb_version':bb['version'],
+            'bb_sha256':bb['appImageSha256'],
+            'gameplay':str(bb['gameplayResolution']),
+            'hero_animation':bb['heroAnimation'],
+            'hero_time':str(bb['heroAnimationTime']),
+            'battle_animation':bb.get('battleAnimation') or '',
+            'battle_time':str(bb.get('battleAnimationTime') or 0),
+            'artifact_name':ev['artifactName'],
+            'candidate_model':data['candidateModel'],
+            'candidate_texture':data['candidateTexture'],
+            'official_model':data['officialModel'],
+            'official_texture':data['officialTexture'],
+            'official_animation':data['officialAnimation'],
+            'output_dir':data['outputDir'],
+          }
+          for key,value in values.items():
+            if '\n' in value or '\r' in value: raise SystemExit(f'unsafe multiline value: {key}')
+            print(f'{key}={value}')
+          PY
+
+      - name: Download pinned Blockbench 5.1.6
+        shell: bash
+        env:
+          BB_VERSION: ${{ steps.runtime.outputs.bb_version }}
+          BB_SHA256: ${{ steps.runtime.outputs.bb_sha256 }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 \
+            "https://github.com/JannisX11/blockbench/releases/download/v${BB_VERSION}/Blockbench_${BB_VERSION}.AppImage" \
+            -o .professional-review/blockbench.AppImage
+          echo "$BB_SHA256  .professional-review/blockbench.AppImage" | sha256sum --check --strict
+          chmod +x .professional-review/blockbench.AppImage
+          (cd .professional-review && ./blockbench.AppImage --appimage-extract >/dev/null)
+
+      - name: Capture current matched-camera Blockbench evidence
+        shell: bash
+        env:
+          OFFICIAL_MODEL: ${{ steps.runtime.outputs.official_model }}
+          OFFICIAL_TEXTURE: ${{ steps.runtime.outputs.official_texture }}
+          OFFICIAL_ANIMATION: ${{ steps.runtime.outputs.official_animation }}
+          CANDIDATE_MODEL: ${{ steps.runtime.outputs.candidate_model }}
+          CANDIDATE_TEXTURE: ${{ steps.runtime.outputs.candidate_texture }}
+          HERO_ANIMATION: ${{ steps.runtime.outputs.hero_animation }}
+          HERO_TIME: ${{ steps.runtime.outputs.hero_time }}
+          BATTLE_ANIMATION: ${{ steps.runtime.outputs.battle_animation }}
+          BATTLE_TIME: ${{ steps.runtime.outputs.battle_time }}
+          GAMEPLAY: ${{ steps.runtime.outputs.gameplay }}
+          OUTPUT_DIR: ${{ steps.runtime.outputs.output_dir }}
+        run: |
+          set -euo pipefail
+          cleanup() {
+            pid="${1:-}"
+            if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi
+            pkill -f "$PWD/.professional-review/squashfs-root/blockbench" 2>/dev/null || true
+            pkill -f "$PWD/.professional-review/squashfs-root/AppRun" 2>/dev/null || true
+            sleep 2
+          }
+          capture_once() {
+            model="$1"; texture="$2"; anim_name="$3"; anim_time="$4"; out="$5"; port="$6"; profile_in="$7"; profile_out="$8"; attempt="$9"
+            userdata="$PWD/.professional-review/user-${port}-${attempt}"
+            log="$PWD/.professional-review/blockbench-${port}-${attempt}.log"
+            rm -rf "$out" "$userdata"; mkdir -p "$out" "$userdata"
+            xvfb-run -a -s '-screen 0 1600x1200x24' env APPDIR="$PWD/.professional-review/squashfs-root" \
+              .professional-review/squashfs-root/AppRun \
+              --no-sandbox --disable-gpu-sandbox --disable-vulkan --use-angle=swiftshader --use-gl=angle \
+              --remote-debugging-port="$port" --userData "$userdata" "$model" >"$log" 2>&1 &
+            pid=$!; ready=0
+            for _ in $(seq 1 90); do
+              if curl --fail --silent "http://127.0.0.1:$port/json/version" >/dev/null 2>&1; then ready=1; break; fi
+              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; cleanup "$pid"; return 1; fi
+              sleep 1
+            done
+            if [ "$ready" -ne 1 ]; then cat "$log"; cleanup "$pid"; return 1; fi
+            args=(--endpoint "http://127.0.0.1:$port" --texture "$texture" --animation "$OFFICIAL_ANIMATION" --animation-name "$anim_name" --animation-time "$anim_time" --gameplay-resolution "$GAMEPLAY" --output-dir "$out")
+            [ -n "$profile_in" ] && args+=(--camera-profile-in "$profile_in")
+            [ -n "$profile_out" ] && args+=(--camera-profile-out "$profile_out")
+            if ! node tools/cobblemon-model-review/blockbench_capture.mjs "${args[@]}"; then
+              cat "$log"; cleanup "$pid"; return 1
+            fi
+            cleanup "$pid"
+          }
+          capture() {
+            for attempt in 1 2 3; do
+              if capture_once "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$attempt"; then return 0; fi
+            done
+            return 1
+          }
+
+          mkdir -p "$OUTPUT_DIR"
+          CAMERA="$PWD/.professional-review/camera.json"
+          capture "$OFFICIAL_MODEL" "$OFFICIAL_TEXTURE" "$HERO_ANIMATION" "$HERO_TIME" "$PWD/.professional-review/official-render" 9322 '' "$CAMERA"
+          capture "$CANDIDATE_MODEL" "$CANDIDATE_TEXTURE" "$HERO_ANIMATION" "$HERO_TIME" "$PWD/.professional-review/hero-render" 9323 "$CAMERA" ''
+          capture "$CANDIDATE_MODEL" "$CANDIDATE_TEXTURE" "$BATTLE_ANIMATION" "$BATTLE_TIME" "$PWD/.professional-review/battle-render" 9324 "$CAMERA" ''
+
+          cp .professional-review/official-render/three_quarter.png "$OUTPUT_DIR/official_reference_three_quarter.png"
+          cp .professional-review/hero-render/three_quarter.png "$OUTPUT_DIR/hero_three_quarter.png"
+          cp .professional-review/hero-render/front.png "$OUTPUT_DIR/hero_front.png"
+          cp .professional-review/hero-render/left.png "$OUTPUT_DIR/hero_left.png"
+          cp .professional-review/hero-render/right.png "$OUTPUT_DIR/hero_right.png"
+          cp .professional-review/hero-render/back.png "$OUTPUT_DIR/hero_back.png"
+          cp ".professional-review/hero-render/three_quarter_gameplay_${GAMEPLAY}.png" "$OUTPUT_DIR/hero_gameplay_${GAMEPLAY}.png"
+          cp .professional-review/battle-render/three_quarter.png "$OUTPUT_DIR/battle_ready_three_quarter.png"
+          cp ".professional-review/battle-render/three_quarter_gameplay_${GAMEPLAY}.png" "$OUTPUT_DIR/battle_ready_gameplay_${GAMEPLAY}.png"
+          cp .professional-review/review-runtime.json "$OUTPUT_DIR/review-runtime.json"
+          cp .v41-preview/materialization-report.json "$OUTPUT_DIR/materialization-report.json"
+          cp "$CAMERA" "$OUTPUT_DIR/official-camera-profile.json"
+
+      - name: Build preview contact sheet
+        shell: bash
+        env:
+          OUTPUT_DIR: ${{ steps.runtime.outputs.output_dir }}
+          GAMEPLAY: ${{ steps.runtime.outputs.gameplay }}
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/build_review_contact_sheet.py \
+            --input-dir "$OUTPUT_DIR" \
+            --gameplay-name "hero_gameplay_${GAMEPLAY}.png" \
+            --output "$OUTPUT_DIR/contact_sheet.png"
+
+      - name: Fingerprint preview evidence without granting art approval
+        shell: bash
+        env:
+          OUTPUT_DIR: ${{ steps.runtime.outputs.output_dir }}
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/validate_blockbench_evidence.py \
+            --manifest .v41-preview/0448_lucario.json \
+            --output-dir "$OUTPUT_DIR" \
+            --head-sha "${{ github.event.pull_request.head.sha || github.sha }}"
+
+      - name: Upload Lucario V41 Blockbench preview
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lucario-v41-cloth-flow-blockbench-preview
+          path: .professional-review/output
+          if-no-files-found: warn
+          retention-days: 30

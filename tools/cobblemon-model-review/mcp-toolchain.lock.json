@@ -1,0 +1,29 @@
+{
+  "format": "ouros.cobblemon-model-mcp-toolchain.v1",
+  "updatedAt": "2026-08-31",
+  "blockbenchMcp": {
+    "repository": "https://github.com/jasonjgardner/blockbench-mcp-plugin",
+    "commit": "6b069e308fdfc9b0a1c15bc924ca78150815f143",
+    "license": "GPL-3.0",
+    "runtimeMode": "EXTERNAL_TOOL_ONLY",
+    "defaultEndpoint": "http://127.0.0.1:3000/bb-mcp",
+    "installationUrl": "https://jasonjgardner.github.io/blockbench-mcp-plugin/mcp.js",
+    "authoringRole": "PRIMARY_LIVE_BLOCKBENCH_AUTHORING_BRIDGE"
+  },
+  "minecraftDevMcp": {
+    "repository": "https://github.com/MCDxAI/minecraft-dev-mcp",
+    "commit": "1120c5b4ad78f56a879553722b23da219208eeeb",
+    "license": "MIT",
+    "package": "@mcdxai/minecraft-dev-mcp",
+    "runtimeMode": "EXTERNAL_TOOL_ONLY",
+    "defaultEndpoint": "http://127.0.0.1:3001/mcp",
+    "runtimeRole": "MINECRAFT_AND_MOD_SOURCE_INSPECTION_VALIDATION"
+  },
+  "policy": {
+    "vendorThirdPartySource": false,
+    "copyThirdPartyModelGeometry": false,
+    "blockbenchMcpMayAuthorOurosGeometry": true,
+    "minecraftDevMcpMayDecideBattleState": false,
+    "autoptuRemainsBattleAuthority": true
+  }
+}

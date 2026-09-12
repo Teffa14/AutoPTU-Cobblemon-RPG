@@ -1,0 +1,99 @@
+{
+  "format": "ouros.blockbench-scene-seed.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "concept": "Blue/White Maid Lucario V41 — bonnet-only macroform pass 3",
+  "authoringState": "PREVIEW_SCENE_SEED_NOT_BLOCKBENCH_AUTHORED",
+  "authorityBoundary": "PRESENTATION_ONLY_AUTOPTU_AUTHORITATIVE",
+  "officialBaseline": {
+    "cobblemonVersion": "1.7.3",
+    "modelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
+    "officialBoneCount": 87
+  },
+  "designIntent": {
+    "firstRead": "A soft white maid bonnet wrapping the rear crown in one connected ruffled arc. No other clothing in this pass.",
+    "macroRules": [
+      "Preserve all 87 official Lucario bones and geometry exactly.",
+      "Keep the face and forehead open.",
+      "Wrap behind the ear roots instead of sitting on the forehead.",
+      "The silhouette must read as one continuous cloth arc, not two flowers and not a flat stripe.",
+      "No armor, crown, cage, plate stack or rectangular cap.",
+      "Use alpha-masked zero-thickness Bedrock planes only in this compatibility preview.",
+      "Use overlap and alternating angles to imply cloth curvature.",
+      "The three-quarter view is the hero read; front stays subordinate; rear clearly shows the complete bonnet.",
+      "Do not add dress, apron, sleeves, bow or torso clothing before owner approval."
+    ],
+    "referenceTechniqueCarryover": [
+      "Separate the structural cap surface from its decorative ruffle edge.",
+      "Build a curved read from a small number of overlapping oriented surfaces, not a staircase of cuboids.",
+      "Keep the bonnet anatomy-following and animation-parented to head_angle."
+    ],
+    "iterationNote": "Pass 2 increased visibility but still read as side flowers in three-quarter view and a horizontal stripe from the rear. Pass 3 replaces that layout with a continuous rear-crown fan: broad rear-left/rear-center/rear-right cap panels, larger ear-root wings, two shallow top cloth panels, and a three-segment lower scalloped ruffle. This is still preview geometry, not owner-approved production art."
+  },
+  "palette": {
+    "84": [135, 151, 207, 255],
+    "85": [206, 214, 229, 255],
+    "86": [231, 235, 242, 255],
+    "87": [247, 248, 250, 255],
+    "88": [167, 177, 196, 255]
+  },
+  "spriteMasks": {
+    "cap_panel": {
+      "legend": {"W": 87, "L": 85, "S": 88},
+      "pixels": [
+        "..WWWWW..",
+        ".WWWWWWW.",
+        "WWLLLLLWW",
+        "WLLSSSLLW",
+        "WLLLLLLLW",
+        ".WWLLLWW."
+      ]
+    },
+    "side_wing": {
+      "legend": {"W": 87, "L": 85, "S": 88},
+      "pixels": [
+        "...WWW",
+        "..WWLW",
+        ".WWLLW",
+        "WWLSLW",
+        "WLLLLW",
+        ".WLLW.",
+        "..WW.."
+      ]
+    },
+    "ruffle": {
+      "legend": {"W": 87, "L": 86},
+      "pixels": [
+        "WWWWWWWWW",
+        ".WLWLWLW.",
+        "W.W.W.W.W"
+      ]
+    }
+  },
+  "bones": [
+    {
+      "name": "ouros_v41_bonnet_shell",
+      "parent": "head_angle",
+      "pivot": [0, 40.85, 2.75],
+      "elements": [
+        {"origin": [-4.46, 39.52, 3.08], "size": [3.26, 3.74, 0], "pivot": [-2.52, 41.28, 3.20], "rotation": [-13, 0, 12], "uvSprite": "cap_panel"},
+        {"origin": [-1.72, 39.70, 3.34], "size": [3.48, 3.82, 0], "pivot": [0.04, 41.42, 3.42], "rotation": [-15, 0, -1], "uvSprite": "cap_panel"},
+        {"origin": [1.22, 39.58, 3.10], "size": [3.24, 3.70, 0], "pivot": [2.50, 41.30, 3.20], "rotation": [-12, 0, -11], "uvSprite": "cap_panel"},
+        {"origin": [-5.06, 39.18, 0.54], "size": [0, 4.08, 3.30], "pivot": [-4.82, 41.18, 2.18], "rotation": [2, -30, 12], "uvSprite": "side_wing"},
+        {"origin": [5.00, 39.30, 0.62], "size": [0, 3.94, 3.24], "pivot": [4.78, 41.20, 2.22], "rotation": [-1, 28, -10], "uvSprite": "side_wing"},
+        {"origin": [-3.84, 42.20, 1.06], "size": [3.70, 0, 3.18], "pivot": [-1.90, 42.22, 2.60], "rotation": [19, -8, 12], "uvSprite": "cap_panel"},
+        {"origin": [0.16, 42.24, 1.12], "size": [3.66, 0, 3.14], "pivot": [1.88, 42.26, 2.62], "rotation": [20, 7, -10], "uvSprite": "cap_panel"}
+      ]
+    },
+    {
+      "name": "ouros_v41_bonnet_ruffle",
+      "parent": "head_angle",
+      "pivot": [0, 39.20, 3.50],
+      "elements": [
+        {"origin": [-4.34, 37.86, 3.50], "size": [2.82, 1.80, 0], "pivot": [-2.70, 39.22, 3.58], "rotation": [-11, 0, 12], "uvSprite": "ruffle"},
+        {"origin": [-1.66, 37.62, 3.66], "size": [3.34, 2.00, 0], "pivot": [0.02, 39.18, 3.72], "rotation": [-13, 0, -1], "uvSprite": "ruffle"},
+        {"origin": [1.54, 37.90, 3.52], "size": [2.80, 1.76, 0], "pivot": [2.68, 39.24, 3.58], "rotation": [-10, 0, -11], "uvSprite": "ruffle"}
+      ]
+    }
+  ]
+}
