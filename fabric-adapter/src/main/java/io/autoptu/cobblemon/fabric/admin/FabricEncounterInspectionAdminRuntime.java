@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import io.autoptu.cobblemon.fabric.world.AuthoritativeWildEncounterProjectionService;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -12,8 +13,11 @@ import net.minecraft.text.Text;
 
 import java.util.Optional;
 
-/** Operator-only, read-only inspection of one Trainer's durable visible-world encounter request. */
+/** Operator-only inspection and controlled server-authored encounter projection tools. */
 public final class FabricEncounterInspectionAdminRuntime {
+    private static final AuthoritativeWildEncounterProjectionService PROJECTION =
+            new AuthoritativeWildEncounterProjectionService();
+
     private FabricEncounterInspectionAdminRuntime() {}
 
     public static void register() {
@@ -26,7 +30,12 @@ public final class FabricEncounterInspectionAdminRuntime {
                                                 .then(CommandManager.argument("player", StringArgumentType.word())
                                                         .executes(context -> inspect(
                                                                 context.getSource(),
-                                                                StringArgumentType.getString(context, "player")))))))));
+                                                                StringArgumentType.getString(context, "player")))))
+                                        .then(CommandManager.literal("spawn")
+                                                .then(CommandManager.argument("table_or_blueprint", StringArgumentType.word())
+                                                        .executes(context -> spawn(
+                                                                context.getSource(),
+                                                                StringArgumentType.getString(context, "table_or_blueprint")))))))));
     }
 
     private static int inspect(ServerCommandSource source, String playerName) {
@@ -69,6 +78,33 @@ public final class FabricEncounterInspectionAdminRuntime {
         source.sendFeedback(() -> Text.literal(
                 "Read-only canonical encounter inspection complete; no battle-start legality, combatants, RNG or outcome were inferred or mutated."), false);
         return 1;
+    }
+
+    private static int spawn(ServerCommandSource source, String authoredId) {
+        ServerPlayerEntity operator = source.getPlayer();
+        if (operator == null) {
+            source.sendError(Text.literal("Encounter projection must be requested by an in-world operator."));
+            return 0;
+        }
+
+        AuthoritativeWildEncounterProjectionService.ProjectionResult result;
+        try {
+            result = PROJECTION.project(operator.getServerWorld(), authoredId);
+        } catch (RuntimeException rejected) {
+            source.sendError(Text.literal("AutoPTU rejected encounter projection: " + safeMessage(rejected)));
+            return 0;
+        }
+
+        source.sendFeedback(() -> Text.literal("AutoPTU projected server-authored "
+                + result.kind().name().toLowerCase() + " " + result.authoredId()
+                + " with " + result.encounters().size() + " visible actor(s)."), false);
+        for (AuthoritativeWildEncounterProjectionService.ProjectedEncounter encounter : result.encounters()) {
+            source.sendFeedback(() -> Text.literal("  " + encounter.canonicalEncounterId()
+                    + " -> actor " + encounter.presentationEntityUuid()), false);
+        }
+        source.sendFeedback(() -> Text.literal(
+                "Species, level, stats, moves, HP and PTU legality came only from server-authored canonical content; no battle was started."), false);
+        return result.encounters().size();
     }
 
     private static String valueOrNone(String value) {
