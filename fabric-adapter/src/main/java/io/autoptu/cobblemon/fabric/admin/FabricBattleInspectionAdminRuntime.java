@@ -46,10 +46,11 @@ public final class FabricBattleInspectionAdminRuntime {
             source.sendError(Text.literal("No active server-owned AutoPTU battle matches that ID."));
             return 0;
         }
+        ServerPlayerEntity inspectedParticipant = participant;
 
         FabricBattleChoiceRuntime.BattleStatusView status;
         try {
-            status = FabricBattleChoiceRuntime.status(participant.getUuid());
+            status = FabricBattleChoiceRuntime.status(inspectedParticipant.getUuid());
         } catch (RuntimeException unavailable) {
             source.sendError(Text.literal("Active AutoPTU battle binding cannot be inspected safely: "
                     + safeMessage(unavailable)));
@@ -60,14 +61,14 @@ public final class FabricBattleInspectionAdminRuntime {
             return 0;
         }
 
-        String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(participant.getUuid());
-        String participantName = participant.getGameProfile().getName();
+        String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(inspectedParticipant.getUuid());
+        String participantName = inspectedParticipant.getGameProfile().getName();
         Integer legalChoiceCount = status.authoritativeLegalChoiceCount();
 
         source.sendFeedback(() -> Text.literal("AutoPTU battle inspection — " + requested), false);
         source.sendFeedback(() -> Text.literal("Participant: " + participantName
                 + " | canonical player " + canonicalPlayerId
-                + " | UUID " + participant.getUuidAsString()), false);
+                + " | UUID " + inspectedParticipant.getUuidAsString()), false);
         source.sendFeedback(() -> Text.literal("Bound actor: " + status.actorId()), false);
         if (legalChoiceCount == null) {
             source.sendFeedback(() -> Text.literal("Authoritative legal choices: unavailable"), false);
