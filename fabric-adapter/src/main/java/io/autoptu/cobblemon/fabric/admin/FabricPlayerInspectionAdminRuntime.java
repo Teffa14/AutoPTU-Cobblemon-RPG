@@ -4,7 +4,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.authority.CanonicalBagQueryService;
 import io.autoptu.cobblemon.authority.CanonicalPartyQueryService;
 import io.autoptu.cobblemon.authority.CanonicalPartySummary;
-import io.autoptu.cobblemon.authority.CanonicalTrainerProgressionQueryService;
 import io.autoptu.cobblemon.authority.CanonicalTrainerSummaryService;
 import io.autoptu.cobblemon.authority.FileCanonicalTrainerProgressionRepository;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
@@ -69,9 +68,9 @@ public final class FabricPlayerInspectionAdminRuntime {
                 FabricCanonicalPlayerStoreRuntime.requireAssetRepository(source.getServer()))
                 .inspect(playerId);
 
-        var progression = new CanonicalTrainerProgressionQueryService(
-                new FileCanonicalTrainerProgressionRepository(canonicalStateRoot(source)))
-                .inspect(playerId);
+        var progression = new FileCanonicalTrainerProgressionRepository(canonicalStateRoot(source))
+                .find(playerId)
+                .orElse(null);
 
         source.sendFeedback(() -> Text.literal("AutoPTU player inspection — " + target.getGameProfile().getName()), false);
         source.sendFeedback(() -> Text.literal("Canonical player: " + playerId + " | UUID " + target.getUuidAsString()), false);
@@ -79,9 +78,13 @@ public final class FabricPlayerInspectionAdminRuntime {
                 + " | initiative " + signed(trainer.initiativeModifier())
                 + " | classes " + (trainer.trainerClasses().isEmpty() ? "none" : String.join(", ", trainer.trainerClasses()))
                 + " | revision " + trainer.revision()), false);
-        source.sendFeedback(() -> Text.literal("Progression: level " + progression.trainerLevel()
-                + " | XP " + progression.trainerXp()
-                + " | revision " + progression.revision()), false);
+        if (progression == null) {
+            source.sendFeedback(() -> Text.literal("Progression: unavailable (no persisted record)"), false);
+        } else {
+            source.sendFeedback(() -> Text.literal("Progression: level " + progression.trainerLevel()
+                    + " | XP " + progression.trainerXp()
+                    + " | revision " + progression.revision()), false);
+        }
 
         if (party == null || party.members().isEmpty()) {
             source.sendFeedback(() -> Text.literal("Party: empty"), false);
