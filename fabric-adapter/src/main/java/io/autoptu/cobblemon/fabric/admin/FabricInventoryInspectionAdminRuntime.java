@@ -79,7 +79,7 @@ public final class FabricInventoryInspectionAdminRuntime {
         }
 
         source.sendFeedback(() -> Text.literal(
-                "Read-only canonical inventory inspection complete; no item eligibility, PTU effect, or RPG state was mutated."), false);
+                "Read-only canonical inventory inspection complete; Cobblemon gameplay data and PTU item legality/effects were not consulted or mutated."), false);
         return 1;
     }
 
