@@ -39,7 +39,13 @@ public final class FabricPlayerInspectionAdminRuntime {
                                                 .then(CommandManager.argument("player", StringArgumentType.word())
                                                         .executes(context -> validate(
                                                                 context.getSource(),
-                                                                StringArgumentType.getString(context, "player")))))))));
+                                                                StringArgumentType.getString(context, "player"))))))
+                                .then(CommandManager.literal("inventory")
+                                        .then(CommandManager.literal("inspect")
+                                                .then(CommandManager.argument("player", StringArgumentType.word())
+                                                        .executes(context -> inspectInventory(
+                                                                context.getSource(),
+                                                                StringArgumentType.getString(context, "player"))))))))));
     }
 
     private static int inspect(ServerCommandSource source, String playerName) {
@@ -169,6 +175,62 @@ public final class FabricPlayerInspectionAdminRuntime {
         source.sendFeedback(() -> Text.literal(
                 "Read-only structural validation complete; PTU legality and battle outcomes were not evaluated."), false);
         return report.valid() ? 1 : 0;
+    }
+
+    private static int inspectInventory(ServerCommandSource source, String playerName) {
+        ServerPlayerEntity target = source.getServer().getPlayerManager().getPlayer(playerName);
+        if (target == null) {
+            source.sendError(Text.literal("That Minecraft player must be online for canonical identity resolution."));
+            return 0;
+        }
+
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(target.getUuid());
+        var playerRepository = FabricCanonicalPlayerStoreRuntime.requireRepository(source.getServer());
+        if (playerRepository.findPlayer(playerId).isEmpty()) {
+            source.sendError(Text.literal("No canonical AutoPTU Trainer state exists for " + target.getGameProfile().getName() + "."));
+            return 0;
+        }
+
+        CanonicalBagQueryService.BagSnapshot bag;
+        try {
+            bag = new CanonicalBagQueryService(
+                    FabricCanonicalPlayerStoreRuntime.requireAssetRepository(source.getServer()))
+                    .inspect(playerId);
+        } catch (RuntimeException inconsistentInventory) {
+            source.sendError(Text.literal("Canonical inventory state is inconsistent and cannot be inspected safely: "
+                    + safeMessage(inconsistentInventory)));
+            return 0;
+        }
+
+        source.sendFeedback(() -> Text.literal("AutoPTU inventory inspection — " + target.getGameProfile().getName()), false);
+        source.sendFeedback(() -> Text.literal("Canonical player: " + playerId + " | UUID " + target.getUuidAsString()), false);
+        source.sendFeedback(() -> Text.literal("Inventory: " + bag.entries().size() + " stack(s)"
+                + " | quantity " + bag.totalQuantity()
+                + " | available " + bag.totalAvailable()
+                + " | reserved " + bag.totalReserved()
+                + " | locks " + bag.transactionLocks()), false);
+
+        if (bag.entries().isEmpty()) {
+            source.sendFeedback(() -> Text.literal("  empty"), false);
+        } else {
+            for (CanonicalBagQueryService.BagEntry entry : bag.entries()) {
+                String reservation = entry.reservationId() == null || entry.reservationId().isBlank()
+                        ? "none"
+                        : entry.reservationId();
+                source.sendFeedback(() -> Text.literal("  " + entry.templateId()
+                        + " | instance " + entry.itemInstanceId()
+                        + " | qty " + entry.quantity()
+                        + " | available " + entry.availableQuantity()
+                        + " | reserved " + entry.reservedQuantity()
+                        + " | reservation " + reservation
+                        + " | consumed " + entry.reservationConsumed()
+                        + " | revision " + entry.revision()), false);
+            }
+        }
+
+        source.sendFeedback(() -> Text.literal(
+                "Read-only canonical inventory inspection complete; no item eligibility, PTU effect, or RPG state was mutated."), false);
+        return 1;
     }
 
     private static Path canonicalStateRoot(ServerCommandSource source) {
