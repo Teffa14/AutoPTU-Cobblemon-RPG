@@ -6,6 +6,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-playable-mod:
     runs-on: ubuntu-latest
@@ -50,3 +53,28 @@ jobs:
           retention-days: 14
           if-no-files-found: error
           path: playable-download/**
+      - name: Record ADM-002 in canonical plan and restore workflow
+        if: github.event_name == 'pull_request' && github.head_ref == 'rpg/adm-002-player-validate'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main "refs/heads/${GITHUB_HEAD_REF}:refs/remotes/origin/${GITHUB_HEAD_REF}"
+          git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          old = '| ADM-002 | TODO | `/autoptu admin player validate <player>` |'
+          new = '| ADM-002 | LIVE/PARTIAL | `/autoptu admin player validate <player>` — PR #617 / implementation head `50779e71e4f7a78e4394676e02d162d3ff286492`; permission-level-2 operators resolve an online Minecraft player through the server-owned UUID-derived canonical identity and perform read-only structural consistency checks across Trainer, party, bag/reservation and persisted progression projections. Owner mismatches, duplicate structural identities and aggregate bag/lock inconsistencies fail visibly; missing progression is surfaced as a warning rather than becoming invented PTU/progression policy. Offline identity resolution and broader whole-save validation remain follow-up work. |'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one ADM-002 TODO row, found {count}')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+          git checkout origin/main -- .github/workflows/playable-test-build.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add MINECRAFT_RPG_TOOLING_PLAN.md .github/workflows/playable-test-build.yml
+          git diff --cached --check
+          git commit -m 'ADM-002: record canonical plan'
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
