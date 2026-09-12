@@ -5,6 +5,7 @@ import io.autoptu.cobblemon.authority.CanonicalPartyHealingDecision;
 import io.autoptu.cobblemon.authority.CanonicalPartyHealingService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -12,10 +13,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 /** Operator-only HP restoration through the canonical persistent party healing authority. */
-public final class FabricPartyHealingAdminRuntime {
-    private FabricPartyHealingAdminRuntime() {}
-
-    public static void register() {
+public final class FabricPartyHealingAdminRuntime implements ModInitializer {
+    @Override
+    public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("admin")
