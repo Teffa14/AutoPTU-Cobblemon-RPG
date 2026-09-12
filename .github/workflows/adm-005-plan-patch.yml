@@ -1,0 +1,38 @@
+name: Temporary ADM-005 canonical-plan patch
+
+on:
+  push:
+    branches:
+      - tooling/adm-005-inventory-inspect-main
+
+permissions:
+  contents: write
+
+jobs:
+  patch-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tooling/adm-005-inventory-inspect-main
+          fetch-depth: 0
+      - name: Patch exactly one canonical plan row
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('MINECRAFT_RPG_TOOLING_PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          old = '| ADM-005 | TODO | `/autoptu admin inventory inspect <player>` |'
+          new = '| ADM-005 | LIVE/PARTIAL | `/autoptu admin inventory inspect <player>` — PR #621 / implementation head `2b3ae282896afb775879a5b67a972968818ac8bc`; permission-level-2 operators resolve an online Minecraft player to the server-owned UUID-derived canonical identity and inspect every canonical bag stack plus aggregate quantity, availability, reservations and transaction locks without mutating RPG/PTU state or trusting Cobblemon inventory/gameplay data. Offline identity resolution remains follow-up work. |'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected exactly one ADM-005 TODO row, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+      - name: Remove temporary workflow and commit canonical plan
+        run: |
+          git rm .github/workflows/adm-005-plan-patch.yml
+          git add MINECRAFT_RPG_TOOLING_PLAN.md
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "ADM-005: record canonical inventory inspection"
+          git push origin HEAD:tooling/adm-005-inventory-inspect-main
