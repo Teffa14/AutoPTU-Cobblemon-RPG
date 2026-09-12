@@ -28,6 +28,7 @@ public final class FabricPlayerInspectionAdminRuntime {
         FabricPartyInspectionAdminRuntime.register();
         FabricInventoryInspectionAdminRuntime.register();
         FabricQuestInspectionAdminRuntime.register();
+        FabricEncounterInspectionAdminRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("admin")
