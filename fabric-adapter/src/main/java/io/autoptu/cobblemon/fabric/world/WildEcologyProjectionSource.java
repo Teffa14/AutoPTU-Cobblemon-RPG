@@ -33,12 +33,20 @@ final class WildEcologyProjectionSource {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
-                if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || !actor.isAlive() || actor.isInvisible()) continue;
+                if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || !actor.isAlive()) continue;
 
                 var binding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid()).orElse(null);
                 if (binding == null
                         || binding.presentationEntity() != actor
                         || !binding.canonicalEncounterId().equals(encounter.canonicalEncounterId())) continue;
+
+                // Encounter/battle handoff intentionally hides the canonical presentation entity while keeping
+                // its binding alive. Preserve that inactive actor in this projection so downstream Minecraft
+                // runtimes can revoke locomotion, habitat cues and social-role presentation coherently. An actor
+                // that is invisible while still interaction-active is unexpected presentation state and remains
+                // fail-closed. No PTU battle state or legality is inferred from visibility here.
+                boolean interactionActive = VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid());
+                if (actor.isInvisible() && interactionActive) continue;
                 if (!projectedActorIds.add(actor.getUuid())) continue;
 
                 BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
