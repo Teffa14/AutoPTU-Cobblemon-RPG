@@ -7,7 +7,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /** Global projection source for server-owned visible wild actors. */
 final class WildEcologyProjectionSource {
@@ -16,6 +19,7 @@ final class WildEcologyProjectionSource {
     static Iterable<WildEcologyProjectionRegistry.ProjectedActor> projectedActors(ServerWorld world) {
         if (world == null) return List.of();
         List<WildEcologyProjectionRegistry.ProjectedActor> projected = new ArrayList<>();
+        Set<UUID> projectedActorIds = new HashSet<>();
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
             if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
@@ -29,6 +33,11 @@ final class WildEcologyProjectionSource {
                 var loaded = world.getEntity(boundUuid.get());
                 if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || actor.isInvisible()) continue;
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
+
+                var binding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid()).orElse(null);
+                if (binding == null || !binding.canonicalEncounterId().equals(encounter.canonicalEncounterId())) continue;
+                if (!projectedActorIds.add(actor.getUuid())) continue;
+
                 BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
                 projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
                         actor, population.siteId(), site.displayName(), anchor.getX() + 0.5D, anchor.getZ() + 0.5D,
