@@ -72,7 +72,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
     static void reconcile(ServerWorld world) {
         if (world == null || world.getServer() == null || world != world.getServer().getOverworld()) return;
         MinecraftServer server = world.getServer();
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         Set<UUID> online = new HashSet<>();
         for (ServerPlayerEntity player : world.getPlayers()) {
             UUID playerId = player.getUuid();
@@ -86,7 +86,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         forgetOffline(server, online);
     }
 
-    static LeaderContext contextFor(ServerPlayerEntity player, List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
+    static LeaderContext contextFor(ServerPlayerEntity player, List<WildEcologyProjectionSource.ProjectedActor> projections) {
         if (player == null || projections == null || projections.isEmpty()) return null;
         var focused = WildHabitatCueRuntime.nearestInteractionActor(player, projections);
         if (focused == null) return null;
@@ -102,7 +102,7 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
                 .filter(candidate -> member.populationKey().equals(candidate.populationKey()))
                 .filter(candidate -> !candidate.actor().isRemoved() && !candidate.actor().isInvisible())
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
-                .min(Comparator.comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) -> member.actor().squaredDistanceTo(candidate.actor()))
+                .min(Comparator.comparingDouble((WildEcologyProjectionSource.ProjectedActor candidate) -> member.actor().squaredDistanceTo(candidate.actor()))
                         .thenComparing(candidate -> candidate.actor().getUuid())).orElse(null);
         if (alpha == null) return null;
         double dx = alpha.actor().getX() - member.actor().getX();
@@ -127,8 +127,8 @@ public final class WildFocusedHerdLeaderContextRuntime implements ModInitializer
         return socialRole == WildSocialRole.ALPHA && capabilities != null && capabilities.herdLeaderPresentation();
     }
 
-    static HerdCounts herdCounts(WildEcologyProjectionRegistry.ProjectedActor alpha, String populationKey, double separation,
-                                 double cohesion, List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
+    static HerdCounts herdCounts(WildEcologyProjectionSource.ProjectedActor alpha, String populationKey, double separation,
+                                 double cohesion, List<WildEcologyProjectionSource.ProjectedActor> projections) {
         if (alpha == null) throw new IllegalArgumentException("alpha is required");
         if (populationKey == null || populationKey.isBlank()) throw new IllegalArgumentException("populationKey is required");
         if (!Double.isFinite(separation) || separation < 0.0D) throw new IllegalArgumentException("separation must be finite and non-negative");
