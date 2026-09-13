@@ -62,28 +62,32 @@ public final class PlayableBattleTestRuntime {
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(CommandManager.literal("autoptu")
-                    .then(CommandManager.literal("admin")
-                            .requires(source -> source.hasPermissionLevel(2))
-                            .then(CommandManager.literal("battle")
-                                    .then(CommandManager.literal("demo")
-                                            .then(CommandManager.argument("species", StringArgumentType.word())
-                                                    .then(CommandManager.argument("opponent", StringArgumentType.word())
-                                                            .executes(context -> start(
-                                                                    context.getSource(),
-                                                                    StringArgumentType.getString(context, "species"),
-                                                                    StringArgumentType.getString(context, "opponent")
-                                                            ))))))));
+            var adminDemo = CommandManager.literal("demo")
+                    .then(CommandManager.argument("species", StringArgumentType.word())
+                            .then(CommandManager.argument("opponent", StringArgumentType.word())
+                                    .executes(context -> start(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "species"),
+                                            StringArgumentType.getString(context, "opponent")
+                                    ))));
+            var adminBattle = CommandManager.literal("battle").then(adminDemo);
+            var admin = CommandManager.literal("admin")
+                    .requires(source -> source.hasPermissionLevel(2))
+                    .then(adminBattle);
 
-            dispatcher.register(CommandManager.literal("autoptu")
-                    .then(CommandManager.literal("testbattle")
-                            .requires(source -> source.hasPermissionLevel(2))
-                            .then(CommandManager.literal("bulbasaur")
-                                    .executes(context -> start(context.getSource(), "bulbasaur", "pikachu")))
-                            .then(CommandManager.literal("charmander")
-                                    .executes(context -> start(context.getSource(), "charmander", "pikachu")))
-                            .then(CommandManager.literal("squirtle")
-                                    .executes(context -> start(context.getSource(), "squirtle", "pikachu"))))));
+            var legacy = CommandManager.literal("testbattle")
+                    .requires(source -> source.hasPermissionLevel(2));
+            legacy.then(CommandManager.literal("bulbasaur")
+                    .executes(context -> start(context.getSource(), "bulbasaur", "pikachu")));
+            legacy.then(CommandManager.literal("charmander")
+                    .executes(context -> start(context.getSource(), "charmander", "pikachu")));
+            legacy.then(CommandManager.literal("squirtle")
+                    .executes(context -> start(context.getSource(), "squirtle", "pikachu")));
+
+            var root = CommandManager.literal("autoptu");
+            root.then(admin);
+            root.then(legacy);
+            dispatcher.register(root);
         });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
