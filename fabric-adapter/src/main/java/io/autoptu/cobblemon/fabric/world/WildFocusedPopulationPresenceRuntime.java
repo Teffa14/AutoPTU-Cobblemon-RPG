@@ -138,7 +138,7 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         if (world == null || world.getServer() == null || world != world.getServer().getOverworld()) return;
 
         MinecraftServer server = world.getServer();
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         Set<UUID> online = new HashSet<>();
         for (ServerPlayerEntity player : world.getPlayers()) {
             UUID playerId = player.getUuid();
@@ -162,11 +162,11 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
 
     static PopulationPresence presenceFor(
             WildHabitatCueRuntime.NearbyInteractionSnapshot focused,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projections
+            List<WildEcologyProjectionSource.ProjectedActor> projections
     ) {
         if (focused == null || projections == null || projections.isEmpty()) return null;
 
-        WildEcologyProjectionRegistry.ProjectedActor focusedProjection = projections.stream()
+        WildEcologyProjectionSource.ProjectedActor focusedProjection = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> candidate.actor().getUuid().equals(focused.actorId()))
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
@@ -178,12 +178,12 @@ public final class WildFocusedPopulationPresenceRuntime implements ModInitialize
         int visibleActors = 0;
         int visibleAlphas = 0;
         double maxPairDistanceSquared = 0.0D;
-        List<WildEcologyProjectionRegistry.ProjectedActor> population = projections.stream()
+        List<WildEcologyProjectionSource.ProjectedActor> population = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> populationKey.equals(candidate.populationKey()))
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
                 .toList();
-        for (WildEcologyProjectionRegistry.ProjectedActor projection : population) {
+        for (WildEcologyProjectionSource.ProjectedActor projection : population) {
             visibleActors++;
             if (projection.presentationCapabilities().nativeAlphaVisual()) visibleAlphas++;
         }
