@@ -61,27 +61,28 @@ public final class PlayableBattleTestRuntime {
     private PlayableBattleTestRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("admin")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("battle")
-                                        .then(CommandManager.literal("demo")
-                                                .then(CommandManager.argument("species", StringArgumentType.word())
-                                                        .then(CommandManager.argument("opponent", StringArgumentType.word())
-                                                                .executes(context -> start(
-                                                                        context.getSource(),
-                                                                        StringArgumentType.getString(context, "species"),
-                                                                        StringArgumentType.getString(context, "opponent")
-                                                                ))))))
-                        .then(CommandManager.literal("testbattle")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("bulbasaur")
-                                        .executes(context -> start(context.getSource(), "bulbasaur", "pikachu")))
-                                .then(CommandManager.literal("charmander")
-                                        .executes(context -> start(context.getSource(), "charmander", "pikachu")))
-                                .then(CommandManager.literal("squirtle")
-                                        .executes(context -> start(context.getSource(), "squirtle", "pikachu"))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            dispatcher.register(CommandManager.literal("autoptu")
+                    .then(CommandManager.literal("admin")
+                            .requires(source -> source.hasPermissionLevel(2))
+                            .then(CommandManager.literal("battle")
+                                    .then(CommandManager.literal("demo")
+                                            .then(CommandManager.argument("species", StringArgumentType.word())
+                                                    .then(CommandManager.argument("opponent", StringArgumentType.word())
+                                                            .executes(context -> start(
+                                                                    context.getSource(),
+                                                                    StringArgumentType.getString(context, "species"),
+                                                                    StringArgumentType.getString(context, "opponent")
+                                                            )))))))
+                    .then(CommandManager.literal("testbattle")
+                            .requires(source -> source.hasPermissionLevel(2))
+                            .then(CommandManager.literal("bulbasaur")
+                                    .executes(context -> start(context.getSource(), "bulbasaur", "pikachu")))
+                            .then(CommandManager.literal("charmander")
+                                    .executes(context -> start(context.getSource(), "charmander", "pikachu")))
+                            .then(CommandManager.literal("squirtle")
+                                    .executes(context -> start(context.getSource(), "squirtle", "pikachu"))))));
+        });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (Session session : List.copyOf(ACTIVE.values())) {
@@ -179,9 +180,6 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static MoveResolutionInput demoMoveInput() {
-        // These are server-owned scenario inputs to the upstream resolver. DB 4 is a real supported
-        // PTU table entry; attack/defense are chosen so every landed hit advances the visible demo.
-        // Rolls, crit state, damage arithmetic, action consumption and HP mutation remain in Java.
         return new MoveResolutionInput(
                 2,
                 0,
