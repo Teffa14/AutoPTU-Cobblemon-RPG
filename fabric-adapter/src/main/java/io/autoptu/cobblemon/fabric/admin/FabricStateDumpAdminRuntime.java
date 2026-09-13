@@ -18,6 +18,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -66,9 +67,7 @@ public final class FabricStateDumpAdminRuntime implements ModInitializer {
                     FabricCanonicalPlayerStoreRuntime.requireAssetRepository(server))
                     .inspect(playerId);
             FileCanonicalTrainerProgressionRepository.ProgressionState progression =
-                    new FileCanonicalTrainerProgressionRepository(canonicalStateRoot(server))
-                            .find(playerId)
-                            .orElse(null);
+                    readProgressionIfPresent(server, playerId);
             FileCanonicalWalletRepository.WalletState wallet =
                     FabricCanonicalPlayerStoreRuntime.requireWalletRepository(server)
                             .find(playerId)
@@ -77,9 +76,19 @@ public final class FabricStateDumpAdminRuntime implements ModInitializer {
             emit(source, target.getGameProfile().getName(), trainer, progression, party, bag, wallet);
             return 1;
         } catch (RuntimeException inconsistentState) {
-            source.sendError(Text.literal("Canonical state dump failed safely: " + safeMessage(inconsistentState)));
+            source.sendError(Text.literal(
+                    "Canonical state dump failed safely while reading server-owned state; details were redacted."));
             return 0;
         }
+    }
+
+    private static FileCanonicalTrainerProgressionRepository.ProgressionState readProgressionIfPresent(
+            MinecraftServer server,
+            String playerId
+    ) {
+        Path root = canonicalStateRoot(server);
+        if (!Files.isDirectory(root.resolve("trainer-progression"))) return null;
+        return new FileCanonicalTrainerProgressionRepository(root).find(playerId).orElse(null);
     }
 
     private static void emit(
@@ -188,10 +197,5 @@ public final class FabricStateDumpAdminRuntime implements ModInitializer {
 
     private static String signed(int value) {
         return value > 0 ? "+" + value : Integer.toString(value);
-    }
-
-    private static String safeMessage(RuntimeException error) {
-        String message = error.getMessage();
-        return message == null || message.isBlank() ? error.getClass().getSimpleName() : message;
     }
 }
