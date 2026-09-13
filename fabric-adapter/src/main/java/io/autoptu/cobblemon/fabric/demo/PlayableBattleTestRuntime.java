@@ -26,6 +26,7 @@ import io.autoptu.core.runtime.MoveResolutionInput;
 import io.autoptu.core.runtime.RuntimeCombatantState;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -93,6 +94,13 @@ public final class PlayableBattleTestRuntime {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (Session session : List.copyOf(ACTIVE.values())) {
                 session.tick();
+            }
+        });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            Session session = ACTIVE.get(handler.player.getUuid());
+            if (session != null) {
+                session.cleanupNow();
             }
         });
     }
