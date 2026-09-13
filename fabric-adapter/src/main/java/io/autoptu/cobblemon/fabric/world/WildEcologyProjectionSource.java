@@ -20,6 +20,7 @@ final class WildEcologyProjectionSource {
         if (world == null) return List.of();
         List<WildEcologyProjectionRegistry.ProjectedActor> projected = new ArrayList<>();
         Set<UUID> projectedActorIds = new HashSet<>();
+        Set<Object> projectedEncounterIds = new HashSet<>();
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
             if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
@@ -28,6 +29,7 @@ final class WildEcologyProjectionSource {
             var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
                     .orElseThrow(() -> new IllegalStateException("missing projected canonical wild population site: " + projectedSiteId.get()));
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+                if (!projectedEncounterIds.add(encounter.canonicalEncounterId())) continue;
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
