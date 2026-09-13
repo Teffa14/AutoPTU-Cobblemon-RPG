@@ -73,7 +73,9 @@ public final class PlayableBattleTestRuntime {
                                                                     context.getSource(),
                                                                     StringArgumentType.getString(context, "species"),
                                                                     StringArgumentType.getString(context, "opponent")
-                                                            )))))))
+                                                            ))))))));
+
+            dispatcher.register(CommandManager.literal("autoptu")
                     .then(CommandManager.literal("testbattle")
                             .requires(source -> source.hasPermissionLevel(2))
                             .then(CommandManager.literal("bulbasaur")
