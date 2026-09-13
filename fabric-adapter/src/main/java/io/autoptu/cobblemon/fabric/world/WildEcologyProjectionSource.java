@@ -73,7 +73,7 @@ final class WildEcologyProjectionSource {
     private static List<ProjectedActor> projectedActors(ServerWorld world) {
         List<ProjectedActor> projected = new ArrayList<>();
         Set<UUID> projectedActorIds = new HashSet<>();
-        Set<Object> projectedEncounterIds = new HashSet<>();
+        Set<Object> duplicateEncounterIds = duplicateEncounterIds();
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
             if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
@@ -83,7 +83,11 @@ final class WildEcologyProjectionSource {
                     .orElseThrow(() -> new IllegalStateException(
                             "missing projected canonical wild population site: " + projectedSiteId.get()));
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-                if (!projectedEncounterIds.add(encounter.canonicalEncounterId())) continue;
+                // A canonical encounter identity must resolve to exactly one authored population member. If content
+                // accidentally publishes the same identity more than once, projecting whichever entry happens to be
+                // visited first would make Minecraft iteration order an authority source. Reject every ambiguous
+                // occurrence instead; content must be corrected server-side before that actor can re-enter ecology.
+                if (duplicateEncounterIds.contains(encounter.canonicalEncounterId())) continue;
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
@@ -111,5 +115,17 @@ final class WildEcologyProjectionSource {
             }
         }
         return List.copyOf(projected);
+    }
+
+    private static Set<Object> duplicateEncounterIds() {
+        Set<Object> seen = new HashSet<>();
+        Set<Object> duplicates = new HashSet<>();
+        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
+            for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+                Object encounterId = encounter.canonicalEncounterId();
+                if (!seen.add(encounterId)) duplicates.add(encounterId);
+            }
+        }
+        return duplicates;
     }
 }
