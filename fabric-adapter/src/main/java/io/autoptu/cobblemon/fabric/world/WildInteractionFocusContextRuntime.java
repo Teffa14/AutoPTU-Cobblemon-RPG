@@ -45,7 +45,7 @@ public final class WildInteractionFocusContextRuntime implements ModInitializer 
 
         MinecraftServer server = world.getServer();
         long currentTick = server.getTicks();
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         Set<UUID> online = new HashSet<>();
         for (ServerPlayerEntity player : world.getPlayers()) {
             UUID playerId = player.getUuid();
