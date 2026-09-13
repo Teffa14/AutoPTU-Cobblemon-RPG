@@ -18,7 +18,7 @@ import java.util.UUID;
  * World-wide Minecraft ambient behavior for server-authored visible wild actors.
  *
  * Region/species adapters publish actor, population, habitat and behavior profile through
- * {@link WildEcologyProjectionRegistry}. This runtime owns generic CALM roaming, same-population
+ * {@link WildEcologyProjectionSource}. This runtime owns generic CALM roaming, same-population
  * separation/cohesion, habitat recovery and player watch/alarm presentation for every published
  * population. It consumes Minecraft presentation state only and never supplies PTU movement,
  * initiative, targeting, RNG, damage, moves, abilities, legality or outcomes.
@@ -44,7 +44,7 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
     static void update(MinecraftServer server) {
         if (server == null) return;
         ServerWorld world = server.getOverworld();
-        List<WildEcologyProjectionRegistry.ProjectedActor> projected = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projected = WildEcologyProjectionSource.collect(world);
         Map<UUID, AmbientPokemonBehaviorController> controllers = controllersFor(server);
         var liveActors = new java.util.HashSet<UUID>();
 
@@ -110,10 +110,10 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
     }
 
     private static void applyPresentation(
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             ServerPlayerEntity nearest,
             AmbientPokemonBehaviorController.State state,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors,
+            List<WildEcologyProjectionSource.ProjectedActor> allActors,
             long worldTime
     ) {
         PokemonEntity actor = projection.actor();
@@ -163,11 +163,11 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
         setAmbientHorizontalVelocity(actor, fleeX, fleeZ, profile.fleeSpeed());
     }
 
-    static WildEcologyProjectionRegistry.ProjectedActor nearestPopulationSibling(
-            WildEcologyProjectionRegistry.ProjectedActor actor,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors
+    static WildEcologyProjectionSource.ProjectedActor nearestPopulationSibling(
+            WildEcologyProjectionSource.ProjectedActor actor,
+            List<WildEcologyProjectionSource.ProjectedActor> allActors
     ) {
-        WildEcologyProjectionRegistry.ProjectedActor nearest = null;
+        WildEcologyProjectionSource.ProjectedActor nearest = null;
         double nearestDistance = Double.POSITIVE_INFINITY;
         for (var candidate : allActors) {
             if (candidate.actor().getUuid().equals(actor.actor().getUuid())) continue;
@@ -185,8 +185,8 @@ public final class WildAmbientBehaviorRuntime implements ModInitializer {
     }
 
     private static void applyCalmRoaming(
-            WildEcologyProjectionRegistry.ProjectedActor projection,
-            WildEcologyProjectionRegistry.ProjectedActor nearestSibling,
+            WildEcologyProjectionSource.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor nearestSibling,
             long worldTime
     ) {
         PokemonEntity actor = projection.actor();
