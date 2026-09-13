@@ -45,7 +45,7 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
 
     static int project(ServerWorld world) {
         if (world == null) return 0;
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         int projected = 0;
         for (var projection : projections) {
             var actor = projection.actor();
@@ -90,8 +90,8 @@ public final class WildSocialRolePresentationRuntime implements ModInitializer {
      * not create herd AI, encounter or PTU semantics.
      */
     static int gatheredHerdMemberCount(
-            WildEcologyProjectionRegistry.ProjectedActor leader,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projections
+            WildEcologyProjectionSource.ProjectedActor leader,
+            List<WildEcologyProjectionSource.ProjectedActor> projections
     ) {
         if (leader == null) throw new IllegalArgumentException("leader is required");
         if (projections == null) throw new IllegalArgumentException("projections are required");
