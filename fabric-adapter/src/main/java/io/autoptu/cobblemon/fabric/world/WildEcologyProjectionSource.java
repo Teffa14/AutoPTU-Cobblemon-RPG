@@ -34,7 +34,6 @@ final class WildEcologyProjectionSource {
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
                 if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || !actor.isAlive() || actor.isInvisible()) continue;
-                if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
                 var binding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid()).orElse(null);
                 if (binding == null
