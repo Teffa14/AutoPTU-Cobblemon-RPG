@@ -36,16 +36,16 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
 
     static void update(ServerWorld world) {
         if (world == null) return;
-        List<WildEcologyProjectionRegistry.ProjectedActor> projected = WildEcologyProjectionRegistry.collect(world);
-        for (WildEcologyProjectionRegistry.ProjectedActor projection : projected) {
+        List<WildEcologyProjectionSource.ProjectedActor> projected = WildEcologyProjectionSource.collect(world);
+        for (WildEcologyProjectionSource.ProjectedActor projection : projected) {
             apply(world, projection, projected);
         }
     }
 
     static boolean apply(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors
+            WildEcologyProjectionSource.ProjectedActor projection,
+            List<WildEcologyProjectionSource.ProjectedActor> allActors
     ) {
         if (world == null || projection == null || allActors == null) return false;
         PokemonEntity actor = projection.actor();
@@ -53,7 +53,7 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
         if (profile.calmMovementActive(world.getTime())) return false;
         if (!eligibleRestingActor(world, actor, profile)) return false;
 
-        Optional<WildEcologyProjectionRegistry.ProjectedActor> anchor = herdAnchor(
+        Optional<WildEcologyProjectionSource.ProjectedActor> anchor = herdAnchor(
                 projection,
                 allActors,
                 profile.cohesionDistance());
@@ -76,9 +76,9 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
         return true;
     }
 
-    static Optional<WildEcologyProjectionRegistry.ProjectedActor> herdAnchor(
-            WildEcologyProjectionRegistry.ProjectedActor projection,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors,
+    static Optional<WildEcologyProjectionSource.ProjectedActor> herdAnchor(
+            WildEcologyProjectionSource.ProjectedActor projection,
+            List<WildEcologyProjectionSource.ProjectedActor> allActors,
             double cohesionDistance
     ) {
         if (projection == null || allActors == null || !Double.isFinite(cohesionDistance) || cohesionDistance <= 0.0D) {
@@ -102,7 +102,7 @@ public final class WildCalmHerdAttentionRuntime implements ModInitializer {
                             && distanceSquared <= maxDistanceSquared;
                 })
                 .min(Comparator
-                        .comparingInt((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                        .comparingInt((WildEcologyProjectionSource.ProjectedActor candidate) ->
                                 socialRolePriority(
                                         candidate.socialRole(),
                                         candidate.presentationCapabilities().herdLeaderPresentation()))

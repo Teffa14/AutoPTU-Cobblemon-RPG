@@ -17,7 +17,7 @@ import java.util.UUID;
  * World-wide recovery for stalled Minecraft-native CALM navigation on published wild actors.
  *
  * Population/species content supplies actors, habitats and behavior policy through
- * {@link WildEcologyProjectionRegistry}. This runtime observes only Minecraft presentation progress;
+ * {@link WildEcologyProjectionSource}. This runtime observes only Minecraft presentation progress;
  * it never reads Cobblemon Pokemon gameplay state or decides PTU movement legality, targets,
  * initiative, RNG, damage, statuses or battle outcomes.
  */
@@ -47,7 +47,7 @@ public final class WildCalmNavigationRecoveryRuntime implements ModInitializer {
         Map<UUID, NavigationProgress> progress = progressFor(server);
         HashSet<UUID> liveActors = new HashSet<>();
 
-        for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (var projection : WildEcologyProjectionSource.collect(world)) {
             PokemonEntity actor = projection.actor();
             if (actor.isRemoved() || actor.isInvisible()) continue;
             if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;

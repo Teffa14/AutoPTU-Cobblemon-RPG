@@ -49,7 +49,7 @@ public final class WildCalmNavigationContinuityRuntime implements ModInitializer
         Map<UUID, Long> active = activeFor(server);
         HashSet<UUID> liveActors = new HashSet<>();
 
-        for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (var projection : WildEcologyProjectionSource.collect(world)) {
             PokemonEntity actor = projection.actor();
             if (actor.isRemoved() || actor.isInvisible()) continue;
             if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
@@ -125,7 +125,7 @@ public final class WildCalmNavigationContinuityRuntime implements ModInitializer
 
     private static boolean startReplacementPath(
             PokemonEntity actor,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             long worldTime
     ) {
         double[] target = roamingTarget(actor, projection, worldTime);
@@ -140,7 +140,7 @@ public final class WildCalmNavigationContinuityRuntime implements ModInitializer
 
     private static double[] roamingTarget(
             PokemonEntity actor,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             long worldTime
     ) {
         return WildAmbientBehaviorRuntime.calmRoamingTarget(
@@ -156,7 +156,7 @@ public final class WildCalmNavigationContinuityRuntime implements ModInitializer
             ServerWorld world,
             PokemonEntity actor,
             Path path,
-            WildEcologyProjectionRegistry.ProjectedActor projection
+            WildEcologyProjectionSource.ProjectedActor projection
     ) {
         if (world == null || actor == null || path == null || path.getLength() == 0 || projection == null) return false;
         int currentNodeIndex = path.getCurrentNodeIndex();

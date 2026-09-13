@@ -38,16 +38,16 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
 
     static void update(ServerWorld world) {
         if (world == null) return;
-        List<WildEcologyProjectionRegistry.ProjectedActor> projected = WildEcologyProjectionRegistry.collect(world);
-        for (WildEcologyProjectionRegistry.ProjectedActor projection : projected) {
+        List<WildEcologyProjectionSource.ProjectedActor> projected = WildEcologyProjectionSource.collect(world);
+        for (WildEcologyProjectionSource.ProjectedActor projection : projected) {
             apply(world, projection, projected);
         }
     }
 
     static boolean apply(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors
+            WildEcologyProjectionSource.ProjectedActor projection,
+            List<WildEcologyProjectionSource.ProjectedActor> allActors
     ) {
         if (world == null || projection == null || allActors == null) return false;
         if (projection.socialRole() == WildSocialRole.ALPHA) return false;
@@ -66,7 +66,7 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
                 actor.getX(),
                 actor.getZ())) return false;
 
-        Optional<WildEcologyProjectionRegistry.ProjectedActor> alpha = alphaAnchor(projection, allActors);
+        Optional<WildEcologyProjectionSource.ProjectedActor> alpha = alphaAnchor(projection, allActors);
         if (alpha.isEmpty()) return false;
         PokemonEntity anchor = alpha.get().actor();
 
@@ -101,9 +101,9 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
         return path != null && actor.getNavigation().startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
     }
 
-    static Optional<WildEcologyProjectionRegistry.ProjectedActor> alphaAnchor(
-            WildEcologyProjectionRegistry.ProjectedActor projection,
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors
+    static Optional<WildEcologyProjectionSource.ProjectedActor> alphaAnchor(
+            WildEcologyProjectionSource.ProjectedActor projection,
+            List<WildEcologyProjectionSource.ProjectedActor> allActors
     ) {
         if (projection == null || allActors == null) return Optional.empty();
         PokemonEntity actor = projection.actor();
@@ -178,10 +178,10 @@ public final class WildCalmAlphaCohesionNavigationRuntime implements ModInitiali
     }
 
     private static List<AlphaCandidate> candidates(
-            List<WildEcologyProjectionRegistry.ProjectedActor> allActors
+            List<WildEcologyProjectionSource.ProjectedActor> allActors
     ) {
         List<AlphaCandidate> candidates = new ArrayList<>();
-        for (WildEcologyProjectionRegistry.ProjectedActor candidate : allActors) {
+        for (WildEcologyProjectionSource.ProjectedActor candidate : allActors) {
             if (candidate == null) continue;
             PokemonEntity actor = candidate.actor();
             if (actor.isRemoved() || actor.isInvisible()) continue;

@@ -18,7 +18,7 @@ import java.util.UUID;
 /**
  * Global Minecraft-presentation reciprocal yield for visible wild ecology actors.
  *
- * Every actor comes from {@link WildEcologyProjectionRegistry}; region/species code only publishes
+ * Every actor comes from {@link WildEcologyProjectionSource}; region/species code only publishes
  * actor, habitat and behavior-profile data. This runtime owns short-lived movement intents and
  * deterministic yield leases for all registered populations. Canonical encounter identity is used
  * only as a stable presentation tie-breaker. No PTU movement, initiative, targeting, legality, RNG,
@@ -42,9 +42,9 @@ public final class WildCalmReciprocalYieldRuntime implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             ServerWorld world = server.getOverworld();
             long tick = server.getTicks();
-            List<WildEcologyProjectionRegistry.ProjectedActor> projectedActors = world == null
+            List<WildEcologyProjectionSource.ProjectedActor> projectedActors = world == null
                     ? List.of()
-                    : WildEcologyProjectionRegistry.collect(world);
+                    : WildEcologyProjectionSource.collect(world);
             publishCorridorIntents(projectedActors, tick);
             applyActiveLeases(world, tick);
             if (tick % UPDATE_INTERVAL_TICKS == 0) {
@@ -58,7 +58,7 @@ public final class WildCalmReciprocalYieldRuntime implements ModInitializer {
     }
 
     private static void publishCorridorIntents(
-            List<WildEcologyProjectionRegistry.ProjectedActor> projectedActors,
+            List<WildEcologyProjectionSource.ProjectedActor> projectedActors,
             long tick
     ) {
         CORRIDOR_INTENTS.entrySet().removeIf(entry -> entry.getValue().expiresAtTick() <= tick);
@@ -105,11 +105,11 @@ public final class WildCalmReciprocalYieldRuntime implements ModInitializer {
 
     private static void acquireReciprocalYields(
             ServerWorld world,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projectedActors,
+            List<WildEcologyProjectionSource.ProjectedActor> projectedActors,
             long tick
     ) {
         if (world == null) return;
-        Map<UUID, WildEcologyProjectionRegistry.ProjectedActor> projectedByUuid = new HashMap<>();
+        Map<UUID, WildEcologyProjectionSource.ProjectedActor> projectedByUuid = new HashMap<>();
         for (var projected : projectedActors) projectedByUuid.put(projected.actor().getUuid(), projected);
 
         for (var projected : projectedActors) {
@@ -202,7 +202,7 @@ public final class WildCalmReciprocalYieldRuntime implements ModInitializer {
     private static PokemonEntity conflictingIntentPeer(
             ServerWorld world,
             PokemonEntity actor,
-            Map<UUID, WildEcologyProjectionRegistry.ProjectedActor> projectedByUuid,
+            Map<UUID, WildEcologyProjectionSource.ProjectedActor> projectedByUuid,
             long tick
     ) {
         CorridorIntent actorIntent = activeIntent(actor.getUuid(), tick);
@@ -229,7 +229,7 @@ public final class WildCalmReciprocalYieldRuntime implements ModInitializer {
 
     private static PokemonEntity reciprocalPeerAhead(
             PokemonEntity actor,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projectedActors,
+            List<WildEcologyProjectionSource.ProjectedActor> projectedActors,
             double velocityX,
             double velocityZ,
             double maxCalmSpeed

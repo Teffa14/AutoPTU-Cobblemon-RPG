@@ -31,10 +31,10 @@ public final class WildInteractionFocusAttentionRuntime implements ModInitialize
     static void reconcile(ServerWorld world) {
         if (world == null || world.getServer() == null || world != world.getServer().getOverworld()) return;
 
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         if (projections.isEmpty()) return;
 
-        Map<UUID, WildEcologyProjectionRegistry.ProjectedActor> byActorId = new HashMap<>();
+        Map<UUID, WildEcologyProjectionSource.ProjectedActor> byActorId = new HashMap<>();
         for (var projection : projections) {
             if (projection == null || projection.actor().isRemoved() || projection.actor().isInvisible()) continue;
             byActorId.put(projection.actor().getUuid(), projection);

@@ -16,7 +16,7 @@ import java.util.UUID;
  * World-wide Minecraft collision steering and native navigation for published visible wild actors.
  *
  * Region/species content supplies actor, habitat and behavior data through
- * {@link WildEcologyProjectionRegistry}. This runtime never reads Cobblemon Pokemon gameplay state
+ * {@link WildEcologyProjectionSource}. This runtime never reads Cobblemon Pokemon gameplay state
  * and never decides PTU movement legality, initiative, targets, RNG, combat state or outcomes.
  */
 public final class WildCalmCollisionNavigationRuntime implements ModInitializer {
@@ -41,7 +41,7 @@ public final class WildCalmCollisionNavigationRuntime implements ModInitializer 
 
     static void steer(ServerWorld world) {
         if (world == null) return;
-        List<WildEcologyProjectionRegistry.ProjectedActor> projected = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projected = WildEcologyProjectionSource.collect(world);
         for (var projection : projected) {
             PokemonEntity actor = projection.actor();
             if (actor.isRemoved() || actor.isInvisible()) continue;
@@ -78,7 +78,7 @@ public final class WildCalmCollisionNavigationRuntime implements ModInitializer 
 
     private static boolean startNativeNavigation(
             PokemonEntity actor,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             double[] target
     ) {
         Path path = findLeashSafeNativePath(
@@ -240,7 +240,7 @@ public final class WildCalmCollisionNavigationRuntime implements ModInitializer 
     private static double[] firstCollisionFreeVelocity(
             ServerWorld world,
             PokemonEntity actor,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             double requestedX,
             double requestedZ
     ) {
@@ -258,7 +258,7 @@ public final class WildCalmCollisionNavigationRuntime implements ModInitializer 
     private static boolean candidateAllowed(
             ServerWorld world,
             PokemonEntity actor,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             double[] velocity
     ) {
         return WildAmbientBehaviorRuntime.insideHorizontalLeash(
