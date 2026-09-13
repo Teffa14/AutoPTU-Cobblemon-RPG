@@ -35,7 +35,7 @@ final class CobblemonHabitatPointOfInterest {
 
     static Optional<BlockPos> nearest(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection
+            WildEcologyProjectionSource.ProjectedActor projection
     ) {
         if (world == null || projection == null || world.getServer() == null) return Optional.empty();
 
@@ -64,7 +64,7 @@ final class CobblemonHabitatPointOfInterest {
 
     private static Optional<BlockPos> scan(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection
+            WildEcologyProjectionSource.ProjectedActor projection
     ) {
         int horizontalRadius = Math.min(
                 projection.habitatLeashRadiusBlocks(),
@@ -176,7 +176,7 @@ final class CobblemonHabitatPointOfInterest {
 
     private static String cacheKey(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection
+            WildEcologyProjectionSource.ProjectedActor projection
     ) {
         return world.getRegistryKey().getValue()
                 + "|" + projection.populationKey()
