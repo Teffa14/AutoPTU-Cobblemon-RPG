@@ -43,7 +43,7 @@ public final class WildMigrationPhasePresentationRuntime implements ModInitializ
     static int project(ServerWorld world) {
         if (world == null) return 0;
         int projected = 0;
-        for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (var projection : WildEcologyProjectionSource.collect(world)) {
             var actor = projection.actor();
             if (actor.isRemoved() || actor.isInvisible()) continue;
             if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
