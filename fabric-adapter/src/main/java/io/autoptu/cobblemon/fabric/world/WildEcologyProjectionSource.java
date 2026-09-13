@@ -9,16 +9,69 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-/** Canonical projection source for server-owned visible wild actors. */
+/** Canonical projection source and immutable model for server-owned visible wild actors. */
 final class WildEcologyProjectionSource {
+    record ProjectedActor(
+            PokemonEntity actor,
+            String populationKey,
+            String habitatDisplayName,
+            double habitatCenterX,
+            double habitatCenterZ,
+            int habitatLeashRadiusBlocks,
+            WildBehaviorProfile behaviorProfile,
+            WildSocialRole socialRole,
+            WildEcologyDescriptorRegistry.PresentationCapabilities presentationCapabilities
+    ) {
+        ProjectedActor {
+            Objects.requireNonNull(actor, "actor");
+            populationKey = Objects.requireNonNull(populationKey, "populationKey").strip();
+            habitatDisplayName = Objects.requireNonNull(habitatDisplayName, "habitatDisplayName").strip();
+            Objects.requireNonNull(behaviorProfile, "behaviorProfile");
+            Objects.requireNonNull(socialRole, "socialRole");
+            Objects.requireNonNull(presentationCapabilities, "presentationCapabilities");
+            if (populationKey.isEmpty()) throw new IllegalArgumentException("populationKey must not be blank");
+            if (habitatDisplayName.isEmpty()) throw new IllegalArgumentException("habitatDisplayName must not be blank");
+            if (!Double.isFinite(habitatCenterX) || !Double.isFinite(habitatCenterZ)) {
+                throw new IllegalArgumentException("habitat center must be finite");
+            }
+            if (habitatLeashRadiusBlocks <= 0) {
+                throw new IllegalArgumentException("habitat leash radius must be positive");
+            }
+        }
+
+        ProjectedActor(PokemonEntity actor, String populationKey, String habitatDisplayName, double habitatCenterX,
+                       double habitatCenterZ, int habitatLeashRadiusBlocks, WildBehaviorProfile behaviorProfile,
+                       WildSocialRole socialRole) {
+            this(actor, populationKey, habitatDisplayName, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks,
+                    behaviorProfile, socialRole, WildEcologyDescriptorRegistry.PresentationCapabilities.NONE);
+        }
+
+        ProjectedActor(PokemonEntity actor, String populationKey, String habitatDisplayName, double habitatCenterX,
+                       double habitatCenterZ, int habitatLeashRadiusBlocks, WildBehaviorProfile behaviorProfile) {
+            this(actor, populationKey, habitatDisplayName, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks,
+                    behaviorProfile, WildSocialRole.MEMBER, WildEcologyDescriptorRegistry.PresentationCapabilities.NONE);
+        }
+
+        ProjectedActor(PokemonEntity actor, String populationKey, double habitatCenterX, double habitatCenterZ,
+                       int habitatLeashRadiusBlocks, WildBehaviorProfile behaviorProfile) {
+            this(actor, populationKey, populationKey, habitatCenterX, habitatCenterZ, habitatLeashRadiusBlocks,
+                    behaviorProfile, WildSocialRole.MEMBER, WildEcologyDescriptorRegistry.PresentationCapabilities.NONE);
+        }
+    }
+
     private WildEcologyProjectionSource() {}
 
-    static Iterable<WildEcologyProjectionRegistry.ProjectedActor> projectedActors(ServerWorld world) {
-        if (world == null) return List.of();
-        List<WildEcologyProjectionRegistry.ProjectedActor> projected = new ArrayList<>();
+    static List<ProjectedActor> collect(ServerWorld world) {
+        Objects.requireNonNull(world, "world");
+        return projectedActors(world);
+    }
+
+    private static List<ProjectedActor> projectedActors(ServerWorld world) {
+        List<ProjectedActor> projected = new ArrayList<>();
         Set<UUID> projectedActorIds = new HashSet<>();
         Set<Object> projectedEncounterIds = new HashSet<>();
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
@@ -27,7 +80,8 @@ final class WildEcologyProjectionSource {
             var projectedSiteId = descriptor.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
             var site = CanonicalWorldMapCatalogue.DEFAULT.site(projectedSiteId.get())
-                    .orElseThrow(() -> new IllegalStateException("missing projected canonical wild population site: " + projectedSiteId.get()));
+                    .orElseThrow(() -> new IllegalStateException(
+                            "missing projected canonical wild population site: " + projectedSiteId.get()));
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 if (!projectedEncounterIds.add(encounter.canonicalEncounterId())) continue;
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
@@ -50,7 +104,7 @@ final class WildEcologyProjectionSource {
                 if (!projectedActorIds.add(actor.getUuid())) continue;
 
                 BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
-                projected.add(new WildEcologyProjectionRegistry.ProjectedActor(
+                projected.add(new ProjectedActor(
                         actor, population.siteId(), site.displayName(), anchor.getX() + 0.5D, anchor.getZ() + 0.5D,
                         population.habitatLeashRadiusBlocks(), descriptor.behaviorProfile(), descriptor.socialRole(encounter),
                         descriptor.presentationCapabilities(encounter)));
