@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/** Global projection source for server-owned visible wild actors. */
+/** Canonical projection source for server-owned visible wild actors. */
 final class WildEcologyProjectionSource {
     private WildEcologyProjectionSource() {}
 
@@ -31,11 +31,13 @@ final class WildEcologyProjectionSource {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
-                if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || actor.isInvisible()) continue;
+                if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || !actor.isAlive() || actor.isInvisible()) continue;
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
                 var binding = VisibleWildPokemonEncounterRuntime.binding(actor.getUuid()).orElse(null);
-                if (binding == null || !binding.canonicalEncounterId().equals(encounter.canonicalEncounterId())) continue;
+                if (binding == null
+                        || binding.presentationEntity() != actor
+                        || !binding.canonicalEncounterId().equals(encounter.canonicalEncounterId())) continue;
                 if (!projectedActorIds.add(actor.getUuid())) continue;
 
                 BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
