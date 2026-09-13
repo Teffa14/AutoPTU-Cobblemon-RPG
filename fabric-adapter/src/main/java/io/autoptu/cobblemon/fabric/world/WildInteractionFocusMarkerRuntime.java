@@ -47,7 +47,7 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
 
         MinecraftServer server = world.getServer();
         long currentTick = server.getTicks();
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         Set<UUID> online = new HashSet<>();
         for (ServerPlayerEntity player : world.getPlayers()) {
             UUID playerId = player.getUuid();
@@ -65,7 +65,7 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
             remember(server, playerId, nextState(previous, currentActorId, currentTick, markNow));
             if (!markNow) continue;
 
-            WildEcologyProjectionRegistry.ProjectedActor projection = projectionFor(currentActorId, projections);
+            WildEcologyProjectionSource.ProjectedActor projection = projectionFor(currentActorId, projections);
             if (projection == null || projection.actor().isRemoved()) continue;
             mark(world, projection);
         }
@@ -90,11 +90,11 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
         return previous;
     }
 
-    static WildEcologyProjectionRegistry.ProjectedActor projectionFor(
+    static WildEcologyProjectionSource.ProjectedActor projectionFor(
             UUID actorId,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
+            List<WildEcologyProjectionSource.ProjectedActor> projections) {
         if (actorId == null || projections == null || projections.isEmpty()) return null;
-        for (WildEcologyProjectionRegistry.ProjectedActor projection : projections) {
+        for (WildEcologyProjectionSource.ProjectedActor projection : projections) {
             if (projection != null && actorId.equals(projection.actor().getUuid())) return projection;
         }
         return null;
@@ -109,7 +109,7 @@ public final class WildInteractionFocusMarkerRuntime implements ModInitializer {
         return markerStyle == MarkerStyle.ALPHA ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.END_ROD;
     }
 
-    private static void mark(ServerWorld world, WildEcologyProjectionRegistry.ProjectedActor projection) {
+    private static void mark(ServerWorld world, WildEcologyProjectionSource.ProjectedActor projection) {
         var actor = projection.actor();
         world.spawnParticles(
                 markerParticle(markerStyle(projection.socialRole())),
