@@ -1,0 +1,93 @@
+{
+  "format": "ouros.blockbench-authored-cosmetic-patch.v1",
+  "species": "lucario",
+  "nationalDex": 448,
+  "concept": "Aura Sentinel V50 — continuous shoulder-torso shell, displaced crescent and asymmetric hip mantle",
+  "artStatus": "ARTISTIC FAIL",
+  "reviewState": "PROFESSIONAL_PIPELINE_PREPARATION",
+  "previewStem": "lucario_v50_professional_macroform",
+  "authoringIntent": "Replace V49's small plate/tab read with three large connected systems. The first system sweeps from the left shoulder across the upper torso and around the right flank with changing depth, taper and overlap. The second system is a displaced open dorsal crescent whose center remains empty in rear and three-quarter views. The third system continues the diagonal material language through hip and upper legs with one asymmetric mantle mass instead of detached tabs. The exact official Lucario body remains unchanged underneath. This source remains pre-production until a deterministic builder, deliberate normal+shiny paint, professional manifest, registry promotion and generic Blockbench review all pass.",
+  "officialBaseline": {
+    "cobblemonVersion": "1.7.3",
+    "minecraftVersion": "1.21.1",
+    "loader": "fabric",
+    "modrinthProjectId": "MdwFAVRL",
+    "modrinthVersionId": "kF7CvxTo",
+    "jarFilename": "Cobblemon-fabric-1.7.3+1.21.1.jar",
+    "jarSha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
+    "jarSha512": "7b5376f5f48177db53790237b6fb25378806972b5d3b756151b4d8f2d3c27238d6b587b77da422bc1780bfd358b4702e74369fd82cef2a35301b4b68a2f13c2e",
+    "modelPath": "assets/cobblemon/bedrock/pokemon/models/0448_lucario/lucario.geo.json",
+    "modelSha256": "ccc5f4521fd71fcb4db548a0f0fd0ed41f83426f4a5c04efa473d8a20bef2de9",
+    "normalTextureSha256": "98c46f44f9e3428c8ecfd9f564d8d2e4c26ea60bee9ace6ff225c66f4803596a",
+    "shinyTextureSha256": "b87aaef14b35139b43446e1a85f7031a9594c5443a6a99c03e36e77cab75e84d",
+    "animationSha256": "ddf880b0830d7649f8cd8811c1c7e2b7fcdee156c850bbeb398f064995fa8563",
+    "poserSha256": "7cd9642b38fd1c3e2518cc7f30cd1ea221cac9c89e4b413551151418a4e3c07d",
+    "resolverSha256": "a1785270f9f21378e6287b30e3e309de4daa348f21e33fcb8a8b03a134508e81",
+    "modelLicenseSha256": "fb8e971d1895863ec9fc5f3cfc526c64af980bd6c93d0a1615c7969df46a6660",
+    "officialBoneCount": 87
+  },
+  "referenceDossier": "docs/cobblemon-skin-reference-dossiers/0448_lucario.json",
+  "referenceCarryForward": [
+    "Ruins Style: progressive rotation, parent-safe segmentation and readable thin-surface hierarchy. Do not copy costume silhouette, segmented head cloth, ring motif, palette or markings.",
+    "Space Style: continue one material envelope across torso and lower body while preserving biological landmarks and animation hierarchy. Do not copy suit, helmet, visor, panel layout, palette or markings.",
+    "Covert Style: connect head/shoulder/torso masses with deliberate openings around anatomy and motion-safe parent chains. Do not copy hood/cloak profile, garment layout, palette, markings or UV design."
+  ],
+  "designRules": {
+    "inheritRejectedCosmeticGeometry": false,
+    "largeConnectedMassesBeforeDetail": true,
+    "dominantRectangularApronFaceAllowed": false,
+    "repeatedStraightBarSystemAllowed": false,
+    "portalFrameSilhouetteAllowed": false,
+    "lowerBodyContinuationRequired": true,
+    "centralNegativeSpaceRequired": true,
+    "asymmetricFirstReadRequired": true,
+    "requiredViewsBeforeOwnerReview": ["front", "left", "right", "back", "three_quarter", "battle_three_quarter", "gameplay_160"]
+  },
+  "bones": [
+    {
+      "name": "ouros_v50_continuous_torso_shell",
+      "parent": "torso3",
+      "pivot": [-1.5, 27.0, -0.6],
+      "cubes": [
+        {"origin": [-7.5, 31.0, -3.8], "size": [7.1, 0.55, 5.4], "pivot": [-3.8, 31.2, -0.6], "rotation": [-18, -20, -38], "uv": [80, 63]},
+        {"origin": [-7.0, 27.5, -4.3], "size": [7.8, 0.62, 5.9], "pivot": [-3.3, 29.0, -0.8], "rotation": [-10, -14, -27], "uv": [81, 63]},
+        {"origin": [-6.0, 23.4, -4.4], "size": [8.4, 0.70, 6.2], "pivot": [-2.4, 26.0, -0.9], "rotation": [-2, -8, -15], "uv": [82, 63]},
+        {"origin": [-4.5, 19.2, -4.0], "size": [8.6, 0.78, 6.0], "pivot": [-1.0, 22.5, -0.7], "rotation": [8, -2, -4], "uv": [83, 63]},
+        {"origin": [-1.5, 18.2, -3.5], "size": [7.2, 0.66, 5.3], "pivot": [1.2, 21.2, -0.5], "rotation": [12, 8, 10], "uv": [84, 63]}
+      ]
+    },
+    {
+      "name": "ouros_v50_displaced_dorsal_crescent",
+      "parent": "torso3",
+      "pivot": [0.0, 24.2, 10.0],
+      "cubes": [
+        {"origin": [-11.5, 16.5, 9.5], "size": [6.6, 0.42, 3.5], "pivot": [-7.0, 21.5, 9.9], "rotation": [-7, 12, -62], "uv": [85, 63]},
+        {"origin": [-10.1, 25.2, 9.8], "size": [6.0, 0.36, 3.1], "pivot": [-6.2, 27.0, 10.1], "rotation": [-8, 8, -38], "uv": [86, 63]},
+        {"origin": [-6.2, 31.4, 10.0], "size": [5.4, 0.32, 2.8], "pivot": [-3.7, 31.8, 10.2], "rotation": [-8, 4, -16], "uv": [87, 63]},
+        {"origin": [0.8, 31.3, 10.1], "size": [5.2, 0.32, 2.8], "pivot": [3.4, 31.7, 10.2], "rotation": [-8, -4, 17], "uv": [80, 62]},
+        {"origin": [4.2, 25.0, 9.8], "size": [6.0, 0.36, 3.1], "pivot": [6.2, 26.8, 10.1], "rotation": [-8, -8, 39], "uv": [81, 62]},
+        {"origin": [5.0, 16.3, 9.4], "size": [6.5, 0.42, 3.5], "pivot": [7.1, 21.2, 9.9], "rotation": [-7, -12, 63], "uv": [82, 62]}
+      ]
+    },
+    {
+      "name": "ouros_v50_asymmetric_hip_mantle",
+      "parent": "torso",
+      "pivot": [-0.8, 15.0, -2.2],
+      "cubes": [
+        {"origin": [-6.0, 15.0, -4.1], "size": [7.5, 0.58, 5.0], "pivot": [-2.8, 16.4, -2.5], "rotation": [12, -7, 24], "uv": [83, 62]},
+        {"origin": [-5.2, 11.2, -3.8], "size": [7.0, 0.52, 4.8], "pivot": [-2.4, 13.8, -2.4], "rotation": [16, -5, 18], "uv": [84, 62]},
+        {"origin": [-4.1, 7.8, -3.4], "size": [6.2, 0.46, 4.5], "pivot": [-1.9, 10.7, -2.2], "rotation": [20, -3, 12], "uv": [85, 62]},
+        {"origin": [0.6, 13.6, -3.2], "size": [5.4, 0.44, 4.2], "pivot": [2.2, 14.7, -2.1], "rotation": [10, 8, -14], "uv": [86, 62]},
+        {"origin": [1.4, 10.1, -2.9], "size": [4.6, 0.38, 3.9], "pivot": [2.8, 12.2, -1.9], "rotation": [15, 7, -9], "uv": [87, 62]}
+      ]
+    }
+  ],
+  "sliceMetrics": {
+    "cosmeticBoneCount": 3,
+    "cosmeticCubeCount": 16,
+    "dominantSystems": ["continuous_shoulder_torso_flank_shell", "displaced_open_dorsal_crescent", "asymmetric_hip_mantle"],
+    "signaturePieces": ["continuous shoulder-to-flank shell with progressive taper and depth", "rear crescent displaced outside the biological outline with an intentionally empty center", "single asymmetric hip mantle continuing the upper-body diagonal into the lower silhouette"],
+    "rejectedV49ProblemsAddressed": ["small plate/tab first read", "dorsal signature absorbed by dreadlocks/tail", "lower continuation resolved as isolated tabs"],
+    "nextRequiredStep": "Run the deterministic staging builder against the exact pinned official JAR, inspect the generated candidate hashes/counts, then author deliberate independent normal and shiny paint before a professional manifest and registry promotion can unlock production."
+  }
+}

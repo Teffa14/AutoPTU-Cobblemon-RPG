@@ -40,6 +40,16 @@ jobs:
           python -m compileall -q tools/cobblemon-model-review
           python -m unittest tools/cobblemon-model-review/test_professional_pipeline.py
 
+      - name: Execute changed deterministic staging builders
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python tools/cobblemon-model-review/run_changed_staging_builders.py \
+            --base "$BASE_SHA" --head "$HEAD_SHA"
+
       - name: Enforce exhaustive registry and legacy quarantine
         run: |
           set -euo pipefail
