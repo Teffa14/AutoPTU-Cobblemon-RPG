@@ -53,6 +53,23 @@ class FabricBattleChoiceRuntimeTest {
     }
 
     @Test
+    void hudTitleMakesPreviewAndCommittedFlowExplicit() {
+        BattleCoreLegalChoice.Shift shift = new BattleCoreLegalChoice.Shift(
+                "player-mon-1", new BattleGridCoordinate(2, 3), "shift-1");
+        var preview = new FabricBattleChoiceRuntime.SelectionVisual(
+                "reservation-17", "player-mon-1", shift,
+                FabricBattleChoiceRuntime.SelectionPhase.PREVIEW, Long.MAX_VALUE);
+        var committed = new FabricBattleChoiceRuntime.SelectionVisual(
+                "reservation-17", "player-mon-1", shift,
+                FabricBattleChoiceRuntime.SelectionPhase.COMMITTED, Long.MAX_VALUE);
+
+        assertEquals("AutoPTU • player-mon-1 • PREVIEW MOVE • legal 4",
+                FabricBattleChoiceRuntime.selectionHudTitle("player-mon-1", 4, preview));
+        assertEquals("AutoPTU • player-mon-1 • LOCKED MOVE • legal 3",
+                FabricBattleChoiceRuntime.selectionHudTitle("player-mon-1", 3, committed));
+    }
+
+    @Test
     void targetOverlayUsesOnlyAuthoritativeShiftAndTargetAnchors() {
         BattleGridCoordinate shift = new BattleGridCoordinate(2, 3);
         BattleGridCoordinate tile = new BattleGridCoordinate(4, 5);

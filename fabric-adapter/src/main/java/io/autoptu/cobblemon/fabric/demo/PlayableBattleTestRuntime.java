@@ -6,11 +6,17 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
+import io.autoptu.cobblemon.battlecore.BattleChoiceVisualPlan;
+import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
+import io.autoptu.cobblemon.battlecore.BattleGridTransform;
+import io.autoptu.cobblemon.fabric.battle.FabricBattleGridVisualRenderer;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
 import io.autoptu.core.action.MoveChoice;
 import io.autoptu.core.action.MoveOption;
+import io.autoptu.core.action.ShiftChoice;
 import io.autoptu.core.event.MoveResolvedEvent;
 import io.autoptu.core.model.ActionType;
 import io.autoptu.core.model.GridCoord;
@@ -19,6 +25,7 @@ import io.autoptu.core.model.MovementGrid;
 import io.autoptu.core.model.MovementProfile;
 import io.autoptu.core.random.PythonRandom;
 import io.autoptu.core.rules.ActionBudget;
+import io.autoptu.core.rules.AutobattlerActionSpace;
 import io.autoptu.core.runtime.AppliedActionResult;
 import io.autoptu.core.runtime.BattleRuntime;
 import io.autoptu.core.runtime.BattleRuntimeState;
@@ -51,7 +58,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class PlayableBattleTestRuntime {
     private static final int DEMO_HP = 30;
-    private static final int TURN_DELAY_TICKS = 30;
+    private static final int TURN_DELAY_TICKS = 12;
+    private static final int OPENING_MOVEMENT_PREVIEW_TICKS = 20;
+    private static final int ATTACK_DECLARATION_TICKS = 18;
     private static final int LUNGE_TICKS = 8;
     private static final int CLEANUP_TICKS = 80;
 
@@ -189,7 +198,7 @@ public final class PlayableBattleTestRuntime {
     private static MoveOption demoMove() {
         return MoveOption.standard(
                 "demo-strike",
-                new MoveSpec("Ranged", "Ranged", 3, 3, null, null, "Ranged")
+                new MoveSpec("Ranged", "Ranged", 5, 5, null, null, "Ranged")
         );
     }
 
@@ -227,15 +236,22 @@ public final class PlayableBattleTestRuntime {
         private final String enemyPokemonName;
         private final PokemonEntity playerEntity;
         private final PokemonEntity enemyEntity;
-        private final BlockPos playerOrigin;
-        private final BlockPos enemyOrigin;
         private final String protectionScopeId;
         private final RuntimeCombatantState playerState;
         private final RuntimeCombatantState enemyState;
         private final BattleRuntimeState runtime;
         private final PythonRandom random;
+        private final BattleGridTransform gridTransform;
+        private final List<ShiftChoice> openingLegalShifts;
+        private final ShiftChoice openingShift;
         private boolean playerTurn = true;
-        private int delay = 20;
+        private int delay = TURN_DELAY_TICKS;
+        private int openingMovementPreviewRemaining = OPENING_MOVEMENT_PREVIEW_TICKS;
+        private int openingMovementCommitRemaining;
+        private int attackDeclarationRemaining;
+        private int attackCommitRemaining;
+        private BattleGridCoordinate committedAttackAnchor;
+        private boolean openingShiftCommitted;
         private int lungeRemaining;
         private PokemonEntity lungingEntity;
         private BlockPos lungeReturn;
@@ -257,16 +273,29 @@ public final class PlayableBattleTestRuntime {
             this.enemyPokemonName = enemyPokemonName;
             this.playerEntity = playerEntity;
             this.enemyEntity = enemyEntity;
-            this.playerOrigin = playerOrigin;
-            this.enemyOrigin = enemyOrigin;
             this.protectionScopeId = protectionScopeId;
             this.playerState = combatant("player-demo", new GridCoord(1, 1));
-            this.enemyState = combatant("wild-demo", new GridCoord(2, 1));
+            this.enemyState = combatant("wild-demo", new GridCoord(5, 1));
             this.runtime = new BattleRuntimeState(
-                    new MovementGrid(6, 6, Set.of(), Map.of()),
+                    new MovementGrid(7, 4, Set.of(), Map.of()),
                     List.of(playerState, enemyState)
             );
             this.random = new PythonRandom(20260823);
+            this.gridTransform = BattleGridTransform.from(new BattleArenaSnapshot(
+                    player.getServerWorld().getRegistryKey().getValue().toString(),
+                    playerOrigin.getX() - 1,
+                    playerOrigin.getY(),
+                    playerOrigin.getZ() - 1,
+                    1, 0, 0, 1
+            ));
+            this.openingLegalShifts = AutobattlerActionSpace.legalShiftChoices(
+                    playerState.combatantId(), runtime.grid(), playerState.movementProfile(),
+                    playerState.actionBudget(), 0, ignored -> true);
+            this.openingShift = openingLegalShifts.stream()
+                    .filter(choice -> choice.destination().equals(new GridCoord(2, 2)))
+                    .findFirst()
+                    .orElseGet(() -> openingLegalShifts.stream().findFirst()
+                            .orElseThrow(() -> new IllegalStateException("demo has no authoritative opening Shift")));
             updateNameplates();
         }
 
@@ -274,6 +303,8 @@ public final class PlayableBattleTestRuntime {
             player.sendMessage(Text.literal("AutoPTU ADMIN DEMO: " + playerPokemonName + " vs " + enemyPokemonName), false);
             player.sendMessage(Text.literal(
                     "Presentation species are operator-selected. AutoPTU-Java owns attack rolls, damage and HP."), false);
+            player.sendMessage(Text.literal(
+                    "TACTICAL FLOW: green = legal movement, gold = selected destination, red = declared attack."), false);
         }
 
         private void tick() {
@@ -296,10 +327,82 @@ public final class PlayableBattleTestRuntime {
                 if (--cleanupRemaining <= 0) cleanupNow();
                 return;
             }
-            if (--delay > 0) return;
 
-            resolveTurn();
-            delay = TURN_DELAY_TICKS;
+            renderTacticalGrid();
+            if (openingMovementPreviewRemaining > 0) {
+                renderOpeningMovementSelection();
+                if (--openingMovementPreviewRemaining == 0) commitOpeningShift();
+                return;
+            }
+            if (openingMovementCommitRemaining > 0) {
+                if ((player.getServerWorld().getTime() & 1L) == 0L) {
+                    FabricBattleGridVisualRenderer.renderDeclaredAnchor(
+                            player.getServerWorld(), gridTransform, coordinate(openingShift.destination()),
+                            BattleChoiceVisualPlan.HighlightKind.MOVEMENT, true, player.getServerWorld().getTime());
+                }
+                openingMovementCommitRemaining--;
+                return;
+            }
+            if (attackDeclarationRemaining > 0) {
+                renderAttackDeclaration();
+                if (--attackDeclarationRemaining == 0) {
+                    resolveTurn();
+                    delay = TURN_DELAY_TICKS;
+                }
+                return;
+            }
+            if (attackCommitRemaining > 0 && committedAttackAnchor != null) {
+                if ((player.getServerWorld().getTime() & 1L) == 0L) {
+                    FabricBattleGridVisualRenderer.renderDeclaredAnchor(
+                            player.getServerWorld(), gridTransform, committedAttackAnchor,
+                            BattleChoiceVisualPlan.HighlightKind.ATTACK, true, player.getServerWorld().getTime());
+                }
+                attackCommitRemaining--;
+                return;
+            }
+            if (--delay > 0) return;
+            declareAttack();
+        }
+
+        private void renderTacticalGrid() {
+            if ((player.getServerWorld().getTime() & 3L) != 0L) return;
+            FabricBattleGridVisualRenderer.renderGrid(
+                    player.getServerWorld(), gridTransform, new BattleChoiceVisualPlan.GridWindow(0, 6, 0, 3));
+        }
+
+        private void renderOpeningMovementSelection() {
+            if ((player.getServerWorld().getTime() & 1L) != 0L) return;
+            for (ShiftChoice legal : openingLegalShifts) {
+                FabricBattleGridVisualRenderer.renderLegalMovementCell(
+                        player.getServerWorld(), gridTransform, coordinate(legal.destination()));
+            }
+            FabricBattleGridVisualRenderer.renderDeclaredAnchor(
+                    player.getServerWorld(), gridTransform, coordinate(openingShift.destination()),
+                    BattleChoiceVisualPlan.HighlightKind.MOVEMENT, false, player.getServerWorld().getTime());
+        }
+
+        private void commitOpeningShift() {
+            BattleRuntime.applyAction(runtime, openingShift, ignored -> true);
+            var worldDestination = gridTransform.toWorld(coordinate(openingShift.destination()));
+            playerEntity.requestTeleport(worldDestination.x() + 0.5D, worldDestination.y(), worldDestination.z() + 0.5D);
+            openingShiftCommitted = true;
+            openingMovementCommitRemaining = 8;
+            player.sendMessage(Text.literal("Movement locked: destination accepted by AutoPTU-Java."), false);
+        }
+
+        private void declareAttack() {
+            attackDeclarationRemaining = ATTACK_DECLARATION_TICKS;
+            String attackerName = playerTurn ? playerPokemonName : enemyPokemonName;
+            String targetName = playerTurn ? enemyPokemonName : playerPokemonName;
+            player.sendMessage(Text.literal(attackerName + " locks demo-strike on " + targetName + "."), false);
+        }
+
+        private void renderAttackDeclaration() {
+            if ((player.getServerWorld().getTime() & 1L) != 0L) return;
+            GridCoord target = playerTurn ? enemyState.position() : playerState.position();
+            FabricBattleGridVisualRenderer.renderDeclaredAnchor(
+                    player.getServerWorld(), gridTransform, coordinate(target),
+                    BattleChoiceVisualPlan.HighlightKind.ATTACK, false, player.getServerWorld().getTime());
         }
 
         private void resolveTurn() {
@@ -307,11 +410,11 @@ public final class PlayableBattleTestRuntime {
             RuntimeCombatantState target = playerTurn ? enemyState : playerState;
             PokemonEntity attackerEntity = playerTurn ? playerEntity : enemyEntity;
             PokemonEntity targetEntity = playerTurn ? enemyEntity : playerEntity;
-            BlockPos attackerOrigin = playerTurn ? playerOrigin : enemyOrigin;
+            BlockPos attackerOrigin = attackerEntity.getBlockPos();
             String attackerName = playerTurn ? playerPokemonName : enemyPokemonName;
             String targetName = playerTurn ? enemyPokemonName : playerPokemonName;
 
-            attacker.actionBudget().resetConsumedActions();
+            if (!(playerTurn && openingShiftCommitted)) attacker.actionBudget().resetConsumedActions();
             MoveChoice choice = new MoveChoice(
                     attacker.combatantId(),
                     "demo-strike",
@@ -352,12 +455,19 @@ public final class PlayableBattleTestRuntime {
                 player.sendMessage(Text.literal(attackerName + " attacks, but misses."), false);
             }
             updateNameplates();
+            committedAttackAnchor = coordinate(target.position());
+            attackCommitRemaining = 8;
 
             if (event.targetHp() == 0) {
                 finish(attackerName, targetName);
                 return;
             }
+            openingShiftCommitted = false;
             playerTurn = !playerTurn;
+        }
+
+        private static BattleGridCoordinate coordinate(GridCoord coordinate) {
+            return new BattleGridCoordinate(coordinate.x(), coordinate.y());
         }
 
         private void updateNameplates() {

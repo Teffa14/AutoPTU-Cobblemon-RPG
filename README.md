@@ -22,7 +22,7 @@ The intended separation is `WildPopulationDefinition -> HabitatProfile -> WildBe
 
 ## First playable battle test
 
-The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a short lunge, displayed HP/nameplates and the final winner/loser message.
+The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo movement options, chosen Shift, attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a cyan tactical grid, green legal movement cells, a gold selected destination, a red attack lock, short lunge, displayed HP/nameplates and the final winner/loser message.
 
 This first vertical uses fixed server-owned combat inputs rather than pretending that general `RuntimeCombatantState` materialization is complete. It does not run statuses, abilities, items, Trainer Features, terrain, forced movement, tactical scoring, rewards or campaign commits. The lunge is presentation only and is not PTU movement legality. See `docs/first-playable-battle-test.md` for the exact install/test procedure and limitations.
 

@@ -26,6 +26,12 @@ Choose one scenario:
 /autoptu testbattle squirtle
 ```
 
+The opening sequence exposes the intended tactical interaction language: cyan is the presentation
+grid, green cells are Shift destinations emitted by AutoPTU-Java, gold is the selected/locked
+destination, and red is the declared attack target before the authoritative resolution. Normal
+battle bindings use `/autoptu battle preview <choiceId>`, `/autoptu battle confirm`, and
+`/autoptu battle cancel`; confirmation re-fetches the authoritative choice set before execution.
+
 The selected Pokémon fights a server-spawned Pikachu automatically.
 
 ## Expected visible result
@@ -42,7 +48,10 @@ The command selects a server-owned demo scenario only. It does not read the sele
 
 The current playable harness uses fixed server-owned combat inputs because general `RuntimeCombatantState` materialization is still blocked on unresolved dynamic movement/evasion/damage-modifier inputs. The fixed test inputs are passed into the current AutoPTU-Java `BattleRuntime.applyAuthoritativeMove` contract. The upstream core owns RNG, hit/miss, damage, authoritative HP mutation and action consumption.
 
-The visible lunge is animation only. It is not a PTU Shift, forced movement, push, pull, knockback or interception decision. The entity returns to the same presentation anchor after the cue.
+The gold opening reposition is a real Shift selected from AutoPTU-Java's legal movement list and
+committed through `BattleRuntime.applyAction`. The later attack lunge is animation only: it is not
+forced movement, push, pull, knockback or interception, and the entity returns to its post-Shift
+presentation anchor after that cue.
 
 ## Compatibility matrix entry
 
