@@ -381,10 +381,10 @@ public final class FabricBattleChoiceRuntime {
                 player.sendMessage(Text.literal("AutoPTU battle choices: none currently legal."), false);
                 return 1;
             }
-            player.sendMessage(Text.literal("AutoPTU battle choices"), false);
+            player.sendMessage(Text.literal("AutoPTU battle choices • preview, then confirm"), false);
             for (BattleChoiceMenuService.Entry choice : choices) {
                 player.sendMessage(Text.literal(choice.choiceId() + " | " + choice.label()
-                        + " | /autoptu battle choose " + choice.choiceId()), false);
+                        + " | /autoptu battle preview " + choice.choiceId()), false);
             }
             return 1;
         } catch (RuntimeException rejected) {
