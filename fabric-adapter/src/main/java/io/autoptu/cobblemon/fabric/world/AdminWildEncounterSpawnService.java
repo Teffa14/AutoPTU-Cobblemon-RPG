@@ -32,14 +32,19 @@ public final class AdminWildEncounterSpawnService {
         String requested = requireId(selector, "selector");
 
         var directEncounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(requested).orElse(null);
-        if (directEncounter != null) {
-            return project(world, requested, SelectorKind.BLUEPRINT, directEncounter);
-        }
-
         var population = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
                 .filter(candidate -> candidate.populationId().equals(requested))
                 .findFirst()
                 .orElse(null);
+
+        if (directEncounter != null && population != null) {
+            throw new IllegalStateException(
+                    "canonical wild selector matches both a blueprint and a table; rename authored content to keep operator spawn unambiguous: "
+                            + requested);
+        }
+        if (directEncounter != null) {
+            return project(world, requested, SelectorKind.BLUEPRINT, directEncounter);
+        }
         if (population == null) {
             throw new IllegalArgumentException("unknown canonical wild table or blueprint: " + requested);
         }
