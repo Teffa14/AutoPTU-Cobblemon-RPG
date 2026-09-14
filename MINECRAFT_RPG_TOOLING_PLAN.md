@@ -414,15 +414,15 @@ These are required for operations, testing and recovery. They must never be norm
 | ADM-006 | LIVE/PARTIAL | `/autoptu admin quest inspect <player> [quest]` — PR #623 / implementation head `11df1e6898ed9b9921643323867acc5474db781c`; permission-level-2 operators resolve an online Minecraft player to the server-owned UUID-derived canonical identity and inspect the durable canonical quest journal, authored quest metadata and persisted objective progress without observing objective events, advancing quests, claiming rewards, mutating progression/PTU state or trusting Cobblemon gameplay data. Offline identity resolution remains follow-up work. |
 | ADM-007 | LIVE/PARTIAL | `/autoptu admin encounter inspect <player>` — PR #624 / implementation head `0420f6786b7739f7f0b47d62180d05ddb18f370c`; permission-level-2 operators resolve an online Minecraft player to the UUID-derived canonical Trainer and inspect only the durable active visible-world encounter request: canonical encounter identity, visible actor correlation, authored zone/context and server-observed dimension/position/tick. The command is read-only and does not derive or mutate battle-start legality, combatants, RNG, action economy, damage, statuses or outcomes. Offline identity resolution remains follow-up work. |
 | ADM-008 | LIVE/PARTIAL | `/autoptu admin battle inspect <battleId>` — PR #625 / implementation head `734ec7ff92ed507dd653196102a38626d845dfa0`; permission-level-2 operators inspect only the active server-owned opaque battle binding, resolving the authenticated participant/canonical identity, bound actor and authoritative legal-choice count when available. Durable/offline battle inspection remains unavailable until an authoritative persisted battle session/checkpoint exists; Minecraft reconstructs no turn, HP, faint, result, RNG, legality or PTU outcome. |
-| ADM-009 | TODO | `/autoptu admin battle demo <species> <opponent>`; eventual home for current testbattle. |
-| ADM-010 | TODO | `/autoptu admin encounter spawn <table|blueprint>` |
-| ADM-011 | TODO | `/autoptu admin heal <player>` |
-| ADM-012 | TODO | `/autoptu admin grant starter <player> <species>` |
-| ADM-013 | TODO | `/autoptu admin grant item <player> <item> [qty]` |
-| ADM-014 | TODO | `/autoptu admin grant currency <player> <amount>` |
-| ADM-015 | TODO | `/autoptu admin state validate [player]` |
-| ADM-016 | TODO | `/autoptu admin state dump <player>` with safe/redacted output. |
-| ADM-017 | TODO | `/autoptu admin reservations <player>` |
+| ADM-009 | LIVE | `/autoptu admin battle demo <species> <opponent>`; eventual home for current testbattle. — PR #638 / merge `c88bd2df8bc4422c86bbe46b05cf4d5a72305066`. |
+| ADM-010 | LIVE | `/autoptu admin encounter spawn <table|blueprint>` — PR #639 / merge `6d6313c154078d4b47309c76fdd85cd8cc09f391`. |
+| ADM-011 | LIVE | `/autoptu admin heal <player>` — PR #640 / merge `114b82188ee64ca8f22223fbaa7f2c5c12d54940`. |
+| ADM-012 | LIVE | `/autoptu admin grant starter <player> <species>` — PR #641 / merge `465a4c7baf8e14786f3ef98863a7806cb39403a1`. |
+| ADM-013 | LIVE | `/autoptu admin grant item <player> <item> [qty]` — PR #631 / merge `70b49e5bf2f45862fb2e4598384e5acf6b066da2`. |
+| ADM-014 | LIVE | `/autoptu admin grant currency <player> <amount>` — PR #642 / merge `d10c5235d345d9b1cdf2e3b7ce31920097e8d486`. |
+| ADM-015 | LIVE | `/autoptu admin state validate [player]` — PR #643 / merge `5f13d150b5f8c1d7c3ff97a7ea91ea4c09fee88b`. |
+| ADM-016 | LIVE | `/autoptu admin state dump <player>` with safe/redacted output. — PR #645 / merge `e563b974e8ddb867a4a262d77161ef8e16f9ed44`. |
+| ADM-017 | LIVE | `/autoptu admin reservations <player>` — PR #646 / merge `68fa0b535089bc6bf23c480b8dbb62077cf4114d`. |
 | ADM-018 | TODO | `/autoptu admin recover player <player>` |
 | ADM-019 | TODO | `/autoptu admin recover battle <battleId>` |
 | ADM-020 | TODO | `/autoptu admin rollback battle <battleId>` only to a durable safe checkpoint. |
