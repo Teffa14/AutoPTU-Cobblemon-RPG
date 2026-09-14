@@ -40,6 +40,19 @@ jobs:
           python -m compileall -q tools/cobblemon-model-review
           python -m unittest tools/cobblemon-model-review/test_professional_pipeline.py
 
+      - name: Validate pre-production authored cosmetic sources
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          patches=(tools/cobblemon-model-review/authored-sources/*/*.patch.json)
+          if [ ${#patches[@]} -eq 0 ]; then
+            echo 'No authored cosmetic patches present.'
+          fi
+          for patch in "${patches[@]}"; do
+            species="$(python -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8"))["species"])' "$patch")"
+            python tools/cobblemon-model-review/validate_authored_cosmetic_patch.py "$patch" --expected-species "$species"
+          done
+
       - name: Enforce exhaustive registry and legacy quarantine
         run: |
           set -euo pipefail
