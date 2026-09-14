@@ -24,8 +24,7 @@ public final class FabricPartyHealingRuntime {
             dispatcher.register(CommandManager.literal("autoptu")
                     .then(CommandManager.literal("admin")
                             .requires(source -> source.hasPermissionLevel(2))
-                            .then(CommandManager.literal("healparty")
-                                    .executes(context -> healSelf(context.getSource()))
+                            .then(CommandManager.literal("heal")
                                     .then(CommandManager.argument("player", EntityArgumentType.player())
                                             .executes(context -> heal(
                                                     context.getSource(),
@@ -37,7 +36,7 @@ public final class FabricPartyHealingRuntime {
     private static int healSelf(ServerCommandSource source) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
-            source.sendError(Text.literal("Party healing must target an authenticated player."));
+            source.sendError(Text.literal("Party healing must be requested by an authenticated player."));
             return 0;
         }
         return heal(source, player, false);
