@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import io.autoptu.cobblemon.fabric.world.AdminWildEncounterSpawnService;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -12,8 +13,10 @@ import net.minecraft.text.Text;
 
 import java.util.Optional;
 
-/** Operator-only, read-only inspection of one Trainer's durable visible-world encounter request. */
+/** Operator-only encounter inspection and canonical visible-WILD provisioning tools. */
 public final class FabricEncounterInspectionAdminRuntime {
+    private static final AdminWildEncounterSpawnService SPAWNS = new AdminWildEncounterSpawnService();
+
     private FabricEncounterInspectionAdminRuntime() {}
 
     public static void register() {
@@ -26,7 +29,35 @@ public final class FabricEncounterInspectionAdminRuntime {
                                                 .then(CommandManager.argument("player", StringArgumentType.word())
                                                         .executes(context -> inspect(
                                                                 context.getSource(),
-                                                                StringArgumentType.getString(context, "player")))))))));
+                                                                StringArgumentType.getString(context, "player")))))
+                                        .then(CommandManager.literal("spawn")
+                                                .then(CommandManager.argument("table_or_blueprint", StringArgumentType.word())
+                                                        .executes(context -> spawn(
+                                                                context.getSource(),
+                                                                StringArgumentType.getString(context, "table_or_blueprint")))))))));
+    }
+
+    private static int spawn(ServerCommandSource source, String selector) {
+        if (!(source.getEntity() instanceof ServerPlayerEntity operator)) {
+            source.sendError(Text.literal("Canonical encounter spawn requires an in-world operator player."));
+            return 0;
+        }
+        try {
+            AdminWildEncounterSpawnService.SpawnResult result = SPAWNS.spawn(operator.getServerWorld(), selector);
+            source.sendFeedback(() -> Text.literal(
+                    "AutoPTU canonical WILD projected: " + result.canonicalEncounterId()
+                            + " | selector=" + result.selectorKind().name().toLowerCase()
+                            + ":" + result.selector()
+                            + " | population=" + result.populationId()
+                            + " | presentation=" + result.speciesId()
+                            + " | entity=" + result.presentationEntity().getUuidAsString()), false);
+            source.sendFeedback(() -> Text.literal(
+                    "Species and PTU state came from server-authored encounter content; Cobblemon remains presentation-only."), false);
+            return 1;
+        } catch (RuntimeException rejected) {
+            source.sendError(Text.literal("Canonical WILD spawn rejected: " + safeMessage(rejected)));
+            return 0;
+        }
     }
 
     private static int inspect(ServerCommandSource source, String playerName) {
