@@ -34,7 +34,7 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
     static void verify(MinecraftServer server) {
         if (server == null) throw new IllegalArgumentException("server is required");
         ServerWorld world = server.getOverworld();
-        var projections = WildEcologyProjectionRegistry.collect(world);
+        var projections = WildEcologyProjectionSource.collect(world);
         if (projections.isEmpty()) {
             throw new IllegalStateException("Cobblemon 1.8 habitat POI smoke requires one projected canonical wild actor");
         }
@@ -76,7 +76,7 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
 
     private static BlockPos findProbePosition(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection
+            WildEcologyProjectionSource.ProjectedActor projection
     ) {
         BlockPos actorAnchor = projection.actor().getBlockPos();
         BlockPos nearActor = findLoadedProbePosition(
@@ -101,7 +101,7 @@ public final class CobblemonHabitatPointOfInterestRuntimeSmoke implements ModIni
 
     private static BlockPos findLoadedProbePosition(
             ServerWorld world,
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             int anchorX,
             int baseY,
             int anchorZ,

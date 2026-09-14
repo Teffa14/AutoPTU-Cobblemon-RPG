@@ -26,7 +26,7 @@ import java.util.UUID;
 /**
  * Global Minecraft-visible habitat feedback for every registered wild ecology population.
  *
- * Region/species content publishes projected actors through {@link WildEcologyProjectionRegistry}.
+ * Region/species content publishes projected actors through {@link WildEcologyProjectionSource}.
  * This runtime derives only presentation habitat presence and physical interaction-range feedback
  * from those server-authored projections. It never selects encounters, rolls RNG, reads Cobblemon
  * Pokemon gameplay payloads, or supplies PTU species/stats/moves/legality/results.
@@ -151,7 +151,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     static void reconcileNearbyInteractions(ServerWorld world) {
         if (world == null || world.getServer() == null || world != world.getServer().getOverworld()) return;
 
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         Set<UUID> online = new HashSet<>();
         for (ServerPlayerEntity player : world.getPlayers()) {
             UUID playerId = player.getUuid();
@@ -173,7 +173,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
 
     static NearbyInteractionSnapshot nearestInteractionActor(
             ServerPlayerEntity player,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projections) {
+            List<WildEcologyProjectionSource.ProjectedActor> projections) {
         if (player == null || projections == null || projections.isEmpty()) return null;
 
         MinecraftServer server = player.getServer();
@@ -182,7 +182,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
                 ? null
                 : rememberedNearbyInteraction(server, player.getUuid());
         if (remembered != null) {
-            WildEcologyProjectionRegistry.ProjectedActor retained = projections.stream()
+            WildEcologyProjectionSource.ProjectedActor retained = projections.stream()
                     .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                     .filter(candidate -> candidate.actor().getUuid().equals(remembered.actorId()))
                     .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
@@ -193,12 +193,12 @@ public final class WildHabitatCueRuntime implements ModInitializer {
             if (retainedSnapshot != null) return retainedSnapshot;
         }
 
-        WildEcologyProjectionRegistry.ProjectedActor projection = projections.stream()
+        WildEcologyProjectionSource.ProjectedActor projection = projections.stream()
                 .filter(candidate -> candidate != null && !candidate.actor().isRemoved())
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isEligibleInteractionTarget(player, candidate.actor()))
                 .min(Comparator
-                        .comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                        .comparingDouble((WildEcologyProjectionSource.ProjectedActor candidate) ->
                                 player.squaredDistanceTo(candidate.actor()))
                         .thenComparing(candidate -> candidate.actor().getUuid().toString()))
                 .orElse(null);
@@ -206,7 +206,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
     }
 
     static NearbyInteractionSnapshot interactionSnapshot(
-            WildEcologyProjectionRegistry.ProjectedActor projection,
+            WildEcologyProjectionSource.ProjectedActor projection,
             long worldTick
     ) {
         if (projection == null) return null;
@@ -281,7 +281,7 @@ public final class WildHabitatCueRuntime implements ModInitializer {
         Map<String, Integer> countsByPopulation = new LinkedHashMap<>();
         Map<String, Integer> alphasByPopulation = new LinkedHashMap<>();
         Map<String, String> labelsByPopulation = new LinkedHashMap<>();
-        for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (var projection : WildEcologyProjectionSource.collect(world)) {
             if (!contributesToHabitatCue(VisibleWildPokemonEncounterRuntime.isInteractionActive(projection.actor().getUuid()))) {
                 continue;
             }

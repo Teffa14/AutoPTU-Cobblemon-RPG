@@ -152,7 +152,7 @@ public final class WildHabitatMigrationContextRuntime implements ModInitializer 
         Map<String, MutableContext> mutable = new LinkedHashMap<>();
         long worldTick = world.getTime();
 
-        for (var projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (var projection : WildEcologyProjectionSource.collect(world)) {
             if (!contributesToMigrationContext(
                     VisibleWildPokemonEncounterRuntime.isInteractionActive(projection.actor().getUuid()))) {
                 continue;

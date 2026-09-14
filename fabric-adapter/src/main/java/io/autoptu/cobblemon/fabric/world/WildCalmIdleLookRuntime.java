@@ -13,7 +13,7 @@ import java.util.UUID;
  * Generic Minecraft-only calm/rest presentation for every registered visible-wild population.
  *
  * Population/region code supplies only a projected actor, habitat center and server-authored
- * behavior profile through {@link WildEcologyProjectionRegistry}. This runtime contains no region,
+ * behavior profile through {@link WildEcologyProjectionSource}. This runtime contains no region,
  * species or PTU rule knowledge. Cobblemon 1.8 Habitat Blocks may be observed as physical points
  * of interest only; their spawn configuration is never read as RPG authority.
  */
@@ -31,12 +31,12 @@ public final class WildCalmIdleLookRuntime implements ModInitializer {
 
     static void update(ServerWorld world) {
         if (world == null) return;
-        for (WildEcologyProjectionRegistry.ProjectedActor projection : WildEcologyProjectionRegistry.collect(world)) {
+        for (WildEcologyProjectionSource.ProjectedActor projection : WildEcologyProjectionSource.collect(world)) {
             apply(world, projection);
         }
     }
 
-    static boolean apply(ServerWorld world, WildEcologyProjectionRegistry.ProjectedActor projection) {
+    static boolean apply(ServerWorld world, WildEcologyProjectionSource.ProjectedActor projection) {
         if (world == null || projection == null) return false;
         PokemonEntity actor = projection.actor();
         WildBehaviorProfile profile = projection.behaviorProfile();

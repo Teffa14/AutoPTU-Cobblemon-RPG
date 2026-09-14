@@ -49,7 +49,7 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
 
     static int project(ServerWorld world) {
         if (world == null) return 0;
-        List<WildEcologyProjectionRegistry.ProjectedActor> projections = WildEcologyProjectionRegistry.collect(world);
+        List<WildEcologyProjectionSource.ProjectedActor> projections = WildEcologyProjectionSource.collect(world);
         int projected = 0;
         for (var member : projections) {
             if (!isActiveVisibleMember(member)) continue;
@@ -162,15 +162,15 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
         return List.copyOf(offsets);
     }
 
-    private static boolean isActiveVisibleMember(WildEcologyProjectionRegistry.ProjectedActor candidate) {
+    private static boolean isActiveVisibleMember(WildEcologyProjectionSource.ProjectedActor candidate) {
         if (candidate == null || candidate.socialRole() == WildSocialRole.ALPHA) return false;
         if (candidate.actor().isRemoved() || candidate.actor().isInvisible()) return false;
         return VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid());
     }
 
-    private static WildEcologyProjectionRegistry.ProjectedActor nearestActiveLeader(
-            WildEcologyProjectionRegistry.ProjectedActor member,
-            List<WildEcologyProjectionRegistry.ProjectedActor> projections
+    private static WildEcologyProjectionSource.ProjectedActor nearestActiveLeader(
+            WildEcologyProjectionSource.ProjectedActor member,
+            List<WildEcologyProjectionSource.ProjectedActor> projections
     ) {
         return projections.stream()
                 .filter(candidate -> candidate != null)
@@ -179,7 +179,7 @@ public final class WildHerdRegroupingPresentationRuntime implements ModInitializ
                 .filter(candidate -> member.populationKey().equals(candidate.populationKey()))
                 .filter(candidate -> !candidate.actor().isRemoved() && !candidate.actor().isInvisible())
                 .filter(candidate -> VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.actor().getUuid()))
-                .min(Comparator.comparingDouble((WildEcologyProjectionRegistry.ProjectedActor candidate) ->
+                .min(Comparator.comparingDouble((WildEcologyProjectionSource.ProjectedActor candidate) ->
                                 member.actor().squaredDistanceTo(candidate.actor()))
                         .thenComparing(candidate -> candidate.actor().getUuid()))
                 .orElse(null);

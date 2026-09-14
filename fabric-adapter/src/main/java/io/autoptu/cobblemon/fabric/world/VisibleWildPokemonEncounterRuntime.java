@@ -47,7 +47,7 @@ public final class VisibleWildPokemonEncounterRuntime {
             }
             if (!(entity instanceof PokemonEntity presentationEntity)) return ActionResult.PASS;
 
-            Binding binding = BINDINGS.get(presentationEntity.getUuid());
+            Binding binding = binding(presentationEntity.getUuid()).orElse(null);
             if (binding == null) return ActionResult.PASS;
             if (!INTERACTION_ACTIVE.contains(presentationEntity.getUuid())) return ActionResult.FAIL;
             if (!isEligibleInteractionTarget(serverPlayer, presentationEntity)) return ActionResult.FAIL;
@@ -170,15 +170,15 @@ public final class VisibleWildPokemonEncounterRuntime {
 
     public static WorldEncounterTriggerRequestService requests() { return REQUESTS; }
 
-    static boolean isBound(UUID entityUuid) { return entityUuid != null && BINDINGS.containsKey(entityUuid); }
+    static boolean isBound(UUID entityUuid) { return binding(entityUuid).isPresent(); }
 
     static boolean isInteractionActive(UUID entityUuid) {
-        return entityUuid != null && INTERACTION_ACTIVE.contains(entityUuid);
+        return binding(entityUuid).isPresent() && INTERACTION_ACTIVE.contains(entityUuid);
     }
 
     static void setInteractionActive(UUID entityUuid, boolean active) {
         if (entityUuid == null) return;
-        Binding binding = BINDINGS.get(entityUuid);
+        Binding binding = binding(entityUuid).orElse(null);
         if (binding == null) return;
         if (active) INTERACTION_ACTIVE.add(entityUuid);
         else INTERACTION_ACTIVE.remove(entityUuid);
@@ -197,12 +197,23 @@ public final class VisibleWildPokemonEncounterRuntime {
 
     static Optional<UUID> boundEntityUuid(String canonicalEncounterId) {
         if (canonicalEncounterId == null || canonicalEncounterId.isBlank()) return Optional.empty();
-        return Optional.ofNullable(ENTITY_BY_ENCOUNTER.get(canonicalEncounterId.strip()));
+        String encounterId = canonicalEncounterId.strip();
+        UUID entityUuid = ENTITY_BY_ENCOUNTER.get(encounterId);
+        if (entityUuid == null) return Optional.empty();
+        Binding binding = BINDINGS.get(entityUuid);
+        if (binding == null || !encounterId.equals(binding.canonicalEncounterId())) return Optional.empty();
+        if (!entityUuid.equals(binding.presentationEntity().getUuid())) return Optional.empty();
+        return Optional.of(entityUuid);
     }
 
     static Optional<Binding> binding(UUID entityUuid) {
         if (entityUuid == null) return Optional.empty();
-        return Optional.ofNullable(BINDINGS.get(entityUuid));
+        Binding binding = BINDINGS.get(entityUuid);
+        if (binding == null) return Optional.empty();
+        if (!entityUuid.equals(binding.presentationEntity().getUuid())) return Optional.empty();
+        UUID authoritativeUuid = ENTITY_BY_ENCOUNTER.get(binding.canonicalEncounterId());
+        if (!entityUuid.equals(authoritativeUuid)) return Optional.empty();
+        return Optional.of(binding);
     }
 
     private static String requireId(String value, String field) {

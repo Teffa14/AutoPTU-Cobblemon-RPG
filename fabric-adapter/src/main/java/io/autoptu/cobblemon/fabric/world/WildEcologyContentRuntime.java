@@ -9,9 +9,5 @@ public final class WildEcologyContentRuntime implements ModInitializer {
         for (var descriptor : MareaWildEcologyContent.descriptors()) {
             WildEcologyDescriptorRegistry.register(descriptor);
         }
-        WildEcologyProjectionRegistry.register(
-                "server-owned.visible-wilds",
-                WildEcologyProjectionSource::projectedActors
-        );
     }
 }

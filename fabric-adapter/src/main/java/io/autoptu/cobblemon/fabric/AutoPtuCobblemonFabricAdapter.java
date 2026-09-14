@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.fabric.admin.FabricPlayerInspectionAdminRuntime;
 import io.autoptu.cobblemon.fabric.admin.FabricRpgVisualProofRuntime;
+import io.autoptu.cobblemon.fabric.admin.FabricStarterGrantAdminRuntime;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleCameraRuntime;
@@ -102,6 +103,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
             throw new IllegalStateException("Cobblemon runtime is required by the AutoPTU adapter");
         }
         FabricPlayerInspectionAdminRuntime.register();
+        FabricStarterGrantAdminRuntime.register();
         FabricRpgProtectionRuntime.register();
         FabricRpgProtectionRuntimeSmoke.registerIfEnabled();
         FabricCanonicalWorldInteractionRuntime.register();

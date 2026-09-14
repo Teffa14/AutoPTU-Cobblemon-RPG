@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
@@ -42,10 +43,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * First manually playable vertical battle.
  *
- * This is intentionally a narrow 1v1 test harness, not the general battle materializer. AutoPTU-Java
+ * This is intentionally a narrow 1v1 operator demo, not the general battle materializer. AutoPTU-Java
  * owns accuracy rolls, damage, action consumption and authoritative HP mutation. Fabric/Cobblemon
- * only select a server-owned demo scenario and project its semantic move result into visible entities.
- * Statuses, abilities, items, terrain, Trainer Features, forced movement and rewards are disabled.
+ * only select presentation species for a server-owned demo scenario and project its semantic move
+ * result into visible entities. Statuses, abilities, items, terrain, Trainer Features, forced movement
+ * and rewards are disabled.
  */
 public final class PlayableBattleTestRuntime {
     private static final int DEMO_HP = 30;
@@ -60,15 +62,34 @@ public final class PlayableBattleTestRuntime {
     private PlayableBattleTestRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("testbattle")
-                                .then(CommandManager.literal("bulbasaur")
-                                        .executes(context -> start(context.getSource(), "bulbasaur")))
-                                .then(CommandManager.literal("charmander")
-                                        .executes(context -> start(context.getSource(), "charmander")))
-                                .then(CommandManager.literal("squirtle")
-                                        .executes(context -> start(context.getSource(), "squirtle"))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var adminDemo = CommandManager.literal("demo")
+                    .then(CommandManager.argument("species", StringArgumentType.word())
+                            .then(CommandManager.argument("opponent", StringArgumentType.word())
+                                    .executes(context -> start(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "species"),
+                                            StringArgumentType.getString(context, "opponent")
+                                    ))));
+            var adminBattle = CommandManager.literal("battle").then(adminDemo);
+            var admin = CommandManager.literal("admin")
+                    .requires(source -> source.hasPermissionLevel(2))
+                    .then(adminBattle);
+
+            var legacy = CommandManager.literal("testbattle")
+                    .requires(source -> source.hasPermissionLevel(2));
+            legacy.then(CommandManager.literal("bulbasaur")
+                    .executes(context -> start(context.getSource(), "bulbasaur", "pikachu")));
+            legacy.then(CommandManager.literal("charmander")
+                    .executes(context -> start(context.getSource(), "charmander", "pikachu")));
+            legacy.then(CommandManager.literal("squirtle")
+                    .executes(context -> start(context.getSource(), "squirtle", "pikachu")));
+
+            var root = CommandManager.literal("autoptu");
+            root.then(admin);
+            root.then(legacy);
+            dispatcher.register(root);
+        });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (Session session : List.copyOf(ACTIVE.values())) {
@@ -76,36 +97,41 @@ public final class PlayableBattleTestRuntime {
             }
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            handler.player.sendMessage(Text.literal("AutoPTU playable battle test is installed."), false);
-            handler.player.sendMessage(Text.literal(
-                    "Choose a Pokemon: /autoptu testbattle bulbasaur, charmander, or squirtle"), false);
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            Session session = ACTIVE.get(handler.player.getUuid());
+            if (session != null) {
+                session.cleanupNow();
+            }
         });
     }
 
-    private static int start(ServerCommandSource source, String starterId) {
+    private static int start(ServerCommandSource source, String playerSpeciesId, String opponentSpeciesId) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
-            source.sendError(Text.literal("This test battle must be started by a player."));
+            source.sendError(Text.literal("The AutoPTU battle demo must be started by a player operator."));
             return 0;
         }
         if (ACTIVE.containsKey(player.getUuid())) {
-            source.sendError(Text.literal("You already have an AutoPTU test battle running."));
+            source.sendError(Text.literal("You already have an AutoPTU battle demo running."));
             return 0;
         }
 
-        Species starter = PokemonSpecies.INSTANCE.getByName(starterId);
-        Species opponent = PokemonSpecies.INSTANCE.getByName("pikachu");
-        if (starter == null || opponent == null) {
-            source.sendError(Text.literal("Cobblemon species data is not ready."));
+        Species playerSpecies = PokemonSpecies.INSTANCE.getByName(playerSpeciesId);
+        Species opponentSpecies = PokemonSpecies.INSTANCE.getByName(opponentSpeciesId);
+        if (playerSpecies == null) {
+            source.sendError(Text.literal("Unknown Cobblemon presentation species: " + playerSpeciesId));
+            return 0;
+        }
+        if (opponentSpecies == null) {
+            source.sendError(Text.literal("Unknown Cobblemon presentation opponent: " + opponentSpeciesId));
             return 0;
         }
 
         ServerWorld world = player.getServerWorld();
         BlockPos playerOrigin = player.getBlockPos().add(2, 0, 0);
         BlockPos enemyOrigin = player.getBlockPos().add(6, 0, 0);
-        PokemonEntity playerPokemon = spawn(world, starter, playerOrigin);
-        PokemonEntity enemyPokemon = spawn(world, opponent, enemyOrigin);
+        PokemonEntity playerPokemon = spawn(world, playerSpecies, playerOrigin);
+        PokemonEntity enemyPokemon = spawn(world, opponentSpecies, enemyOrigin);
 
         String protectionScopeId = "battle-demo:" + player.getUuidAsString();
         FabricRpgWorldProtectionRegistry.protect(
@@ -113,13 +139,13 @@ public final class PlayableBattleTestRuntime {
                 world.getRegistryKey(),
                 playerOrigin.add(-2, -2, -3),
                 enemyOrigin.add(2, 3, 3),
-                "an AutoPTU battle is active here"
+                "an AutoPTU battle demo is active here"
         );
 
         Session session = new Session(
                 player,
-                displayName(starterId),
-                "Pikachu",
+                displayName(playerSpeciesId),
+                displayName(opponentSpeciesId),
                 playerPokemon,
                 enemyPokemon,
                 playerOrigin,
@@ -145,7 +171,7 @@ public final class PlayableBattleTestRuntime {
                 0.0F
         );
         if (!world.spawnEntity(entity)) {
-            throw new IllegalStateException("failed to spawn playable AutoPTU battle PokemonEntity");
+            throw new IllegalStateException("failed to spawn playable AutoPTU battle demo PokemonEntity");
         }
         return entity;
     }
@@ -168,9 +194,6 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static MoveResolutionInput demoMoveInput() {
-        // These are server-owned scenario inputs to the upstream resolver. DB 4 is a real supported
-        // PTU table entry; attack/defense are chosen so every landed hit advances the visible demo.
-        // Rolls, crit state, damage arithmetic, action consumption and HP mutation remain in Java.
         return new MoveResolutionInput(
                 2,
                 0,
@@ -189,7 +212,13 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static String displayName(String speciesId) {
-        return Character.toUpperCase(speciesId.charAt(0)) + speciesId.substring(1);
+        String normalized = speciesId == null ? "pokemon" : speciesId.strip();
+        int namespaceSeparator = normalized.indexOf(':');
+        if (namespaceSeparator >= 0 && namespaceSeparator + 1 < normalized.length()) {
+            normalized = normalized.substring(namespaceSeparator + 1);
+        }
+        if (normalized.isEmpty()) return "Pokemon";
+        return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
     }
 
     private static final class Session {
@@ -242,8 +271,9 @@ public final class PlayableBattleTestRuntime {
         }
 
         private void announceStart() {
-            player.sendMessage(Text.literal("AutoPTU TEST: " + playerPokemonName + " vs " + enemyPokemonName), false);
-            player.sendMessage(Text.literal("Auto battle started. AutoPTU-Java owns attack rolls, damage and HP."), false);
+            player.sendMessage(Text.literal("AutoPTU ADMIN DEMO: " + playerPokemonName + " vs " + enemyPokemonName), false);
+            player.sendMessage(Text.literal(
+                    "Presentation species are operator-selected. AutoPTU-Java owns attack rolls, damage and HP."), false);
         }
 
         private void tick() {
@@ -339,7 +369,7 @@ public final class PlayableBattleTestRuntime {
             finished = true;
             cleanupRemaining = CLEANUP_TICKS;
             player.sendMessage(Text.literal("BATTLE OVER - WINNER: " + winner + " | LOSER: " + loser), false);
-            player.sendMessage(Text.literal("This first vertical test does not commit XP, items or campaign results."), false);
+            player.sendMessage(Text.literal("This operator demo does not commit XP, items or campaign results."), false);
         }
 
         private void cleanupNow() {

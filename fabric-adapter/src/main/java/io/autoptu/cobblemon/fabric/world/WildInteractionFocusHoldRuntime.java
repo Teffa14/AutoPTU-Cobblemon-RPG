@@ -34,10 +34,10 @@ public final class WildInteractionFocusHoldRuntime implements ModInitializer {
     static void reconcile(ServerWorld world) {
         if (world == null || world.getServer() == null || world != world.getServer().getOverworld()) return;
 
-        var projections = WildEcologyProjectionRegistry.collect(world);
+        var projections = WildEcologyProjectionSource.collect(world);
         if (projections.isEmpty()) return;
 
-        Map<UUID, WildEcologyProjectionRegistry.ProjectedActor> byActorId = new HashMap<>();
+        Map<UUID, WildEcologyProjectionSource.ProjectedActor> byActorId = new HashMap<>();
         for (var projection : projections) {
             if (projection == null || projection.actor().isRemoved() || projection.actor().isInvisible()) continue;
             byActorId.put(projection.actor().getUuid(), projection);
