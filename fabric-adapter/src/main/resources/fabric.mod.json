@@ -10,6 +10,7 @@
       "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter",
       "io.autoptu.cobblemon.fabric.admin.FabricBattleEvidenceAdminRuntime",
       "io.autoptu.cobblemon.fabric.admin.FabricItemGrantAdminRuntime",
+      "io.autoptu.cobblemon.fabric.admin.FabricCurrencyGrantAdminRuntime",
       "io.autoptu.cobblemon.fabric.rpg.FabricNurseryEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricLeagueRegistrationEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricMailboxEntrypoint",
