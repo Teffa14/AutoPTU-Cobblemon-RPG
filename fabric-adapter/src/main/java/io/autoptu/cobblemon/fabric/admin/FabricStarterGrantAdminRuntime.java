@@ -17,19 +17,21 @@ public final class FabricStarterGrantAdminRuntime {
     private FabricStarterGrantAdminRuntime() {}
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(CommandManager.literal("autoptu")
-                        .then(CommandManager.literal("admin")
-                                .requires(source -> source.hasPermissionLevel(2))
-                                .then(CommandManager.literal("grant")
-                                        .then(CommandManager.literal("starter")
-                                                .then(CommandManager.argument("player", StringArgumentType.word())
-                                                        .then(CommandManager.argument("species", StringArgumentType.word())
-                                                                .executes(context -> grant(
-                                                                        context.getSource(),
-                                                                        StringArgumentType.getString(context, "player"),
-                                                                        StringArgumentType.getString(context, "species")
-                                                                ))))))));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var starter = CommandManager.literal("starter")
+                    .then(CommandManager.argument("player", StringArgumentType.word())
+                            .then(CommandManager.argument("species", StringArgumentType.word())
+                                    .executes(context -> grant(
+                                            context.getSource(),
+                                            StringArgumentType.getString(context, "player"),
+                                            StringArgumentType.getString(context, "species")
+                                    ))));
+            var grant = CommandManager.literal("grant").then(starter);
+            var admin = CommandManager.literal("admin")
+                    .requires(source -> source.hasPermissionLevel(2))
+                    .then(grant);
+            dispatcher.register(CommandManager.literal("autoptu").then(admin));
+        });
     }
 
     private static int grant(ServerCommandSource source, String playerName, String requestedStarter) {
