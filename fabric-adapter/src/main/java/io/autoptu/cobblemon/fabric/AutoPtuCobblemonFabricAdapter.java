@@ -79,6 +79,7 @@ import io.autoptu.cobblemon.fabric.rpg.FabricWorldEventProjectionRuntimeSmoke;
 import io.autoptu.cobblemon.fabric.world.CedarMeadowRuntime;
 import io.autoptu.cobblemon.fabric.world.MareaInteriorRuntime;
 import io.autoptu.cobblemon.fabric.world.MareaVisibleWildPresenceRuntimeSmoke;
+import io.autoptu.cobblemon.fabric.world.MareaWildHabitatCueRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosBuildManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosGrandPalaceV4ManifestExportRuntime;
 import io.autoptu.cobblemon.fabric.world.OurosSignatureBuildRuntime;
@@ -169,6 +170,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         VisibleWildPokemonEncounterRuntime.register();
         CedarMeadowRuntime.register();
         MareaInteriorRuntime.register();
+        MareaWildHabitatCueRuntime.register();
         MareaVisibleWildPresenceRuntimeSmoke.registerIfEnabled();
         FabricRpgVisualProofRuntime.register();
         OurosSignatureBuildRuntime.register();
