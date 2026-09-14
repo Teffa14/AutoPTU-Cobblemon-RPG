@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.WorldSavePath;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -55,9 +56,7 @@ public final class FabricStateDumpService {
                     FabricCanonicalPlayerStoreRuntime.requireAssetRepository(server))
                     .inspect(playerId);
             FileCanonicalTrainerProgressionRepository.ProgressionState progression =
-                    new FileCanonicalTrainerProgressionRepository(canonicalStateRoot(server))
-                            .find(playerId)
-                            .orElse(null);
+                    readProgressionIfPresent(server, playerId);
             FileCanonicalWalletRepository.WalletState wallet =
                     FabricCanonicalPlayerStoreRuntime.requireWalletRepository(server)
                             .find(playerId)
@@ -78,6 +77,15 @@ public final class FabricStateDumpService {
         }
     }
 
+    private static FileCanonicalTrainerProgressionRepository.ProgressionState readProgressionIfPresent(
+            MinecraftServer server,
+            String playerId
+    ) {
+        Path root = canonicalStateRoot(server);
+        if (!Files.isDirectory(root.resolve("trainer-progression"))) return null;
+        return new FileCanonicalTrainerProgressionRepository(root).find(playerId).orElse(null);
+    }
+
     private static TrainerDump trainerDump(CanonicalTrainerSummaryService.Summary trainer) {
         return new TrainerDump(
                 trainer.actionPoints(),
@@ -86,7 +94,7 @@ public final class FabricStateDumpService {
                 trainer.teamId(),
                 List.copyOf(trainer.trainerClasses()),
                 trainer.skills().stream()
-                        .map(skill -> new SkillDump(skill.id(), skill.rank()))
+                        .map(skill -> new SkillDump(skill.id(), String.valueOf(skill.rank())))
                         .toList(),
                 List.copyOf(trainer.trainerFeatures()),
                 List.copyOf(trainer.availablePokemonCapabilities()),
@@ -220,19 +228,19 @@ public final class FabricStateDumpService {
     }
 
     public record BagDump(
-            int totalQuantity,
-            int totalAvailable,
-            int totalReserved,
-            int transactionLocks,
+            long totalQuantity,
+            long totalAvailable,
+            long totalReserved,
+            long transactionLocks,
             List<BagEntryDump> entries
     ) {
     }
 
     public record BagEntryDump(
             String templateId,
-            int quantity,
-            int availableQuantity,
-            int reservedQuantity,
+            long quantity,
+            long availableQuantity,
+            long reservedQuantity,
             boolean transactionLocked,
             boolean reservationConsumed,
             long revision
