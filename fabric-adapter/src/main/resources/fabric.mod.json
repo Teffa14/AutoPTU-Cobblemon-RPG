@@ -21,6 +21,7 @@
       "io.autoptu.cobblemon.fabric.rpg.FabricPartyQuickAccessEntrypoint",
       "io.autoptu.cobblemon.fabric.rpg.FabricBagQuickAccessEntrypoint",
       "io.autoptu.cobblemon.fabric.world.WildEcologyContentRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildPopulationAcousticProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.CobblemonHabitatPointOfInterestRuntimeSmoke",
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildHabitatMigrationContextRuntime",
