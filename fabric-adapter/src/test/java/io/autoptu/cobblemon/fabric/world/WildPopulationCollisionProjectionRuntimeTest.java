@@ -13,4 +13,20 @@ final class WildPopulationCollisionProjectionRuntimeTest {
         assertTrue(WildPopulationCollisionProjectionRuntime.shouldDisableCollision(true, true));
         assertTrue(WildPopulationCollisionProjectionRuntime.shouldDisableCollision(false, true));
     }
+
+    @Test
+    void dormantActorIsReanchoredOnlyAfterMinecraftPhysicsMovesIt() {
+        assertFalse(WildPopulationCollisionProjectionRuntime.shouldReanchor(
+                10.5D, 64.0D, -4.5D,
+                10.5D, 64.0D, -4.5D
+        ));
+        assertTrue(WildPopulationCollisionProjectionRuntime.shouldReanchor(
+                10.5D, 63.9D, -4.5D,
+                10.5D, 64.0D, -4.5D
+        ));
+        assertTrue(WildPopulationCollisionProjectionRuntime.shouldReanchor(
+                10.7D, 64.0D, -4.5D,
+                10.5D, 64.0D, -4.5D
+        ));
+    }
 }
