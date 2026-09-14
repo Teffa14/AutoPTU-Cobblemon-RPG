@@ -273,12 +273,20 @@ public final class WildPopulationRuntime {
 
             var loaded = world.getEntity(boundUuid.get());
             if (loaded instanceof PokemonEntity pokemonEntity && !pokemonEntity.isRemoved()) {
-                pokemonEntity.setInvisible(true);
+                setPopulationProjectionActive(pokemonEntity, false);
             }
         }
     }
 
     private static void setPopulationProjectionActive(PokemonEntity entity, boolean active) {
+        if (active) {
+            entity.setAiDisabled(false);
+        } else {
+            entity.getNavigation().stop();
+            entity.setVelocity(0.0D, 0.0D, 0.0D);
+            entity.velocityModified = true;
+            entity.setAiDisabled(true);
+        }
         entity.setInvisible(!active);
         VisibleWildPokemonEncounterRuntime.setInteractionActive(entity.getUuid(), active);
     }
