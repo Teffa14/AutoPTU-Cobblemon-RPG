@@ -22,7 +22,10 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -383,8 +386,14 @@ public final class FabricBattleChoiceRuntime {
             }
             player.sendMessage(Text.literal("AutoPTU battle choices • preview, then confirm"), false);
             for (BattleChoiceMenuService.Entry choice : choices) {
-                player.sendMessage(Text.literal(choice.choiceId() + " | " + choice.label()
-                        + " | /autoptu battle preview " + choice.choiceId()), false);
+                MutableText line = Text.literal(choice.label() + " ");
+                line.append(Text.literal("[PREVIEW]").styled(style -> style
+                        .withColor(Formatting.AQUA)
+                        .withUnderline(true)
+                        .withClickEvent(new ClickEvent(
+                                ClickEvent.Action.RUN_COMMAND,
+                                "/autoptu battle preview " + choice.choiceId()))));
+                player.sendMessage(line, false);
             }
             return 1;
         } catch (RuntimeException rejected) {
@@ -435,7 +444,16 @@ public final class FabricBattleChoiceRuntime {
             String label = selected instanceof BattleCoreLegalChoice.Shift
                     ? "movement destination"
                     : "attack target for " + ((BattleCoreLegalChoice.Move) selected).moveId();
-            player.sendMessage(Text.literal("Previewing " + label + ". Confirm with /autoptu battle confirm"), false);
+            MutableText prompt = Text.literal("Previewing " + label + ". ");
+            prompt.append(Text.literal("[CONFIRM]").styled(style -> style
+                    .withColor(Formatting.GOLD)
+                    .withBold(true)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/autoptu battle confirm"))));
+            prompt.append(Text.literal(" "));
+            prompt.append(Text.literal("[CANCEL]").styled(style -> style
+                    .withColor(Formatting.GRAY)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/autoptu battle cancel"))));
+            player.sendMessage(prompt, false);
             return 1;
         } catch (RuntimeException rejected) {
             source.sendError(Text.literal("Battle choice preview rejected: " + safeMessage(rejected)));

@@ -30,7 +30,8 @@ The opening sequence exposes the intended tactical interaction language: cyan is
 grid, green cells are Shift destinations emitted by AutoPTU-Java, gold is the selected/locked
 destination, and red is the declared attack target before the authoritative resolution. Normal
 battle bindings use `/autoptu battle preview <choiceId>`, `/autoptu battle confirm`, and
-`/autoptu battle cancel`; confirmation re-fetches the authoritative choice set before execution.
+`/autoptu battle cancel`; `/autoptu battle choices` exposes these as clickable PREVIEW/CONFIRM/CANCEL
+controls, and confirmation re-fetches the authoritative choice set before execution.
 
 The selected Pokémon fights a server-spawned Pikachu automatically.
 
