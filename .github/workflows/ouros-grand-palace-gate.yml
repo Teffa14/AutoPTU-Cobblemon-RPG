@@ -40,9 +40,11 @@ jobs:
           cp fabric-adapter/build/production-smoke/mods/*.jar "$server_dir/mods/"
           printf 'eula=true\n' > "$server_dir/eula.txt"
 
+          # Keep this runtime aligned with Integration Core CI. Current worldgen dependencies
+          # (Lithostitched/Terralith) require Fabric Loader >=0.18.
           curl -fsSL \
             -o "$server_dir/fabric-server-launch.jar" \
-            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.17.2/1.0.3/server/jar'
+            'https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.18.2/1.1.0/server/jar'
 
           server_pid=""
           stop_server() {
