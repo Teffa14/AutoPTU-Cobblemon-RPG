@@ -8,9 +8,9 @@ import net.minecraft.server.world.ServerWorld;
 /**
  * Clears vanilla hurt presentation from dormant canonical WILD actors.
  *
- * <p>Hurt-time and hurt-tilt are Minecraft presentation state. AutoPTU-Java remains authoritative for battle
- * damage, HP, statuses and outcomes. A hidden or otherwise interaction-inactive Cobblemon actor must not preserve
- * stale vanilla hurt flashes or tilt while canonical ecology presence is suspended.</p>
+ * <p>Hurt-time is Minecraft presentation state. AutoPTU-Java remains authoritative for battle damage, HP,
+ * statuses and outcomes. A hidden or otherwise interaction-inactive Cobblemon actor must not preserve a stale
+ * vanilla hurt flash while canonical ecology presence is suspended.</p>
  */
 public final class WildPopulationPoseProjectionRuntime implements ModInitializer {
     @Override
@@ -31,8 +31,6 @@ public final class WildPopulationPoseProjectionRuntime implements ModInitializer
             boolean interactionActive = VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid());
             if (shouldClearHurtPresentation(interactionActive, actor.isInvisible(), actor.hurtTime)) {
                 actor.hurtTime = 0;
-                actor.hurtDuration = 0;
-                actor.lastDamageTaken = 0.0F;
                 resetActors++;
             }
         }
