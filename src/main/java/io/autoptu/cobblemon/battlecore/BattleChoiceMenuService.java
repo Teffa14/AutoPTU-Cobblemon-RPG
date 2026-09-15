@@ -28,6 +28,12 @@ public final class BattleChoiceMenuService {
     }
 
     public Entry choose(String reservationId, String actorId, String stableKey) {
+        BattleCoreLegalChoice selected = requireChoice(reservationId, actorId, stableKey);
+        executor.execute(reservationId, selected);
+        return entry(selected);
+    }
+
+    public BattleCoreLegalChoice requireChoice(String reservationId, String actorId, String stableKey) {
         if (stableKey == null || stableKey.isBlank()) {
             throw new IllegalArgumentException("stableKey must not be blank");
         }
@@ -39,8 +45,18 @@ public final class BattleChoiceMenuService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "choice is no longer legal in the authoritative action space"));
-        executor.execute(set.reservationId(), selected);
-        return entry(selected);
+        return selected;
+    }
+
+    /** Revalidates every field the player saw, including the anchor, before executing. */
+    public Entry chooseExact(String reservationId, String actorId, BattleCoreLegalChoice expected) {
+        Objects.requireNonNull(expected, "expected");
+        BattleCoreLegalChoice current = requireChoice(reservationId, actorId, expected.stableKey());
+        if (!current.equals(expected)) {
+            throw new IllegalArgumentException("choice changed after preview; select it again");
+        }
+        executor.execute(reservationId, current);
+        return entry(current);
     }
 
     private static void requireScope(BattleCoreLegalChoiceSet set, String reservationId, String actorId) {

@@ -11,6 +11,7 @@ import io.autoptu.cobblemon.battlecore.BattleChoiceVisualPlan;
 import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
 import io.autoptu.cobblemon.battlecore.BattleGridTransform;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleGridVisualRenderer;
+import io.autoptu.cobblemon.fabric.network.FabricBattleStatusPayload;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
@@ -80,7 +81,14 @@ public final class PlayableBattleTestRuntime {
                                             StringArgumentType.getString(context, "species"),
                                             StringArgumentType.getString(context, "opponent")
                                     ))));
-            var adminBattle = CommandManager.literal("battle").then(adminDemo);
+            var adminBattle = CommandManager.literal("battle").then(adminDemo)
+                    .then(CommandManager.literal("play")
+                            .then(CommandManager.argument("species", StringArgumentType.word())
+                                    .then(CommandManager.argument("opponent", StringArgumentType.word())
+                                            .executes(context -> start(
+                                                    context.getSource(),
+                                                    StringArgumentType.getString(context, "species"),
+                                                    StringArgumentType.getString(context, "opponent"))))));
             var admin = CommandManager.literal("admin")
                     .requires(source -> source.hasPermissionLevel(2))
                     .then(adminBattle);
@@ -245,6 +253,7 @@ public final class PlayableBattleTestRuntime {
         private final List<ShiftChoice> openingLegalShifts;
         private final ShiftChoice openingShift;
         private boolean playerTurn = true;
+        private int round = 1;
         private int delay = TURN_DELAY_TICKS;
         private int openingMovementPreviewRemaining = OPENING_MOVEMENT_PREVIEW_TICKS;
         private int openingMovementCommitRemaining;
@@ -329,6 +338,9 @@ public final class PlayableBattleTestRuntime {
             }
 
             renderTacticalGrid();
+            FabricBattleStatusPayload.send(player, playerPokemonName, playerState.hp(), DEMO_HP,
+                    enemyPokemonName, enemyState.hp(), DEMO_HP,
+                    finished ? "BATTLE OVER" : (playerTurn ? "YOUR TURN" : "RIVAL TURN"), round);
             if (openingMovementPreviewRemaining > 0) {
                 renderOpeningMovementSelection();
                 if (--openingMovementPreviewRemaining == 0) commitOpeningShift();
@@ -464,6 +476,7 @@ public final class PlayableBattleTestRuntime {
             }
             openingShiftCommitted = false;
             playerTurn = !playerTurn;
+            if (playerTurn) round++;
         }
 
         private static BattleGridCoordinate coordinate(GridCoord coordinate) {
@@ -483,6 +496,7 @@ public final class PlayableBattleTestRuntime {
         }
 
         private void cleanupNow() {
+            FabricBattleStatusPayload.clear(player);
             FabricRpgWorldProtectionRegistry.clear(protectionScopeId);
             playerEntity.discard();
             enemyEntity.discard();

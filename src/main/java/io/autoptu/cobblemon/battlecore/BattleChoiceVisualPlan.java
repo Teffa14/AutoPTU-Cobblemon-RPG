@@ -1,7 +1,6 @@
 package io.autoptu.cobblemon.battlecore;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -24,6 +23,12 @@ public record BattleChoiceVisualPlan(
     public BattleChoiceVisualPlan {
         shiftDestinations = Set.copyOf(Objects.requireNonNull(shiftDestinations, "shiftDestinations"));
         attackTargets = Set.copyOf(Objects.requireNonNull(attackTargets, "attackTargets"));
+        if (gridWindow != null) {
+            shiftDestinations = shiftDestinations.stream().filter(gridWindow::contains).collect(java.util.stream.Collectors.toUnmodifiableSet());
+            attackTargets = attackTargets.stream().filter(gridWindow::contains).collect(java.util.stream.Collectors.toUnmodifiableSet());
+        } else if (!shiftDestinations.isEmpty() || !attackTargets.isEmpty()) {
+            throw new IllegalArgumentException("visible cells require a bounded grid window");
+        }
     }
 
     public static BattleChoiceVisualPlan from(BattleCoreLegalChoiceSet choices, String highlightedStableKey) {
@@ -50,6 +55,17 @@ public record BattleChoiceVisualPlan(
             throw new IllegalArgumentException("highlighted choice is not present in the authoritative choice set");
         }
         Highlight highlight = highlighted == null ? null : highlight(highlighted);
+        if (highlighted instanceof BattleCoreLegalChoice.Move selectedMove) {
+            shifts.clear();
+            attacks.clear();
+            for (BattleCoreLegalChoice choice : choices.choices()) {
+                if (choice instanceof BattleCoreLegalChoice.Move move && hasWorldAnchor(move)
+                        && move.moveId().equals(selectedMove.moveId())
+                        && move.actionType().equals(selectedMove.actionType())) attacks.add(move.targetAnchor());
+            }
+        } else if (highlighted instanceof BattleCoreLegalChoice.Shift) {
+            attacks.clear();
+        }
         LinkedHashSet<BattleGridCoordinate> allAnchors = new LinkedHashSet<>(shifts);
         allAnchors.addAll(attacks);
         if (highlight != null && highlight.anchor() != null) allAnchors.add(highlight.anchor());
@@ -125,10 +141,17 @@ public record BattleChoiceVisualPlan(
     public record GridWindow(int minX, int maxX, int minY, int maxY) {
         public GridWindow {
             if (maxX < minX || maxY < minY) throw new IllegalArgumentException("invalid grid window");
+            if ((long) maxX - minX + 1 > MAX_GRID_CELLS_PER_AXIS
+                    || (long) maxY - minY + 1 > MAX_GRID_CELLS_PER_AXIS) {
+                throw new IllegalArgumentException("grid viewport exceeds 12 cells per axis");
+            }
         }
 
         public int width() { return maxX - minX + 1; }
         public int height() { return maxY - minY + 1; }
+        public boolean contains(BattleGridCoordinate cell) {
+            return cell.x() >= minX && cell.x() <= maxX && cell.y() >= minY && cell.y() <= maxY;
+        }
 
         static GridWindow enclosing(
                 Set<BattleGridCoordinate> anchors,
@@ -139,20 +162,23 @@ public record BattleChoiceVisualPlan(
             if (anchors.isEmpty()) return null;
             if (padding < 0 || maxCellsPerAxis < 1) throw new IllegalArgumentException("invalid grid viewport limits");
 
-            int minX = anchors.stream().mapToInt(BattleGridCoordinate::x).min().orElseThrow() - padding;
-            int maxX = anchors.stream().mapToInt(BattleGridCoordinate::x).max().orElseThrow() + padding;
-            int minY = anchors.stream().mapToInt(BattleGridCoordinate::y).min().orElseThrow() - padding;
-            int maxY = anchors.stream().mapToInt(BattleGridCoordinate::y).max().orElseThrow() + padding;
+            long minX = (long) anchors.stream().mapToInt(BattleGridCoordinate::x).min().orElseThrow() - padding;
+            long maxX = (long) anchors.stream().mapToInt(BattleGridCoordinate::x).max().orElseThrow() + padding;
+            long minY = (long) anchors.stream().mapToInt(BattleGridCoordinate::y).min().orElseThrow() - padding;
+            long maxY = (long) anchors.stream().mapToInt(BattleGridCoordinate::y).max().orElseThrow() + padding;
             BattleGridCoordinate viewportFocus = Objects.requireNonNull(focus, "focus");
             int[] x = clamp(minX, maxX, viewportFocus.x(), maxCellsPerAxis);
             int[] y = clamp(minY, maxY, viewportFocus.y(), maxCellsPerAxis);
             return new GridWindow(x[0], x[1], y[0], y[1]);
         }
 
-        private static int[] clamp(int min, int max, int focus, int limit) {
-            if (max - min + 1 <= limit) return new int[]{min, max};
-            int before = (limit - 1) / 2;
-            return new int[]{focus - before, focus - before + limit - 1};
+        private static int[] clamp(long min, long max, int focus, int limit) {
+            min = Math.max(Integer.MIN_VALUE, min);
+            max = Math.min(Integer.MAX_VALUE, max);
+            if (max - min + 1 <= limit) return new int[]{(int) min, (int) max};
+            long start = Math.max(Integer.MIN_VALUE, Math.min((long) Integer.MAX_VALUE - limit + 1,
+                    (long) focus - (limit - 1) / 2));
+            return new int[]{(int) start, (int) (start + limit - 1)};
         }
     }
 

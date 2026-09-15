@@ -1,4 +1,7 @@
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.process.ExecOperations
+import java.io.ByteArrayOutputStream
+import javax.inject.Inject
 
 plugins {
     id("fabric-loom") version "1.11.8"
@@ -25,30 +28,73 @@ java {
     }
 }
 
-val preparePinnedAutoPtuJava by tasks.registering(Exec::class) {
-    outputs.file(autoPtuJavaJar)
-    doFirst {
-        delete(autoPtuJavaWorkDir)
+abstract class CheckoutPinnedAutoPtuJava : DefaultTask() {
+    @get:Input
+    abstract val revision: Property<String>
+
+    @get:OutputDirectory
+    abstract val checkoutDirectory: DirectoryProperty
+
+    @get:Inject
+    abstract val execOperations: ExecOperations
+
+    @TaskAction
+    fun checkout() {
+        val directory = checkoutDirectory.get().asFile
+        directory.mkdirs()
+        fun git(vararg arguments: String): String {
+            val output = ByteArrayOutputStream()
+            execOperations.exec {
+                commandLine(listOf("git", "-C", directory.absolutePath) + arguments)
+                standardOutput = output
+            }
+            return output.toString(Charsets.UTF_8.name()).trim()
+        }
+
+        git("init", "-q")
+        // Never silently compile local modifications or extra Java files in a cached checkout.
+        check(git("status", "--porcelain", "--untracked-files=all").isEmpty()) {
+            "The generated AutoPTU-Java checkout contains local changes: $directory. " +
+                "Move it aside before rebuilding the pinned dependency."
+        }
+        git("fetch", "-q", "--depth=1", "https://github.com/Teffa14/AutoPTU-Java.git", revision.get())
+        git("checkout", "-q", "--detach", revision.get())
+        check(git("rev-parse", "HEAD") == revision.get()) {
+            "AutoPTU-Java checkout does not match the required revision ${revision.get()}"
+        }
     }
-    val workDirPath = autoPtuJavaWorkDir.get().asFile.absolutePath
-    val jarPath = autoPtuJavaJar.get().asFile.absolutePath
-    commandLine(
-        "bash", "-c", """
-        set -euo pipefail
-        mkdir -p '$workDirPath/repo' '$workDirPath/classes'
-        git -C '$workDirPath/repo' init -q
-        git -C '$workDirPath/repo' remote add origin https://github.com/Teffa14/AutoPTU-Java.git
-        git -C '$workDirPath/repo' fetch -q --depth=1 origin '$autoPtuJavaSha'
-        git -C '$workDirPath/repo' checkout -q --detach FETCH_HEAD
-        find '$workDirPath/repo/src/main/java' -type f -name '*.java' -print0 \
-          | sort -z \
-          | xargs -0 javac --release 21 -d '$workDirPath/classes'
-        jar --create --file '$jarPath' -C '$workDirPath/classes' .
-        """.trimIndent()
-    )
 }
 
-val pinnedAutoPtuJava = files(autoPtuJavaJar)
+val checkoutPinnedAutoPtuJava by tasks.registering(CheckoutPinnedAutoPtuJava::class) {
+    description = "Fetches the exact read-only AutoPTU-Java revision."
+    revision.set(autoPtuJavaSha)
+    checkoutDirectory.set(autoPtuJavaWorkDir.map { it.dir("repo") })
+}
+
+val compilePinnedAutoPtuJava by tasks.registering(JavaCompile::class) {
+    description = "Compiles the pinned core with the Java 21 toolchain on every supported OS."
+    dependsOn(checkoutPinnedAutoPtuJava)
+    source(checkoutPinnedAutoPtuJava.flatMap { it.checkoutDirectory }.map { it.dir("src/main/java") })
+    include("**/*.java")
+    classpath = files()
+    destinationDirectory.set(autoPtuJavaWorkDir.map { it.dir("classes") })
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
+    options.release.set(21)
+    options.encoding = "UTF-8"
+}
+
+val preparePinnedAutoPtuJava by tasks.registering(Jar::class) {
+    description = "Builds the pinned core JAR without shell tools or command-line length limits."
+    archiveFileName.set(autoPtuJavaJar.map { it.asFile.name })
+    destinationDirectory.set(autoPtuJavaWorkDir)
+    from(compilePinnedAutoPtuJava.flatMap { it.destinationDirectory })
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
+val pinnedAutoPtuJava = files(preparePinnedAutoPtuJava.flatMap { it.archiveFile })
 
 val productionSmokeMods by configurations.creating {
     isCanBeConsumed = false

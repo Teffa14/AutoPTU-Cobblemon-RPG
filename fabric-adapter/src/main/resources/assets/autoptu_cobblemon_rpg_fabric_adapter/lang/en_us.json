@@ -6,5 +6,9 @@
   "block.autoptu_cobblemon_rpg_fabric_adapter.field_camp": "Field Camp",
   "block.autoptu_cobblemon_rpg_fabric_adapter.gym_league_registration_desk": "Gym & League Registration Desk",
   "block.autoptu_cobblemon_rpg_fabric_adapter.cedar_badge_gate": "Cedar League Badge Gate",
-  "block.autoptu_cobblemon_rpg_fabric_adapter.ouros_mailbox": "Ouros Mailbox"
+  "block.autoptu_cobblemon_rpg_fabric_adapter.ouros_mailbox": "Ouros Mailbox",
+  "key.categories.autoptu": "AutoPTU Battles",
+  "key.autoptu.battle_actions": "Battle actions",
+  "key.autoptu.battle_confirm": "Confirm selected action",
+  "key.autoptu.battle_cancel": "Cancel selected action"
 }

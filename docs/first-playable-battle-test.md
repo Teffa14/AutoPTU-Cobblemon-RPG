@@ -26,6 +26,17 @@ Choose one scenario:
 /autoptu testbattle squirtle
 ```
 
+For the interactive tactical flow use the operator command:
+
+```text
+/autoptu admin battle play charmander pikachu
+```
+
+Press `B` to open the server-provided action menu. Select a movement or attack to preview it on
+the world grid; `Enter` confirms the token-bound preview and `Backspace` cancels it. The menu also
+exposes `End turn` when the bound battle session supplies that transition. `/autoptu battle camera`
+frames the frozen server-owned arena once.
+
 The opening sequence exposes the intended tactical interaction language: cyan is the presentation
 grid, green cells are Shift destinations emitted by AutoPTU-Java, gold is the selected/locked
 destination, and red is the declared attack target before the authoritative resolution. Normal
