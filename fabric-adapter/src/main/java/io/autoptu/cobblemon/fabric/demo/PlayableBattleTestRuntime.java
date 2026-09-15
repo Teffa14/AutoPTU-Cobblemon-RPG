@@ -11,7 +11,10 @@ import io.autoptu.cobblemon.battlecore.BattleChoiceVisualPlan;
 import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
 import io.autoptu.cobblemon.battlecore.BattleGridTransform;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleGridVisualRenderer;
+import io.autoptu.cobblemon.fabric.battle.FabricBattleChoiceRuntime;
 import io.autoptu.cobblemon.fabric.network.FabricBattleStatusPayload;
+import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoice;
+import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoiceSet;
 import io.autoptu.cobblemon.fabric.presentation.CobblemonPresentationEntityBackend;
 import io.autoptu.cobblemon.fabric.rpg.FabricRpgWorldProtectionRegistry;
 import io.autoptu.core.action.ChoiceTargetMode;
@@ -306,6 +309,43 @@ public final class PlayableBattleTestRuntime {
                     .orElseGet(() -> openingLegalShifts.stream().findFirst()
                             .orElseThrow(() -> new IllegalStateException("demo has no authoritative opening Shift")));
             updateNameplates();
+            FabricBattleChoiceRuntime.bindSession(player.getUuid(), "demo:" + player.getUuidAsString(),
+                    playerState.combatantId(), gridTransform, this::legalChoices, this::executeChoice,
+                    this::endTurn, () -> coordinate(playerState.position()));
+        }
+
+        private BattleCoreLegalChoiceSet legalChoices(String reservationId, String actorId) {
+            List<BattleCoreLegalChoice> choices = new java.util.ArrayList<>();
+            if (!openingShiftCommitted && playerTurn) {
+                for (ShiftChoice shift : openingLegalShifts) {
+                    choices.add(new BattleCoreLegalChoice.Shift(actorId, coordinate(shift.destination()), shift.stableKey()));
+                }
+            } else if (playerTurn && !finished) {
+                MoveChoice move = demoMoveChoice(playerState, enemyState);
+                choices.add(new BattleCoreLegalChoice.Move(actorId, move.moveId(),
+                        io.autoptu.cobblemon.battlecore.BattleClientActionRequest.Target.Mode.COMBATANT,
+                        move.targetId(), coordinate(move.targetAnchor()), move.actionType().value(), move.stableKey()));
+            }
+            return new BattleCoreLegalChoiceSet(reservationId, actorId, choices);
+        }
+
+        private void executeChoice(String reservationId, BattleCoreLegalChoice choice) {
+            if (choice instanceof BattleCoreLegalChoice.Shift shift) {
+                openingShiftCommitted = true;
+                BattleRuntime.applyAction(runtime, openingShift, ignored -> true);
+                var world = gridTransform.toWorld(shift.destination());
+                playerEntity.requestTeleport(world.x() + 0.5D, world.y(), world.z() + 0.5D);
+                player.sendMessage(Text.literal("Movement confirmed on the tactical grid."), true);
+            } else {
+                resolveTurn();
+            }
+        }
+
+        private void endTurn() {
+            if (!playerTurn || finished) return;
+            playerTurn = false;
+            delay = 2;
+            player.sendMessage(Text.literal("Turn passed to the rival."), true);
         }
 
         private void announceStart() {
@@ -417,6 +457,11 @@ public final class PlayableBattleTestRuntime {
                     BattleChoiceVisualPlan.HighlightKind.ATTACK, false, player.getServerWorld().getTime());
         }
 
+        private MoveChoice demoMoveChoice(RuntimeCombatantState attacker, RuntimeCombatantState target) {
+            return new MoveChoice(attacker.combatantId(), "demo-strike", ChoiceTargetMode.COMBATANT,
+                    target.combatantId(), target.position(), ActionType.STANDARD);
+        }
+
         private void resolveTurn() {
             RuntimeCombatantState attacker = playerTurn ? playerState : enemyState;
             RuntimeCombatantState target = playerTurn ? enemyState : playerState;
@@ -427,14 +472,7 @@ public final class PlayableBattleTestRuntime {
             String targetName = playerTurn ? enemyPokemonName : playerPokemonName;
 
             if (!(playerTurn && openingShiftCommitted)) attacker.actionBudget().resetConsumedActions();
-            MoveChoice choice = new MoveChoice(
-                    attacker.combatantId(),
-                    "demo-strike",
-                    ChoiceTargetMode.COMBATANT,
-                    target.combatantId(),
-                    target.position(),
-                    ActionType.STANDARD
-            );
+            MoveChoice choice = demoMoveChoice(attacker, target);
 
             AppliedActionResult applied = BattleRuntime.applyAuthoritativeMove(
                     runtime,
@@ -497,6 +535,7 @@ public final class PlayableBattleTestRuntime {
 
         private void cleanupNow() {
             FabricBattleStatusPayload.clear(player);
+            FabricBattleChoiceRuntime.unbind(player.getUuid());
             FabricRpgWorldProtectionRegistry.clear(protectionScopeId);
             playerEntity.discard();
             enemyEntity.discard();
