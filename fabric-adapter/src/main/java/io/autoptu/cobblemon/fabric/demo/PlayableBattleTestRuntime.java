@@ -326,7 +326,7 @@ public final class PlayableBattleTestRuntime {
         private BattleCoreLegalChoiceSet legalChoices(String reservationId, String actorId) {
             List<BattleCoreLegalChoice> choices = new java.util.ArrayList<>();
             if (!openingShiftCommitted && playerTurn) {
-                for (ShiftChoice shift : openingLegalShifts) {
+                for (ShiftChoice shift : legalShifts()) {
                     choices.add(new BattleCoreLegalChoice.Shift(actorId, coordinate(shift.destination()), shift.stableKey()));
                 }
             } else if (playerTurn && !finished) {
@@ -343,7 +343,11 @@ public final class PlayableBattleTestRuntime {
         private void executeChoice(String reservationId, BattleCoreLegalChoice choice) {
             if (choice instanceof BattleCoreLegalChoice.Shift shift) {
                 openingShiftCommitted = true;
-                BattleRuntime.applyAction(runtime, openingShift, ignored -> true);
+                ShiftChoice selectedShift = legalShifts().stream()
+                        .filter(candidate -> candidate.stableKey().equals(choice.stableKey()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("selected Shift is no longer legal"));
+                BattleRuntime.applyAction(runtime, selectedShift, ignored -> true);
                 var world = gridTransform.toWorld(shift.destination());
                 playerEntity.requestTeleport(world.x() + 0.5D, world.y(), world.z() + 0.5D);
                 player.sendMessage(Text.literal("Movement confirmed on the tactical grid."), true);
@@ -357,6 +361,12 @@ public final class PlayableBattleTestRuntime {
             playerTurn = false;
             delay = 2;
             player.sendMessage(Text.literal("Turn passed to the rival."), true);
+        }
+
+        private List<ShiftChoice> legalShifts() {
+            return AutobattlerActionSpace.legalShiftChoices(
+                    playerState.combatantId(), runtime.grid(), playerState.movementProfile(),
+                    playerState.actionBudget(), 0, ignored -> true);
         }
 
         private void announceStart() {
@@ -435,7 +445,7 @@ public final class PlayableBattleTestRuntime {
 
         private void renderOpeningMovementSelection() {
             if ((player.getServerWorld().getTime() & 1L) != 0L) return;
-            for (ShiftChoice legal : openingLegalShifts) {
+            for (ShiftChoice legal : legalShifts()) {
                 FabricBattleGridVisualRenderer.renderLegalMovementCell(
                         player.getServerWorld(), gridTransform, coordinate(legal.destination()));
             }
