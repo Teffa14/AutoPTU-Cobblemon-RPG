@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.autoptu"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0-slice2"
 
 val autoPtuJavaSha = "aefc058328a9217d634477835a4851d521aaeccb"
 val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
@@ -182,13 +182,14 @@ tasks.test {
 tasks.register<Zip>("packagePracticeBattle") {
     description = "Packages the remapped mod and its three runtime mod dependencies for a separate Fabric 1.21.1 profile."
     dependsOn("remapJar")
-    archiveFileName.set("AutoPTU-Batallas-1.21.1.zip")
+    archiveFileName.set("AutoPTU-Batallas-Slice2-1.21.1.zip")
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
     into("mods") {
         from(practicePackMods)
         from(tasks.named("remapJar"))
     }
     from(rootProject.file("docs/battle-package/LEEME.txt"))
+    from(rootProject.file("docs/battle-package/TUTORIAL.html"))
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }

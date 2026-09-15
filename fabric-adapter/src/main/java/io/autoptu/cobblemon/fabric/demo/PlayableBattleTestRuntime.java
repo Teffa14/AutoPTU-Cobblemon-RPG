@@ -9,6 +9,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import io.autoptu.cobblemon.battlecore.BattlePracticeScenario;
 import io.autoptu.cobblemon.fabric.network.FabricBattlePracticePayload;
+import io.autoptu.cobblemon.fabric.network.FabricBattleGuidePayload;
 import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
 import io.autoptu.cobblemon.battlecore.BattleChoiceVisualPlan;
 import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
@@ -85,6 +86,7 @@ public final class PlayableBattleTestRuntime {
     public static void register() {
         FabricBattleReportPayload.register();
         FabricBattlePracticePayload.register();
+        FabricBattleGuidePayload.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             var adminDemo = CommandManager.literal("demo")
                     .then(CommandManager.argument("species", StringArgumentType.word())
@@ -143,6 +145,15 @@ public final class PlayableBattleTestRuntime {
             root.then(legacy);
             root.then(CommandManager.literal("battle").then(CommandManager.literal("report")
                     .executes(context -> report(context.getSource())))
+                    .then(CommandManager.literal("help").executes(context -> {
+                        var player = context.getSource().getPlayer();
+                        if (player == null) return 0;
+                        if (!FabricBattleGuidePayload.send(player)) player.sendMessage(Text.literal(
+                                "Practice: /autoptu admin battle play <species> <opponent> [scenario] [seed]. "
+                                + "Scenarios: training, duel, distance, endurance. B: menu; H: report. "
+                                + "Requires OP. Custom 1v1 practice; no campaign rewards."), false);
+                        return 1;
+                    }))
                     .then(CommandManager.literal("practice").executes(context -> {
                         var player = context.getSource().getPlayer();
                         if (player == null) return 0;

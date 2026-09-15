@@ -34,6 +34,9 @@ public final class BattlePracticeScreen extends Screen {
         panelHeight = Math.min(300, height - 20);
         left = (width - panelWidth) / 2;
         top = (height - panelHeight) / 2;
+        addDrawableChild(ButtonWidget.builder(Text.literal("?"), button -> {
+            if (client != null) client.setScreen(new BattleGuideScreen(this));
+        }).dimensions(left + panelWidth - 30, top + 6, 20, 20).build());
         int fieldWidth = (panelWidth - 30) / 2;
         allyField = field(left + 10, top + 49, fieldWidth, "autoptu.practice.ally", ally);
         enemyField = field(left + 20 + fieldWidth, top + 49, fieldWidth, "autoptu.practice.enemy", enemy);
@@ -71,7 +74,7 @@ public final class BattlePracticeScreen extends Screen {
     }
 
     private boolean valid() {
-        if (!ally.matches("[a-z0-9_:-]{1,64}") || !enemy.matches("[a-z0-9_:-]{1,64}")) return false;
+        if (!ally.matches("[a-z0-9_-]{1,64}") || !enemy.matches("[a-z0-9_-]{1,64}")) return false;
         try { Long.parseLong(seed); return true; }
         catch (NumberFormatException ignored) { return false; }
     }

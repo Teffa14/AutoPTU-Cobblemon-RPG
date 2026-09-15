@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.fabric.network.FabricBattleMenuPayload;
 import io.autoptu.cobblemon.fabric.network.FabricBattleSelectionPayload;
 import io.autoptu.cobblemon.fabric.network.FabricBattleReportPayload;
 import io.autoptu.cobblemon.fabric.network.FabricBattlePracticePayload;
+import io.autoptu.cobblemon.fabric.network.FabricBattleGuidePayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -61,6 +62,8 @@ public final class FabricBattleMenuClient implements ClientModInitializer {
                 (payload, context) -> context.client().setScreen(new BattleReportScreen(payload.report())));
         ClientPlayNetworking.registerGlobalReceiver(FabricBattlePracticePayload.ID,
                 (payload, context) -> context.client().setScreen(new BattlePracticeScreen(payload.operator())));
+        ClientPlayNetworking.registerGlobalReceiver(FabricBattleGuidePayload.ID,
+                (payload, context) -> context.client().setScreen(new BattleGuideScreen(context.client().currentScreen)));
         ClientPlayNetworking.registerGlobalReceiver(FabricBattleSelectionPayload.ID, (payload, context) -> {
             confirmToken = payload.token(); tokenExpiry = tick + 300;
         });

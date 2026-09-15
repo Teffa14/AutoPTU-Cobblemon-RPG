@@ -1,5 +1,9 @@
 AUTOPTU - BATALLAS DE PRACTICA / MINECRAFT 1.21.1
 
+SLICE 2: barras de vida animadas, estela de danio, indicador de turno y tutorial.
+Abri TUTORIAL.html con tu navegador: funciona offline e incluye generador de comandos.
+Dentro del juego: /autoptu battle help (guia ilustrada de seis pasos).
+
 Este paquete contiene un mod de Minecraft, no un ejecutable .exe independiente.
 Incluye AutoPTU, Cobblemon 1.8.0, Fabric API y Fabric Language Kotlin.
 El motor AutoPTU-Java ya esta incluido dentro del mod AutoPTU.

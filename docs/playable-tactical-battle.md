@@ -8,6 +8,12 @@ See [Local build](build-local.md).
 
 ## Play
 
+Slice 2 adds `/autoptu battle help`: a six-page, localized, illustrated in-game guide with
+keyboard navigation, scrolling, copy-only command examples and a link back to setup.
+The package also contains `TUTORIAL.html`, an offline Spanish guide and command generator.
+The generator never executes commands or contacts a server. It validates species-ID syntax
+and the signed 64-bit seed; Cobblemon remains responsible for validating species existence.
+
 In a flat, clear area of a world where you have operator commands:
 
 ```text
@@ -56,6 +62,9 @@ movement, gold marks movement selection, and red marks attack targeting. Only ce
 in the core's legal action list are shown as legal. The connector is an aiming cue, not a path.
 
 The HUD shows actual server HP, damage changes, turn, round, attack windup and impact.
+Slice 2 animates the visual HP bar and a delayed amber damage trail, outlines the active side,
+and translates phase labels. Numeric HP remains instantaneous and authoritative. The HUD is
+hidden while another screen is open, and all interpolation resets on disconnect/expiry.
 Hit, miss and critical animation flags come from the resolved core event. The rival moves toward
 the player using a legal Shift if it cannot reach with an attack. Victory/defeat remains visible
 briefly before entity and HUD cleanup.
@@ -80,6 +89,9 @@ They do not attach to the interactive action menu.
 `gradle :fabric-adapter:packagePracticeBattle` builds a ZIP containing the remapped mod,
 Cobblemon, Fabric API and Fabric Language Kotlin, with Spanish setup instructions.
 It requires a separate Minecraft 1.21.1/Fabric profile and Java 21; it is not a standalone EXE.
+The Slice 2 file is `fabric-adapter/build/distributions/AutoPTU-Batallas-Slice2-1.21.1.zip`.
+When updating an existing AutoPTU profile, replace its old AutoPTU JAR rather than installing
+two versions together. The dependency versions are unchanged from the first practice package.
 Reports store the latest match per player under the world's `autoptu/practice-reports` folder.
 Their timeline retains the latest 256 events; cumulative statistics retain the whole match.
 
