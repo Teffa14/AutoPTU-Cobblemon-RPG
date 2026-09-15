@@ -207,9 +207,18 @@ public final class PlayableBattleTestRuntime {
     }
 
     private static MoveOption demoMove() {
+        return demoMove("demo-strike");
+    }
+
+    private static MoveOption demoMove(String moveId) {
+        String profile = switch (moveId) {
+            case "demo-burst" -> "Burst";
+            case "demo-arc" -> "Arc";
+            default -> "Ranged";
+        };
         return MoveOption.standard(
-                "demo-strike",
-                new MoveSpec("Ranged", "Ranged", 5, 5, null, null, "Ranged")
+                moveId,
+                new MoveSpec(profile, profile, 5, 5, null, null, profile)
         );
     }
 
@@ -321,10 +330,12 @@ public final class PlayableBattleTestRuntime {
                     choices.add(new BattleCoreLegalChoice.Shift(actorId, coordinate(shift.destination()), shift.stableKey()));
                 }
             } else if (playerTurn && !finished) {
-                MoveChoice move = demoMoveChoice(playerState, enemyState);
-                choices.add(new BattleCoreLegalChoice.Move(actorId, move.moveId(),
-                        io.autoptu.cobblemon.battlecore.BattleClientActionRequest.Target.Mode.COMBATANT,
-                        move.targetId(), coordinate(move.targetAnchor()), move.actionType().value(), move.stableKey()));
+                for (String moveId : List.of("demo-strike", "demo-burst", "demo-arc")) {
+                    MoveChoice move = demoMoveChoice(playerState, enemyState, moveId);
+                    choices.add(new BattleCoreLegalChoice.Move(actorId, move.moveId(),
+                            io.autoptu.cobblemon.battlecore.BattleClientActionRequest.Target.Mode.COMBATANT,
+                            move.targetId(), coordinate(move.targetAnchor()), move.actionType().value(), move.stableKey()));
+                }
             }
             return new BattleCoreLegalChoiceSet(reservationId, actorId, choices);
         }
@@ -337,7 +348,7 @@ public final class PlayableBattleTestRuntime {
                 playerEntity.requestTeleport(world.x() + 0.5D, world.y(), world.z() + 0.5D);
                 player.sendMessage(Text.literal("Movement confirmed on the tactical grid."), true);
             } else {
-                resolveTurn();
+                resolveTurn(((BattleCoreLegalChoice.Move) choice).moveId());
             }
         }
 
@@ -458,11 +469,17 @@ public final class PlayableBattleTestRuntime {
         }
 
         private MoveChoice demoMoveChoice(RuntimeCombatantState attacker, RuntimeCombatantState target) {
-            return new MoveChoice(attacker.combatantId(), "demo-strike", ChoiceTargetMode.COMBATANT,
+            return demoMoveChoice(attacker, target, "demo-strike");
+        }
+
+        private MoveChoice demoMoveChoice(RuntimeCombatantState attacker, RuntimeCombatantState target, String moveId) {
+            return new MoveChoice(attacker.combatantId(), moveId, ChoiceTargetMode.COMBATANT,
                     target.combatantId(), target.position(), ActionType.STANDARD);
         }
 
-        private void resolveTurn() {
+        private void resolveTurn() { resolveTurn("demo-strike"); }
+
+        private void resolveTurn(String selectedMoveId) {
             RuntimeCombatantState attacker = playerTurn ? playerState : enemyState;
             RuntimeCombatantState target = playerTurn ? enemyState : playerState;
             PokemonEntity attackerEntity = playerTurn ? playerEntity : enemyEntity;
@@ -477,7 +494,7 @@ public final class PlayableBattleTestRuntime {
             AppliedActionResult applied = BattleRuntime.applyAuthoritativeMove(
                     runtime,
                     choice,
-                    demoMove(),
+                    demoMove(selectedMoveId),
                     "Medium",
                     "Medium",
                     Set.of(),
