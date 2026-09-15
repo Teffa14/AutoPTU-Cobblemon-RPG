@@ -102,7 +102,16 @@ val productionSmokeMods by configurations.creating {
     isTransitive = false
 }
 
+val practicePackMods by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+
 dependencies {
+    practicePackMods("net.fabricmc.fabric-api:fabric-api:0.116.11+1.21.1")
+    practicePackMods("net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20")
+    practicePackMods("com.cobblemon:fabric:1.8.0+1.21.1")
     minecraft("com.mojang:minecraft:1.21.1")
     mappings("net.fabricmc:yarn:1.21.1+build.3:v2")
     modImplementation("net.fabricmc:fabric-loader:0.18.2")
@@ -168,4 +177,18 @@ tasks.register<Copy>("prepareProductionSmokeMods") {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.register<Zip>("packagePracticeBattle") {
+    description = "Packages the remapped mod and its three runtime mod dependencies for a separate Fabric 1.21.1 profile."
+    dependsOn("remapJar")
+    archiveFileName.set("AutoPTU-Batallas-1.21.1.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    into("mods") {
+        from(practicePackMods)
+        from(tasks.named("remapJar"))
+    }
+    from(rootProject.file("docs/battle-package/LEEME.txt"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
 }

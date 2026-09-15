@@ -14,17 +14,35 @@ In a flat, clear area of a world where you have operator commands:
 /autoptu admin battle play charmander pikachu
 ```
 
+`/autoptu battle practice` opens a setup screen with species IDs, a scenario preview and a
+reproducible random seed. Starting still requires operator permission. The full command is
+`/autoptu admin battle play <species> <opponent> [scenario] [seed]`.
+
+| Scenario | Board | HP | Speed | Rival preference |
+|---|---|---|---|---|
+| training | 7x4 | 60 | 3 | Balanced |
+| duel | 5x5 | 80 | 2 | Power |
+| distance | 10x6 | 80 | 3 | Precision |
+| endurance | 9x7 | 120 | 4 | Balanced |
+
+For example: `/autoptu admin battle play lucario gengar distance 12345`.
+Rival preferences rank only attacks already declared legal by the core.
+
 Species names choose the displayed Cobblemon models. Combat stats and moves belong to the
 fixed server-owned sandbox profile; they are not imported from the displayed species.
 
 - Press B to open actions. The player turn waits for input.
-- Choose an attack or a movement destination. The field highlights the choice.
+- Choose an attack card or movement, click a legal cell on the 2D board, then Preview.
+- The world field highlights the choice. Clicking again cycles overlapping targets.
+- Arrow keys move board focus; Page Up/Down cycles exact choices, including off-screen anchors.
 - Enter confirms that particular preview; Backspace cancels it.
 - Movement consumes Shift. You can then attack from the new position.
 - Confirming an attack plays its windup and result, then the rival responds.
 - End turn in the menu passes unused actions to the rival.
 - `/autoptu admin battle stop` closes your sandbox session immediately.
 - After cleanup, repeat the play command for another match.
+- H opens a read-only report with side filters, damage, misses, criticals and movement events.
+- `/autoptu battle report` also opens it, including the last saved report after cleanup/restart.
 
 Key bindings can be changed in Minecraft Controls. Chat fallback commands remain available:
 `/autoptu battle choices`, `/autoptu battle preview <choiceId>`,
@@ -33,7 +51,7 @@ A token belongs to a single preview; an old confirmation cannot execute a replac
 
 ## Field and feedback
 
-The whole 7×4 board is sent as one visual frame. Cyan lines mark cells, green marks legal
+The whole scenario board is sent as one visual frame. Cyan lines mark cells, green marks legal
 movement, gold marks movement selection, and red marks attack targeting. Only cells included
 in the core's legal action list are shown as legal. The connector is an aiming cue, not a path.
 
@@ -58,6 +76,12 @@ AutoPTU-Java determines range eligibility, action consumption, accuracy, damage 
 They do not attach to the interactive action menu.
 
 ## Scope and verification
+
+`gradle :fabric-adapter:packagePracticeBattle` builds a ZIP containing the remapped mod,
+Cobblemon, Fabric API and Fabric Language Kotlin, with Spanish setup instructions.
+It requires a separate Minecraft 1.21.1/Fabric profile and Java 21; it is not a standalone EXE.
+Reports store the latest match per player under the world's `autoptu/practice-reports` folder.
+Their timeline retains the latest 256 events; cumulative statistics retain the whole match.
 
 This is an operator sandbox, not the normal PLAYER-vs-WILD campaign path. It does not commit XP,
 loot, capture, progression, statuses, abilities, items, Trainer Features, weather or terrain effects.

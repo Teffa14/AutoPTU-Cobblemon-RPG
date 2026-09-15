@@ -1,0 +1,61 @@
+AUTOPTU - BATALLAS DE PRACTICA / MINECRAFT 1.21.1
+
+Este paquete contiene un mod de Minecraft, no un ejecutable .exe independiente.
+Incluye AutoPTU, Cobblemon 1.8.0, Fabric API y Fabric Language Kotlin.
+El motor AutoPTU-Java ya esta incluido dentro del mod AutoPTU.
+No incluye Minecraft, Java ni Fabric Loader.
+
+INSTALACION
+1. Crea un perfil separado de Minecraft 1.21.1 con Fabric Loader 0.18.2 o superior
+   compatible con Minecraft 1.21.1 y Java 21. Usa una carpeta de juego nueva.
+2. Copia la carpeta mods de este ZIP dentro de esa carpeta de juego.
+3. Inicia ese perfil y crea un mundo creativo superplano con comandos habilitados.
+4. Usa un espacio llano y despejado. No lo instales encima de COBBLEVERSE 1.7.1.
+5. En multijugador, instala los mismos mods en cliente y servidor; necesitas OP.
+
+COMANDOS
+/autoptu battle practice
+  Abre la pantalla para elegir especies, escenario y semilla.
+
+/autoptu admin battle play charmander pikachu
+  Inicia inmediatamente una batalla interactiva.
+
+/autoptu admin battle play lucario gengar duel 12345
+  Elige dos especies disponibles en Cobblemon, un escenario y una semilla.
+
+Formato:
+/autoptu admin battle play <tu_especie> <rival> [escenario] [semilla]
+
+Escenarios: training (7x4), duel (5x5), distance (10x6), endurance (9x7).
+Semilla opcional: entero de 64 bits; permite repetir tiradas con las mismas acciones.
+
+CONTROLES
+B: acciones y tablero clickeable.
+Selecciona un ataque o movimiento, una casilla y Previsualizar.
+Enter: confirmar la previsualizacion. Backspace: cancelar.
+Verde: movimiento legal. Dorado: seleccion. Rojo: objetivo de ataque.
+Mover consume Shift; despues podes atacar. Atacar pasa el turno al rival.
+Pasar turno: boton dentro del menu de acciones.
+H: informe con acciones, danio, fallos, criticos y resultado.
+/autoptu battle report: abre el mismo informe.
+/autoptu admin battle stop: termina tu sesion y retira sus entidades.
+
+ALCANCE REAL
+Es practica 1 contra 1 contra un rival automatico. La especie cambia el modelo,
+no importa sus estadisticas o movimientos nativos. Hay tres ataques de practica.
+No hay recompensas, captura, habilidades, objetos, efectos de terreno ni campania.
+No es soporte completo de cualquier modalidad PTU ni combate entre dos jugadores.
+El ultimo informe se guarda por jugador en autoptu/practice-reports dentro del mundo.
+El tablero, la legalidad, el consumo de acciones y el resultado los decide el servidor.
+
+DIAGNOSTICO
+Si Fabric informa incompatibilidad: revisa Minecraft 1.21.1, Java 21, Cobblemon 1.8.0
+y que no existan versiones duplicadas de esos mods en la carpeta elegida.
+Si el comando no existe: el servidor tambien debe tener instalado AutoPTU.
+Si no tenes permiso: habilita comandos en tu mundo o pedi OP al administrador.
+Si la especie no existe: usa su ID en minusculas, por ejemplo bulbasaur o pikachu.
+Si hay una sesion activa: terminala con stop antes de iniciar otra.
+
+DEPENDENCIAS
+Las dependencias conservan sus metadatos y licencias dentro de sus propios JAR.
+Este ZIP es un paquete local de prueba; no es una distribucion de Minecraft.

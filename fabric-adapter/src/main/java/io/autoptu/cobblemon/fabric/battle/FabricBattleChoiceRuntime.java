@@ -10,6 +10,7 @@ import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoice;
 import io.autoptu.cobblemon.battlecore.BattleCoreLegalChoiceSet;
 import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
 import io.autoptu.cobblemon.battlecore.BattleGridTransform;
+import io.autoptu.cobblemon.battlecore.BattleActionDetail;
 import io.autoptu.cobblemon.fabric.network.FabricBattleMenuPayload;
 import io.autoptu.cobblemon.fabric.network.FabricBattleSelectionPayload;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -50,6 +51,7 @@ public final class FabricBattleChoiceRuntime {
     private static final Map<UUID, ServerBossBar> SPECTATOR_HUDS = new ConcurrentHashMap<>();
     private static final Map<UUID, SelectionVisual> SELECTIONS = new ConcurrentHashMap<>();
     private static final Map<UUID, String> TOKENS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Map<String, BattleActionDetail>> DETAILS = new ConcurrentHashMap<>();
     private static final long PREVIEW_DURATION_MILLIS = 15_000L;
     private static final long COMMITTED_DURATION_MILLIS = 2_500L;
     private static volatile BattleChoiceMenuService menuService;
@@ -133,6 +135,7 @@ public final class FabricBattleChoiceRuntime {
                 arena, source, source == null ? null : new BattleChoiceMenuService(source, executor), endTurn, actorOrigin));
         TOKENS.remove(playerUuid);
         SELECTIONS.remove(playerUuid);
+        DETAILS.remove(playerUuid);
         if (existing == null
                 || !existing.reservationId().equals(normalize(reservationId, "reservationId"))
                 || !existing.actorId().equals(normalize(actorId, "actorId"))) {
@@ -144,6 +147,11 @@ public final class FabricBattleChoiceRuntime {
     public static BattleArenaSnapshot arena(UUID playerUuid) {
         SessionBinding binding = playerUuid == null ? null : ACTIVE.get(playerUuid);
         return binding == null || binding.arena() == null ? null : binding.arena().toArenaSnapshot();
+    }
+
+    public static void describeActions(UUID playerUuid, Map<String, BattleActionDetail> details) {
+        if (!hasBinding(playerUuid)) throw new IllegalStateException("no bound battle");
+        DETAILS.put(playerUuid, Map.copyOf(details));
     }
 
     public static BattleChoiceVisualPlan visualPlan(UUID playerUuid) {
@@ -168,6 +176,7 @@ public final class FabricBattleChoiceRuntime {
     public static void unbind(UUID playerUuid) {
         if (playerUuid == null) return;
         SessionBinding removed = ACTIVE.remove(playerUuid);
+        DETAILS.remove(playerUuid);
         SELECTIONS.remove(playerUuid);
         TOKENS.remove(playerUuid);
         ServerBossBar hud = HUDS.remove(playerUuid);
@@ -431,7 +440,11 @@ public final class FabricBattleChoiceRuntime {
 
         try {
             List<BattleChoiceMenuService.Entry> choices = service.choices(binding.reservationId(), binding.actorId());
-            if (FabricBattleMenuPayload.send(player, choices, binding.endTurn() != null)) return 1;
+            var plan = visualPlan(player.getUuid());
+            if (FabricBattleMenuPayload.send(player, choices, binding.endTurn() != null,
+                    plan == null ? null : plan.gridWindow(),
+                    binding.actorOrigin() == null ? null : binding.actorOrigin().get(),
+                    DETAILS.getOrDefault(player.getUuid(), Map.of()))) return 1;
             if (choices.isEmpty()) {
                 player.sendMessage(Text.literal("AutoPTU battle choices: none currently legal."), false);
                 return 1;

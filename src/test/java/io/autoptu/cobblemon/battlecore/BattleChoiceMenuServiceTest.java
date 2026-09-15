@@ -42,10 +42,12 @@ class BattleChoiceMenuServiceTest {
         List<BattleChoiceMenuService.Entry> entries = service.choices("battle-1", "mon-1");
 
         assertEquals(List.of(
-                new BattleChoiceMenuService.Entry("shift|mon-1|3,4", "Shift to 3,4"),
+                new BattleChoiceMenuService.Entry("shift|mon-1|3,4", "Shift to 3,4",
+                        BattleChoiceMenuService.EntryKind.MOVEMENT, new BattleGridCoordinate(3, 4), "", ""),
                 new BattleChoiceMenuService.Entry(
                         "move|mon-1|tackle|combatant|mon-2|8,9|standard",
-                        "tackle -> combatant mon-2")
+                        "tackle -> combatant mon-2", BattleChoiceMenuService.EntryKind.ATTACK,
+                        new BattleGridCoordinate(8, 9), "tackle", "mon-2")
         ), entries);
     }
 

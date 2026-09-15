@@ -68,7 +68,8 @@ public final class BattleChoiceMenuService {
 
     private static Entry entry(BattleCoreLegalChoice choice) {
         if (choice instanceof BattleCoreLegalChoice.Shift shift) {
-            return new Entry(shift.stableKey(), "Shift to " + coordinate(shift.destination()));
+            return new Entry(shift.stableKey(), "Shift to " + coordinate(shift.destination()),
+                    EntryKind.MOVEMENT, shift.destination(), "", "");
         }
         BattleCoreLegalChoice.Move move = (BattleCoreLegalChoice.Move) choice;
         String target = switch (move.targetMode()) {
@@ -77,17 +78,31 @@ public final class BattleChoiceMenuService {
             case SELF -> "self";
             case FIELD -> "field";
         };
-        return new Entry(move.stableKey(), move.moveId() + " -> " + target);
+        boolean anchored = move.targetMode() == BattleClientActionRequest.Target.Mode.COMBATANT
+                || move.targetMode() == BattleClientActionRequest.Target.Mode.TILE;
+        return new Entry(move.stableKey(), move.moveId() + " -> " + target, EntryKind.ATTACK,
+                anchored ? move.targetAnchor() : null, move.moveId(), move.targetId() == null ? "" : move.targetId());
     }
 
     private static String coordinate(BattleGridCoordinate coordinate) {
         return coordinate.x() + "," + coordinate.y();
     }
 
-    public record Entry(String choiceId, String label) {
+    public enum EntryKind { MOVEMENT, ATTACK, OTHER }
+
+    public record Entry(String choiceId, String label, EntryKind kind, BattleGridCoordinate anchor,
+                        String moveId, String targetId) {
+        public Entry(String choiceId, String label) {
+            this(choiceId, label, EntryKind.OTHER, null, "", "");
+        }
         public Entry {
             if (choiceId == null || choiceId.isBlank()) throw new IllegalArgumentException("choiceId must not be blank");
             if (label == null || label.isBlank()) throw new IllegalArgumentException("label must not be blank");
+            kind = Objects.requireNonNull(kind, "kind");
+            moveId = Objects.requireNonNull(moveId, "moveId");
+            targetId = Objects.requireNonNull(targetId, "targetId");
+            if (kind == EntryKind.MOVEMENT && anchor == null) throw new IllegalArgumentException("movement needs a destination");
+            if (kind == EntryKind.ATTACK && moveId.isBlank()) throw new IllegalArgumentException("attack needs a move identifier");
         }
     }
 }
