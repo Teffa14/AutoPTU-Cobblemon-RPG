@@ -27,6 +27,7 @@
       "io.autoptu.cobblemon.fabric.world.WildPopulationFireProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildPopulationAirProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildPopulationFallDistanceProjectionRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildPopulationFreezeProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.CobblemonHabitatPointOfInterestRuntimeSmoke",
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildHabitatMigrationContextRuntime",
