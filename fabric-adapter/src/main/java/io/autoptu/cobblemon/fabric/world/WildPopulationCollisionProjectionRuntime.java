@@ -17,9 +17,9 @@ import java.util.UUID;
  *
  * <p>Canonical encounter identity and interaction eligibility remain authoritative elsewhere. This runtime only
  * projects dormant presence into Minecraft physics: hibernating or otherwise inactive visible-WILD presentation
- * actors stop participating in collision and remain pinned at the position where presentation was suspended.
- * Active visible actors regain normal collision and are released from that presentation-only anchor. It does not
- * derive PTU movement legality, forced movement, initiative, damage, HP, statuses, capture or battle outcomes.</p>
+ * actors stop participating in collision, suspend vanilla gravity and remain pinned at the position where
+ * presentation was suspended. Active visible actors regain their prior gravity policy and normal collision. It does
+ * not derive PTU movement legality, forced movement, initiative, damage, HP, statuses, capture or battle outcomes.</p>
  */
 public final class WildPopulationCollisionProjectionRuntime implements ModInitializer {
     private static final double REANCHOR_EPSILON_SQUARED = 1.0E-8D;
@@ -30,7 +30,10 @@ public final class WildPopulationCollisionProjectionRuntime implements ModInitia
         // Physics advances every tick, so dormant anchoring must run every tick rather than only at the slower
         // population-presence reconciliation cadence. Otherwise gravity can move a no-clip presentation actor.
         ServerTickEvents.END_SERVER_TICK.register(WildPopulationCollisionProjectionRuntime::synchronizeAllWorlds);
-        ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> DORMANT_ANCHORS.remove(entity.getUuid()));
+        ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
+            DormantAnchor anchor = DORMANT_ANCHORS.remove(entity.getUuid());
+            if (anchor != null && entity instanceof PokemonEntity actor) actor.setNoGravity(anchor.previousNoGravity());
+        });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> DORMANT_ANCHORS.clear());
     }
 
@@ -56,14 +59,18 @@ public final class WildPopulationCollisionProjectionRuntime implements ModInitia
     private static void synchronizeDormantPhysics(PokemonEntity actor, boolean dormant) {
         UUID actorId = actor.getUuid();
         if (!dormant) {
-            DORMANT_ANCHORS.remove(actorId);
+            DormantAnchor anchor = DORMANT_ANCHORS.remove(actorId);
+            if (anchor != null && actor.hasNoGravity() != anchor.previousNoGravity()) {
+                actor.setNoGravity(anchor.previousNoGravity());
+            }
             return;
         }
 
         DormantAnchor anchor = DORMANT_ANCHORS.computeIfAbsent(
                 actorId,
-                ignored -> new DormantAnchor(actor.getX(), actor.getY(), actor.getZ())
+                ignored -> new DormantAnchor(actor.getX(), actor.getY(), actor.getZ(), actor.hasNoGravity())
         );
+        if (!actor.hasNoGravity()) actor.setNoGravity(true);
         actor.getNavigation().stop();
         actor.setVelocity(0.0D, 0.0D, 0.0D);
         actor.velocityModified = true;
@@ -90,5 +97,5 @@ public final class WildPopulationCollisionProjectionRuntime implements ModInitia
         return dx * dx + dy * dy + dz * dz > REANCHOR_EPSILON_SQUARED;
     }
 
-    private record DormantAnchor(double x, double y, double z) {}
+    private record DormantAnchor(double x, double y, double z, boolean previousNoGravity) {}
 }
