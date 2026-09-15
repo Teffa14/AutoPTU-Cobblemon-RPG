@@ -12,6 +12,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleChoiceMenuServiceTest {
     @Test
+    void reusedKeyWithChangedTargetCannotConfirmOldPreview() {
+        var preview = new BattleCoreLegalChoice.Move("mon-1", "ember", BattleClientActionRequest.Target.Mode.COMBATANT,
+                "enemy", new BattleGridCoordinate(3, 1), "standard", "same-key");
+        var current = new BattleCoreLegalChoice.Move("mon-1", "ember", BattleClientActionRequest.Target.Mode.COMBATANT,
+                "enemy", new BattleGridCoordinate(4, 1), "standard", "same-key");
+        AtomicInteger executions = new AtomicInteger();
+        var service = new BattleChoiceMenuService(
+                (reservation, actor) -> new BattleCoreLegalChoiceSet(reservation, actor, List.of(current)),
+                (reservation, choice) -> executions.incrementAndGet());
+        assertThrows(IllegalArgumentException.class, () -> service.chooseExact("battle", "mon-1", preview));
+        assertEquals(0, executions.get());
+        service.chooseExact("battle", "mon-1", current);
+        assertEquals(1, executions.get());
+    }
+    @Test
     void presentsOnlyChoicesFromTheAuthoritativeSnapshot() {
         BattleCoreLegalChoice.Shift shift = new BattleCoreLegalChoice.Shift(
                 "mon-1", new BattleGridCoordinate(3, 4), "shift|mon-1|3,4");

@@ -1,5 +1,8 @@
 # First playable AutoPTU battle test
 
+Historical first-demo notes. For the current interactive build, use
+[Playable tactical battle](playable-tactical-battle.md); its controls, profiles and validation supersede this page.
+
 This build is the first manual graphical battle proof for AutoPTU inside Minecraft/Cobblemon. It is intentionally narrow. Its purpose is to prove that a player can enter Minecraft, choose one of three Pokémon test scenarios, watch two real Cobblemon entities attack, see authoritative HP fall, and reach a visible winner/loser state.
 
 ## Required client

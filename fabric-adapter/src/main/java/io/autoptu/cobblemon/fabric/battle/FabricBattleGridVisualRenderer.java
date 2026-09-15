@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import java.util.Set;
-import java.util.LinkedHashSet;
 
 /** Publishes one compact visual frame; the client draws persistent lines and translucent cells. */
 public final class FabricBattleGridVisualRenderer {
@@ -49,16 +48,4 @@ public final class FabricBattleGridVisualRenderer {
         render(world, transform, new BattleChoiceVisualPlan(null, Set.of(), Set.of(), null), false, 0);
     }
 
-    /** Compatibility bridge for the original demo phases; each call remains one compact packet. */
-    public static void renderGrid(ServerWorld world, BattleGridTransform transform, BattleChoiceVisualPlan.GridWindow window) {
-        render(world, transform, new BattleChoiceVisualPlan(window, Set.of(), Set.of(), null), false, world.getTime());
-    }
-    public static void renderLegalMovementCell(ServerWorld world, BattleGridTransform transform, BattleGridCoordinate cell) {
-        render(world, transform, new BattleChoiceVisualPlan(new BattleChoiceVisualPlan.GridWindow(cell.x(), cell.x(), cell.y(), cell.y()), Set.of(cell), Set.of(), null), false, world.getTime());
-    }
-    public static void renderDeclaredAnchor(ServerWorld world, BattleGridTransform transform, BattleGridCoordinate cell,
-                                            BattleChoiceVisualPlan.HighlightKind kind, boolean committed, long tick) {
-        var highlight = new BattleChoiceVisualPlan.Highlight(kind, cell, kind == BattleChoiceVisualPlan.HighlightKind.ATTACK ? "demo-strike" : null, null);
-        render(world, transform, new BattleChoiceVisualPlan(new BattleChoiceVisualPlan.GridWindow(cell.x(), cell.x(), cell.y(), cell.y()), Set.of(), Set.of(), highlight), committed, tick, null);
-    }
 }

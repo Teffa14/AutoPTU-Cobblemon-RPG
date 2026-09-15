@@ -12,9 +12,6 @@ import io.autoptu.cobblemon.battlecore.BattleGridCoordinate;
 import io.autoptu.cobblemon.battlecore.BattleGridTransform;
 import io.autoptu.cobblemon.fabric.network.FabricBattleMenuPayload;
 import io.autoptu.cobblemon.fabric.network.FabricBattleSelectionPayload;
-import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
-import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
-import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -52,6 +49,7 @@ public final class FabricBattleChoiceRuntime {
     private static final Map<UUID, ServerBossBar> HUDS = new ConcurrentHashMap<>();
     private static final Map<UUID, ServerBossBar> SPECTATOR_HUDS = new ConcurrentHashMap<>();
     private static final Map<UUID, SelectionVisual> SELECTIONS = new ConcurrentHashMap<>();
+    private static final Map<UUID, String> TOKENS = new ConcurrentHashMap<>();
     private static final long PREVIEW_DURATION_MILLIS = 15_000L;
     private static final long COMMITTED_DURATION_MILLIS = 2_500L;
     private static volatile BattleChoiceMenuService menuService;
@@ -84,9 +82,9 @@ public final class FabricBattleChoiceRuntime {
                                                         context.getSource(),
                                                         StringArgumentType.getString(context, "choiceId")))))
                                 .then(CommandManager.literal("confirm")
-                                        .executes(context -> confirm(context.getSource()))
+                                        .executes(context -> confirm(context.getSource(), null))
                                         .then(CommandManager.argument("token", StringArgumentType.word())
-                                                .executes(context -> confirm(context.getSource()))))
+                                                .executes(context -> confirm(context.getSource(), StringArgumentType.getString(context, "token")))))
                                 .then(CommandManager.literal("cancel")
                                         .executes(context -> cancelPreview(context.getSource()))
                                         .then(CommandManager.argument("token", StringArgumentType.word())
@@ -133,6 +131,8 @@ public final class FabricBattleChoiceRuntime {
                 : UUID.randomUUID().toString();
         ACTIVE.put(playerUuid, new SessionBinding(reservationId, actorId, spectateId,
                 arena, source, source == null ? null : new BattleChoiceMenuService(source, executor), endTurn, actorOrigin));
+        TOKENS.remove(playerUuid);
+        SELECTIONS.remove(playerUuid);
         if (existing == null
                 || !existing.reservationId().equals(normalize(reservationId, "reservationId"))
                 || !existing.actorId().equals(normalize(actorId, "actorId"))) {
@@ -144,6 +144,17 @@ public final class FabricBattleChoiceRuntime {
     public static BattleArenaSnapshot arena(UUID playerUuid) {
         SessionBinding binding = playerUuid == null ? null : ACTIVE.get(playerUuid);
         return binding == null || binding.arena() == null ? null : binding.arena().toArenaSnapshot();
+    }
+
+    public static BattleChoiceVisualPlan visualPlan(UUID playerUuid) {
+        SessionBinding binding = ACTIVE.get(playerUuid);
+        if (binding == null) return null;
+        var set = choiceSource(binding).legalChoices(binding.reservationId(), binding.actorId());
+        var selection = currentSelection(playerUuid, binding);
+        var plan = BattleChoiceVisualPlan.from(set, selection != null && selection.phase() == SelectionPhase.PREVIEW
+                ? selection.choice().stableKey() : null);
+        return selection != null && selection.phase() == SelectionPhase.COMMITTED
+                ? plan.withExecutedHighlight(selection.choice()) : plan;
     }
 
     private static BattleChoiceMenuService service(SessionBinding binding) {
@@ -158,6 +169,7 @@ public final class FabricBattleChoiceRuntime {
         if (playerUuid == null) return;
         SessionBinding removed = ACTIVE.remove(playerUuid);
         SELECTIONS.remove(playerUuid);
+        TOKENS.remove(playerUuid);
         ServerBossBar hud = HUDS.remove(playerUuid);
         if (hud != null) hud.clearPlayers();
         if (removed != null && ACTIVE.values().stream().noneMatch(binding -> binding.spectateId().equals(removed.spectateId()))) {
@@ -273,6 +285,8 @@ public final class FabricBattleChoiceRuntime {
             SessionBinding binding,
             SelectionVisual selection
     ) {
+        // Sessions with their own turn controller publish their complete arena frame.
+        if (binding.endTurn() != null) return;
         BattleAuthoritativeLegalChoiceSource source = choiceSource(binding);
         MinecraftServer server = player.getServer();
         if (source == null || server == null) return;
@@ -417,7 +431,7 @@ public final class FabricBattleChoiceRuntime {
 
         try {
             List<BattleChoiceMenuService.Entry> choices = service.choices(binding.reservationId(), binding.actorId());
-            FabricBattleMenuPayload.send(player, choices, binding.endTurn() != null);
+            if (FabricBattleMenuPayload.send(player, choices, binding.endTurn() != null)) return 1;
             if (choices.isEmpty()) {
                 player.sendMessage(Text.literal("AutoPTU battle choices: none currently legal."), false);
                 return 1;
@@ -446,8 +460,8 @@ public final class FabricBattleChoiceRuntime {
             source.sendError(Text.literal("A battle choice must be submitted by an authenticated player."));
             return 0;
         }
-        BattleChoiceMenuService service = menuService;
         SessionBinding binding = ACTIVE.get(player.getUuid());
+        BattleChoiceMenuService service = service(binding);
         if (service == null || binding == null) {
             source.sendError(Text.literal("No active authoritative AutoPTU battle is bound to this player."));
             return 0;
@@ -455,7 +469,9 @@ public final class FabricBattleChoiceRuntime {
 
         try {
             BattleCoreLegalChoice selectedChoice = authoritativeChoice(binding, choiceId);
-            BattleChoiceMenuService.Entry selected = service.choose(binding.reservationId(), binding.actorId(), choiceId);
+            BattleChoiceMenuService.Entry selected = service.chooseExact(binding.reservationId(), binding.actorId(), selectedChoice);
+            TOKENS.remove(player.getUuid());
+            FabricBattleSelectionPayload.send(player, "", "");
             rememberSelection(player.getUuid(), binding, selectedChoice, SelectionPhase.COMMITTED);
             player.sendMessage(Text.literal("Submitted authoritative choice: " + selected.choiceId()), false);
             return 1;
@@ -475,6 +491,8 @@ public final class FabricBattleChoiceRuntime {
         try {
             binding.endTurn().run();
             SELECTIONS.remove(player.getUuid());
+            TOKENS.remove(player.getUuid());
+            FabricBattleSelectionPayload.send(player, "", "");
             player.sendMessage(Text.literal("Turn ended; waiting for the opponent."), true);
             return 1;
         } catch (RuntimeException rejected) {
@@ -490,13 +508,16 @@ public final class FabricBattleChoiceRuntime {
             return 0;
         }
         SessionBinding binding = ACTIVE.get(player.getUuid());
-        if (menuService == null || binding == null) {
+        if (binding == null || service(binding) == null) {
             source.sendError(Text.literal("No active authoritative AutoPTU battle is bound to this player."));
             return 0;
         }
         try {
             BattleCoreLegalChoice selected = authoritativeChoice(binding, choiceId);
             rememberSelection(player.getUuid(), binding, selected, SelectionPhase.PREVIEW);
+            String token = UUID.randomUUID().toString();
+            TOKENS.put(player.getUuid(), token);
+            FabricBattleSelectionPayload.send(player, token, selected.stableKey());
             String label = selected instanceof BattleCoreLegalChoice.Shift
                     ? "movement destination"
                     : "attack target for " + ((BattleCoreLegalChoice.Move) selected).moveId();
@@ -504,7 +525,7 @@ public final class FabricBattleChoiceRuntime {
             prompt.append(Text.literal("[CONFIRM]").styled(style -> style
                     .withColor(Formatting.GOLD)
                     .withBold(true)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/autoptu battle confirm"))));
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/autoptu battle confirm " + token))));
             prompt.append(Text.literal(" "));
             prompt.append(Text.literal("[CANCEL]").styled(style -> style
                     .withColor(Formatting.GRAY)
@@ -517,7 +538,7 @@ public final class FabricBattleChoiceRuntime {
         }
     }
 
-    private static int confirm(ServerCommandSource source) {
+    private static int confirm(ServerCommandSource source, String token) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
             source.sendError(Text.literal("A battle choice must be confirmed by an authenticated player."));
@@ -525,11 +546,22 @@ public final class FabricBattleChoiceRuntime {
         }
         SessionBinding binding = ACTIVE.get(player.getUuid());
         SelectionVisual preview = currentSelection(player.getUuid(), binding);
-        if (menuService == null || binding == null || preview == null || preview.phase() != SelectionPhase.PREVIEW) {
+        if (binding == null || service(binding) == null || preview == null || preview.phase() != SelectionPhase.PREVIEW
+                || token == null || !token.equals(TOKENS.get(player.getUuid()))) {
             source.sendError(Text.literal("No current authoritative battle choice preview is available to confirm."));
             return 0;
         }
-        return choose(source, preview.choice().stableKey());
+        try {
+            service(binding).chooseExact(binding.reservationId(), binding.actorId(), preview.choice());
+            rememberSelection(player.getUuid(), binding, preview.choice(), SelectionPhase.COMMITTED);
+            TOKENS.remove(player.getUuid());
+            FabricBattleSelectionPayload.send(player, "", "");
+            return 1;
+        } catch (RuntimeException rejected) {
+            cancelPreview(source);
+            source.sendError(Text.literal("Choice changed or was rejected: " + safeMessage(rejected)));
+            return 0;
+        }
     }
 
     private static int cancelPreview(ServerCommandSource source) {
@@ -539,6 +571,8 @@ public final class FabricBattleChoiceRuntime {
             return 0;
         }
         SelectionVisual removed = SELECTIONS.remove(player.getUuid());
+        TOKENS.remove(player.getUuid());
+        FabricBattleSelectionPayload.send(player, "", "");
         player.sendMessage(Text.literal(removed != null && removed.phase() == SelectionPhase.PREVIEW
                 ? "Battle choice preview cancelled."
                 : "No battle choice preview was active."), false);
@@ -582,7 +616,9 @@ public final class FabricBattleChoiceRuntime {
         }
         if (selection.phase() == SelectionPhase.PREVIEW) {
             try {
-                authoritativeChoice(binding, selection.choice().stableKey());
+                if (!authoritativeChoice(binding, selection.choice().stableKey()).equals(selection.choice())) {
+                    throw new IllegalArgumentException("choice changed after preview");
+                }
             } catch (RuntimeException stale) {
                 SELECTIONS.remove(playerUuid, selection);
                 return null;
