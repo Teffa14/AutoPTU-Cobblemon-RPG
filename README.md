@@ -22,7 +22,11 @@ The intended separation is `WildPopulationDefinition -> HabitatProfile -> WildBe
 
 ## First playable battle test
 
-The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a short lunge, displayed HP/nameplates and the final winner/loser message.
+For the current interactive sandbox, see [Playable tactical battle](docs/playable-tactical-battle.md).
+Player turns wait for input; B opens actions, Enter confirms the highlighted choice, and the rival
+responds after the attack. The sandbox uses 60 HP per combatant and three custom attack profiles.
+
+The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo movement options, chosen Shift, attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a cyan tactical grid, green legal movement cells, a gold selected destination, a red attack lock, short lunge, displayed HP/nameplates and the final winner/loser message.
 
 This first vertical uses fixed server-owned combat inputs rather than pretending that general `RuntimeCombatantState` materialization is complete. It does not run statuses, abilities, items, Trainer Features, terrain, forced movement, tactical scoring, rewards or campaign commits. The lunge is presentation only and is not PTU movement legality. See `docs/first-playable-battle-test.md` for the exact install/test procedure and limitations.
 
@@ -80,6 +84,6 @@ Completed with dedicated-server evidence: live Cobblemon entity projection, batt
 
 Completed with contract/integration fixtures: player-versus-wild authority composition, persistent authenticated player context, canonical PLAYER Pokémon identity binding, preprovisioned WILD identity binding, server-owned WILD encounter provisioning, trusted blueprint resolution, and a world-lifecycle-scoped create-only registry that supplies those blueprints without trusting `PokemonEntity` values.
 
-The first manual graphical battle harness is the next validation rung: choose a bounded server-owned Pokémon scenario, spawn two live Cobblemon entities, invoke the pinned AutoPTU-Java authoritative move runtime, project attack motion/HP, and visibly terminate with a winner/loser. After that succeeds on a real client, the same playback pieces can be moved behind the normal authenticated PLAYER-vs-WILD reservation path rather than the test command.
+The playable graphical battle harness now exposes `/autoptu admin battle play <species> <opponent>` as a bounded operator session. `B` opens server-provided actions, preview highlights legal grid destinations/targets, Enter confirms a token-bound choice, Backspace cancels, and the client HUD mirrors server-emitted HP, phase and round. The same playback pieces remain isolated from the normal authenticated PLAYER-vs-WILD campaign path until general runtime combatant materialization is complete.
 
 General runtime combatant materialization follows only when every required `RuntimeCombatantState` input can be supplied authoritatively. Missing PTU rules stay in AutoPTU-Java rather than being recreated in the Minecraft adapter.

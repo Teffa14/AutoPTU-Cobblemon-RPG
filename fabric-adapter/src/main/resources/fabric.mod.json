@@ -57,6 +57,9 @@
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusAttentionRuntime"
     ],
     "client": [
+      "io.autoptu.cobblemon.fabric.client.FabricBattleGridClient",
+      "io.autoptu.cobblemon.fabric.client.FabricBattleMenuClient",
+      "io.autoptu.cobblemon.fabric.client.FabricBattleStatusClient",
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleVisualEvidenceClient"
     ]

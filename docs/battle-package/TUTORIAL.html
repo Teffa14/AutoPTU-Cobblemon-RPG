@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AutoPTU — Cómo jugar una batalla</title>
+<style>
+:root{color-scheme:dark;--bg:#111c28;--panel:#192b39;--ink:#eaf2f5;--muted:#acc1cf;--move:#70d8aa;--target:#f3a080;--selected:#ffd068}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:48px 24px 80px}header{border-bottom:1px solid #375568;padding-bottom:32px;margin-bottom:32px}h1{font-size:clamp(2rem,5vw,3.7rem);line-height:1.08;max-width:750px;margin:14px 0 24px}h2{font-size:1.45rem;margin-top:40px}h3{font-size:1.1rem}p{max-width:76ch}.eyebrow{color:var(--move);font-size:.9rem}a{color:var(--move)}nav{display:flex;gap:20px;flex-wrap:wrap}section{scroll-margin-top:20px}.notice{border-left:3px solid var(--selected);padding:12px 18px;background:var(--panel)}.muted{color:var(--muted)}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:#0d1720;border:1px solid #375568}code{color:var(--move)}.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}.fields{display:grid;gap:14px}label{display:block;font-size:.9rem}input,select,button{font:inherit;border:1px solid #4c687b;background:#0d1720;color:var(--ink);padding:10px;width:100%;border-radius:4px}input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--selected);outline-offset:3px}button{cursor:pointer;background:#214b40;border-color:var(--move)}button:hover{background:#2b6152}button:disabled{opacity:.5;cursor:not-allowed}.error{color:var(--target)}table{width:100%;border-collapse:collapse;font-size:.95rem}td,th{text-align:left;padding:10px;border-bottom:1px solid #375568}th{color:var(--muted)}.table-scroll{overflow:auto}li{margin-bottom:10px}kbd{border:1px solid #607989;border-bottom-width:3px;border-radius:3px;padding:1px 6px;font:14px Consolas,monospace}svg{width:100%;max-width:420px;height:auto}footer{margin-top:48px;border-top:1px solid #375568;padding-top:18px;color:var(--muted);font-size:.9rem}@media(max-width:650px){.layout{grid-template-columns:1fr}main{padding:28px 18px}td,th{padding:8px}}
+</style>
+</head>
+<body><main>
+<header><span class="eyebrow">AUTOPTU / SLICE 2 / GUÍA OFFLINE</span><h1>De la instalación al primer ataque.</h1>
+<p>Prepará una batalla por comando, elegí tu desplazamiento en el tablero y confirmá el ataque con una previsualización visible.</p>
+<nav aria-label="Índice"><a href="#instalar">Instalación</a><a href="#comando">Crear comando</a><a href="#jugar">Jugar</a><a href="#problemas">Problemas</a></nav></header>
+<p class="notice"><strong>Alcance real:</strong> práctica 1 contra 1 contra un rival automático. Podés elegir especies disponibles en Cobblemon, pero sus modelos usan estadísticas de escenario y tres ataques propios. No es todavía cualquier modalidad PTU: no incluye PvP, captura, campaña, habilidades ni movimientos nativos.</p>
+<section id="instalar"><h2>01 / Instalá el paquete en un perfil separado</h2>
+<ol><li>Usá <strong>Minecraft Java 1.21.1</strong>, <strong>Java 21</strong> y un perfil <strong>Fabric Loader 0.18.2 o posterior compatible con 1.21.1</strong>. Este ZIP no incluye Minecraft ni el instalador de Fabric.</li>
+<li>Elegí una <strong>carpeta de juego nueva</strong> en tu launcher. No reemplaces las dependencias de tu COBBLEVERSE existente: ese modpack puede usar otra versión de Cobblemon.</li>
+<li>Extraé el ZIP y copiá su carpeta <code>mods</code> a la carpeta del nuevo perfil. Debe contener AutoPTU, Cobblemon 1.8.0, Fabric API y Fabric Language Kotlin. No agregues un segundo JAR de AutoPTU.</li>
+<li>Iniciá el perfil. Creá un mundo <strong>creativo, superplano, con comandos habilitados</strong>. Usá una zona llana y despejada: el comando no construye ni aplana el suelo.</li>
+<li>En multijugador, cliente y servidor necesitan los mismos mods; el jugador que inicia necesita OP. Los informes solo se envían a su dueño.</li></ol>
+<p>Para abrir el tutorial dentro de Minecraft:</p><pre>/autoptu battle help</pre></section>
+<section id="comando"><h2>02 / Armá tu comando</h2><p>La primera especie es tu Pokémon; la segunda es el rival. Escribí IDs en minúsculas, por ejemplo <code>lucario</code> y <code>gengar</code>. El servidor verifica que existan.</p>
+<div class="layout"><form id="builder" class="fields">
+<label for="ally">Tu especie<input id="ally" value="charmander" maxlength="64" pattern="[a-z0-9_-]+" required></label>
+<label for="enemy">Especie rival<input id="enemy" value="pikachu" maxlength="64" pattern="[a-z0-9_-]+" required></label>
+<label for="scenario">Escenario<select id="scenario"><option value="training">Entrenamiento · 7 × 4</option><option value="duel">Duelo cercano · 5 × 5</option><option value="distance">Aproximación larga · 10 × 6</option><option value="endurance">Resistencia · 9 × 7</option></select></label>
+<label for="seed">Semilla opcional<input id="seed" value="12345" maxlength="20" inputmode="numeric" aria-describedby="seed-help"></label>
+<small id="seed-help" class="muted">Entero de 64 bits. Con las mismas acciones y semilla se repiten las tiradas.</small>
+<button type="button" id="copy">Copiar comando</button></form>
+<div><h3>Comando listo para el chat</h3><pre id="command" aria-live="polite"></pre><p id="feedback" role="status"></p><p class="muted">Esto solo genera texto: no abre Minecraft, no inicia una partida ni envía datos. También podés seleccionar y copiar el comando manualmente.</p>
+<h3>Sin escribir opciones</h3><pre>/autoptu battle practice</pre><p>Abre el selector dentro del juego, con especies, escenario, semilla y un botón <strong>?</strong> para consultar la guía.</p></div></div>
+<div class="table-scroll"><table><caption>Escenarios disponibles</caption><thead><tr><th>ID</th><th>Campo</th><th>PS</th><th>Velocidad</th><th>Rival</th></tr></thead><tbody>
+<tr><td>training</td><td>7 × 4</td><td>60</td><td>3</td><td>Equilibrado</td></tr><tr><td>duel</td><td>5 × 5</td><td>80</td><td>2</td><td>Prioriza potencia</td></tr><tr><td>distance</td><td>10 × 6</td><td>80</td><td>3</td><td>Prioriza precisión</td></tr><tr><td>endurance</td><td>9 × 7</td><td>120</td><td>4</td><td>Equilibrado</td></tr></tbody></table></div></section>
+<section id="jugar"><h2>03 / Elegí → previsualizá → confirmá</h2><div class="layout"><div><ol>
+<li>Presioná <kbd>B</kbd> para abrir las acciones. El turno del jugador espera tu decisión.</li><li>Elegí <strong>Movimiento</strong> o una ficha de ataque. Hacé clic en una casilla válida del tablero.</li><li>Elegí <strong>Previsualizar</strong>. El menú se cierra y el campo muestra la selección.</li><li><kbd>Enter</kbd> confirma esa selección; <kbd>Backspace</kbd> la cancela. Una previsualización vieja no puede confirmar una opción nueva.</li><li>Mover consume Shift, pero permite atacar después. Un ataque confirmado pasa el control al rival tras resolverse. También podés usar <strong>Pasar turno</strong>.</li></ol></div>
+<figure><svg viewBox="0 0 350 235" role="img" aria-labelledby="diagram-title diagram-desc"><title id="diagram-title">Leyenda del tablero táctico</title><desc id="diagram-desc">Diagrama ilustrativo, no captura del juego. Casillas verdes para movimiento legal, dorada para destino seleccionado y roja para objetivo de ataque.</desc>
+<defs><pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="#213b48" stroke="#375568"/></pattern></defs>
+<rect x="6" y="6" width="294" height="126" fill="url(#grid)"/><path d="M48 48h40v40H48zM6 48h40v40H6zM48 6h40v40H48z" fill="#315c4f"/>
+<rect x="90" y="48" width="40" height="40" fill="#ffd068"/><rect x="216" y="48" width="40" height="40" fill="#f3a080"/>
+<g font-family="monospace" font-size="18" text-anchor="middle"><text x="68" y="74" fill="#70d8aa">P</text><text x="110" y="74" fill="#111c28">→</text><text x="236" y="74" fill="#111c28">X</text></g>
+<g font-family="sans-serif" font-size="14"><text x="6" y="160" fill="#70d8aa">Verde: movimiento legal</text><text x="6" y="184" fill="#ffd068">Dorado: selección</text><text x="6" y="208" fill="#f3a080">Rojo: objetivo de ataque</text></g></svg><figcaption class="muted">Ilustración de la leyenda; el servidor decide las casillas legales. La línea de apuntado no representa una ruta.</figcaption></figure></div>
+<p>Las flechas navegan por el tablero; Re Pág / Av Pág recorren las opciones exactas. Las teclas de batalla se pueden reasignar en Controles de Minecraft.</p>
+<div class="table-scroll"><table><caption>Ataques propios de práctica, todos de un solo objetivo</caption><thead><tr><th>Ataque</th><th>Alcance</th><th>Daño base</th><th>Clase de precisión</th></tr></thead><tbody><tr><td>Long strike</td><td>5</td><td>4</td><td>2</td></tr><tr><td>Fire burst</td><td>2</td><td>6</td><td>4</td></tr><tr><td>Electric arc</td><td>3</td><td>3</td><td>1</td></tr></tbody></table></div>
+<p>La explosión de fuego es una animación: no implica daño de área. AutoPTU-Java resuelve legalidad, precisión, daño, consumo de acciones y PS.</p></section>
+<section><h2>04 / Leé el HUD y terminá la partida</h2><p>El panel con borde destacado identifica al bando activo. Los números muestran PS reales; la barra animada y la estela ámbar permiten ver cuánto bajaron. Ronda, preparación, impacto y resultado aparecen debajo.</p>
+<p><kbd>H</kbd> o <code>/autoptu battle report</code> abre el informe. Podés filtrar por bando y revisar daño, aciertos, fallos, críticos y desplazamientos. Se guarda el último informe de cada jugador, con 256 eventos recientes y totales completos.</p>
+<pre>/autoptu admin battle stop</pre><p>Cierra tu sesión sin recompensas. Tras victoria o derrota, la limpieza es automática; después podés ejecutar otro comando de inicio. No podés tener dos sesiones propias simultáneas.</p></section>
+<section id="problemas"><h2>05 / Si algo no funciona</h2><dl>
+<dt><strong>Fabric no inicia</strong></dt><dd>Revisá Minecraft 1.21.1, Java 21, las cuatro dependencias del ZIP y JAR duplicados. No mezcles este paquete con Cobblemon 1.7.1.</dd>
+<dt><strong>El comando no existe</strong></dt><dd>AutoPTU debe estar en el servidor también. En un mundo local, revisá que iniciaste el perfil Fabric correcto.</dd>
+<dt><strong>No tenés permiso</strong></dt><dd>Habilitá comandos en el mundo o pedí OP al administrador. El tutorial se puede abrir sin OP, pero iniciar práctica lo requiere.</dd>
+<dt><strong>Especie desconocida</strong></dt><dd>Usá su ID en minúsculas y sin espacios, no un apodo traducido. El generador no trae un catálogo: Cobblemon valida el ID.</dd>
+<dt><strong>La previsualización venció</strong></dt><dd>Volvé a abrir el menú y elegí una opción actual. Los tokens de confirmación son temporales.</dd>
+<dt><strong>Los modelos se superponen con el terreno</strong></dt><dd>Detené la sesión y elegí un espacio llano y despejado. El comando no altera los bloques.</dd></dl></section>
+<footer>Slice 2: HUD animado y guía integrada. Paquete compilado y comprobado con pruebas locales; no equivale a una partida gráfica completa verificada. El mod es un JAR para Fabric, no un EXE independiente.</footer>
+</main><script>
+'use strict';
+const form=document.getElementById('builder'),output=document.getElementById('command'),feedback=document.getElementById('feedback'),copy=document.getElementById('copy');
+function build(){
+ const ally=document.getElementById('ally').value.trim(),enemy=document.getElementById('enemy').value.trim(),scenario=document.getElementById('scenario').value,seed=document.getElementById('seed').value.trim();
+ let error='';
+ if(!/^[a-z0-9_-]{1,64}$/.test(ally)||!/^[a-z0-9_-]{1,64}$/.test(enemy))error='Usá IDs de especie en minúsculas, sin espacios.';
+ if(seed){try{if(!/^-?\d+$/.test(seed))throw Error();const n=BigInt(seed);if(n<-(2n**63n)||n>2n**63n-1n)throw Error();}catch{error='La semilla debe ser un entero de 64 bits válido.';}}
+ output.textContent=error?'':`/autoptu admin battle play ${ally} ${enemy} ${scenario}${seed?' '+seed:''}`;
+ feedback.textContent=error;feedback.className=error?'error':'';copy.disabled=Boolean(error);return output.textContent;
+}
+form.addEventListener('input',build);form.addEventListener('submit',event=>event.preventDefault());
+copy.addEventListener('click',async()=>{const command=build();if(!command)return;try{await navigator.clipboard.writeText(command);feedback.textContent='Copiado. Pegalo en el chat de Minecraft.';}catch{const selection=window.getSelection();const range=document.createRange();range.selectNodeContents(output);selection.removeAllRanges();selection.addRange(range);feedback.textContent='Texto seleccionado. Presioná Ctrl+C para copiar.';}});
+build();
+</script></body></html>
