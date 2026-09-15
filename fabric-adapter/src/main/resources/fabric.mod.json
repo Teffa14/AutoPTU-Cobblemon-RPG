@@ -24,6 +24,7 @@
       "io.autoptu.cobblemon.fabric.world.WildPopulationAcousticProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildPopulationCollisionProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildPopulationDamageProjectionRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildPopulationFireProjectionRuntime",
       "io.autoptu.cobblemon.fabric.world.CobblemonHabitatPointOfInterestRuntimeSmoke",
       "io.autoptu.cobblemon.fabric.world.WildHabitatCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildHabitatMigrationContextRuntime",
