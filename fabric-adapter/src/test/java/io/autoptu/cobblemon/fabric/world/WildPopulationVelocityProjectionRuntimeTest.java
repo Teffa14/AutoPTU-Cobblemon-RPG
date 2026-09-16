@@ -74,4 +74,12 @@ class WildPopulationVelocityProjectionRuntimeTest {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeFreezeProgress(true, false, 40));
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeFreezeProgress(false, true, 0));
     }
+
+    @Test
+    void clearsNativeProjectilePresentationOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeProjectilePresentation(false, false, 2, 0));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeProjectilePresentation(true, true, 0, 1));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeProjectilePresentation(true, false, 2, 1));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeProjectilePresentation(false, true, 0, 0));
+    }
 }
