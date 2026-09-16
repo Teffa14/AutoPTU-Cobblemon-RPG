@@ -2,6 +2,25 @@
 
 This is the product execution queue for the playable AutoPTU Cobblemon RPG.
 
+## Active native-gameplay track (user direction, 2026-09-16)
+
+The user explicitly requested reuse of real Cobblemon starters, teams, moves and battles.
+The native mode below is now the default; the historical PTU queue and its authority rules
+remain applicable only to `ptu-experimental`. Native battle results are not PTU results.
+Do not report the historical LIVE items as enabled in native mode, or equate code completion
+with a verified end-to-end playthrough. No claim of 100 completed steps is made.
+
+| Item | Status | Scope/evidence |
+|---|---|---|
+| NAT-001 | IMPLEMENTED / manual verification pending | Exclusive bootstrap disables duplicate starters, party menus and demo controls; preserves block registry IDs. Commit `f9f8f5b5`, PR #644. |
+| NAT-002 | IMPLEMENTED / manual verification pending | Existing visible wild target enters Cobblemon PvE with the actual player party; no demo actors or fixed moves. Commit `f9f8f5b5`, PR #644. |
+| NAT-003 | IMPLEMENTED / two-client verification pending | Consent-based native duels: recipient-bound one-use token, 60-second expiry, cancellation, disconnect cleanup, 10-second challenge cooldown, distance/dimension/busy revalidation and native PvP builder. Current PR #644; five invitation unit tests plus mode/registration regression checks pass. |
+| NAT-004 | NEXT | Verify the native starter → wild battle → return → reload loop in the actual client, record evidence and fix any observed integration failures. |
+| NAT-005 | TODO | Verify native duels with two clients: accept, reject/cancel, disconnect, range change, fainted party and finish. |
+| NAT-006 | TODO | Audit old practice entities in a copied test save and design explicit, identity-safe recovery; never delete by name heuristics. |
+
+The remaining plan below is the experimental PTU backlog, not completed native gameplay.
+
 It is not a compatibility report. It lists the tools, commands, screens, world interactions, server services, persistence domains, and recovery utilities that must exist inside Minecraft.
 
 ## Mandatory task rule

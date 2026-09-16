@@ -18,6 +18,11 @@ The experimental integration is retained behind `-Dautoptu.gameplay=ptu-experime
 consistently on client and server before startup. Its authority boundary below remains intact.
 `gradle :fabric-adapter:packageNativeBattle` builds the current native package.
 
+Native 2 adds consent-based PvP: `/autoptu duel challenge <player>`, recipient-only
+`/autoptu duel accept <token>`, `/autoptu duel` status and `/autoptu duel cancel`.
+Invitations expire after 60 seconds, clear on disconnect and require both players within
+16 blocks in the same dimension. Cobblemon owns team validation and the resulting battle.
+
 This repository is the only writable Minecraft/Cobblemon integration project. `Teffa14/AutoPTU-Java` and `Teffa14/AutoPTU` are read-only upstream/reference repositories for this project.
 
 ## Experimental PTU authority boundary

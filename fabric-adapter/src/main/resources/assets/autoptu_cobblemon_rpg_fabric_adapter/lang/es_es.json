@@ -91,5 +91,16 @@
   "autoptu.native.already_battling": "Ya estás en combate. Terminá esa batalla antes de iniciar otra.",
   "autoptu.native.no_target": "Apuntá directamente a un Pokémon visible, sin bloques en medio y a menos de 8 bloques.",
   "autoptu.native.not_wild": "Ese Pokémon tiene dueño. Este comando solo inicia encuentros contra salvajes.",
-  "autoptu.native.busy": "Ese Pokémon no está disponible: está ocupado, debilitado o en otra batalla."
+  "autoptu.native.busy": "Ese Pokémon no está disponible: está ocupado, debilitado o en otra batalla.",
+  "autoptu.native.help.duel": "Duelos con consentimiento: /autoptu duel challenge <jugador>. La otra persona debe aceptar; consultá /autoptu duel.",
+  "autoptu.duel.unavailable": "Ambos jugadores deben estar vivos, libres de combate, en la misma dimensión y a menos de 16 bloques. No podés desafiarte a vos mismo.",
+  "autoptu.duel.pending": "Hay una invitación pendiente o todavía no pasaron 10 segundos desde tu último desafío. Usá /autoptu duel cancel o esperá.",
+  "autoptu.duel.sent": "Invitación enviada a %s. Vence en 60 segundos; no se inicia nada sin su aceptación.",
+  "autoptu.duel.received": "%s te desafía a un duelo Cobblemon con los equipos actuales. Tenés 60 segundos para aceptar.",
+  "autoptu.duel.accept": "[Preparar comando de aceptación]",
+  "autoptu.duel.expired": "La invitación venció, fue cancelada o ese código no te pertenece.",
+  "autoptu.duel.cancelled": "Invitación de duelo cancelada.",
+  "autoptu.duel.disconnected": "Invitación cancelada: el otro jugador se desconectó.",
+  "autoptu.duel.remaining": "Invitación pendiente: quedan %s segundos. /autoptu duel cancel la cancela.",
+  "autoptu.duel.help": "Sin invitación pendiente. Usá /autoptu duel challenge <jugador> cerca de otro jugador; la batalla requiere su aceptación."
 }

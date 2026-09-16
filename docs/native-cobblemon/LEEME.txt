@@ -1,4 +1,4 @@
-AUTOPTU 0.2.0-native1 - COBBLEMON COMO SISTEMA DE JUEGO
+AUTOPTU 0.2.0-native2 - COBBLEMON COMO SISTEMA DE JUEGO
 
 CAMBIO IMPORTANTE
 El modo predeterminado ahora usa el starter, equipo, movimientos, controles,
@@ -28,6 +28,18 @@ no asigna ataques inventados y no construye una arena flotante.
 
 /autoptu battle help
 /autoptu battle status
+
+DUELOS ENTRE JUGADORES
+/autoptu duel challenge <jugador>
+El destinatario recibe un codigo y debe enviar /autoptu duel accept <codigo>.
+El enlace del chat prepara el comando; no inicia la batalla por si solo.
+La invitacion vence en 60 segundos. Ambos deben estar a menos de 16 bloques,
+en la misma dimension, vivos y sin otra batalla al desafiar y al aceptar.
+/autoptu duel muestra el estado. /autoptu duel cancel cancela o rechaza.
+Al desconectarse cualquiera, la invitacion se elimina. No sobrevive un reinicio.
+Hay 10 segundos de espera entre desafios. No requiere OP.
+Cobblemon valida las parties y administra combate, movimientos y resultados.
+No se teletransporta, cura, clona ni reemplaza a los equipos desde AutoPTU.
 
 Si falta equipo o no esta disponible, se muestra el error nativo de Cobblemon.
 No se puede iniciar contra Pokemon con dueno, ocupados o ya en combate.

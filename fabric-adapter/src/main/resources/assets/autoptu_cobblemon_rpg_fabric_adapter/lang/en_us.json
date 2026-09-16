@@ -103,5 +103,16 @@
   "autoptu.native.already_battling": "You are already in a battle. Finish it before starting another.",
   "autoptu.native.no_target": "Aim directly at a visible Pokemon within 8 blocks, with no blocks between you.",
   "autoptu.native.not_wild": "That Pokemon has an owner. This command only starts wild encounters.",
-  "autoptu.native.busy": "That Pokemon is unavailable: busy, fainted or already battling."
+  "autoptu.native.busy": "That Pokemon is unavailable: busy, fainted or already battling.",
+  "autoptu.native.help.duel": "Consent-based duels: /autoptu duel challenge <player>. The other player must accept; see /autoptu duel.",
+  "autoptu.duel.unavailable": "Both players must be alive, not battling, in the same dimension and within 16 blocks. You cannot challenge yourself.",
+  "autoptu.duel.pending": "A player has a pending invitation or your 10-second challenge cooldown has not elapsed. Use /autoptu duel cancel or wait.",
+  "autoptu.duel.sent": "Invitation sent to %s. Expires in 60 seconds; nothing starts without their acceptance.",
+  "autoptu.duel.received": "%s challenges you to a Cobblemon duel with your current teams. You have 60 seconds to accept.",
+  "autoptu.duel.accept": "[Prepare acceptance command]",
+  "autoptu.duel.expired": "Invitation expired, was cancelled or the code does not belong to you.",
+  "autoptu.duel.cancelled": "Duel invitation cancelled.",
+  "autoptu.duel.disconnected": "Invitation cancelled: the other player disconnected.",
+  "autoptu.duel.remaining": "Invitation pending: %s seconds remain. /autoptu duel cancel cancels it.",
+  "autoptu.duel.help": "No pending invitation. Use /autoptu duel challenge <player> near another player; they must accept before battle starts."
 }

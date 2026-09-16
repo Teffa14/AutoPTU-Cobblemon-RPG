@@ -16,6 +16,7 @@ public final class FabricGameplayEntrypoint implements ModInitializer {
             // interaction handlers are disabled; removing block IDs would damage authored worlds.
             io.autoptu.cobblemon.fabric.rpg.FabricRpgContent.register();
             NativeCobblemonBattleRuntime.register();
+            io.autoptu.cobblemon.fabric.battle.NativeCobblemonDuelRuntime.register();
         } else {
             for (ModInitializer entrypoint : FabricLoader.getInstance().getEntrypoints("autoptu:experimental_main", ModInitializer.class)) {
                 entrypoint.onInitialize();

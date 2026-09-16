@@ -39,7 +39,7 @@ public final class NativeCobblemonBattleRuntime {
 
     private static int help(ServerCommandSource source) {
         source.sendFeedback(() -> Text.translatable("autoptu.native.help.title").formatted(Formatting.AQUA), false);
-        for (String key : new String[]{"starter", "controls", "wild", "authority", "legacy"}) {
+        for (String key : new String[]{"starter", "controls", "wild", "duel", "authority", "legacy"}) {
             source.sendFeedback(() -> Text.translatable("autoptu.native.help." + key), false);
         }
         source.sendFeedback(() -> Text.literal("/autoptu battle wild").styled(style -> style.withColor(Formatting.GREEN)
