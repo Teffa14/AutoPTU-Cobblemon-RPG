@@ -1,0 +1,49 @@
+AUTOPTU 0.2.0-native1 - COBBLEMON COMO SISTEMA DE JUEGO
+
+CAMBIO IMPORTANTE
+El modo predeterminado ahora usa el starter, equipo, movimientos, controles,
+interfaz y motor de combate reales de Cobblemon. No son reglas PTU.
+La demostracion anterior y las pantallas RPG paralelas ya no arrancan por defecto.
+No se importan, borran ni convierten los datos antiguos de PTU.
+
+INSTALACION
+Minecraft Java 1.21.1, Java 21 y Fabric Loader compatible (0.18.2+).
+El ZIP contiene los cuatro mods necesarios. Usar una instancia separada.
+Si actualizas la instancia AutoPTU anterior: retira SOLO su antiguo JAR AutoPTU
+de mods y guarda una copia fuera de mods antes de copiar el nuevo.
+No dejes dos JAR AutoPTU simultaneamente. No cambies tu modpack COBBLEVERSE.
+Reinicia Minecraft despues de actualizar. No hace falta borrar mundos.
+
+JUGAR
+1. Elegi un starter en la pantalla nativa de Cobblemon si no tenes equipo.
+2. Consulta Opciones > Controles > Cobblemon: conserva sus controles de siempre.
+3. Usa el envio de Pokemon nativo para iniciar encuentros, o apunta directamente
+   a un Pokemon salvaje real, visible, a menos de ocho bloques y ejecuta:
+
+/autoptu battle wild
+
+No requiere OP. Usa tu equipo existente y los movimientos de tus Pokemon.
+El comando no genera rivales, no cambia niveles, no teletransporta entidades,
+no asigna ataques inventados y no construye una arena flotante.
+
+/autoptu battle help
+/autoptu battle status
+
+Si falta equipo o no esta disponible, se muestra el error nativo de Cobblemon.
+No se puede iniciar contra Pokemon con dueno, ocupados o ya en combate.
+Ataques, cambios, captura, huida y resultado siguen las reglas e interfaz nativas.
+
+DATOS ANTERIORES
+Un starter elegido SOLO en el inventario PTU experimental no equivale a un Pokemon
+de la party de Cobblemon. No lo convertimos automaticamente para evitar duplicados.
+Los Pokemon de demostraciones antiguas no se borran por heuristicas de nombre.
+Los comandos de demostracion anteriores no forman parte del modo normal.
+
+DESARROLLO PTU
+La ruta experimental se conserva separada. Solo para desarrolladores:
+-Dautoptu.gameplay=ptu-experimental en cliente y servidor.
+No mezclar los dos modos. Requiere reinicio; no es un interruptor durante una partida.
+
+VERIFICACION
+La compilacion y las pruebas automatizadas no sustituyen una partida grafica completa.
+Ver TUTORIAL.html para la guia actual. Las guias Slice 2 son historicas.

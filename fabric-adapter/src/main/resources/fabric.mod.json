@@ -3,10 +3,16 @@
   "id": "autoptu_cobblemon_rpg_fabric_adapter",
   "version": "${version}",
   "name": "AutoPTU Cobblemon RPG Fabric Adapter",
-  "description": "Server-authoritative Fabric networking and Cobblemon presentation adapter for AutoPTU.",
+  "description": "Cobblemon-native gameplay integration; experimental PTU sandbox available only by explicit opt-in.",
   "environment": "*",
   "entrypoints": {
     "main": [
+      "io.autoptu.cobblemon.fabric.FabricGameplayEntrypoint"
+    ],
+    "client": [
+      "io.autoptu.cobblemon.fabric.client.FabricGameplayClientEntrypoint"
+    ],
+    "autoptu:experimental_main": [
       "io.autoptu.cobblemon.fabric.AutoPtuCobblemonFabricAdapter",
       "io.autoptu.cobblemon.fabric.admin.FabricBattleEvidenceAdminRuntime",
       "io.autoptu.cobblemon.fabric.admin.FabricItemGrantAdminRuntime",
@@ -38,7 +44,7 @@
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusHoldRuntime",
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusAttentionRuntime"
     ],
-    "client": [
+    "autoptu:experimental_client": [
       "io.autoptu.cobblemon.fabric.client.FabricBattleGridClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleMenuClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleStatusClient",

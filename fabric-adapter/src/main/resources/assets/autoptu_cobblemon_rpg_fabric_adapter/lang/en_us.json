@@ -90,5 +90,18 @@
   "autoptu.hud.hint.your_turn": "Choose movement or an attack in the action menu",
   "autoptu.hud.hint.rival_turn": "The rival is choosing a legal action",
   "autoptu.hud.hint.victory": "Battle complete — report available",
-  "autoptu.hud.hint.defeat": "Battle complete — review the report"
+  "autoptu.hud.hint.defeat": "Battle complete — review the report",
+  "autoptu.native.help.title": "AutoPTU — native Cobblemon integration",
+  "autoptu.native.help.starter": "Choose a starter through Cobblemon. Your existing party is preserved; AutoPTU does not open a second starter selection.",
+  "autoptu.native.help.controls": "Use Cobblemon's controls and battle interface. Check Options > Controls > Cobblemon for your current key bindings.",
+  "autoptu.native.help.wild": "Aim at a visible wild Pokemon within 8 blocks and run /autoptu battle wild, or use Cobblemon's normal send-out controls.",
+  "autoptu.native.help.authority": "Cobblemon owns party, moves, HP, statuses and results. Experimental PTU rules are not applied in this mode.",
+  "autoptu.native.help.legacy": "The fixed-move demo and parallel PTU inventory are disabled. Old PTU data is not deleted or automatically converted.",
+  "autoptu.native.no_demo": "The previous demo is disabled. Use your actual party against a real wild Pokemon.",
+  "autoptu.native.idle": "You are not in a native battle. Aim at a wild Pokemon and use /autoptu battle wild.",
+  "autoptu.native.active": "You are in a Cobblemon battle. Choose actions in its interface.",
+  "autoptu.native.already_battling": "You are already in a battle. Finish it before starting another.",
+  "autoptu.native.no_target": "Aim directly at a visible Pokemon within 8 blocks, with no blocks between you.",
+  "autoptu.native.not_wild": "That Pokemon has an owner. This command only starts wild encounters.",
+  "autoptu.native.busy": "That Pokemon is unavailable: busy, fainted or already battling."
 }

@@ -78,5 +78,18 @@
   "autoptu.hud.hint.your_turn": "Elegí movimiento o ataque en el menú de acciones",
   "autoptu.hud.hint.rival_turn": "El rival está eligiendo una acción legal",
   "autoptu.hud.hint.victory": "Combate terminado — informe disponible",
-  "autoptu.hud.hint.defeat": "Combate terminado — revisá el informe"
+  "autoptu.hud.hint.defeat": "Combate terminado — revisá el informe",
+  "autoptu.native.help.title": "AutoPTU — integración nativa de Cobblemon",
+  "autoptu.native.help.starter": "Elegí tu starter desde la pantalla de Cobblemon. Tu equipo existente se conserva; no hay una segunda elección de AutoPTU.",
+  "autoptu.native.help.controls": "Usá los controles y la interfaz de batalla de Cobblemon. Consultá Opciones > Controles > Cobblemon para tus teclas actuales.",
+  "autoptu.native.help.wild": "Para combatir: apuntá a un Pokémon salvaje visible a menos de 8 bloques y ejecutá /autoptu battle wild, o usá el envío de Pokémon de Cobblemon.",
+  "autoptu.native.help.authority": "El equipo, los movimientos, PS, estados y resultados los administra Cobblemon. Este modo no aplica las reglas PTU experimentales.",
+  "autoptu.native.help.legacy": "La práctica con ataques fijos y el inventario PTU paralelo están desactivados. Sus datos antiguos no se borran ni se convierten automáticamente.",
+  "autoptu.native.no_demo": "La demostración anterior está desactivada. Usá un Pokémon de tu equipo contra un salvaje real.",
+  "autoptu.native.idle": "No estás en una batalla nativa. Apuntá a un salvaje y usá /autoptu battle wild.",
+  "autoptu.native.active": "Estás en una batalla de Cobblemon. Elegí tus acciones desde su interfaz.",
+  "autoptu.native.already_battling": "Ya estás en combate. Terminá esa batalla antes de iniciar otra.",
+  "autoptu.native.no_target": "Apuntá directamente a un Pokémon visible, sin bloques en medio y a menos de 8 bloques.",
+  "autoptu.native.not_wild": "Ese Pokémon tiene dueño. Este comando solo inicia encuentros contra salvajes.",
+  "autoptu.native.busy": "Ese Pokémon no está disponible: está ocupado, debilitado o en otra batalla."
 }

@@ -1,10 +1,26 @@
 # AutoPTU Cobblemon RPG
 
-Server-authoritative Minecraft/Cobblemon integration layer for PTU.
+Minecraft/Cobblemon integration with mutually exclusive native and experimental PTU modes.
+
+## Current playable mode: native Cobblemon
+
+Since `0.2.0-native1`, the default mode delegates starters, party storage, learned moves,
+combat UI and results to **Cobblemon**. Aim at an existing wild Pokémon within eight blocks
+and run `/autoptu battle wild`, or use Cobblemon's normal send-out controls. Run
+`/autoptu battle help` for the current instructions. See [native guide](docs/native-cobblemon/LEEME.txt).
+
+The old automatic onboarding, parallel party menus, ecology fixtures, practice actors and
+custom battle key bindings are not registered in this mode. Existing saved data is preserved;
+experimental PTU Pokémon are not silently converted into Cobblemon party members.
+
+This is **not PTU rules running through Cobblemon's UI**. Native Cobblemon owns the battle.
+The experimental integration is retained behind `-Dautoptu.gameplay=ptu-experimental`, set
+consistently on client and server before startup. Its authority boundary below remains intact.
+`gradle :fabric-adapter:packageNativeBattle` builds the current native package.
 
 This repository is the only writable Minecraft/Cobblemon integration project. `Teffa14/AutoPTU-Java` and `Teffa14/AutoPTU` are read-only upstream/reference repositories for this project.
 
-## Authority boundary
+## Experimental PTU authority boundary
 
 AutoPTU-Java owns battle legality, calculations, lifecycle and outcomes. Minecraft, Fabric and Cobblemon own world projection, entities, networking, animation and rendering. Client packets are intents only. Cobblemon entity state must never become the source of truth for PTU stats, HP, moves, abilities, inventory, modifiers, legality or results.
 
@@ -22,7 +38,7 @@ The intended separation is `WildPopulationDefinition -> HabitatProfile -> WildBe
 
 ## First playable battle test
 
-For the current interactive sandbox, see [Playable tactical battle](docs/playable-tactical-battle.md).
+For the historical, opt-in interactive sandbox, see [Playable tactical battle](docs/playable-tactical-battle.md).
 Player turns wait for input; B opens actions, Enter confirms the highlighted choice, and the rival
 responds after the attack. The sandbox uses 60 HP per combatant and three custom attack profiles.
 
