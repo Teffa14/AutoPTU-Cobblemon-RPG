@@ -10,11 +10,12 @@ import net.minecraft.util.math.Vec3d;
  * Suspends residual Minecraft locomotion and native combat presentation state while a canonical WILD actor is dormant.
  *
  * <p>Velocity, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire, accumulated fall distance,
- * vanilla hurt animation time, native air depletion and vanilla freezing are presentation/world state only. AutoPTU-Java
- * remains authoritative for tactical movement, targeting, forced movement, reactions, damage, statuses and battle
- * outcomes. Hidden or interaction-inactive actors must not keep following a stale path, drift away from their
- * server-authored ecology projection, retain native combat memory, keep vanilla damage presentation alive, carry dormant
- * physics into a later visible projection, surface with a depleted Minecraft air meter, or thaw into native freeze damage.</p>
+ * vanilla hurt animation time, native air depletion, vanilla freezing and embedded projectile counters are
+ * presentation/world state only. AutoPTU-Java remains authoritative for tactical movement, targeting, forced movement,
+ * reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive actors must not keep following a stale
+ * path, drift away from their server-authored ecology projection, retain native combat memory, keep vanilla damage
+ * presentation alive, carry dormant physics into a later visible projection, surface with a depleted Minecraft air meter,
+ * thaw into native freeze damage, or reappear with stale arrow/stinger damage presentation.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -80,6 +81,12 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
                 changed = true;
             }
 
+            if (hasNativeProjectilePresentation(actor.getStuckArrowCount(), actor.getStingerCount())) {
+                actor.setStuckArrowCount(0);
+                actor.setStingerCount(0);
+                changed = true;
+            }
+
             Vec3d velocity = actor.getVelocity();
             if (hasResidualMotion(velocity.lengthSquared())) {
                 actor.setVelocity(Vec3d.ZERO);
@@ -116,6 +123,10 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
         return frozenTicks > 0;
     }
 
+    static boolean hasNativeProjectilePresentation(int stuckArrowCount, int stingerCount) {
+        return stuckArrowCount > 0 || stingerCount > 0;
+    }
+
     static boolean shouldStopResidualMotion(boolean interactionActive, boolean invisible, double velocitySquared) {
         return shouldSuspendPresentation(interactionActive, invisible) && hasResidualMotion(velocitySquared);
     }
@@ -138,5 +149,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
     static boolean shouldClearNativeFreezeProgress(boolean interactionActive, boolean invisible, int frozenTicks) {
         return shouldSuspendPresentation(interactionActive, invisible) && hasNativeFreezeProgress(frozenTicks);
+    }
+
+    static boolean shouldClearNativeProjectilePresentation(
+            boolean interactionActive, boolean invisible, int stuckArrowCount, int stingerCount) {
+        return shouldSuspendPresentation(interactionActive, invisible)
+                && hasNativeProjectilePresentation(stuckArrowCount, stingerCount);
     }
 }
