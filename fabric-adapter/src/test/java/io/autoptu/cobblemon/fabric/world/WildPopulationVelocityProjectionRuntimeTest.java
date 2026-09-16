@@ -50,4 +50,12 @@ class WildPopulationVelocityProjectionRuntimeTest {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFallDistance(true, false, 3.5F));
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFallDistance(false, true, 0.0F));
     }
+
+    @Test
+    void clearsNativeHurtPresentationOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeHurtPresentation(false, false, 7));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeHurtPresentation(true, true, 3));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeHurtPresentation(true, false, 7));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeHurtPresentation(false, true, 0));
+    }
 }
