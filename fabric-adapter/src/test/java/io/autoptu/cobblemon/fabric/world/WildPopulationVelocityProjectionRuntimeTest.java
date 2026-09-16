@@ -42,4 +42,12 @@ class WildPopulationVelocityProjectionRuntimeTest {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, false, true));
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, true, false));
     }
+
+    @Test
+    void clearsAccumulatedFallDistanceOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFallDistance(false, false, 3.5F));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFallDistance(true, true, 1.0F));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFallDistance(true, false, 3.5F));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFallDistance(false, true, 0.0F));
+    }
 }

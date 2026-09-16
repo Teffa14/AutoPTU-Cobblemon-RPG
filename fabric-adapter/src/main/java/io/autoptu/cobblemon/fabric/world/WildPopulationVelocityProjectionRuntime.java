@@ -9,11 +9,11 @@ import net.minecraft.util.math.Vec3d;
 /**
  * Suspends residual Minecraft locomotion and native combat presentation state while a canonical WILD actor is dormant.
  *
- * <p>Velocity, native navigation, vanilla/Cobblemon targets, attacker memory and vanilla fire are presentation/world
- * projection state only. AutoPTU-Java remains authoritative for tactical movement, targeting, forced movement,
- * reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive actors must not keep following a
- * stale path, drift away from their server-authored ecology projection, retain native combat memory, or keep a vanilla
- * burn presentation alive across hibernation.</p>
+ * <p>Velocity, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire and accumulated fall distance
+ * are presentation/world state only. AutoPTU-Java remains authoritative for tactical movement, targeting, forced
+ * movement, reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive actors must not keep
+ * following a stale path, drift away from their server-authored ecology projection, retain native combat memory, keep a
+ * vanilla burn presentation alive, or carry dormant fall distance into a later visible projection.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -59,6 +59,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
                 changed = true;
             }
 
+            if (hasAccumulatedFallDistance(actor.fallDistance)) {
+                actor.fallDistance = 0.0F;
+                changed = true;
+            }
+
             Vec3d velocity = actor.getVelocity();
             if (hasResidualMotion(velocity.lengthSquared())) {
                 actor.setVelocity(Vec3d.ZERO);
@@ -79,11 +84,19 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
         return velocitySquared > EPSILON_SQUARED;
     }
 
+    static boolean hasAccumulatedFallDistance(float fallDistance) {
+        return fallDistance > 0.0F;
+    }
+
     static boolean shouldStopResidualMotion(boolean interactionActive, boolean invisible, double velocitySquared) {
         return shouldSuspendPresentation(interactionActive, invisible) && hasResidualMotion(velocitySquared);
     }
 
     static boolean shouldClearFire(boolean interactionActive, boolean invisible, boolean onFire) {
         return shouldSuspendPresentation(interactionActive, invisible) && onFire;
+    }
+
+    static boolean shouldClearFallDistance(boolean interactionActive, boolean invisible, float fallDistance) {
+        return shouldSuspendPresentation(interactionActive, invisible) && hasAccumulatedFallDistance(fallDistance);
     }
 }
