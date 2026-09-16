@@ -58,4 +58,12 @@ class WildPopulationVelocityProjectionRuntimeTest {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeHurtPresentation(true, false, 7));
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeHurtPresentation(false, true, 0));
     }
+
+    @Test
+    void restoresNativeAirOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldRestoreNativeAir(false, false, 120, 300));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldRestoreNativeAir(true, true, 0, 300));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldRestoreNativeAir(true, false, 120, 300));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldRestoreNativeAir(false, true, 300, 300));
+    }
 }
