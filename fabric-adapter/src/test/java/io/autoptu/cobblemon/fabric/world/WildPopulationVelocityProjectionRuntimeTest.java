@@ -60,6 +60,14 @@ class WildPopulationVelocityProjectionRuntimeTest {
     }
 
     @Test
+    void clearsNativeGlidingOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(false, false, true));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(true, true, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(true, false, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(false, true, false));
+    }
+
+    @Test
     void clearsVanillaFireOnlyWhileDormant() {
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, false, true));
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, true, true));
