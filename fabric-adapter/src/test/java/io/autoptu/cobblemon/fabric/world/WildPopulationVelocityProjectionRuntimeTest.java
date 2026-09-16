@@ -36,6 +36,14 @@ class WildPopulationVelocityProjectionRuntimeTest {
     }
 
     @Test
+    void clearsNativeSprintOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeSprint(false, false, true));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeSprint(true, true, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeSprint(true, false, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeSprint(false, true, false));
+    }
+
+    @Test
     void clearsVanillaFireOnlyWhileDormant() {
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, false, true));
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, true, true));
