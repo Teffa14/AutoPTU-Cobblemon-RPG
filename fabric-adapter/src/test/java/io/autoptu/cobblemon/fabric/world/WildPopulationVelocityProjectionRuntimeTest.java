@@ -34,4 +34,12 @@ class WildPopulationVelocityProjectionRuntimeTest {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldStopResidualMotion(true, false, 0.25));
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldStopResidualMotion(false, true, 0.0));
     }
+
+    @Test
+    void clearsVanillaFireOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, false, true));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, true, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, false, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, true, false));
+    }
 }
