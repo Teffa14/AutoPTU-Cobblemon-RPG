@@ -9,14 +9,14 @@ import net.minecraft.util.math.Vec3d;
 /**
  * Suspends residual Minecraft locomotion and native combat presentation state while a canonical WILD actor is dormant.
  *
- * <p>Velocity, sprinting/sneaking, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire,
+ * <p>Velocity, sprinting/sneaking/swimming, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire,
  * accumulated fall distance, vanilla hurt/death animation time, native air depletion, vanilla freezing and embedded
  * projectile counters are presentation/world state only. AutoPTU-Java remains authoritative for tactical movement,
  * targeting, forced movement, reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive actors must
  * not keep following a stale path, drift away from their server-authored ecology projection, retain native combat memory,
  * keep vanilla damage/death presentation alive, carry dormant physics into a later visible projection, surface with a
  * depleted Minecraft air meter, thaw into native freeze damage, reappear with stale arrow/stinger damage presentation, or
- * retain native sprint/sneak locomotion flags.</p>
+ * retain native sprint/sneak/swim locomotion flags.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -54,6 +54,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
             if (actor.isSneaking()) {
                 actor.setSneaking(false);
+                changed = true;
+            }
+
+            if (actor.isSwimming()) {
+                actor.setSwimming(false);
                 changed = true;
             }
 
@@ -157,6 +162,10 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
     static boolean shouldClearNativeSneak(boolean interactionActive, boolean invisible, boolean sneaking) {
         return shouldSuspendPresentation(interactionActive, invisible) && sneaking;
+    }
+
+    static boolean shouldClearNativeSwimming(boolean interactionActive, boolean invisible, boolean swimming) {
+        return shouldSuspendPresentation(interactionActive, invisible) && swimming;
     }
 
     static boolean shouldClearFire(boolean interactionActive, boolean invisible, boolean onFire) {
