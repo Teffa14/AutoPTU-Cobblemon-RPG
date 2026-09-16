@@ -9,11 +9,12 @@ import net.minecraft.util.math.Vec3d;
 /**
  * Suspends residual Minecraft locomotion and native combat presentation state while a canonical WILD actor is dormant.
  *
- * <p>Velocity, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire, accumulated fall distance
- * and vanilla hurt animation time are presentation/world state only. AutoPTU-Java remains authoritative for tactical
- * movement, targeting, forced movement, reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive
- * actors must not keep following a stale path, drift away from their server-authored ecology projection, retain native
- * combat memory, keep vanilla damage presentation alive, or carry dormant physics into a later visible projection.</p>
+ * <p>Velocity, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire, accumulated fall distance,
+ * vanilla hurt animation time and native air depletion are presentation/world state only. AutoPTU-Java remains
+ * authoritative for tactical movement, targeting, forced movement, reactions, damage, statuses and battle outcomes.
+ * Hidden or interaction-inactive actors must not keep following a stale path, drift away from their server-authored
+ * ecology projection, retain native combat memory, keep vanilla damage presentation alive, carry dormant physics into a
+ * later visible projection, or surface with a depleted Minecraft air meter that can trigger native drowning damage.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -69,6 +70,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
                 changed = true;
             }
 
+            if (hasDepletedNativeAir(actor.getAir(), actor.getMaxAir())) {
+                actor.setAir(actor.getMaxAir());
+                changed = true;
+            }
+
             Vec3d velocity = actor.getVelocity();
             if (hasResidualMotion(velocity.lengthSquared())) {
                 actor.setVelocity(Vec3d.ZERO);
@@ -97,6 +103,10 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
         return hurtTime > 0;
     }
 
+    static boolean hasDepletedNativeAir(int air, int maxAir) {
+        return air < maxAir;
+    }
+
     static boolean shouldStopResidualMotion(boolean interactionActive, boolean invisible, double velocitySquared) {
         return shouldSuspendPresentation(interactionActive, invisible) && hasResidualMotion(velocitySquared);
     }
@@ -111,5 +121,9 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
     static boolean shouldClearNativeHurtPresentation(boolean interactionActive, boolean invisible, int hurtTime) {
         return shouldSuspendPresentation(interactionActive, invisible) && hasNativeHurtPresentation(hurtTime);
+    }
+
+    static boolean shouldRestoreNativeAir(boolean interactionActive, boolean invisible, int air, int maxAir) {
+        return shouldSuspendPresentation(interactionActive, invisible) && hasDepletedNativeAir(air, maxAir);
     }
 }
