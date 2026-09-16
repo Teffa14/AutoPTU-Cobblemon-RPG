@@ -7,22 +7,31 @@ import org.junit.jupiter.api.Test;
 
 class WildPopulationVelocityProjectionRuntimeTest {
     @Test
-    void stopsResidualMotionWhenInteractionIsInactive() {
+    void suspendsPresentationWhenInteractionIsInactiveEvenIfStationary() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldSuspendPresentation(false, false));
+    }
+
+    @Test
+    void suspendsPresentationWhenActorIsHidden() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldSuspendPresentation(true, true));
+    }
+
+    @Test
+    void preservesVisibleActiveActorPresentation() {
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldSuspendPresentation(true, false));
+    }
+
+    @Test
+    void detectsResidualMotionSeparatelyFromDormancy() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.hasResidualMotion(0.25));
+        assertFalse(WildPopulationVelocityProjectionRuntime.hasResidualMotion(0.0));
+    }
+
+    @Test
+    void keepsCompatibilityPolicyForResidualVelocity() {
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldStopResidualMotion(false, false, 0.25));
-    }
-
-    @Test
-    void stopsResidualMotionWhenActorIsHidden() {
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldStopResidualMotion(true, true, 0.25));
-    }
-
-    @Test
-    void preservesVisibleActiveActorMotion() {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldStopResidualMotion(true, false, 0.25));
-    }
-
-    @Test
-    void doesNotRewriteAlreadyStationaryDormantActor() {
         assertFalse(WildPopulationVelocityProjectionRuntime.shouldStopResidualMotion(false, true, 0.0));
     }
 }
