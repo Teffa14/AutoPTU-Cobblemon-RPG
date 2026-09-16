@@ -7,12 +7,13 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * Suspends residual Minecraft locomotion and targeting while a canonical WILD presentation actor is dormant.
+ * Suspends residual Minecraft locomotion and native combat memory while a canonical WILD presentation actor is dormant.
  *
- * <p>Velocity, native navigation and vanilla/Cobblemon targets are presentation/world projection state only.
- * AutoPTU-Java remains authoritative for tactical movement, targeting, forced movement, reactions and battle
- * outcomes. Hidden or interaction-inactive actors must not keep following a stale path, drift away from their
- * server-authored ecology projection, or retain a native target that can restart world AI after hibernation.</p>
+ * <p>Velocity, native navigation, vanilla/Cobblemon targets and vanilla attacker memory are presentation/world
+ * projection state only. AutoPTU-Java remains authoritative for tactical movement, targeting, forced movement,
+ * reactions, damage and battle outcomes. Hidden or interaction-inactive actors must not keep following a stale path,
+ * drift away from their server-authored ecology projection, or retain native combat memory that can restart world AI
+ * after hibernation.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -45,6 +46,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
             if (actor.getTarget() != null) {
                 actor.setTarget(null);
+                changed = true;
+            }
+
+            if (actor.getAttacker() != null) {
+                actor.setAttacker(null);
                 changed = true;
             }
 
