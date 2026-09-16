@@ -9,13 +9,13 @@ import net.minecraft.util.math.Vec3d;
 /**
  * Suspends residual Minecraft locomotion and native combat presentation state while a canonical WILD actor is dormant.
  *
- * <p>Velocity, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire, accumulated fall distance,
- * vanilla hurt/death animation time, native air depletion, vanilla freezing and embedded projectile counters are
+ * <p>Velocity, sprinting, native navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire, accumulated fall
+ * distance, vanilla hurt/death animation time, native air depletion, vanilla freezing and embedded projectile counters are
  * presentation/world state only. AutoPTU-Java remains authoritative for tactical movement, targeting, forced movement,
  * reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive actors must not keep following a stale
  * path, drift away from their server-authored ecology projection, retain native combat memory, keep vanilla damage/death
  * presentation alive, carry dormant physics into a later visible projection, surface with a depleted Minecraft air meter,
- * thaw into native freeze damage, or reappear with stale arrow/stinger damage presentation.</p>
+ * thaw into native freeze damage, reappear with stale arrow/stinger damage presentation, or retain a native sprint flag.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -43,6 +43,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
             var navigation = actor.getNavigation();
             if (!navigation.isIdle()) {
                 navigation.stop();
+                changed = true;
+            }
+
+            if (actor.isSprinting()) {
+                actor.setSprinting(false);
                 changed = true;
             }
 
@@ -138,6 +143,10 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
     static boolean shouldStopResidualMotion(boolean interactionActive, boolean invisible, double velocitySquared) {
         return shouldSuspendPresentation(interactionActive, invisible) && hasResidualMotion(velocitySquared);
+    }
+
+    static boolean shouldClearNativeSprint(boolean interactionActive, boolean invisible, boolean sprinting) {
+        return shouldSuspendPresentation(interactionActive, invisible) && sprinting;
     }
 
     static boolean shouldClearFire(boolean interactionActive, boolean invisible, boolean onFire) {
