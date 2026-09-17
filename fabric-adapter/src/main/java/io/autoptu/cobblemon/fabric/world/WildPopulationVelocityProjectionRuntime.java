@@ -42,6 +42,7 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
             if (hasResidualNativePose(actor.getPose())) { actor.setPose(EntityPose.STANDING); changed = true; }
             if (actor.hasVehicle()) { actor.stopRiding(); changed = true; }
             if (actor.hasPassengers()) { actor.removeAllPassengers(); changed = true; }
+            actor.setJumping(false);
             if (actor.isGlowing()) { actor.setGlowing(false); changed = true; }
             if (actor.isCustomNameVisible()) { actor.setCustomNameVisible(false); changed = true; }
             if (actor.getTarget() != null) { actor.setTarget(null); changed = true; }
@@ -78,6 +79,7 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
     static boolean shouldResetNativePose(boolean interactionActive, boolean invisible, EntityPose pose) { return shouldSuspendPresentation(interactionActive, invisible) && hasResidualNativePose(pose); }
     static boolean shouldDismountNativeVehicle(boolean interactionActive, boolean invisible, boolean hasVehicle) { return shouldSuspendPresentation(interactionActive, invisible) && hasVehicle; }
     static boolean shouldClearNativePassengers(boolean interactionActive, boolean invisible, boolean hasPassengers) { return shouldSuspendPresentation(interactionActive, invisible) && hasPassengers; }
+    static boolean shouldClearNativeJump(boolean interactionActive, boolean invisible, boolean jumping) { return shouldSuspendPresentation(interactionActive, invisible) && jumping; }
     static boolean shouldClearNativeGlowing(boolean interactionActive, boolean invisible, boolean glowing) { return shouldSuspendPresentation(interactionActive, invisible) && glowing; }
     static boolean shouldHideNativeNameplate(boolean interactionActive, boolean invisible, boolean customNameVisible) { return shouldSuspendPresentation(interactionActive, invisible) && customNameVisible; }
     static boolean shouldClearFire(boolean interactionActive, boolean invisible, boolean onFire) { return shouldSuspendPresentation(interactionActive, invisible) && onFire; }
