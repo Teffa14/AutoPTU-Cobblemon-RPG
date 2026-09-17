@@ -13,6 +13,13 @@ final class WildPopulationDamageProjectionRuntimeTest {
     }
 
     @Test
+    void nativeFireIsClearedOnlyFromCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, true));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, false));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(false, true));
+    }
+
+    @Test
     void leavingProjectionPreservesTheActorsOriginalInvulnerabilityPolicy() {
         assertFalse(WildPopulationDamageProjectionRuntime.restoredInvulnerability(false));
         assertTrue(WildPopulationDamageProjectionRuntime.restoredInvulnerability(true));
