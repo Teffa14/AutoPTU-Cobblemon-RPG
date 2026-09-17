@@ -19,11 +19,11 @@ import java.util.UUID;
 /**
  * Protects canonical WILD presentation actors from vanilla Minecraft damage.
  *
- * <p>AutoPTU-Java remains authoritative for battle damage, HP and outcomes. A projected Cobblemon body is therefore
- * never allowed to make HP/death decisions through Minecraft damage, regardless of whether that presentation actor is
- * currently encounter-active or dormant. Native Minecraft fire is also cleared while the actor is projected so a
- * vanilla burn animation cannot imply canonical Pokemon damage or status. When an actor leaves the canonical WILD
- * projection, its pre-projection invulnerability flag is restored exactly.</p>
+ * <p>AutoPTU-Java remains authoritative for battle damage, HP, statuses and outcomes. A projected Cobblemon body is
+ * therefore never allowed to make HP/death decisions through Minecraft damage, regardless of whether that presentation
+ * actor is currently encounter-active or dormant. Native Minecraft fire and freezing are cleared while the actor is
+ * projected so vanilla environmental effects cannot imply canonical Pokemon damage or status. When an actor leaves the
+ * canonical WILD projection, its pre-projection invulnerability flag is restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
@@ -54,6 +54,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             projectedActorIds.add(actorId);
             synchronizeShield(new ActorKey(worldKey, actorId), actor.isInvulnerable(), actor::setInvulnerable);
             if (shouldExtinguishCanonicalProjection(true, actor.isOnFire())) actor.extinguish();
+            if (shouldClearNativeFreezing(true, actor.getFrozenTicks())) actor.setFrozenTicks(0);
             synchronizedActors++;
         }
 
@@ -99,6 +100,10 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
 
     static boolean shouldExtinguishCanonicalProjection(boolean projected, boolean onFire) {
         return projected && onFire;
+    }
+
+    static boolean shouldClearNativeFreezing(boolean projected, int frozenTicks) {
+        return projected && frozenTicks > 0;
     }
 
     static boolean restoredInvulnerability(boolean previousInvulnerability) {
