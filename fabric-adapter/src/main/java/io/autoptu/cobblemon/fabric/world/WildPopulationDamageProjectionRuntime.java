@@ -17,11 +17,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Protects dormant canonical WILD presentation actors from vanilla Minecraft damage.
+ * Protects canonical WILD presentation actors from vanilla Minecraft damage.
  *
- * <p>AutoPTU-Java remains authoritative for battle damage, HP and outcomes. This runtime only prevents a hidden or
- * otherwise interaction-inactive Cobblemon presentation body from being destroyed by environmental/vanilla damage
- * while the canonical WILD identity remains suspended. When presentation resumes, the actor's pre-suspension
+ * <p>AutoPTU-Java remains authoritative for battle damage, HP and outcomes. A projected Cobblemon body is therefore
+ * never allowed to make HP/death decisions through Minecraft damage, regardless of whether that presentation actor is
+ * currently encounter-active or dormant. When an actor leaves the canonical WILD projection, its pre-projection
  * invulnerability flag is restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
@@ -51,9 +51,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             var actor = projected.actor();
             UUID actorId = actor.getUuid();
             projectedActorIds.add(actorId);
-            boolean interactionActive = VisibleWildPokemonEncounterRuntime.isInteractionActive(actorId);
-            boolean dormant = shouldShield(interactionActive, actor.isInvisible());
-            synchronizeShield(new ActorKey(worldKey, actorId), actor.isInvulnerable(), dormant, actor::setInvulnerable);
+            synchronizeShield(new ActorKey(worldKey, actorId), actor.isInvulnerable(), actor::setInvulnerable);
             synchronizedActors++;
         }
 
@@ -87,23 +85,14 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     private static void synchronizeShield(
             ActorKey actorKey,
             boolean currentlyInvulnerable,
-            boolean dormant,
             java.util.function.Consumer<Boolean> setInvulnerable
     ) {
-        if (dormant) {
-            PREVIOUS_INVULNERABILITY.putIfAbsent(actorKey, currentlyInvulnerable);
-            if (!currentlyInvulnerable) setInvulnerable.accept(true);
-            return;
-        }
-
-        Boolean previous = PREVIOUS_INVULNERABILITY.remove(actorKey);
-        if (previous != null && currentlyInvulnerable != previous) {
-            setInvulnerable.accept(previous);
-        }
+        PREVIOUS_INVULNERABILITY.putIfAbsent(actorKey, currentlyInvulnerable);
+        if (!currentlyInvulnerable) setInvulnerable.accept(true);
     }
 
-    static boolean shouldShield(boolean interactionActive, boolean invisible) {
-        return !interactionActive || invisible;
+    static boolean shouldShieldCanonicalProjection(boolean projected) {
+        return projected;
     }
 
     static boolean restoredInvulnerability(boolean previousInvulnerability) {
