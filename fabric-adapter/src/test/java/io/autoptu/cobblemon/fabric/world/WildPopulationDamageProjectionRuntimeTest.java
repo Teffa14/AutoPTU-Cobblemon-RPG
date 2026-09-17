@@ -28,6 +28,14 @@ final class WildPopulationDamageProjectionRuntimeTest {
     }
 
     @Test
+    void nativeAirIsRestoredOnlyForCanonicalWildProjectionsBelowMaximum() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(true, 0, 300));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(true, 299, 300));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(true, 300, 300));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(false, 0, 300));
+    }
+
+    @Test
     void leavingProjectionPreservesTheActorsOriginalInvulnerabilityPolicy() {
         assertFalse(WildPopulationDamageProjectionRuntime.restoredInvulnerability(false));
         assertTrue(WildPopulationDamageProjectionRuntime.restoredInvulnerability(true));
