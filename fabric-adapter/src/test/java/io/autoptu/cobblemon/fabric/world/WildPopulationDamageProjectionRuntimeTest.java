@@ -7,15 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class WildPopulationDamageProjectionRuntimeTest {
     @Test
-    void vanillaDamageShieldIsEnabledOnlyWhilePresentationIsInactive() {
-        assertFalse(WildPopulationDamageProjectionRuntime.shouldShield(true, false));
-        assertTrue(WildPopulationDamageProjectionRuntime.shouldShield(false, false));
-        assertTrue(WildPopulationDamageProjectionRuntime.shouldShield(true, true));
-        assertTrue(WildPopulationDamageProjectionRuntime.shouldShield(false, true));
+    void vanillaDamageShieldCoversEveryCanonicalWildProjection() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldShieldCanonicalProjection(true));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldShieldCanonicalProjection(false));
     }
 
     @Test
-    void reactivationPreservesTheActorsOriginalInvulnerabilityPolicy() {
+    void leavingProjectionPreservesTheActorsOriginalInvulnerabilityPolicy() {
         assertFalse(WildPopulationDamageProjectionRuntime.restoredInvulnerability(false));
         assertTrue(WildPopulationDamageProjectionRuntime.restoredInvulnerability(true));
     }
