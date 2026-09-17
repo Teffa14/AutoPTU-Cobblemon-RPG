@@ -45,6 +45,7 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
             actor.setJumping(false);
             actor.setHeadYaw(actor.getYaw());
             actor.bodyYaw = actor.getYaw();
+            if (actor.isUsingItem()) { actor.clearActiveItem(); changed = true; }
             if (actor.isGlowing()) { actor.setGlowing(false); changed = true; }
             if (actor.isCustomNameVisible()) { actor.setCustomNameVisible(false); changed = true; }
             if (actor.getTarget() != null) { actor.setTarget(null); changed = true; }
@@ -83,6 +84,7 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
     static boolean shouldClearNativePassengers(boolean interactionActive, boolean invisible, boolean hasPassengers) { return shouldSuspendPresentation(interactionActive, invisible) && hasPassengers; }
     static boolean shouldClearNativeJump(boolean interactionActive, boolean invisible, boolean jumping) { return shouldSuspendPresentation(interactionActive, invisible) && jumping; }
     static boolean shouldResetNativeLook(boolean interactionActive, boolean invisible) { return shouldSuspendPresentation(interactionActive, invisible); }
+    static boolean shouldClearNativeItemUse(boolean interactionActive, boolean invisible, boolean usingItem) { return shouldSuspendPresentation(interactionActive, invisible) && usingItem; }
     static boolean shouldClearNativeGlowing(boolean interactionActive, boolean invisible, boolean glowing) { return shouldSuspendPresentation(interactionActive, invisible) && glowing; }
     static boolean shouldHideNativeNameplate(boolean interactionActive, boolean invisible, boolean customNameVisible) { return shouldSuspendPresentation(interactionActive, invisible) && customNameVisible; }
     static boolean shouldClearFire(boolean interactionActive, boolean invisible, boolean onFire) { return shouldSuspendPresentation(interactionActive, invisible) && onFire; }
