@@ -21,9 +21,9 @@ import java.util.UUID;
  *
  * <p>AutoPTU-Java remains authoritative for battle damage, HP, statuses and outcomes. A projected Cobblemon body is
  * therefore never allowed to make HP/death decisions through Minecraft damage, regardless of whether that presentation
- * actor is currently encounter-active or dormant. Native Minecraft fire and freezing are cleared while the actor is
- * projected so vanilla environmental effects cannot imply canonical Pokemon damage or status. When an actor leaves the
- * canonical WILD projection, its pre-projection invulnerability flag is restored exactly.</p>
+ * actor is currently encounter-active or dormant. Native Minecraft fire, freezing and air depletion are cleared while
+ * the actor is projected so vanilla environmental effects cannot imply canonical Pokemon damage or status. When an actor
+ * leaves the canonical WILD projection, its pre-projection invulnerability flag is restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
@@ -55,6 +55,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             synchronizeShield(new ActorKey(worldKey, actorId), actor.isInvulnerable(), actor::setInvulnerable);
             if (shouldExtinguishCanonicalProjection(true, actor.isOnFire())) actor.extinguish();
             if (shouldClearNativeFreezing(true, actor.getFrozenTicks())) actor.setFrozenTicks(0);
+            if (shouldRestoreNativeAir(true, actor.getAir(), actor.getMaxAir())) actor.setAir(actor.getMaxAir());
             synchronizedActors++;
         }
 
@@ -104,6 +105,10 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
 
     static boolean shouldClearNativeFreezing(boolean projected, int frozenTicks) {
         return projected && frozenTicks > 0;
+    }
+
+    static boolean shouldRestoreNativeAir(boolean projected, int air, int maxAir) {
+        return projected && air < maxAir;
     }
 
     static boolean restoredInvulnerability(boolean previousInvulnerability) {
