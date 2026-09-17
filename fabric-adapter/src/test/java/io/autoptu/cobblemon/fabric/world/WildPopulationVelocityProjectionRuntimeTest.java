@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.world;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import net.minecraft.entity.EntityPose;
 import org.junit.jupiter.api.Test;
 
 class WildPopulationVelocityProjectionRuntimeTest {
@@ -60,11 +61,11 @@ class WildPopulationVelocityProjectionRuntimeTest {
     }
 
     @Test
-    void clearsNativeGlidingOnlyWhileDormant() {
-        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(false, false, true));
-        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(true, true, true));
-        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(true, false, true));
-        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeGliding(false, true, false));
+    void resetsNativePoseOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldResetNativePose(false, false, EntityPose.SWIMMING));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldResetNativePose(true, true, EntityPose.CROUCHING));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldResetNativePose(true, false, EntityPose.SWIMMING));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldResetNativePose(false, true, EntityPose.STANDING));
     }
 
     @Test
