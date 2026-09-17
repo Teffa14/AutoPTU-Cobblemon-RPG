@@ -77,6 +77,14 @@ class WildPopulationVelocityProjectionRuntimeTest {
     }
 
     @Test
+    void hidesNativeNameplateOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldHideNativeNameplate(false, false, true));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldHideNativeNameplate(true, true, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldHideNativeNameplate(true, false, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldHideNativeNameplate(false, true, false));
+    }
+
+    @Test
     void clearsVanillaFireOnlyWhileDormant() {
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, false, true));
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, true, true));
