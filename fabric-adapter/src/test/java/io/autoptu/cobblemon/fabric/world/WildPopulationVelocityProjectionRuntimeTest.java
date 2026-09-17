@@ -69,6 +69,14 @@ class WildPopulationVelocityProjectionRuntimeTest {
     }
 
     @Test
+    void clearsNativeGlowingOnlyWhileDormant() {
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeGlowing(false, false, true));
+        assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearNativeGlowing(true, true, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeGlowing(true, false, true));
+        assertFalse(WildPopulationVelocityProjectionRuntime.shouldClearNativeGlowing(false, true, false));
+    }
+
+    @Test
     void clearsVanillaFireOnlyWhileDormant() {
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(false, false, true));
         assertTrue(WildPopulationVelocityProjectionRuntime.shouldClearFire(true, true, true));
