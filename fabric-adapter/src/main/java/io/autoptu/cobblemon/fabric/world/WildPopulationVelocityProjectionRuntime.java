@@ -12,12 +12,12 @@ import net.minecraft.util.math.Vec3d;
  *
  * <p>Velocity, sprinting/sneaking/swimming, native pose, navigation, vanilla/Cobblemon targets, attacker memory, vanilla fire,
  * accumulated fall distance, vanilla hurt/death animation time, native air depletion, vanilla freezing, embedded projectile
- * counters and native glowing are presentation/world state only. AutoPTU-Java remains authoritative for tactical movement,
- * targeting, forced movement, reactions, damage, statuses and battle outcomes. Hidden or interaction-inactive actors must
- * not keep following a stale path, drift away from their server-authored ecology projection, retain native combat memory,
- * keep vanilla damage/death presentation alive, carry dormant physics into a later visible projection, surface with a
- * depleted Minecraft air meter, thaw into native freeze damage, reappear with stale arrow/stinger damage presentation, or
- * retain stale native locomotion/pose/glowing state.</p>
+ * counters, native glowing and native custom-name visibility are presentation/world state only. AutoPTU-Java remains
+ * authoritative for tactical movement, targeting, forced movement, reactions, damage, statuses and battle outcomes. Hidden
+ * or interaction-inactive actors must not keep following a stale path, drift away from their server-authored ecology
+ * projection, retain native combat memory, keep vanilla damage/death presentation alive, carry dormant physics into a later
+ * visible projection, surface with a depleted Minecraft air meter, thaw into native freeze damage, reappear with stale
+ * arrow/stinger damage presentation, or retain stale native locomotion/pose/glowing/nameplate state.</p>
  */
 public final class WildPopulationVelocityProjectionRuntime implements ModInitializer {
     private static final double EPSILON_SQUARED = 1.0e-8;
@@ -70,6 +70,11 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
             if (actor.isGlowing()) {
                 actor.setGlowing(false);
+                changed = true;
+            }
+
+            if (actor.isCustomNameVisible()) {
+                actor.setCustomNameVisible(false);
                 changed = true;
             }
 
@@ -189,6 +194,10 @@ public final class WildPopulationVelocityProjectionRuntime implements ModInitial
 
     static boolean shouldClearNativeGlowing(boolean interactionActive, boolean invisible, boolean glowing) {
         return shouldSuspendPresentation(interactionActive, invisible) && glowing;
+    }
+
+    static boolean shouldHideNativeNameplate(boolean interactionActive, boolean invisible, boolean customNameVisible) {
+        return shouldSuspendPresentation(interactionActive, invisible) && customNameVisible;
     }
 
     static boolean shouldClearFire(boolean interactionActive, boolean invisible, boolean onFire) {
