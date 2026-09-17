@@ -20,6 +20,14 @@ final class WildPopulationDamageProjectionRuntimeTest {
     }
 
     @Test
+    void nativeFreezingIsClearedOnlyFromCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeFreezing(true, 1));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeFreezing(true, 140));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeFreezing(true, 0));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeFreezing(false, 140));
+    }
+
+    @Test
     void leavingProjectionPreservesTheActorsOriginalInvulnerabilityPolicy() {
         assertFalse(WildPopulationDamageProjectionRuntime.restoredInvulnerability(false));
         assertTrue(WildPopulationDamageProjectionRuntime.restoredInvulnerability(true));
