@@ -20,6 +20,14 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(true, 1.0F, 0.0F));
     }
 
+    @Test void nativeAbsorptionIsClearedOnlyForCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeAbsorption(true, 0.5F));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeAbsorption(true, 4.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeAbsorption(true, 0.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeAbsorption(false, 4.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeAbsorption(true, Float.NaN));
+    }
+
     @Test void nativeFireIsClearedOnlyFromCanonicalWildProjections() {
         assertTrue(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, true));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, false));
