@@ -22,11 +22,11 @@ import java.util.UUID;
  * <p>AutoPTU-Java remains authoritative for battle damage, HP, statuses and outcomes. A projected Cobblemon body is
  * therefore never allowed to make HP/death decisions through Minecraft damage, regardless of whether that presentation
  * actor is currently encounter-active or dormant. Native Minecraft health is kept at the presentation actor's native
- * maximum, native absorption, stuck-arrow, stuck-stinger and attacker damage residue are cleared, while fire, freezing,
- * air depletion, accumulated fall distance, residual hurt animation and residual death animation are cleared during
- * projection. These presentation repairs never read canonical Pokemon HP and prevent vanilla environmental state from
- * implying or deferring canonical Pokemon damage, status, aggression or faint. When an actor leaves the canonical WILD
- * projection, its pre-projection invulnerability flag is restored exactly.</p>
+ * maximum, native absorption, stuck-arrow, stuck-stinger, attacker and target damage residue are cleared, while fire,
+ * freezing, air depletion, accumulated fall distance, residual hurt animation and residual death animation are cleared
+ * during projection. These presentation repairs never read canonical Pokemon HP and prevent vanilla environmental state
+ * from implying or deferring canonical Pokemon damage, status, aggression, targeting or faint. When an actor leaves the
+ * canonical WILD projection, its pre-projection invulnerability flag is restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
@@ -59,6 +59,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             if (shouldClearNativeStuckArrows(true, actor.getStuckArrowCount())) actor.setStuckArrowCount(0);
             if (shouldClearNativeStuckStingers(true, actor.getStingerCount())) actor.setStingerCount(0);
             if (shouldClearNativeAttacker(true, actor.getAttacker() != null)) actor.setAttacker(null);
+            if (shouldClearNativeTarget(true, actor.getTarget() != null)) actor.setTarget(null);
             if (shouldExtinguishCanonicalProjection(true, actor.isOnFire())) actor.extinguish();
             if (shouldClearNativeFreezing(true, actor.getFrozenTicks())) actor.setFrozenTicks(0);
             if (shouldRestoreNativeAir(true, actor.getAir(), actor.getMaxAir())) actor.setAir(actor.getMaxAir());
@@ -99,6 +100,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     static boolean shouldClearNativeStuckArrows(boolean projected, int stuckArrowCount) { return projected && stuckArrowCount > 0; }
     static boolean shouldClearNativeStuckStingers(boolean projected, int stingerCount) { return projected && stingerCount > 0; }
     static boolean shouldClearNativeAttacker(boolean projected, boolean hasAttacker) { return projected && hasAttacker; }
+    static boolean shouldClearNativeTarget(boolean projected, boolean hasTarget) { return projected && hasTarget; }
     static boolean shouldExtinguishCanonicalProjection(boolean projected, boolean onFire) { return projected && onFire; }
     static boolean shouldClearNativeFreezing(boolean projected, int frozenTicks) { return projected && frozenTicks > 0; }
     static boolean shouldRestoreNativeAir(boolean projected, int air, int maxAir) { return projected && air < maxAir; }
