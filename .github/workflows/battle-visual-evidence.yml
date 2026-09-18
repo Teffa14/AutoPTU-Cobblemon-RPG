@@ -79,15 +79,15 @@ jobs:
           raise SystemExit(subprocess.call(cmd,cwd=root))
           PY
           client_pid=$!
-          ready='graphical-client/screenshots/autoptu-battle-ready.png'; first='graphical-client/screenshots/autoptu-battle-first-strike.png'; counter='graphical-client/screenshots/autoptu-battle-counter-strike.png'
+          movement='graphical-client/screenshots/autoptu-battle-movement-selected.png'; attack='graphical-client/screenshots/autoptu-battle-attack-selected.png'; committed='graphical-client/screenshots/autoptu-battle-attack-committed.png'
           capture_ready=0
           for _ in $(seq 1 280); do
-            if [ -s "$ready" ] && [ -s "$first" ] && [ -s "$counter" ] && grep -q 'AutoPTU ADMIN DEMO: Charmander vs Pikachu' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured ready window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-first-move window' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured post-counter-move window' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
+            if [ -s "$movement" ] && [ -s "$attack" ] && [ -s "$committed" ] && grep -q 'AutoPTU ADMIN DEMO: Charmander vs Pikachu' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured movement selection' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured attack selection' graphical-client/logs/latest.log 2>/dev/null && grep -q 'captured committed attack' graphical-client/logs/latest.log 2>/dev/null; then capture_ready=1; break; fi
             kill -0 "$client_pid" 2>/dev/null || { cat graphical-client.log; exit 1; }
             sleep 1
           done
           [ "$capture_ready" -eq 1 ] || { cat graphical-client/logs/latest.log 2>/dev/null || true; cat graphical-server/logs/latest.log 2>/dev/null || true; exit 1; }
-          cp "$ready" "$first" "$counter" test-evidence/battle/
+          cp "$movement" "$attack" "$committed" test-evidence/battle/
           for frame in test-evidence/battle/*.png; do
             metrics="$(python3 - "$frame" <<'PY'
           import sys
@@ -104,9 +104,9 @@ jobs:
             [ "$colors" -ge 64 ] || exit 1
           done
           grep 'AutoPTU ADMIN DEMO: Charmander vs Pikachu' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured ready window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-first-move window' graphical-client/logs/latest.log
-          grep 'AutoPTU battle visual evidence captured post-counter-move window' graphical-client/logs/latest.log
+          grep 'AutoPTU battle visual evidence captured movement selection' graphical-client/logs/latest.log
+          grep 'AutoPTU battle visual evidence captured attack selection' graphical-client/logs/latest.log
+          grep 'AutoPTU battle visual evidence captured committed attack' graphical-client/logs/latest.log
       - name: Collect graphical diagnostics
         if: always()
         shell: bash

@@ -1,0 +1,104 @@
+# Playable tactical battle sandbox
+
+Use Minecraft 1.21.1, Java 21, Fabric Loader 0.18.2, Fabric API 0.116.11+1.21.1,
+Fabric Language Kotlin 1.13.6+kotlin.2.2.20 and Cobblemon 1.8.0+1.21.1.
+Put the remapped AutoPTU mod in the client and server mods folders.
+The mod embeds its pinned AutoPTU-Java core; no separate core JAR is needed.
+See [Local build](build-local.md).
+
+## Play
+
+Slice 2 adds `/autoptu battle help`: a six-page, localized, illustrated in-game guide with
+keyboard navigation, scrolling, copy-only command examples and a link back to setup.
+The package also contains `TUTORIAL.html`, an offline Spanish guide and command generator.
+The generator never executes commands or contacts a server. It validates species-ID syntax
+and the signed 64-bit seed; Cobblemon remains responsible for validating species existence.
+
+In a flat, clear area of a world where you have operator commands:
+
+```text
+/autoptu admin battle play charmander pikachu
+```
+
+`/autoptu battle practice` opens a setup screen with species IDs, a scenario preview and a
+reproducible random seed. Starting still requires operator permission. The full command is
+`/autoptu admin battle play <species> <opponent> [scenario] [seed]`.
+
+| Scenario | Board | HP | Speed | Rival preference |
+|---|---|---|---|---|
+| training | 7x4 | 60 | 3 | Balanced |
+| duel | 5x5 | 80 | 2 | Power |
+| distance | 10x6 | 80 | 3 | Precision |
+| endurance | 9x7 | 120 | 4 | Balanced |
+
+For example: `/autoptu admin battle play lucario gengar distance 12345`.
+Rival preferences rank only attacks already declared legal by the core.
+
+Species names choose the displayed Cobblemon models. Combat stats and moves belong to the
+fixed server-owned sandbox profile; they are not imported from the displayed species.
+
+- Press B to open actions. The player turn waits for input.
+- Choose an attack card or movement, click a legal cell on the 2D board, then Preview.
+- The world field highlights the choice. Clicking again cycles overlapping targets.
+- Arrow keys move board focus; Page Up/Down cycles exact choices, including off-screen anchors.
+- Enter confirms that particular preview; Backspace cancels it.
+- Movement consumes Shift. You can then attack from the new position.
+- Confirming an attack plays its windup and result, then the rival responds.
+- End turn in the menu passes unused actions to the rival.
+- `/autoptu admin battle stop` closes your sandbox session immediately.
+- After cleanup, repeat the play command for another match.
+- H opens a read-only report with side filters, damage, misses, criticals and movement events.
+- `/autoptu battle report` also opens it, including the last saved report after cleanup/restart.
+
+Key bindings can be changed in Minecraft Controls. Chat fallback commands remain available:
+`/autoptu battle choices`, `/autoptu battle preview <choiceId>`,
+`/autoptu battle confirm <token>`, `/autoptu battle cancel`, `/autoptu battle endturn`.
+A token belongs to a single preview; an old confirmation cannot execute a replacement choice.
+
+## Field and feedback
+
+The whole scenario board is sent as one visual frame. Cyan lines mark cells, green marks legal
+movement, gold marks movement selection, and red marks attack targeting. Only cells included
+in the core's legal action list are shown as legal. The connector is an aiming cue, not a path.
+
+The HUD shows actual server HP, damage changes, turn, round, attack windup and impact.
+Slice 2 animates the visual HP bar and a delayed amber damage trail, outlines the active side,
+and translates phase labels. Numeric HP remains instantaneous and authoritative. The HUD is
+hidden while another screen is open, and all interpolation resets on disconnect/expiry.
+Hit, miss and critical animation flags come from the resolved core event. The rival moves toward
+the player using a legal Shift if it cannot reach with an attack. Victory/defeat remains visible
+briefly before entity and HUD cleanup.
+
+| Custom attack | Range | Damage base | Accuracy class | Presentation |
+|---|---:|---:|---:|---|
+| demo-strike | 5 | 4 | 2 | Melee-style cue |
+| demo-burst | 2 | 6 | 4 | Fire burst |
+| demo-arc | 3 | 3 | 1 | Electric arc |
+
+These are custom single-target profiles. The burst animation does not imply area damage.
+AutoPTU-Java determines range eligibility, action consumption, accuracy, damage and HP changes.
+
+## Automatic demonstration
+
+`/autoptu admin battle demo <species> <opponent>` and the legacy
+`/autoptu testbattle charmander` run automatically for presentation demonstrations.
+They do not attach to the interactive action menu.
+
+## Scope and verification
+
+`gradle :fabric-adapter:packagePracticeBattle` builds a ZIP containing the remapped mod,
+Cobblemon, Fabric API and Fabric Language Kotlin, with Spanish setup instructions.
+It requires a separate Minecraft 1.21.1/Fabric profile and Java 21; it is not a standalone EXE.
+The Slice 2 file is `fabric-adapter/build/distributions/AutoPTU-Batallas-Slice2-1.21.1.zip`.
+When updating an existing AutoPTU profile, replace its old AutoPTU JAR rather than installing
+two versions together. The dependency versions are unchanged from the first practice package.
+Reports store the latest match per player under the world's `autoptu/practice-reports` folder.
+Their timeline retains the latest 256 events; cumulative statistics retain the whole match.
+
+This is an operator sandbox, not the normal PLAYER-vs-WILD campaign path. It does not commit XP,
+loot, capture, progression, statuses, abilities, items, Trainer Features, weather or terrain effects.
+The displayed Pokémon's native stats and HP never become PTU authority.
+
+The changes were compiled and packaged locally. Focused checks exercise range filtering,
+each attack's resolution and action consumption, and rejection of a changed target after
+preview. A full manual playthrough of this revised client has not yet been recorded.

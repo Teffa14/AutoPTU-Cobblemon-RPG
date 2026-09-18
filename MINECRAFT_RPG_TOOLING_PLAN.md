@@ -2,6 +2,43 @@
 
 This is the product execution queue for the playable AutoPTU Cobblemon RPG.
 
+## Active native-gameplay track (user direction, 2026-09-16)
+
+### Updated direction: PTU data and rule fidelity (2026-09-17)
+
+The user now explicitly requires PTU species, moves, damage and abilities on real
+Cobblemon Pokémon. Native gameplay remains a compatibility path, not the desired
+final PTU rules authority. The data attachment is permitted to read authenticated
+server-side Pokémon identity/form/level/loadout to establish correspondence; native
+combat values and results are NOT canonical PTU values.
+
+| Item | Status | Scope/evidence |
+|---|---|---|
+| PTUDATA-001 | IMPLEMENTED / in-game verification pending | 15 bundled, checksummed source datasets; typed catalog; actual Pokémon UUID-bound persistent sheets; party/world/PC integration; source CSV corpus checks. PR #644, `docs/PTU_DATA_INTEGRATION.md`. |
+| PTUDATA-002 | NEXT/PARTIAL | Core creation contract now ported separately in AutoPTU-Java PR #533 (user requested work on both projects), exact pinned dependency. 3,600 Python creation cases pass. UUID-bound nature, allocation, post-nature stats, base HP and selected abilities persisted once. Move acquisition, progression, ability execution and capture resolution remain pending; no adapter-invented rules. Python/generated core cache remain read-only. |
+| PTUDATA-003 | TODO | Route real encounters through PTU actions/effects and outcome persistence with oracle parity. Until then native battles remain explicitly non-PTU. |
+| PTUMENU-001 | IMPLEMENTED / graphical verification pending | Native starter/Summary/PC drawer; authenticated server queries; stale-selection rejection; UUID-bound acquisition provenance; no duplicated party/starter. Release 0.3.1-ptumenus1, PR #644. Read-only sheets, not full rules conversion. |
+| PTUMENU-002 | NEXT | Verify starter preview → native confirmation → party sheet → PC move → capture provenance → reload in a copied graphical test world; check scaling and no click-through. |
+| PTUPROFILE-001 | IMPLEMENTED / graphical verification pending | Creation profile persisted under autoptu:ptu_profile_v1, no rerolls on reads/store transfers, corrupt records preserved, evolution/level/catalog changes explicit. Native-menu stat breakdown/bars. Release 0.4.0-ptuprofiles1, PR #644, docs/PTU_CREATION_PROFILES.md. |
+
+
+The user explicitly requested reuse of real Cobblemon starters, teams, moves and battles.
+The native mode below is now the default; the historical PTU queue and its authority rules
+remain applicable only to `ptu-experimental`. Native battle results are not PTU results.
+Do not report the historical LIVE items as enabled in native mode, or equate code completion
+with a verified end-to-end playthrough. No claim of 100 completed steps is made.
+
+| Item | Status | Scope/evidence |
+|---|---|---|
+| NAT-001 | IMPLEMENTED / manual verification pending | Exclusive bootstrap disables duplicate starters, party menus and demo controls; preserves block registry IDs. Commit `f9f8f5b5`, PR #644. |
+| NAT-002 | IMPLEMENTED / manual verification pending | Existing visible wild target enters Cobblemon PvE with the actual player party; no demo actors or fixed moves. Commit `f9f8f5b5`, PR #644. |
+| NAT-003 | IMPLEMENTED / two-client verification pending | Consent-based native duels: recipient-bound one-use token, 60-second expiry, cancellation, disconnect cleanup, 10-second challenge cooldown, distance/dimension/busy revalidation and native PvP builder. Current PR #644; five invitation unit tests plus mode/registration regression checks pass. |
+| NAT-004 | NEXT | Verify the native starter → wild battle → return → reload loop in the actual client, record evidence and fix any observed integration failures. |
+| NAT-005 | TODO | Verify native duels with two clients: accept, reject/cancel, disconnect, range change, fainted party and finish. |
+| NAT-006 | TODO | Audit old practice entities in a copied test save and design explicit, identity-safe recovery; never delete by name heuristics. |
+
+The remaining plan below is the experimental PTU backlog, not completed native gameplay.
+
 It is not a compatibility report. It lists the tools, commands, screens, world interactions, server services, persistence domains, and recovery utilities that must exist inside Minecraft.
 
 ## Mandatory task rule
@@ -222,6 +259,7 @@ These commands are bootstrap/fallback surfaces. Each must call a reusable server
 | CMD-124 | BLOCKED | `/autoptu battle forfeit` until upstream owns/validates the outcome |
 | CMD-125 | LIVE | `/autoptu battle spectate <battleId>` — PR #362 / merge `fc5c5f028c7f1c532dcc18a83ec462ad5cd86a1c`; participants receive an opaque server-generated spectate ID, authenticated spectators can attach only while that server-owned session remains active, receive read-only status/HUD projection, and never enter the participant binding used by battle choices or execution. |
 | CMD-126 | DEV_ONLY | Current `/autoptu testbattle ...`; later move to `/autoptu admin battle demo ...` |
+| CMD-127 | LIVE/PARTIAL | `/autoptu battle preview <choiceId>`, `/autoptu battle confirm`, `/autoptu battle cancel` — the preview accepts only an exact key from the fresh authoritative choice set, highlights its movement destination or attack anchor, and confirmation revalidates that key again through the existing executor. Preview expiry, battle scope and actor identity remain server-owned. |
 
 ---
 
@@ -285,7 +323,7 @@ These should become the normal gameplay path.
 |---|---|---|
 | BUI-001 | LIVE/PARTIAL | Battle HUD: PR #249 / implementation head `9636cffa27abff4e22660db67b6af5da8d3b94f3` adds a normal in-world boss-bar HUD for an active server-bound battle actor. It refreshes from the same fresh AutoPTU-Java legal-choice source as BUI-002 and shows only canonical actor identity plus current legal-choice count. Turn/action-budget, HP/status and event-log fields remain follow-up work when their authoritative projections are available; zero choices are not reinterpreted locally as turn state. |
 | BUI-002 | LIVE | Legal move/action menu from authoritative choice set — PR #220 / `3c71ccc4355d3b5c7cd0e9dfbd2340f2ab136b89`; server-bound scope plus fresh stable-key revalidation, with no Minecraft legality calculation. |
-| BUI-003 | LIVE/PARTIAL | Grid targeting overlay from authoritative legal tiles/targets — PR #372 / merge `2870663803e04272729e6ddad811bea445729748`. The Fabric battle runtime projects only fresh authoritative Shift destinations plus TILE/COMBATANT Move anchors into Minecraft particles and deduplicates overlapping anchors; SELF/FIELD choices are not invented as tiles. The current projection uses the server-owned encounter-profile arena transform; binding the exact frozen reservation/battle arena remains presentation hardening. |
+| BUI-003 | LIVE/PARTIAL | Grid targeting overlay from authoritative legal tiles/targets — PR #372 / merge `2870663803e04272729e6ddad811bea445729748` established the legal-anchor projection. The current visual-flow slice adds a bounded cyan tactical grid viewport, separate green Shift destinations and orange attack anchors, gold movement selection, red attack declaration, animated lock/commit pulses, and a preview/confirm/cancel flow. Only exact choices from a fresh AutoPTU-Java set can enter PREVIEW; confirm revalidates through the existing authoritative executor, executed highlights are short-lived receipts, and SELF/FIELD choices are never invented as tiles. The projection still uses the server-owned encounter-profile arena transform; binding the exact frozen reservation/battle arena remains presentation hardening. |
 | BUI-004 | BLOCKED | Party switch menu from authoritative switch choices — the current battle legal-choice contract crossing into Minecraft exposes Shift/Move choices only. Do not synthesize switch legality from party state. |
 | BUI-005 | BLOCKED | Battle item menu from authoritative item choices — the current battle legal-choice contract crossing into Minecraft exposes no authoritative item-use choices. Do not synthesize battle item legality/effects from bag state. |
 | BUI-006 | BLOCKED | Trainer Feature menu from authoritative usable Features — the current battle legal-choice contract crossing into Minecraft exposes no authoritative Trainer Feature choices/costs/frequency/effects. |

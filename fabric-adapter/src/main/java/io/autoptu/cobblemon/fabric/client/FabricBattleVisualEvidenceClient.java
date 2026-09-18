@@ -24,15 +24,15 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
     private static boolean connectRequested;
     private static boolean battleRequested;
     private static boolean cameraPlaced;
-    private static boolean readyCaptured;
-    private static boolean firstCaptured;
-    private static boolean counterCaptured;
+    private static boolean movementCaptured;
+    private static boolean attackPreviewCaptured;
+    private static boolean attackCommittedCaptured;
 
     @Override public void onInitializeClient() {
         if (!Boolean.getBoolean(ENABLE_PROPERTY)) return;
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ticksSinceJoin = 0;
-            battleRequested = cameraPlaced = readyCaptured = firstCaptured = counterCaptured = false;
+            battleRequested = cameraPlaced = movementCaptured = attackPreviewCaptured = attackCommittedCaptured = false;
             LOGGER.info("AutoPTU battle visual evidence client joined; capture armed");
         });
         ClientTickEvents.END_CLIENT_TICK.register(FabricBattleVisualEvidenceClient::tick);
@@ -40,7 +40,7 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
 
     private static void tick(MinecraftClient client) {
         if (ticksSinceJoin < 0) { requestConnection(client); return; }
-        if (counterCaptured || client.player == null || client.world == null) return;
+        if (attackCommittedCaptured || client.player == null || client.world == null) return;
         ticksSinceJoin++;
         if (ticksSinceJoin <= 40 && client.currentScreen != null) client.setScreen(null);
         if (client.getNetworkHandler() == null) return;
@@ -61,17 +61,17 @@ public final class FabricBattleVisualEvidenceClient implements ClientModInitiali
 
         if (cameraPlaced) sanitizeCaptureHud(client);
 
-        if (cameraPlaced && !readyCaptured && ticksSinceJoin >= 70) {
-            capture(client, "autoptu-battle-ready.png"); readyCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence captured ready window"); return;
+        if (cameraPlaced && !movementCaptured && ticksSinceJoin >= 70) {
+            capture(client, "autoptu-battle-movement-selected.png"); movementCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence captured movement selection"); return;
         }
-        if (readyCaptured && !firstCaptured && ticksSinceJoin >= 90) {
-            capture(client, "autoptu-battle-first-strike.png"); firstCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence captured post-first-move window"); return;
+        if (movementCaptured && !attackPreviewCaptured && ticksSinceJoin >= 104) {
+            capture(client, "autoptu-battle-attack-selected.png"); attackPreviewCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence captured attack selection"); return;
         }
-        if (firstCaptured && !counterCaptured && ticksSinceJoin >= 120) {
-            capture(client, "autoptu-battle-counter-strike.png"); counterCaptured = true;
-            LOGGER.info("AutoPTU battle visual evidence captured post-counter-move window");
+        if (attackPreviewCaptured && !attackCommittedCaptured && ticksSinceJoin >= 124) {
+            capture(client, "autoptu-battle-attack-committed.png"); attackCommittedCaptured = true;
+            LOGGER.info("AutoPTU battle visual evidence captured committed attack");
         }
     }
 

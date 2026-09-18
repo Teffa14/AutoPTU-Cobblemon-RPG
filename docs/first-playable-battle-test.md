@@ -1,5 +1,8 @@
 # First playable AutoPTU battle test
 
+Historical first-demo notes. For the current interactive build, use
+[Playable tactical battle](playable-tactical-battle.md); its controls, profiles and validation supersede this page.
+
 This build is the first manual graphical battle proof for AutoPTU inside Minecraft/Cobblemon. It is intentionally narrow. Its purpose is to prove that a player can enter Minecraft, choose one of three Pokémon test scenarios, watch two real Cobblemon entities attack, see authoritative HP fall, and reach a visible winner/loser state.
 
 ## Required client
@@ -26,6 +29,24 @@ Choose one scenario:
 /autoptu testbattle squirtle
 ```
 
+For the interactive tactical flow use the operator command:
+
+```text
+/autoptu admin battle play charmander pikachu
+```
+
+Press `B` to open the server-provided action menu. Select a movement or attack to preview it on
+the world grid; `Enter` confirms the token-bound preview and `Backspace` cancels it. The menu also
+exposes `End turn` when the bound battle session supplies that transition. `/autoptu battle camera`
+frames the frozen server-owned arena once.
+
+The opening sequence exposes the intended tactical interaction language: cyan is the presentation
+grid, green cells are Shift destinations emitted by AutoPTU-Java, gold is the selected/locked
+destination, and red is the declared attack target before the authoritative resolution. Normal
+battle bindings use `/autoptu battle preview <choiceId>`, `/autoptu battle confirm`, and
+`/autoptu battle cancel`; `/autoptu battle choices` exposes these as clickable PREVIEW/CONFIRM/CANCEL
+controls, and confirmation re-fetches the authoritative choice set before execution.
+
 The selected Pokémon fights a server-spawned Pikachu automatically.
 
 ## Expected visible result
@@ -42,7 +63,10 @@ The command selects a server-owned demo scenario only. It does not read the sele
 
 The current playable harness uses fixed server-owned combat inputs because general `RuntimeCombatantState` materialization is still blocked on unresolved dynamic movement/evasion/damage-modifier inputs. The fixed test inputs are passed into the current AutoPTU-Java `BattleRuntime.applyAuthoritativeMove` contract. The upstream core owns RNG, hit/miss, damage, authoritative HP mutation and action consumption.
 
-The visible lunge is animation only. It is not a PTU Shift, forced movement, push, pull, knockback or interception decision. The entity returns to the same presentation anchor after the cue.
+The gold opening reposition is a real Shift selected from AutoPTU-Java's legal movement list and
+committed through `BattleRuntime.applyAction`. The later attack lunge is animation only: it is not
+forced movement, push, pull, knockback or interception, and the entity returns to its post-Shift
+presentation anchor after that cue.
 
 ## Compatibility matrix entry
 
