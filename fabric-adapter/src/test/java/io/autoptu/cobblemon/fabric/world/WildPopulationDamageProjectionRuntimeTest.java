@@ -28,6 +28,13 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeAbsorption(true, Float.NaN));
     }
 
+    @Test void nativeStuckArrowsAreClearedOnlyFromCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeStuckArrows(true, 1));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeStuckArrows(true, 7));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeStuckArrows(true, 0));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeStuckArrows(false, 7));
+    }
+
     @Test void nativeFireIsClearedOnlyFromCanonicalWildProjections() {
         assertTrue(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, true));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, false));
