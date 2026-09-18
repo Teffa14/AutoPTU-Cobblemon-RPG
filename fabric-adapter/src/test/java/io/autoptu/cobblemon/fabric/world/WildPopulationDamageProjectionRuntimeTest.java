@@ -54,6 +54,13 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeTarget(false, true));
     }
 
+    @Test void nativeStatusEffectsAreClearedOnlyFromCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeStatusEffects(true, 1));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeStatusEffects(true, 3));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeStatusEffects(true, 0));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeStatusEffects(false, 3));
+    }
+
     @Test void nativeFireIsClearedOnlyFromCanonicalWildProjections() {
         assertTrue(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, true));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, false));
