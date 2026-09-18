@@ -3,7 +3,7 @@
   "id": "autoptu_cobblemon_rpg_fabric_adapter",
   "version": "${version}",
   "name": "AutoPTU Cobblemon RPG Fabric Adapter",
-  "description": "Cobblemon-native gameplay integration; experimental PTU sandbox available only by explicit opt-in.",
+  "description": "PTU database sheets for real Cobblemon Pokemon. Native battles remain non-PTU; experimental PTU battle sandbox requires explicit opt-in.",
   "environment": "*",
   "entrypoints": {
     "main": [

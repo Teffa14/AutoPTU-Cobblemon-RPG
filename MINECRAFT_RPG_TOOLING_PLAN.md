@@ -4,6 +4,21 @@ This is the product execution queue for the playable AutoPTU Cobblemon RPG.
 
 ## Active native-gameplay track (user direction, 2026-09-16)
 
+### Updated direction: PTU data and rule fidelity (2026-09-17)
+
+The user now explicitly requires PTU species, moves, damage and abilities on real
+Cobblemon Pokémon. Native gameplay remains a compatibility path, not the desired
+final PTU rules authority. The data attachment is permitted to read authenticated
+server-side Pokémon identity/form/level/loadout to establish correspondence; native
+combat values and results are NOT canonical PTU values.
+
+| Item | Status | Scope/evidence |
+|---|---|---|
+| PTUDATA-001 | IMPLEMENTED / in-game verification pending | 15 bundled, checksummed source datasets; typed catalog; actual Pokémon UUID-bound persistent sheets; party/world/PC integration; source CSV corpus checks. PR #644, `docs/PTU_DATA_INTEGRATION.md`. |
+| PTUDATA-002 | NEXT | Resolve final PTU stat allocation, acquired moves and selected abilities through authoritative PTU state; never derive them by copying native stats or granting all pools. |
+| PTUDATA-003 | TODO | Route real encounters through PTU actions/effects and outcome persistence with oracle parity. Until then native battles remain explicitly non-PTU. |
+
+
 The user explicitly requested reuse of real Cobblemon starters, teams, moves and battles.
 The native mode below is now the default; the historical PTU queue and its authority rules
 remain applicable only to `ptu-experimental`. Native battle results are not PTU results.

@@ -1,4 +1,18 @@
-AUTOPTU 0.2.0-native2 - COBBLEMON COMO SISTEMA DE JUEGO
+AUTOPTU 0.3.0-ptudata1 - BASE PTU VINCULADA A POKEMON COBBLEMON
+
+NUEVO: FICHAS PTU REALES
+15 datasets incluidos: especies/formas, movimientos, habilidades y learnsets.
+Las fichas se vinculan al UUID real y se guardan sin alterar los datos nativos.
+/autoptu ptu party 1
+/autoptu ptu target
+/autoptu ptu move Tackle
+/autoptu ptu ability Overgrow
+/autoptu ptu learnset 1 1
+/autoptu ptu sync pc
+Datos ausentes o incompatibles se informan; no se inventan reemplazos.
+IMPORTANTE: cargar la ficha NO conecta aun todos sus efectos al combate.
+La batalla nativa sigue usando reglas Cobblemon. No es una batalla PTU completa.
+Ver PTU_DATA_INTEGRATION.md para el alcance y los pendientes.
 
 CAMBIO IMPORTANTE
 El modo predeterminado ahora usa el starter, equipo, movimientos, controles,

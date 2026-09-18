@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "source_repository": "Teffa14/AutoPTU",
+  "source_revision": "16d228efa63aabecb67fa788959a359aac7f8f03",
+  "files": [
+    {
+      "resource": "moves.json",
+      "source": "auto_ptu/data/compiled/moves.json",
+      "sha256": "e0b2be43ae8002550ec1cb774d255c35c3a27e8db3fd2fcd9f09450f7e2f3522"
+    },
+    {
+      "resource": "species.json",
+      "source": "auto_ptu/data/compiled/species.json",
+      "sha256": "0cc65c3520d71670142c94970b9a1373827fcabc4142c6fdac7e68cc77a15b22"
+    },
+    {
+      "resource": "pools.json",
+      "source": "auto_ptu/data/compiled/pokedex_abilities.json",
+      "sha256": "bd8af532310d762cfb5652502ea3e3fd82447806c537822cb09f82d94fd295e2"
+    },
+    {
+      "resource": "ability_overrides.json",
+      "source": "auto_ptu/data/compiled/ability_overrides.json",
+      "sha256": "732a29de2b21ea77a76bbc1d7015dae95f9e47aff44ea8857a6075e4f79a3eb6"
+    },
+    {
+      "resource": "galar.json",
+      "source": "auto_ptu/data/compiled/swsh_galardex.json",
+      "sha256": "eefe5f81ad411a0f3e6f26abbbeb39dcccb9484319ed0c520ef1b7749f0b39c9"
+    },
+    {
+      "resource": "hisui.json",
+      "source": "auto_ptu/data/compiled/hisuidex.json",
+      "sha256": "655a0234f43a7920a597c98f8fb3cbb2f0ba1d8df05c39516569c2d5b55adaeb"
+    },
+    {
+      "resource": "sumo_references.json",
+      "source": "auto_ptu/data/compiled/sumo_references.json",
+      "sha256": "c8c6d89c1f0f13da47b620bcbadc39d6782636bf2af98bdf92c686e7ea11f9b9"
+    },
+    {
+      "resource": "galar_references.json",
+      "source": "auto_ptu/data/compiled/swsh_references.json",
+      "sha256": "f4176908ce5bbc123707c7f3d97c6d5646aefd4b280ba3e6581c739afcd82cf4"
+    },
+    {
+      "resource": "hisui_references.json",
+      "source": "auto_ptu/data/compiled/hisui_references.json",
+      "sha256": "dd979e914b98320471d31caaad8596853909e419e3d0345e47dabceb3b8a6c88"
+    },
+    {
+      "resource": "evolution.json",
+      "source": "auto_ptu/data/compiled/evolution_min_levels.json",
+      "sha256": "0a2817d9e451c6a5fcb6c17d55c13723ce343f45db143eb2f819bd3ccf5dd903"
+    },
+    {
+      "resource": "galar_learnsets.json",
+      "source": "auto_ptu/data/compiled/swsh_levelup_learnsets.json",
+      "sha256": "546ce9cdf308ea67ca6cde0a191eeb98255b43a40f6df2570c352d041cea0aea"
+    },
+    {
+      "resource": "hisui_learnsets.json",
+      "source": "auto_ptu/data/compiled/hisui_levelup_learnsets.json",
+      "sha256": "b5157df7a71b755748c8b7a322b04a47b1eb6f80f6d44eba38f85d9e1d2dc187"
+    },
+    {
+      "resource": "abilities.json",
+      "source": "files/Copia de Fancy PTU 1.05 Sheet - Version Hisui - Abilities Data.csv",
+      "source_sha256": "0cc087c262783dc774e993e227c87edfef7cbc2afe0bf77f18b4af2e88114ea6",
+      "sha256": "97a4f85a7e358cb66bb7e972e10422fb98cfb40121b0888ddddf76b267b1a964"
+    },
+    {
+      "resource": "learnsets.json",
+      "source": "files/pokedex_learnset.csv",
+      "source_sha256": "dcef6cc524cdb5b3c9539d8cb75a5ad94e1d64d4f67afa11024dd8797e9292ad",
+      "sha256": "ce76dfba459c92efa93092fc8b16127e32796442ca16cb5670214d5e6cbef592"
+    },
+    {
+      "resource": "move_oracle.json",
+      "source": "files/Copia de Fancy PTU 1.05 Sheet - Version Hisui - Moves Data.csv",
+      "source_sha256": "ea8b661988ac11714ac0b1ac65c5a75567d61f85a0399def589b5e8dff432a3f",
+      "sha256": "fe8edc79a285acc27d7d5d9cc48148d6e6ff59fc2347206ca848c1ebff6e0280"
+    }
+  ]
+}

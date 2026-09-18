@@ -2,6 +2,20 @@
 
 Minecraft/Cobblemon integration with mutually exclusive native and experimental PTU modes.
 
+## PTU database integration: 0.3.0-ptudata1
+
+The mod now bundles fifteen checksummed PTU datasets and attaches a PTU data sheet
+to real Pokémon UUIDs in parties, loaded world entities and explicitly synchronized
+PC storage. Inspect `/autoptu ptu party 1`, `/autoptu ptu move Tackle`,
+`/autoptu ptu ability Overgrow` and `/autoptu ptu learnset 1`.
+Native identity/form/level/loadout are used only to resolve correspondence; a native
+move or ability is not automatically legal under PTU. Unknown forms, missing entries
+and incompatible loadouts are reported without invented replacements.
+
+**Data attachment is implemented; complete PTU battle execution is not.** Existing
+native battle commands still use Cobblemon rules. See the explicit implementation
+and remaining authority work in [PTU data integration](docs/PTU_DATA_INTEGRATION.md).
+
 ## Current playable mode: native Cobblemon
 
 Since `0.2.0-native1`, the default mode delegates starters, party storage, learned moves,

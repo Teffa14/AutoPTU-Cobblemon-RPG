@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 public final class FabricGameplayEntrypoint implements ModInitializer {
     @Override public void onInitialize() {
         var mode = BattleRuntimeMode.configured();
+        io.autoptu.cobblemon.fabric.ptu.PtuPokemonDataRuntime.register();
         LoggerFactory.getLogger("autoptu-cobblemon-rpg").info("AutoPTU gameplay owner: {}", mode);
         if (mode == BattleRuntimeMode.COBBLEMON) {
             // Keep registry IDs available when opening an existing save. Only their experimental

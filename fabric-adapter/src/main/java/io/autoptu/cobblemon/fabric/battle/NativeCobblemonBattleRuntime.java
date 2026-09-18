@@ -92,7 +92,7 @@ public final class NativeCobblemonBattleRuntime {
         return result instanceof SuccessfulBattleStart ? 1 : 0;
     }
 
-    private static PokemonEntity targetedPokemon(ServerPlayerEntity player) {
+    public static PokemonEntity targetedPokemon(ServerPlayerEntity player) {
         Vec3d start = player.getEyePos();
         Vec3d end = start.add(player.getRotationVec(1F).multiply(REACH));
         var blockHit = player.getServerWorld().raycast(new RaycastContext(start, end,
