@@ -45,6 +45,13 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeHurtAnimation(false, 10));
     }
 
+    @Test void nativeDeathAnimationIsClearedOnlyFromCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeDeathAnimation(true, 1));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeDeathAnimation(true, 20));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeDeathAnimation(true, 0));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeDeathAnimation(false, 20));
+    }
+
     @Test void leavingProjectionPreservesTheActorsOriginalInvulnerabilityPolicy() {
         assertFalse(WildPopulationDamageProjectionRuntime.restoredInvulnerability(false));
         assertTrue(WildPopulationDamageProjectionRuntime.restoredInvulnerability(true));
