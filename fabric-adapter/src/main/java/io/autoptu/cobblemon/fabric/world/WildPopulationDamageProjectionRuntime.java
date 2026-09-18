@@ -26,14 +26,15 @@ import java.util.UUID;
  * are cleared; and fire, freezing, air depletion, accumulated fall distance, residual hurt animation and residual death
  * animation are cleared during projection. These presentation repairs never read canonical Pokemon HP or statuses and
  * prevent vanilla environmental state from implying or deferring canonical Pokemon damage, status, aggression, targeting
- * or faint. When an actor leaves the canonical WILD projection, its pre-projection invulnerability, glowing, invisibility
- * and frozen-tick state are restored exactly.</p>
+ * or faint. When an actor leaves the canonical WILD projection, its pre-projection invulnerability, glowing, invisibility,
+ * frozen-tick and air state are restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
     private static final Map<ActorKey, Boolean> PREVIOUS_GLOWING = new HashMap<>();
     private static final Map<ActorKey, Boolean> PREVIOUS_INVISIBILITY = new HashMap<>();
     private static final Map<ActorKey, Integer> PREVIOUS_FROZEN_TICKS = new HashMap<>();
+    private static final Map<ActorKey, Integer> PREVIOUS_AIR = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -44,12 +45,14 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             PREVIOUS_GLOWING.remove(key);
             PREVIOUS_INVISIBILITY.remove(key);
             PREVIOUS_FROZEN_TICKS.remove(key);
+            PREVIOUS_AIR.remove(key);
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             PREVIOUS_INVULNERABILITY.clear();
             PREVIOUS_GLOWING.clear();
             PREVIOUS_INVISIBILITY.clear();
             PREVIOUS_FROZEN_TICKS.clear();
+            PREVIOUS_AIR.clear();
         });
     }
 
@@ -72,6 +75,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             PREVIOUS_GLOWING.putIfAbsent(actorKey, actor.isGlowing());
             PREVIOUS_INVISIBILITY.putIfAbsent(actorKey, actor.isInvisible());
             PREVIOUS_FROZEN_TICKS.putIfAbsent(actorKey, actor.getFrozenTicks());
+            PREVIOUS_AIR.putIfAbsent(actorKey, actor.getAir());
             if (shouldRestoreNativeHealth(true, actor.getHealth(), actor.getMaxHealth())) actor.setHealth(actor.getMaxHealth());
             if (shouldClearNativeAbsorption(true, actor.getAbsorptionAmount())) actor.setAbsorptionAmount(0.0F);
             if (shouldClearNativeStuckArrows(true, actor.getStuckArrowCount())) actor.setStuckArrowCount(0);
@@ -103,17 +107,13 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             var actor = world.getEntity(key.actorId());
             if (actor != null && actor.isInvulnerable() != entry.getValue()) actor.setInvulnerable(entry.getValue());
             Boolean previousGlowing = PREVIOUS_GLOWING.remove(key);
-            if (actor != null && previousGlowing != null && actor.isGlowing() != previousGlowing) {
-                actor.setGlowing(previousGlowing);
-            }
+            if (actor != null && previousGlowing != null && actor.isGlowing() != previousGlowing) actor.setGlowing(previousGlowing);
             Boolean previousInvisibility = PREVIOUS_INVISIBILITY.remove(key);
-            if (actor != null && previousInvisibility != null && actor.isInvisible() != previousInvisibility) {
-                actor.setInvisible(previousInvisibility);
-            }
+            if (actor != null && previousInvisibility != null && actor.isInvisible() != previousInvisibility) actor.setInvisible(previousInvisibility);
             Integer previousFrozenTicks = PREVIOUS_FROZEN_TICKS.remove(key);
-            if (actor != null && previousFrozenTicks != null && actor.getFrozenTicks() != previousFrozenTicks) {
-                actor.setFrozenTicks(previousFrozenTicks);
-            }
+            if (actor != null && previousFrozenTicks != null && actor.getFrozenTicks() != previousFrozenTicks) actor.setFrozenTicks(previousFrozenTicks);
+            Integer previousAir = PREVIOUS_AIR.remove(key);
+            if (actor != null && previousAir != null && actor.getAir() != previousAir) actor.setAir(previousAir);
             iterator.remove();
         }
     }
@@ -124,12 +124,8 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     }
 
     static boolean shouldShieldCanonicalProjection(boolean projected) { return projected; }
-    static boolean shouldRestoreNativeHealth(boolean projected, float health, float maxHealth) {
-        return projected && Float.isFinite(health) && Float.isFinite(maxHealth) && maxHealth > 0.0F && health < maxHealth;
-    }
-    static boolean shouldClearNativeAbsorption(boolean projected, float absorption) {
-        return projected && Float.isFinite(absorption) && absorption > 0.0F;
-    }
+    static boolean shouldRestoreNativeHealth(boolean projected, float health, float maxHealth) { return projected && Float.isFinite(health) && Float.isFinite(maxHealth) && maxHealth > 0.0F && health < maxHealth; }
+    static boolean shouldClearNativeAbsorption(boolean projected, float absorption) { return projected && Float.isFinite(absorption) && absorption > 0.0F; }
     static boolean shouldClearNativeStuckArrows(boolean projected, int stuckArrowCount) { return projected && stuckArrowCount > 0; }
     static boolean shouldClearNativeStuckStingers(boolean projected, int stingerCount) { return projected && stingerCount > 0; }
     static boolean shouldClearNativeAttacker(boolean projected, boolean hasAttacker) { return projected && hasAttacker; }
@@ -147,6 +143,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     static boolean restoredGlowing(boolean previousGlowing) { return previousGlowing; }
     static boolean restoredInvisibility(boolean previousInvisibility) { return previousInvisibility; }
     static int restoredFrozenTicks(int previousFrozenTicks) { return previousFrozenTicks; }
+    static int restoredAir(int previousAir) { return previousAir; }
 
     private record ActorKey(RegistryKey<World> worldKey, UUID actorId) {
         private ActorKey {

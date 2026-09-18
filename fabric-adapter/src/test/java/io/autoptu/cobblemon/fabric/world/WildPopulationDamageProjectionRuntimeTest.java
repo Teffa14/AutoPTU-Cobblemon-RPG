@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -85,6 +86,12 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertTrue(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(true, 299, 300));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(true, 300, 300));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeAir(false, 0, 300));
+    }
+
+    @Test void nativeAirSnapshotIsReturnedUnchangedWhenProjectionReleases() {
+        assertEquals(0, WildPopulationDamageProjectionRuntime.restoredAir(0));
+        assertEquals(173, WildPopulationDamageProjectionRuntime.restoredAir(173));
+        assertEquals(300, WildPopulationDamageProjectionRuntime.restoredAir(300));
     }
 
     @Test void nativeFallDistanceIsClearedOnlyForCanonicalWildProjections() {
