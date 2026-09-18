@@ -48,6 +48,12 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeAttacker(false, true));
     }
 
+    @Test void nativeTargetResidueIsClearedOnlyFromCanonicalWildProjections() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldClearNativeTarget(true, true));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeTarget(true, false));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldClearNativeTarget(false, true));
+    }
+
     @Test void nativeFireIsClearedOnlyFromCanonicalWildProjections() {
         assertTrue(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, true));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, false));
