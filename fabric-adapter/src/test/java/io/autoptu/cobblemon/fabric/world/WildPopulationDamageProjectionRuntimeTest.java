@@ -11,6 +11,15 @@ final class WildPopulationDamageProjectionRuntimeTest {
         assertFalse(WildPopulationDamageProjectionRuntime.shouldShieldCanonicalProjection(false));
     }
 
+    @Test void nativeHealthIsRestoredOnlyForCanonicalWildProjectionsBelowMaximum() {
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(true, 1.0F, 20.0F));
+        assertTrue(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(true, 19.5F, 20.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(true, 20.0F, 20.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(false, 1.0F, 20.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(true, Float.NaN, 20.0F));
+        assertFalse(WildPopulationDamageProjectionRuntime.shouldRestoreNativeHealth(true, 1.0F, 0.0F));
+    }
+
     @Test void nativeFireIsClearedOnlyFromCanonicalWildProjections() {
         assertTrue(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, true));
         assertFalse(WildPopulationDamageProjectionRuntime.shouldExtinguishCanonicalProjection(true, false));
