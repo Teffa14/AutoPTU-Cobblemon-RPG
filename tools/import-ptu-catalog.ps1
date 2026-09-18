@@ -46,5 +46,14 @@ $moveHeaders = @('name','type','category','damage_base','frequency','ac','range'
 $moveRows = @($movePayload | ConvertFrom-Csv -Header $moveHeaders)
 [IO.File]::WriteAllText((Join-Path $outputRoot 'move_oracle.json'), (ConvertTo-Json -InputObject $moveRows -Depth 10), [Text.UTF8Encoding]::new($false))
 $manifest.files += [ordered]@{ resource = 'move_oracle.json'; source = $moveSource; source_sha256 = (Get-FileHash -LiteralPath $movePath).Hash.ToLowerInvariant(); sha256 = (Get-FileHash -LiteralPath (Join-Path $outputRoot 'move_oracle.json')).Hash.ToLowerInvariant() }
+# The source has two Nature columns and trailing blank headers; assign explicit unique names.
+$natureSource = 'files/Copia de Fancy PTU 1.05 Sheet - Version Hisui - Nature_Type Data.csv'
+$naturePath = Join-Path $sourceRoot $natureSource
+$natureText = [IO.File]::ReadAllText($naturePath, [Text.Encoding]::UTF8)
+$naturePayload = ($natureText -split '\r?\n', 2)[1]
+$natureHeaders = @('Nature','Raise','Lower','Liked Flavor','Disliked Flavor','Nature Duplicate','HP','ATK','DEF','SATK','SDEF','SPD','Extra1','Extra2','Extra3','Extra4','Extra5','Extra6','Extra7')
+$natureRows = @($naturePayload | ConvertFrom-Csv -Header $natureHeaders | Where-Object { $_.Nature -and $_.Raise -match '^(HP|ATK|DEF|SATK|SDEF|SPD)$' -and $_.Lower -match '^(HP|ATK|DEF|SATK|SDEF|SPD)$' } | Select-Object Nature,Raise,Lower,HP,ATK,DEF,SATK,SDEF,SPD)
+[IO.File]::WriteAllText((Join-Path $outputRoot 'natures.json'), (ConvertTo-Json -InputObject $natureRows -Depth 10), [Text.UTF8Encoding]::new($false))
+$manifest.files += [ordered]@{ resource = 'natures.json'; source = $natureSource; source_sha256 = (Get-FileHash -LiteralPath $naturePath).Hash.ToLowerInvariant(); sha256 = (Get-FileHash -LiteralPath (Join-Path $outputRoot 'natures.json')).Hash.ToLowerInvariant() }
 [IO.File]::WriteAllText((Join-Path $outputRoot 'manifest.json'), (ConvertTo-Json -InputObject $manifest -Depth 10), [Text.UTF8Encoding]::new($false))
 Write-Output "Imported $($manifest.files.Count) PTU datasets into $outputRoot"

@@ -6,7 +6,7 @@ import java.util.*;
 public record PtuPokemonBinding(int schema, UUID pokemonId, String catalogRevision, String nativeSpecies,
                                 String nativeForm, int level, PtuDataCatalog.Species species,
                                 List<BoundMove> equippedMoves, PtuDataCatalog.Pools abilityPools,
-                                BoundAbility nativeAbility, List<String> issues) {
+                                BoundAbility nativeAbility, List<String> issues, PtuCanonicalProfile.View canonical) {
     public record Input(UUID pokemonId, String namespace, String species, String form, boolean standardForm,
                         int level, List<String> moves, String ability) {
         public Input {
@@ -49,16 +49,20 @@ public record PtuPokemonBinding(int schema, UUID pokemonId, String catalogRevisi
         var ability = catalog.ability(input.ability()).orElse(null);
         AbilityMatch match;
         if (ability == null) match = AbilityMatch.MISSING_DATA;
-        else if (contains(pools.basic(), ability.id())) match = AbilityMatch.BASIC;
+        else if (contains(pools.basic(), ability.id()) || contains(pools.starting(), ability.id())) match = AbilityMatch.BASIC;
         else if (contains(pools.advanced(), ability.id())) match = AbilityMatch.ADVANCED_REQUIRES_UNLOCK;
         else if (contains(pools.high(), ability.id())) match = AbilityMatch.HIGH_REQUIRES_UNLOCK;
         else match = AbilityMatch.NOT_IN_POOL;
         if (match != AbilityMatch.BASIC) issues.add("ABILITY_" + match + ":" + input.ability());
-        for (String name : java.util.stream.Stream.of(pools.basic(), pools.advanced(), pools.high()).flatMap(List::stream).distinct().toList()) {
+        for (String name : java.util.stream.Stream.of(pools.starting(), pools.basic(), pools.advanced(), pools.high()).flatMap(List::stream).distinct().toList()) {
             if (catalog.ability(name).isEmpty()) issues.add("MISSING_POOL_ABILITY:" + name);
         }
         return new PtuPokemonBinding(1, input.pokemonId(), catalog.revision(), input.namespace() + ":" + input.species(),
-                input.form(), input.level(), species, moves, pools, new BoundAbility(input.ability(), ability, match), issues);
+                input.form(), input.level(), species, moves, pools, new BoundAbility(input.ability(), ability, match), issues, null);
+    }
+    public PtuPokemonBinding withCanonical(PtuCanonicalProfile.View view) {
+        return new PtuPokemonBinding(schema, pokemonId, catalogRevision, nativeSpecies, nativeForm, level, species,
+                equippedMoves, abilityPools, nativeAbility, issues, view);
     }
     private static boolean contains(List<String> names, String id) { return names.stream().map(PtuDataCatalog::key).anyMatch(id::equals); }
 }

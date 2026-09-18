@@ -1,6 +1,6 @@
 # Native-menu PTU sheets: verification record
 
-Version: `0.3.1-ptumenus1`. This is a partial integration, not a PTU gameplay release.
+Version: `0.4.0-ptuprofiles1`. This is a partial integration, not a complete PTU gameplay release.
 
 ## Local checks performed
 
@@ -8,12 +8,14 @@ Version: `0.3.1-ptumenus1`. This is a partial integration, not a PTU gameplay re
 gradle :fabric-adapter:test --tests '*Ptu*Test' --tests '*Native*Test' :fabric-adapter:packageNativeBattle
 ```
 
-- 28 selected tests passed, zero failures/errors.
+- Creation core separately passes three tests including 3,600 Python-oracle cases.
+- 40 focused adapter tests pass, including canonical profile persistence/reconciliation;
+  see `PTU_CREATION_PROFILES.md`. The earlier menus-only release passed 28 selected tests.
 - Includes catalog/source corpus checks, native command/entrypoint checks, lifecycle
   identity/provenance preservation, request throttling, Unicode packet round trips,
   payload size limits and drawer bounds at multiple scaled screen dimensions.
 - Production-remapped JAR and the four-mod distribution ZIP built successfully.
-- All 15 dataset resource hashes in the remapped JAR match its bundled manifest.
+- The bundled manifest now covers 16 resources, including the nature CSV export.
 
 These tests do **not** prove a graphical playthrough, packet ownership checks against
 a live player, native event ordering, or persistence after a real game restart.
@@ -37,6 +39,8 @@ Use a copied test world, client and server with matching mod versions.
    say native capture, not PTU capture. Verify no duplicate grant.
 7. Save/restart and check data/provenance again. Trade to another player; creation
    provenance must survive, while the old owner can no longer retrieve its sheet.
+   The saved PTU nature, points, stats and abilities must not reroll. A native level
+   or species change must flag reconciliation and preserve the saved profile.
 8. Test missing species/forms and a server without the sheet protocol. The screen
    must show a clear unavailable/unsupported state, not invent data or hang input.
 

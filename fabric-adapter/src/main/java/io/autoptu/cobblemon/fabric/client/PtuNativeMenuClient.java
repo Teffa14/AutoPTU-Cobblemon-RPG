@@ -41,7 +41,9 @@ public final class PtuNativeMenuClient {
     record Bounds(int x, int y, int width, int height) {
         boolean contains(double px, double py) { return px >= x && py >= y && px < x + width && py < y + height; }
     }
-    private record Line(Text text, int color) {}
+    private record Line(Text text, int color, double statFraction) {
+        Line(Text text, int color) { this(text, color, 0); }
+    }
 
     public static void register() {
         PtuSheetPayloads.register();
@@ -188,6 +190,12 @@ public final class PtuNativeMenuClient {
                 draw.drawText(client.textRenderer, wrapped, x + 10, cursor, line.color(), false);
                 cursor += 12;
             }
+            if (line.statFraction() > 0) {
+                int trackWidth = width - 24;
+                draw.fill(x + 10, cursor, x + 10 + trackWidth, cursor + 3, HEADER);
+                draw.fill(x + 10, cursor, x + 10 + (int) Math.round(trackWidth * Math.min(1, line.statFraction())), cursor + 3, ACCENT);
+                cursor += 8;
+            }
             cursor += 5;
         }
         draw.disableScissor();
@@ -223,6 +231,28 @@ public final class PtuNativeMenuClient {
         var sheet = panel.sheet;
         lines.add(new Line(Text.literal(sheet.nativeSpecies() + " · " + sheet.nativeForm() + " · Lv " + sheet.level()), 0xFFFFFFFF));
         lines.add(new Line(Text.translatable("autoptu.menu.origin", Text.translatable("autoptu.menu.origin." + panel.origin)), 0xFFB1C4CC));
+        if (sheet.canonical() != null) {
+            var canonical = sheet.canonical();
+            lines.add(new Line(Text.translatable("autoptu.profile.title"), ACCENT));
+            lines.add(new Line(Text.translatable("autoptu.profile.state." + canonical.status()),
+                    canonical.status().equals("ready") ? 0xFFB1C4CC : 0xFFE4BD78));
+            if (canonical.profile() != null) {
+                var creation = canonical.profile().creation();
+                lines.add(new Line(Text.translatable("autoptu.profile.summary", creation.level(), creation.nature(), creation.baseMaximumHp()), 0xFFFFFFFF));
+                lines.add(new Line(Text.translatable("autoptu.profile.breakdown"), 0xFFB1C4CC));
+                int[] base = creation.base().values(), allocation = creation.allocation().values(), resolved = creation.finalStats().values();
+                int highest = Arrays.stream(resolved).max().orElse(1);
+                var statNames = List.of("hp", "attack", "defense", "special_attack", "special_defense", "speed");
+                for (int i = 0; i < 6; i++) {
+                    int nature = resolved[i] - base[i] - allocation[i];
+                    Text name = Text.translatable("autoptu.menu.stat." + statNames.get(i));
+                    lines.add(new Line(Text.translatable("autoptu.profile.stat", name, resolved[i], base[i], allocation[i],
+                            nature >= 0 ? "+" + nature : String.valueOf(nature)), 0xFFE5EEF1, (double) resolved[i] / highest));
+                }
+                lines.add(new Line(Text.translatable("autoptu.profile.selected", String.join(", ", creation.abilities())), 0xFFE5EEF1));
+                lines.add(new Line(Text.translatable("autoptu.profile.boundary"), 0xFFE4BD78));
+            }
+        }
         if (sheet.species() != null) {
             var species = sheet.species();
             lines.add(new Line(Text.translatable("autoptu.menu.base"), ACCENT));

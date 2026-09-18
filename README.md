@@ -2,15 +2,28 @@
 
 Minecraft/Cobblemon integration with mutually exclusive native and experimental PTU modes.
 
-## PTU native-menu sheets: 0.3.1-ptumenus1
+## Persisted PTU creation profiles: 0.4.0-ptuprofiles1
+
+The mod now calls the pinned AutoPTU-Java creation contract for each resolved real
+Pokémon: PTU nature, level-point allocation, post-nature stats, base maximum HP and
+selected abilities. Results are saved once on the same UUID and survive native store
+transfers; opening a menu never rerolls them. The panel shows stat breakdowns and bars.
+Python-oracle parity covers 3,600 core creation cases; see
+[profile implementation and limits](docs/PTU_CREATION_PROFILES.md).
+
+This is persisted **creation state**, not a complete PTU battle or progression engine.
+Native HP/moves stay unchanged; native level/species changes flag reconciliation instead
+of silently rebuilding or healing the PTU profile.
+
+## PTU native-menu sheets
 
 The existing Cobblemon starter, Pokémon Summary and PC screens now have a **PTU sheet**
 button. Starter previews and owned Pokémon sheets are resolved by the server; no
 second team or starter is created. Native acquisition/capture events persist provenance.
 Scroll/arrow keys navigate the drawer, R refreshes, and Esc returns to the native menu.
-This is a read-only PTU data view, **not yet PTU starter generation or capture mechanics**.
+The sheet shows the persisted PTU creation profile, but **capture mechanics remain native**.
 
-The mod now bundles fifteen checksummed PTU datasets and attaches a PTU data sheet
+The mod now bundles sixteen checksummed PTU datasets and attaches a PTU data sheet
 to real Pokémon UUIDs in parties, loaded world entities and explicitly synchronized
 PC storage. Inspect `/autoptu ptu party 1`, `/autoptu ptu move Tackle`,
 `/autoptu ptu ability Overgrow` and `/autoptu ptu learnset 1`.
@@ -43,7 +56,10 @@ Native 2 adds consent-based PvP: `/autoptu duel challenge <player>`, recipient-o
 Invitations expire after 60 seconds, clear on disconnect and require both players within
 16 blocks in the same dimension. Cobblemon owns team validation and the resulting battle.
 
-This repository is the only writable Minecraft/Cobblemon integration project. `Teffa14/AutoPTU-Java` and `Teffa14/AutoPTU` are read-only upstream/reference repositories for this project.
+Minecraft adapter changes stay in this repository. For the user's explicitly requested
+cross-project work, creation-rule changes were made separately in `Teffa14/AutoPTU-Java`
+(PR #533) and consumed through an exact pin; the generated dependency checkout is read-only.
+`Teffa14/AutoPTU` remains the read-only Python oracle. Never implement PTU formulas in the adapter.
 
 ## Experimental PTU authority boundary
 

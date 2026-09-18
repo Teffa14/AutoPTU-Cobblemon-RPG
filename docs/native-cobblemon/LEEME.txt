@@ -1,4 +1,15 @@
-AUTOPTU 0.3.1-ptumenus1 - FICHAS PTU EN LOS MENUS DE COBBLEMON
+AUTOPTU 0.4.0-ptuprofiles1 - CREACION PTU PERSISTIDA
+
+NUEVO: REGLAS DE CREACION EJECUTADAS POR AUTOPTU-JAVA
+36 naturalezas PTU, reparto de nivel + 10 puntos, estadisticas tras naturaleza,
+PS maximos base y seleccion de habilidades por nivel. Se guarda una vez por UUID.
+Abrir la ficha, cambiar movimientos o mover al PC no vuelve a sortear el perfil.
+La ficha muestra barras y desglose: base + puntos + naturaleza.
+Si cambia la especie o el nivel nativo, el perfil PTU anterior se conserva y avisa.
+No se copian IV/EV, PS, naturaleza ni habilidad nativa como estadisticas PTU.
+IMPORTANTE: captura, progreso y combate completo siguen pendientes de conversion.
+Los PS mostrados son la base de creacion, sin pasivas, lesiones ni efectos temporales.
+Ver PTU_CREATION_PROFILES.md para reglas ejecutadas, pruebas y limites.
 
 NUEVO: BOTON FICHA PTU
 En la seleccion de starter, el resumen del Pokemon y el PC originales de Cobblemon,

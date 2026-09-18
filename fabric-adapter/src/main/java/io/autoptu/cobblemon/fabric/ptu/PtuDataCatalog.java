@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.ptu;
 
 import com.google.gson.*;
 import io.autoptu.core.rules.PtuTables;
+import io.autoptu.core.pokemon.PokemonCreation;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -29,13 +30,14 @@ public final class PtuDataCatalog {
     }
     public record Ability(String id, String name, String frequency, String trigger, String effect,
                           String target, String keywords, String source) {}
-    public record Pools(List<String> basic, List<String> advanced, List<String> high) {
-        public Pools { basic = List.copyOf(basic); advanced = List.copyOf(advanced); high = List.copyOf(high); }
-        public static Pools empty() { return new Pools(List.of(), List.of(), List.of()); }
+    public record Pools(List<String> basic, List<String> advanced, List<String> high, List<String> starting) {
+        public Pools { basic = List.copyOf(basic); advanced = List.copyOf(advanced); high = List.copyOf(high); starting = starting == null ? List.of() : List.copyOf(starting); }
+        public static Pools empty() { return new Pools(List.of(), List.of(), List.of(), List.of()); }
     }
     public record Learn(String move, int level, String source) {}
 
     private final Map<String, Move> moves = new TreeMap<>();
+    private final Map<String, PokemonCreation.Nature> natures = new TreeMap<>();
     private final Map<String, Species> species = new TreeMap<>();
     private final Map<String, Ability> abilities = new TreeMap<>();
     private final Map<String, Pools> pools = new TreeMap<>();
@@ -68,6 +70,20 @@ public final class PtuDataCatalog {
             if (!hash(bytes).equals(text(row, "sha256"))) throw new IOException("PTU checksum mismatch: " + name);
             files.put(name, JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8)));
         }
+        for (var row : files.get("natures.json").getAsJsonArray()) {
+            var value = row.getAsJsonObject();
+            String name = text(value, "Nature");
+            if (name.isBlank()) continue;
+            int[] modifiers = new int[6];
+            var columns = List.of("HP", "ATK", "DEF", "SATK", "SDEF", "SPD");
+            for (int i = 0; i < columns.size(); i++) {
+                modifiers[i] = Integer.parseInt(text(value, columns.get(i)));
+                if (Math.abs(modifiers[i]) > (i == 0 ? 1 : 2)) throw new IOException("Invalid PTU nature modifier: " + name);
+            }
+            var nature = new PokemonCreation.Nature(name, PokemonCreation.Stats.of(modifiers));
+            if (natures.putIfAbsent(name, nature) != null) throw new IOException("Duplicate PTU nature: " + name);
+        }
+        if (natures.isEmpty()) throw new IOException("Missing PTU nature definitions");
         for (var row : files.get("moves.json").getAsJsonArray()) addMove(row.getAsJsonObject(), "moves.json", false);
         for (var row : files.get("species.json").getAsJsonArray()) addSpecies(row.getAsJsonObject(), "species.json", false);
         for (var entry : files.get("pools.json").getAsJsonObject().entrySet()) pools.put(key(entry.getKey()), pool(entry.getValue().getAsJsonObject()));
@@ -214,6 +230,7 @@ public final class PtuDataCatalog {
         for (String ancestor : lineage.getOrDefault(id, List.of())) collect(ancestor, visiting, result, true);
     }
     public String revision() { return revision; }
+    public List<PokemonCreation.Nature> natures() { return List.copyOf(natures.values()); }
     public int moveCount() { return moves.size(); }
     public int speciesCount() { return species.size(); }
     public int abilityCount() { return abilities.size(); }
@@ -228,10 +245,10 @@ public final class PtuDataCatalog {
     }
     private static Pools pool(JsonObject value) {
         if (value == null) return Pools.empty();
-        return new Pools(strings(value.get("basic")), strings(value.get("advanced")), strings(value.get("high")));
+        return new Pools(strings(value.get("basic")), strings(value.get("advanced")), strings(value.get("high")), strings(value.get("starting")));
     }
     private static Pools mergePools(Pools a, Pools b) {
-        return new Pools(mergeNames(a.basic(), b.basic()), mergeNames(a.advanced(), b.advanced()), mergeNames(a.high(), b.high()));
+        return new Pools(mergeNames(a.basic(), b.basic()), mergeNames(a.advanced(), b.advanced()), mergeNames(a.high(), b.high()), mergeNames(a.starting(), b.starting()));
     }
     private static List<String> mergeNames(List<String> a, List<String> b) {
         Map<String, String> names = new LinkedHashMap<>();

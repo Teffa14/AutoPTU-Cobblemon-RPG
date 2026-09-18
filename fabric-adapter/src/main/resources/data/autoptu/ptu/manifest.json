@@ -80,6 +80,12 @@
       "source": "files/Copia de Fancy PTU 1.05 Sheet - Version Hisui - Moves Data.csv",
       "source_sha256": "ea8b661988ac11714ac0b1ac65c5a75567d61f85a0399def589b5e8dff432a3f",
       "sha256": "fe8edc79a285acc27d7d5d9cc48148d6e6ff59fc2347206ca848c1ebff6e0280"
+    },
+    {
+      "resource": "natures.json",
+      "source": "files/Copia de Fancy PTU 1.05 Sheet - Version Hisui - Nature_Type Data.csv",
+      "source_sha256": "943bc98bcba58d069165b2b8d5f5535dfe0e67f3743afdc71b946944b87f6ada",
+      "sha256": "7cc46a2403fc0dff2832b896132d384311a09148e76c7cf3568b822199b0eccd"
     }
   ]
 }

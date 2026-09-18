@@ -8,9 +8,9 @@ plugins {
 }
 
 group = "io.autoptu"
-version = "0.3.1-ptumenus1"
+version = "0.4.0-ptuprofiles1"
 
-val autoPtuJavaSha = "aefc058328a9217d634477835a4851d521aaeccb"
+val autoPtuJavaSha = "ca7bb78abfd93ac608af4917033722698226e677"
 val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
 val autoPtuJavaJar = layout.buildDirectory.file("pinned-autoptu-java/$autoPtuJavaSha/autoptu-java-core.jar")
 
@@ -133,7 +133,7 @@ dependencies {
 
     implementation(project(":"))
 
-    // AutoPTU-Java stays read-only. The exact inspected commit is fetched as source and compiled
+    // The generated AutoPTU-Java checkout stays read-only. The exact commit is fetched and compiled
     // with javac. Its classes are copied into this mod jar below before Loom remaps the artifact.
     implementation(pinnedAutoPtuJava)
 
@@ -197,9 +197,10 @@ tasks.register<Zip>("packagePracticeBattle") {
 tasks.register<Zip>("packageNativeBattle") {
     description = "Packages the native Cobblemon integration, runtime dependencies and current guide."
     dependsOn("remapJar")
-    archiveFileName.set("AutoPTU-Cobblemon-PTU-Menus1-1.21.1.zip")
+    archiveFileName.set("AutoPTU-Cobblemon-PTU-Profiles1-1.21.1.zip")
     from(rootProject.file("docs/PTU_DATA_INTEGRATION.md"))
     from(rootProject.file("docs/PTU_NATIVE_MENUS_VERIFICATION.md"))
+    from(rootProject.file("docs/PTU_CREATION_PROFILES.md"))
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
     into("mods") {
         from(practicePackMods)

@@ -15,10 +15,11 @@ combat values and results are NOT canonical PTU values.
 | Item | Status | Scope/evidence |
 |---|---|---|
 | PTUDATA-001 | IMPLEMENTED / in-game verification pending | 15 bundled, checksummed source datasets; typed catalog; actual Pokémon UUID-bound persistent sheets; party/world/PC integration; source CSV corpus checks. PR #644, `docs/PTU_DATA_INTEGRATION.md`. |
-| PTUDATA-002 | BLOCKED / upstream contract | Final PTU stat allocation, acquired moves, selected abilities and full capture resolution are not exposed by the pinned Java core. Python's creation/capture implementations include allocation, nature, accuracy, trainer features and ball effects; do not replace them with adapter guesses. Upstream repositories remain read-only in this integration project. |
+| PTUDATA-002 | NEXT/PARTIAL | Core creation contract now ported separately in AutoPTU-Java PR #533 (user requested work on both projects), exact pinned dependency. 3,600 Python creation cases pass. UUID-bound nature, allocation, post-nature stats, base HP and selected abilities persisted once. Move acquisition, progression, ability execution and capture resolution remain pending; no adapter-invented rules. Python/generated core cache remain read-only. |
 | PTUDATA-003 | TODO | Route real encounters through PTU actions/effects and outcome persistence with oracle parity. Until then native battles remain explicitly non-PTU. |
 | PTUMENU-001 | IMPLEMENTED / graphical verification pending | Native starter/Summary/PC drawer; authenticated server queries; stale-selection rejection; UUID-bound acquisition provenance; no duplicated party/starter. Release 0.3.1-ptumenus1, PR #644. Read-only sheets, not full rules conversion. |
 | PTUMENU-002 | NEXT | Verify starter preview → native confirmation → party sheet → PC move → capture provenance → reload in a copied graphical test world; check scaling and no click-through. |
+| PTUPROFILE-001 | IMPLEMENTED / graphical verification pending | Creation profile persisted under autoptu:ptu_profile_v1, no rerolls on reads/store transfers, corrupt records preserved, evolution/level/catalog changes explicit. Native-menu stat breakdown/bars. Release 0.4.0-ptuprofiles1, PR #644, docs/PTU_CREATION_PROFILES.md. |
 
 
 The user explicitly requested reuse of real Cobblemon starters, teams, moves and battles.

@@ -59,7 +59,8 @@ public final class PtuPokemonDataRuntime {
                 pokemon.getForm().getName(), pokemon.getForm() == species.getStandardForm(), pokemon.getLevel(),
                 pokemon.getMoveSet().getMoves().stream().map(move -> move.getName()).toList(), pokemon.getAbility().getName());
         var cached = CACHE.get(pokemon);
-        if (cached != null && cached.input().equals(input)) return cached.binding();
+        if (cached != null && cached.input().equals(input))
+            return cached.binding().withCanonical(PtuCanonicalProfileRuntime.ensure(pokemon, cached.binding()));
         var binding = PtuPokemonBinding.resolve(catalog(), input);
         String encoded = JSON.toJson(binding);
         var data = pokemon.getPersistentData();
@@ -70,7 +71,7 @@ public final class PtuPokemonDataRuntime {
             if (coordinates != null) coordinates.getStore().onPokemonChanged(pokemon);
         }
         CACHE.put(pokemon, new Cached(input, binding));
-        return binding;
+        return binding.withCanonical(PtuCanonicalProfileRuntime.ensure(pokemon, binding));
     }
 
     public static void syncParty(ServerPlayerEntity player) {
@@ -135,6 +136,16 @@ public final class PtuPokemonDataRuntime {
     }
     private static void display(ServerCommandSource source, PtuPokemonBinding binding) {
         tell(source, "autoptu.ptu.pokemon", binding.nativeSpecies(), binding.nativeForm(), binding.level());
+        if (binding.canonical() != null) {
+            var view = binding.canonical();
+            tell(source, "autoptu.profile.state." + view.status());
+            if (view.profile() != null) {
+                var creation = view.profile().creation();
+                tell(source, "autoptu.profile.summary", creation.level(), creation.nature(), creation.baseMaximumHp());
+                tell(source, "autoptu.profile.final", creation.finalStats().toString());
+                tell(source, "autoptu.profile.selected", String.join(", ", creation.abilities()));
+            }
+        }
         if (binding.species() != null) {
             var species = binding.species();
             tell(source, "autoptu.ptu.base_stats", species.name(), species.baseStats().toString());
