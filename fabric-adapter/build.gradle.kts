@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.autoptu"
-version = "0.3.0-ptudata1"
+version = "0.3.1-ptumenus1"
 
 val autoPtuJavaSha = "aefc058328a9217d634477835a4851d521aaeccb"
 val autoPtuJavaWorkDir = layout.buildDirectory.dir("pinned-autoptu-java/$autoPtuJavaSha")
@@ -197,8 +197,9 @@ tasks.register<Zip>("packagePracticeBattle") {
 tasks.register<Zip>("packageNativeBattle") {
     description = "Packages the native Cobblemon integration, runtime dependencies and current guide."
     dependsOn("remapJar")
-    archiveFileName.set("AutoPTU-Cobblemon-PTU-Data1-1.21.1.zip")
+    archiveFileName.set("AutoPTU-Cobblemon-PTU-Menus1-1.21.1.zip")
     from(rootProject.file("docs/PTU_DATA_INTEGRATION.md"))
+    from(rootProject.file("docs/PTU_NATIVE_MENUS_VERIFICATION.md"))
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
     into("mods") {
         from(practicePackMods)

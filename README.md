@@ -2,7 +2,13 @@
 
 Minecraft/Cobblemon integration with mutually exclusive native and experimental PTU modes.
 
-## PTU database integration: 0.3.0-ptudata1
+## PTU native-menu sheets: 0.3.1-ptumenus1
+
+The existing Cobblemon starter, Pokémon Summary and PC screens now have a **PTU sheet**
+button. Starter previews and owned Pokémon sheets are resolved by the server; no
+second team or starter is created. Native acquisition/capture events persist provenance.
+Scroll/arrow keys navigate the drawer, R refreshes, and Esc returns to the native menu.
+This is a read-only PTU data view, **not yet PTU starter generation or capture mechanics**.
 
 The mod now bundles fifteen checksummed PTU datasets and attaches a PTU data sheet
 to real Pokémon UUIDs in parties, loaded world entities and explicitly synchronized

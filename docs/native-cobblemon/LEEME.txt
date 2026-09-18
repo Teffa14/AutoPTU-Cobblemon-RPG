@@ -1,4 +1,13 @@
-AUTOPTU 0.3.0-ptudata1 - BASE PTU VINCULADA A POKEMON COBBLEMON
+AUTOPTU 0.3.1-ptumenus1 - FICHAS PTU EN LOS MENUS DE COBBLEMON
+
+NUEVO: BOTON FICHA PTU
+En la seleccion de starter, el resumen del Pokemon y el PC originales de Cobblemon,
+pulsa Ficha PTU (arriba a la derecha). No se abre otro equipo ni se entrega otro starter.
+Rueda o flechas: desplazar. R: actualizar. Esc: cerrar la ficha sin cerrar el menu.
+En el starter, cerra la ficha y confirma con el boton original de Cobblemon.
+La vista previa consulta la opcion configurada por el servidor, sin sortear Pokemon.
+Capturas y adquisiciones conservan el UUID real y registran su procedencia.
+Esto NO convierte aun la creacion del starter ni las tiradas de captura en PTU.
 
 NUEVO: FICHAS PTU REALES
 15 datasets incluidos: especies/formas, movimientos, habilidades y learnsets.

@@ -1,4 +1,4 @@
-# PTU database attachment — 0.3.0-ptudata1
+# PTU sheets in native menus — 0.3.1-ptumenus1
 
 This is a data-integration release, **not a completed PTU battle-engine migration**.
 The user direction is PTU rules with Cobblemon Pokémon/presentation. Native battle
@@ -7,6 +7,21 @@ is silently rewritten by this data attachment.
 
 ## Implemented
 
+- The original Cobblemon starter selection, Pokémon Summary and PC now include a
+  `Ficha PTU` / `PTU sheet` button. Its scrollable drawer stays inside the original
+  screen; it does not create another starter, party, inventory or battle menu.
+- Starter previews resolve the server's configured category and option, including
+  species/form and PTU ability pools. Random starters are not rolled by previews;
+  no Pokémon is created until Cobblemon handles its normal confirmation.
+- Team/PC queries revalidate the requesting player's current ownership on the server.
+  Clients send identity/selection only, with bounded payloads and per-player throttling.
+  Selection correlation rejects late responses; resize reinstalls screen callbacks.
+- Native starter, capture and acquisition events attach sheets and UUID-bound provenance
+  immediately. Trading or moving between stores preserves recorded creation provenance.
+  Native captures are explicitly recorded as `NATIVE_CAPTURE`, never as PTU rolls.
+- The drawer consumes input within its bounds to avoid clicking native move/release
+  controls behind it. Scroll or arrow keys navigate; R refreshes; Esc closes the drawer.
+  Loading, unavailable, unsupported-server and missing-data states are explicit.
 - Fifteen source datasets are bundled in the mod, not loaded from a developer's PC.
 - Source paths, source revision and per-file SHA-256 are recorded in `manifest.json`.
 - The Python AutoPTU Moves Data CSV takes priority over supplemental move descriptions.
@@ -52,6 +67,13 @@ outside a PTU pool is reported, not automatically accepted as a PTU ability.
 
 ## Not implemented by this release
 
+- **This is not the complete requested native-menu PTU gameplay conversion.**
+  Starter creation, final stat allocation, selected abilities, capture accuracy/rolls,
+  progression and battle results still need authoritative PTU integration.
+- The pinned Java core does not expose the full creation/stat-allocation/capture
+  contracts needed here. Python's capture resolver also includes accuracy, trainer
+  features and ball effects: substituting a single chance formula would not be parity.
+  Those contracts need a separate upstream implementation, not invented adapter rules.
 - The native Cobblemon battle engine still runs `/autoptu battle wild` and native PvP.
   Attaching a sheet does not change that authority.
 - Final PTU stats, point allocations, nature, selected PTU abilities, unlocks and an
