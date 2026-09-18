@@ -27,7 +27,7 @@ import java.util.UUID;
  * animation are cleared during projection. These presentation repairs never read canonical Pokemon HP or statuses and
  * prevent vanilla environmental state from implying or deferring canonical Pokemon damage, status, aggression, targeting
  * or faint. When an actor leaves the canonical WILD projection, its pre-projection invulnerability, glowing, invisibility,
- * frozen-tick and air state are restored exactly.</p>
+ * frozen-tick, air and fall-distance state are restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
@@ -35,6 +35,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     private static final Map<ActorKey, Boolean> PREVIOUS_INVISIBILITY = new HashMap<>();
     private static final Map<ActorKey, Integer> PREVIOUS_FROZEN_TICKS = new HashMap<>();
     private static final Map<ActorKey, Integer> PREVIOUS_AIR = new HashMap<>();
+    private static final Map<ActorKey, Float> PREVIOUS_FALL_DISTANCE = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -46,6 +47,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             PREVIOUS_INVISIBILITY.remove(key);
             PREVIOUS_FROZEN_TICKS.remove(key);
             PREVIOUS_AIR.remove(key);
+            PREVIOUS_FALL_DISTANCE.remove(key);
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             PREVIOUS_INVULNERABILITY.clear();
@@ -53,6 +55,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             PREVIOUS_INVISIBILITY.clear();
             PREVIOUS_FROZEN_TICKS.clear();
             PREVIOUS_AIR.clear();
+            PREVIOUS_FALL_DISTANCE.clear();
         });
     }
 
@@ -76,6 +79,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             PREVIOUS_INVISIBILITY.putIfAbsent(actorKey, actor.isInvisible());
             PREVIOUS_FROZEN_TICKS.putIfAbsent(actorKey, actor.getFrozenTicks());
             PREVIOUS_AIR.putIfAbsent(actorKey, actor.getAir());
+            PREVIOUS_FALL_DISTANCE.putIfAbsent(actorKey, actor.fallDistance);
             if (shouldRestoreNativeHealth(true, actor.getHealth(), actor.getMaxHealth())) actor.setHealth(actor.getMaxHealth());
             if (shouldClearNativeAbsorption(true, actor.getAbsorptionAmount())) actor.setAbsorptionAmount(0.0F);
             if (shouldClearNativeStuckArrows(true, actor.getStuckArrowCount())) actor.setStuckArrowCount(0);
@@ -114,6 +118,8 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             if (actor != null && previousFrozenTicks != null && actor.getFrozenTicks() != previousFrozenTicks) actor.setFrozenTicks(previousFrozenTicks);
             Integer previousAir = PREVIOUS_AIR.remove(key);
             if (actor != null && previousAir != null && actor.getAir() != previousAir) actor.setAir(previousAir);
+            Float previousFallDistance = PREVIOUS_FALL_DISTANCE.remove(key);
+            if (actor != null && previousFallDistance != null && actor.fallDistance != previousFallDistance) actor.fallDistance = previousFallDistance;
             iterator.remove();
         }
     }
@@ -144,6 +150,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     static boolean restoredInvisibility(boolean previousInvisibility) { return previousInvisibility; }
     static int restoredFrozenTicks(int previousFrozenTicks) { return previousFrozenTicks; }
     static int restoredAir(int previousAir) { return previousAir; }
+    static float restoredFallDistance(float previousFallDistance) { return previousFallDistance; }
 
     private record ActorKey(RegistryKey<World> worldKey, UUID actorId) {
         private ActorKey {
