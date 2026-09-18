@@ -21,10 +21,11 @@ import java.util.UUID;
  *
  * <p>AutoPTU-Java remains authoritative for battle damage, HP, statuses and outcomes. A projected Cobblemon body is
  * therefore never allowed to make HP/death decisions through Minecraft damage, regardless of whether that presentation
- * actor is currently encounter-active or dormant. Native Minecraft fire, freezing, air depletion, accumulated fall
- * distance, residual hurt animation and residual death animation are cleared while the actor is projected so vanilla
- * environmental effects cannot imply or defer canonical Pokemon damage, status or faint. When an actor leaves the
- * canonical WILD projection, its pre-projection invulnerability flag is restored exactly.</p>
+ * actor is currently encounter-active or dormant. Native Minecraft health is kept at the presentation actor's native
+ * maximum, while fire, freezing, air depletion, accumulated fall distance, residual hurt animation and residual death
+ * animation are cleared during projection. These presentation repairs never read canonical Pokemon HP and prevent
+ * vanilla environmental state from implying or deferring canonical Pokemon damage, status or faint. When an actor leaves
+ * the canonical WILD projection, its pre-projection invulnerability flag is restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
@@ -52,6 +53,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             UUID actorId = actor.getUuid();
             projectedActorIds.add(actorId);
             synchronizeShield(new ActorKey(worldKey, actorId), actor.isInvulnerable(), actor::setInvulnerable);
+            if (shouldRestoreNativeHealth(true, actor.getHealth(), actor.getMaxHealth())) actor.setHealth(actor.getMaxHealth());
             if (shouldExtinguishCanonicalProjection(true, actor.isOnFire())) actor.extinguish();
             if (shouldClearNativeFreezing(true, actor.getFrozenTicks())) actor.setFrozenTicks(0);
             if (shouldRestoreNativeAir(true, actor.getAir(), actor.getMaxAir())) actor.setAir(actor.getMaxAir());
@@ -83,6 +85,9 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     }
 
     static boolean shouldShieldCanonicalProjection(boolean projected) { return projected; }
+    static boolean shouldRestoreNativeHealth(boolean projected, float health, float maxHealth) {
+        return projected && Float.isFinite(health) && Float.isFinite(maxHealth) && maxHealth > 0.0F && health < maxHealth;
+    }
     static boolean shouldExtinguishCanonicalProjection(boolean projected, boolean onFire) { return projected && onFire; }
     static boolean shouldClearNativeFreezing(boolean projected, int frozenTicks) { return projected && frozenTicks > 0; }
     static boolean shouldRestoreNativeAir(boolean projected, int air, int maxAir) { return projected && air < maxAir; }
