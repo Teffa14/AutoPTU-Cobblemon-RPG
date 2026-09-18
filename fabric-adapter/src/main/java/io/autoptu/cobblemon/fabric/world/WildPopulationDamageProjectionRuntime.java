@@ -26,11 +26,12 @@ import java.util.UUID;
  * are cleared; and fire, freezing, air depletion, accumulated fall distance, residual hurt animation and residual death
  * animation are cleared during projection. These presentation repairs never read canonical Pokemon HP or statuses and
  * prevent vanilla environmental state from implying or deferring canonical Pokemon damage, status, aggression, targeting
- * or faint. When an actor leaves the canonical WILD projection, its pre-projection invulnerability and invisibility flags
- * are restored exactly.</p>
+ * or faint. When an actor leaves the canonical WILD projection, its pre-projection invulnerability, glowing and invisibility
+ * flags are restored exactly.</p>
  */
 public final class WildPopulationDamageProjectionRuntime implements ModInitializer {
     private static final Map<ActorKey, Boolean> PREVIOUS_INVULNERABILITY = new HashMap<>();
+    private static final Map<ActorKey, Boolean> PREVIOUS_GLOWING = new HashMap<>();
     private static final Map<ActorKey, Boolean> PREVIOUS_INVISIBILITY = new HashMap<>();
 
     @Override
@@ -39,10 +40,12 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
             ActorKey key = new ActorKey(world.getRegistryKey(), entity.getUuid());
             PREVIOUS_INVULNERABILITY.remove(key);
+            PREVIOUS_GLOWING.remove(key);
             PREVIOUS_INVISIBILITY.remove(key);
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             PREVIOUS_INVULNERABILITY.clear();
+            PREVIOUS_GLOWING.clear();
             PREVIOUS_INVISIBILITY.clear();
         });
     }
@@ -63,6 +66,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             ActorKey actorKey = new ActorKey(worldKey, actorId);
             projectedActorIds.add(actorId);
             synchronizeShield(actorKey, actor.isInvulnerable(), actor::setInvulnerable);
+            PREVIOUS_GLOWING.putIfAbsent(actorKey, actor.isGlowing());
             PREVIOUS_INVISIBILITY.putIfAbsent(actorKey, actor.isInvisible());
             if (shouldRestoreNativeHealth(true, actor.getHealth(), actor.getMaxHealth())) actor.setHealth(actor.getMaxHealth());
             if (shouldClearNativeAbsorption(true, actor.getAbsorptionAmount())) actor.setAbsorptionAmount(0.0F);
@@ -94,6 +98,10 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
             if (!key.worldKey().equals(worldKey) || projectedActorIds.contains(key.actorId())) continue;
             var actor = world.getEntity(key.actorId());
             if (actor != null && actor.isInvulnerable() != entry.getValue()) actor.setInvulnerable(entry.getValue());
+            Boolean previousGlowing = PREVIOUS_GLOWING.remove(key);
+            if (actor != null && previousGlowing != null && actor.isGlowing() != previousGlowing) {
+                actor.setGlowing(previousGlowing);
+            }
             Boolean previousInvisibility = PREVIOUS_INVISIBILITY.remove(key);
             if (actor != null && previousInvisibility != null && actor.isInvisible() != previousInvisibility) {
                 actor.setInvisible(previousInvisibility);
@@ -128,6 +136,7 @@ public final class WildPopulationDamageProjectionRuntime implements ModInitializ
     static boolean shouldClearNativeHurtAnimation(boolean projected, int hurtTime) { return projected && hurtTime > 0; }
     static boolean shouldClearNativeDeathAnimation(boolean projected, int deathTime) { return projected && deathTime > 0; }
     static boolean restoredInvulnerability(boolean previousInvulnerability) { return previousInvulnerability; }
+    static boolean restoredGlowing(boolean previousGlowing) { return previousGlowing; }
     static boolean restoredInvisibility(boolean previousInvisibility) { return previousInvisibility; }
 
     private record ActorKey(RegistryKey<World> worldKey, UUID actorId) {
