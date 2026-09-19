@@ -182,12 +182,23 @@ public final class VisibleWildPokemonEncounterRuntime {
         UUID currentUuid = presentationEntity.getUuid();
         UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
         boolean interactionActive = previousUuid == null || INTERACTION_ACTIVE.contains(previousUuid);
+        if (previousUuid == null && hasLiveReservation(presentationEntity.getServer(), encounterId)) {
+            interactionActive = false;
+        }
         if (previousUuid != null && !previousUuid.equals(currentUuid)) {
             BINDINGS.remove(previousUuid);
             INTERACTION_ACTIVE.remove(previousUuid);
         }
         BINDINGS.put(currentUuid, binding);
         setInteractionActive(currentUuid, interactionActive);
+    }
+
+    private static boolean hasLiveReservation(MinecraftServer server, String canonicalEncounterId) {
+        if (server == null) return false;
+        synchronized (HANDOFFS) {
+            PersistentWorldEncounterPartyHandoffService service = HANDOFFS.get(server);
+            return service != null && service.findByEncounterId(canonicalEncounterId).isPresent();
+        }
     }
 
     public static boolean unbind(UUID entityUuid) {
