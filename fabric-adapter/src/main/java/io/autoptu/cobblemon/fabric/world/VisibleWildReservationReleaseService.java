@@ -44,6 +44,7 @@ public final class VisibleWildReservationReleaseService {
 
         if (!handoffs.release(encounterId)) return Outcome.RESERVATION_NOT_FOUND;
         requests.clearForPlayer(reservation.canonicalPlayerId());
+        VisibleWildPokemonEncounterRuntime.clearEncounterReserved(encounterId);
 
         var entityUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounterId);
         if (entityUuid.isEmpty()) return Outcome.RELEASED_PRESENTATION_NOT_BOUND;
