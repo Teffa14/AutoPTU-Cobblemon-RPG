@@ -51,9 +51,14 @@ public final class MareaVisibleWildPokemonRuntime {
     }
 
     static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
-        if (canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
+        if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
         if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
+        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId()).orElse(null);
+        if (population == null) return null;
+        var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+        if (descriptor == null || !descriptor.worldEligibility().accepts(world)) return null;
+        if (!descriptor.projectionEligibility().test(encounter)) return null;
         return WildPopulationRuntime.actorForEncounter(world, canonicalEncounterId);
     }
 
