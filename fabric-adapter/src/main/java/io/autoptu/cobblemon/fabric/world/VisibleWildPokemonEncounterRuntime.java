@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Cobblemon result.
  */
 public final class VisibleWildPokemonEncounterRuntime {
+    public enum CancelOutcome { CANCELLED, NO_PENDING_REQUEST, RESERVATION_MISMATCH }
+
     static final double MAX_INTERACTION_DISTANCE_SQUARED = 36.0D;
     private static final WorldEncounterTriggerRequestService REQUESTS = new WorldEncounterTriggerRequestService();
     private static final Map<UUID, Binding> BINDINGS = new ConcurrentHashMap<>();
@@ -92,23 +94,50 @@ public final class VisibleWildPokemonEncounterRuntime {
         });
     }
 
+    public static CancelOutcome cancelPendingEncounter(MinecraftServer server, String canonicalPlayerId) {
+        if (server == null || canonicalPlayerId == null || canonicalPlayerId.isBlank()) {
+            return CancelOutcome.NO_PENDING_REQUEST;
+        }
+        String playerId = canonicalPlayerId.strip();
+        var pending = REQUESTS.pendingForPlayer(playerId).orElse(null);
+        if (pending == null) return CancelOutcome.NO_PENDING_REQUEST;
+
+        synchronized (HANDOFFS) {
+            PersistentWorldEncounterPartyHandoffService handoffs = HANDOFFS.get(server);
+            if (handoffs == null) {
+                REQUESTS.clearForPlayer(playerId);
+                boundEntityUuid(pending.canonicalEncounterId()).ifPresent(uuid -> setInteractionActive(uuid, true));
+                return CancelOutcome.CANCELLED;
+            }
+            var reservation = handoffs.findByPlayerId(playerId).orElse(null);
+            if (reservation == null) {
+                REQUESTS.clearForPlayer(playerId);
+                boundEntityUuid(pending.canonicalEncounterId()).ifPresent(uuid -> setInteractionActive(uuid, true));
+                return CancelOutcome.CANCELLED;
+            }
+            if (!pending.canonicalEncounterId().equals(reservation.canonicalEncounterId())) {
+                return CancelOutcome.RESERVATION_MISMATCH;
+            }
+            var released = new VisibleWildReservationReleaseService(handoffs, REQUESTS)
+                    .release(pending.canonicalEncounterId());
+            return released == VisibleWildReservationReleaseService.Outcome.RELEASED_AND_REACTIVATED
+                    || released == VisibleWildReservationReleaseService.Outcome.RELEASED_PRESENTATION_NOT_BOUND
+                    ? CancelOutcome.CANCELLED
+                    : CancelOutcome.RESERVATION_MISMATCH;
+        }
+    }
+
     static boolean isWithinInteractionDistanceSquared(double squaredDistance) {
         return Double.isFinite(squaredDistance)
                 && squaredDistance >= 0.0D
                 && squaredDistance <= MAX_INTERACTION_DISTANCE_SQUARED;
     }
 
-    /**
-     * Shared normal-world interaction gate used by both the physical click and every visible focus
-     * surface. Minecraft visibility is presentation/world geometry only; it is never PTU battle LoS.
-     */
     static boolean isEligibleInteractionTarget(ServerPlayerEntity player, PokemonEntity presentationEntity) {
         if (player == null || presentationEntity == null || presentationEntity.isRemoved() || presentationEntity.isInvisible()) {
             return false;
         }
-        return isEligibleInteractionTarget(
-                player.squaredDistanceTo(presentationEntity),
-                player.canSee(presentationEntity));
+        return isEligibleInteractionTarget(player.squaredDistanceTo(presentationEntity), player.canSee(presentationEntity));
     }
 
     static boolean isEligibleInteractionTarget(double squaredDistance, boolean minecraftVisible) {
@@ -149,12 +178,7 @@ public final class VisibleWildPokemonEncounterRuntime {
     public static void bind(PokemonEntity presentationEntity, String canonicalEncounterId, String zoneId, String contextId) {
         if (presentationEntity == null) throw new IllegalArgumentException("presentationEntity is required");
         String encounterId = requireId(canonicalEncounterId, "canonicalEncounterId");
-        Binding binding = new Binding(
-                encounterId,
-                requireId(zoneId, "zoneId"),
-                requireId(contextId, "contextId"),
-                presentationEntity
-        );
+        Binding binding = new Binding(encounterId, requireId(zoneId, "zoneId"), requireId(contextId, "contextId"), presentationEntity);
         UUID currentUuid = presentationEntity.getUuid();
         UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
         if (previousUuid != null && !previousUuid.equals(currentUuid)) {
@@ -189,9 +213,6 @@ public final class VisibleWildPokemonEncounterRuntime {
         if (active) INTERACTION_ACTIVE.add(entityUuid);
         else INTERACTION_ACTIVE.remove(entityUuid);
 
-        // The binding retains the canonical presentation body across an ordinary chunk unload.
-        // Synchronize only Minecraft world/presentation state with the server-owned interaction state;
-        // never read the Cobblemon Pokemon payload or infer battle legality from these projection controls.
         PokemonEntity actor = binding.presentationEntity();
         actor.setInvisible(!active);
         if (!active) {
@@ -227,10 +248,5 @@ public final class VisibleWildPokemonEncounterRuntime {
         return value.strip();
     }
 
-    record Binding(
-            String canonicalEncounterId,
-            String zoneId,
-            String contextId,
-            PokemonEntity presentationEntity
-    ) {}
+    record Binding(String canonicalEncounterId, String zoneId, String contextId, PokemonEntity presentationEntity) {}
 }
