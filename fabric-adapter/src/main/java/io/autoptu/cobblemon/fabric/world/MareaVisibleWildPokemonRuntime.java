@@ -42,11 +42,6 @@ public final class MareaVisibleWildPokemonRuntime {
     ) {
         requireMareaEncounter(encounter);
         if (world == null) throw new IllegalArgumentException("world is required");
-        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(encounter.populationId()).orElse(null);
-        if (population == null) return null;
-        var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
-        if (descriptor == null || !descriptor.worldEligibility().accepts(world)) return null;
-        if (!descriptor.projectionEligibility().test(encounter)) return null;
         return WildPopulationRuntime.ensureProjected(world, encounter);
     }
 
