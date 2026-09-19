@@ -37,6 +37,7 @@ public final class VisibleWildPokemonEncounterRuntime {
     private static final Map<UUID, Binding> BINDINGS = new ConcurrentHashMap<>();
     private static final Map<String, UUID> ENTITY_BY_ENCOUNTER = new ConcurrentHashMap<>();
     private static final Set<UUID> INTERACTION_ACTIVE = ConcurrentHashMap.newKeySet();
+    private static final Set<String> RESERVED_ENCOUNTERS = ConcurrentHashMap.newKeySet();
     private static final Map<MinecraftServer, PersistentWorldEncounterPartyHandoffService> HANDOFFS =
             new IdentityHashMap<>();
 
@@ -85,6 +86,7 @@ public final class VisibleWildPokemonEncounterRuntime {
                 return ActionResult.FAIL;
             }
 
+            markEncounterReserved(binding.canonicalEncounterId());
             setInteractionActive(presentationEntity.getUuid(), false);
             serverPlayer.sendMessage(Text.literal(
                     decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED
@@ -106,12 +108,14 @@ public final class VisibleWildPokemonEncounterRuntime {
             PersistentWorldEncounterPartyHandoffService handoffs = HANDOFFS.get(server);
             if (handoffs == null) {
                 REQUESTS.clearForPlayer(playerId);
+                clearEncounterReserved(pending.canonicalEncounterId());
                 boundEntityUuid(pending.canonicalEncounterId()).ifPresent(uuid -> setInteractionActive(uuid, true));
                 return CancelOutcome.CANCELLED;
             }
             var reservation = handoffs.findByPlayerId(playerId).orElse(null);
             if (reservation == null) {
                 REQUESTS.clearForPlayer(playerId);
+                clearEncounterReserved(pending.canonicalEncounterId());
                 boundEntityUuid(pending.canonicalEncounterId()).ifPresent(uuid -> setInteractionActive(uuid, true));
                 return CancelOutcome.CANCELLED;
             }
@@ -181,7 +185,8 @@ public final class VisibleWildPokemonEncounterRuntime {
         Binding binding = new Binding(encounterId, requireId(zoneId, "zoneId"), requireId(contextId, "contextId"), presentationEntity);
         UUID currentUuid = presentationEntity.getUuid();
         UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
-        boolean interactionActive = previousUuid == null || INTERACTION_ACTIVE.contains(previousUuid);
+        boolean interactionActive = !RESERVED_ENCOUNTERS.contains(encounterId)
+                && (previousUuid == null || INTERACTION_ACTIVE.contains(previousUuid));
         if (previousUuid != null && !previousUuid.equals(currentUuid)) {
             BINDINGS.remove(previousUuid);
             INTERACTION_ACTIVE.remove(previousUuid);
@@ -205,6 +210,20 @@ public final class VisibleWildPokemonEncounterRuntime {
 
     static boolean isInteractionActive(UUID entityUuid) {
         return binding(entityUuid).isPresent() && INTERACTION_ACTIVE.contains(entityUuid);
+    }
+
+    static void markEncounterReserved(String canonicalEncounterId) {
+        RESERVED_ENCOUNTERS.add(requireId(canonicalEncounterId, "canonicalEncounterId"));
+    }
+
+    static void clearEncounterReserved(String canonicalEncounterId) {
+        if (canonicalEncounterId == null || canonicalEncounterId.isBlank()) return;
+        RESERVED_ENCOUNTERS.remove(canonicalEncounterId.strip());
+    }
+
+    static boolean isEncounterReserved(String canonicalEncounterId) {
+        return canonicalEncounterId != null && !canonicalEncounterId.isBlank()
+                && RESERVED_ENCOUNTERS.contains(canonicalEncounterId.strip());
     }
 
     static void setInteractionActive(UUID entityUuid, boolean active) {
