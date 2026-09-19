@@ -8,9 +8,10 @@ import net.minecraft.server.world.ServerWorld;
 /**
  * Clears vanilla projectile-embedding presentation from dormant canonical WILD actors.
  *
- * <p>Embedded-arrow state belongs to the Minecraft presentation body. AutoPTU-Java remains authoritative for battle
- * damage, HP, statuses and outcomes. A hidden or otherwise interaction-inactive Cobblemon actor must not preserve
- * vanilla arrow visuals that can leak stale Minecraft combat presentation while the canonical WILD is suspended.</p>
+ * <p>Embedded-arrow and bee-stinger state belongs to the Minecraft presentation body. AutoPTU-Java remains authoritative
+ * for battle damage, HP, statuses and outcomes. A hidden or otherwise interaction-inactive Cobblemon actor must not
+ * preserve vanilla projectile visuals that can leak stale Minecraft combat presentation while the canonical WILD is
+ * suspended.</p>
  */
 public final class WildPopulationProjectileProjectionRuntime implements ModInitializer {
     @Override
@@ -29,15 +30,25 @@ public final class WildPopulationProjectileProjectionRuntime implements ModIniti
         for (var projected : WildEcologyProjectionSource.collect(world)) {
             var actor = projected.actor();
             boolean interactionActive = VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid());
+            boolean reset = false;
             if (shouldClearEmbeddedArrows(interactionActive, actor.isInvisible(), actor.getStuckArrowCount())) {
                 actor.setStuckArrowCount(0);
-                resetActors++;
+                reset = true;
             }
+            if (shouldClearEmbeddedStingers(interactionActive, actor.isInvisible(), actor.getStingerCount())) {
+                actor.setStingerCount(0);
+                reset = true;
+            }
+            if (reset) resetActors++;
         }
         return resetActors;
     }
 
     static boolean shouldClearEmbeddedArrows(boolean interactionActive, boolean invisible, int stuckArrowCount) {
         return (!interactionActive || invisible) && stuckArrowCount > 0;
+    }
+
+    static boolean shouldClearEmbeddedStingers(boolean interactionActive, boolean invisible, int stingerCount) {
+        return (!interactionActive || invisible) && stingerCount > 0;
     }
 }
