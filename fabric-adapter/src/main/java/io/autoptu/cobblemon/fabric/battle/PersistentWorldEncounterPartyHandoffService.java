@@ -73,6 +73,10 @@ public final class PersistentWorldEncounterPartyHandoffService {
         return new Decision(map(decision.outcome()), decision.reservation());
     }
 
+    public synchronized Optional<WorldEncounterPartyHandoffService.Reservation> findByEncounterId(String encounterId) {
+        return handoffService.findByEncounterId(encounterId);
+    }
+
     public synchronized Optional<WorldEncounterPartyHandoffService.Reservation> findByPlayerId(String playerId) {
         return handoffService.findByPlayerId(playerId);
     }

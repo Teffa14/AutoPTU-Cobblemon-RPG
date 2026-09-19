@@ -4,6 +4,7 @@ import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
 import io.autoptu.cobblemon.fabric.battle.WorldEncounterTriggerRequestService;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
+import io.autoptu.cobblemon.fabric.world.VisibleWildPokemonEncounterRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -13,7 +14,7 @@ import net.minecraft.text.Text;
 import java.util.Map;
 import java.util.Optional;
 
-/** `/autoptu encounter status` read-only projection of server-owned encounter preparation state. */
+/** Encounter fallback surfaces backed only by server-owned visible-world encounter state. */
 public final class FabricEncounterStatusRuntime {
     private FabricEncounterStatusRuntime() {}
 
@@ -22,7 +23,39 @@ public final class FabricEncounterStatusRuntime {
                 dispatcher.register(CommandManager.literal("autoptu")
                         .then(CommandManager.literal("encounter")
                                 .then(CommandManager.literal("status")
-                                        .executes(context -> show(context.getSource()))))));
+                                        .executes(context -> show(context.getSource())))
+                                .then(CommandManager.literal("cancel")
+                                        .executes(context -> cancel(context.getSource()))))));
+    }
+
+    private static int cancel(ServerCommandSource source) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null || player.getServer() == null) {
+            source.sendError(Text.literal("Encounter cancellation must be requested by an authenticated player."));
+            return 0;
+        }
+        String playerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
+        if (FabricCanonicalPlayerStoreRuntime.requireRepository(player.getServer()).findPlayer(playerId).isEmpty()) {
+            source.sendError(Text.literal("No persistent canonical Trainer is configured."));
+            return 0;
+        }
+
+        VisibleWildPokemonEncounterRuntime.CancelOutcome outcome =
+                VisibleWildPokemonEncounterRuntime.cancelPendingEncounter(player.getServer(), playerId);
+        return switch (outcome) {
+            case CANCELLED -> {
+                player.sendMessage(Text.literal("Pending wild encounter cancelled. The roaming Pokemon is available again."), false);
+                yield 1;
+            }
+            case NO_PENDING_REQUEST -> {
+                source.sendError(Text.literal("No pending wild encounter exists."));
+                yield 0;
+            }
+            case RESERVATION_MISMATCH -> {
+                source.sendError(Text.literal("Encounter state changed. Cancellation was refused without changing the reservation."));
+                yield 0;
+            }
+        };
     }
 
     private static int show(ServerCommandSource source) {
@@ -63,6 +96,7 @@ public final class FabricEncounterStatusRuntime {
                             + " @ " + request.dimensionId()
                             + " " + request.blockX() + "," + request.blockY() + "," + request.blockZ()
             ), false);
+            player.sendMessage(Text.literal("Use /autoptu encounter cancel to release this pending reservation."), false);
         } else {
             player.sendMessage(Text.literal("Pending world encounter: none"), false);
         }
