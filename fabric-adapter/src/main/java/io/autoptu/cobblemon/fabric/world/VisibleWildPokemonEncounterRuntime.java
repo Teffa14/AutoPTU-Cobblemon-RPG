@@ -181,12 +181,13 @@ public final class VisibleWildPokemonEncounterRuntime {
         Binding binding = new Binding(encounterId, requireId(zoneId, "zoneId"), requireId(contextId, "contextId"), presentationEntity);
         UUID currentUuid = presentationEntity.getUuid();
         UUID previousUuid = ENTITY_BY_ENCOUNTER.put(encounterId, currentUuid);
+        boolean interactionActive = previousUuid == null || INTERACTION_ACTIVE.contains(previousUuid);
         if (previousUuid != null && !previousUuid.equals(currentUuid)) {
             BINDINGS.remove(previousUuid);
             INTERACTION_ACTIVE.remove(previousUuid);
         }
         BINDINGS.put(currentUuid, binding);
-        INTERACTION_ACTIVE.add(currentUuid);
+        setInteractionActive(currentUuid, interactionActive);
     }
 
     public static boolean unbind(UUID entityUuid) {
