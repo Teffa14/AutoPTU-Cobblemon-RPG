@@ -67,6 +67,11 @@ public final class VisibleWildPokemonEncounterRuntime {
                     presentationEntity.getBlockX(), presentationEntity.getBlockY(), presentationEntity.getBlockZ(),
                     serverPlayer.getServer().getTicks());
 
+            if (!binding.canonicalEncounterId().equals(decision.request().canonicalEncounterId())) {
+                serverPlayer.sendMessage(Text.literal("Finish your pending wild encounter first."), true);
+                return ActionResult.FAIL;
+            }
+
             PersistentWorldEncounterPartyHandoffService.Decision handoff =
                     handoffService(serverPlayer.getServer(), blueprintRegistry).reserve(decision.request());
             if (!handoff.ready() || handoff.reservation() == null
@@ -78,6 +83,7 @@ public final class VisibleWildPokemonEncounterRuntime {
                 return ActionResult.FAIL;
             }
 
+            setInteractionActive(presentationEntity.getUuid(), false);
             serverPlayer.sendMessage(Text.literal(
                     decision.outcome() == WorldEncounterTriggerRequestService.Outcome.CREATED
                             ? "Your party is locked in for the wild encounter."
