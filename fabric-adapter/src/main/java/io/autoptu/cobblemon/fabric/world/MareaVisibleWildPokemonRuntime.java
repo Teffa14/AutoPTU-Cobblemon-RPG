@@ -14,6 +14,8 @@ import net.minecraft.util.math.BlockPos;
  * {@link WildEcologyDescriptorRegistry}; this class no longer owns production lifecycle policy.</p>
  */
 public final class MareaVisibleWildPokemonRuntime {
+    private static final String MAREA_ECOLOGY_SOURCE_ID = "fixture.ouros.marea";
+
     private MareaVisibleWildPokemonRuntime() {}
 
     public static void register() {
@@ -25,7 +27,8 @@ public final class MareaVisibleWildPokemonRuntime {
         if (world == null) throw new IllegalArgumentException("world is required");
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            if (!population.siteId().startsWith("ouros.marea.")) continue;
+            var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+            if (descriptor == null || !MAREA_ECOLOGY_SOURCE_ID.equals(descriptor.sourceId())) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 if (WildPopulationRuntime.ensureProjected(world, encounter) != null) visible++;
             }
