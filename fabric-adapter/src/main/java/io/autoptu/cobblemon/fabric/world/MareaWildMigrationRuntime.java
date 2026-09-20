@@ -26,7 +26,7 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> reconcile(server.getOverworld()));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> ACTIVE_MIGRATION_PROJECTION.remove(server));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (server.getTicks() % MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() != 0) return;
+            if (server.getTicks() % WildPopulationRuntime.presenceReconcileIntervalTicks() != 0) return;
             reconcile(server.getOverworld());
         });
     }
@@ -61,7 +61,7 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
             PokemonEntity actor = recoverBoundActor(world, encounter);
-            if (actor == null) actor = MareaVisibleWildPokemonRuntime.ensureProjected(world, encounter);
+            if (actor == null) actor = WildPopulationRuntime.ensureProjected(world, encounter);
             if (actor == null) continue;
 
             BlockPos anchor = new BlockPos(site.x(), site.y(), site.z()).add(
