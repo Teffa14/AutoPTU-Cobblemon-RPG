@@ -62,7 +62,6 @@ public final class MareaVisibleWildPokemonRuntime {
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
             String projectedSiteId
     ) {
-        requireMareaEncounter(encounter);
         WildPopulationRuntime.keepInProjectedHabitat(entity, encounter, projectedSiteId);
     }
 
@@ -70,7 +69,6 @@ public final class MareaVisibleWildPokemonRuntime {
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
             String projectedSiteId
     ) {
-        requireMareaEncounter(encounter);
         return WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
     }
 
