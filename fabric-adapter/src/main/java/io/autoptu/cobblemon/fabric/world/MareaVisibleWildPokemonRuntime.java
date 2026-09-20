@@ -26,10 +26,7 @@ public final class MareaVisibleWildPokemonRuntime {
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
-            if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-                if (!descriptor.projectionEligibility().test(encounter)) continue;
                 if (WildPopulationRuntime.ensureProjected(world, encounter) != null) visible++;
             }
         }
