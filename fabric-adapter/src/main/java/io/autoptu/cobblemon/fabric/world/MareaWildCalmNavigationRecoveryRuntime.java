@@ -60,10 +60,8 @@ public final class MareaWildCalmNavigationRecoveryRuntime implements ModInitiali
             if (projectedSiteId.isEmpty()) continue;
 
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-                var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
-                if (boundUuid.isEmpty()) continue;
-                var loaded = world.getEntity(boundUuid.get());
-                if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || actor.isInvisible()) continue;
+                PokemonEntity actor = WildPopulationRuntime.actorForEncounter(world, encounter.canonicalEncounterId());
+                if (actor == null || actor.isRemoved() || actor.isInvisible()) continue;
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
 
                 liveActors.add(actor.getUuid());
