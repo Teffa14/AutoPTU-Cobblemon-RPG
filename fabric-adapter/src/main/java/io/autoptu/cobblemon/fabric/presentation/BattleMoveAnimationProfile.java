@@ -47,6 +47,8 @@ public record BattleMoveAnimationProfile(Motion motion, Theme theme) {
 
     public static BattleMoveAnimationProfile resolve(String moveId) {
         String move = normalize(moveId);
+        if (move.equals("demoburst")) return new BattleMoveAnimationProfile(Motion.BURST, Theme.FIRE);
+        if (move.equals("demoarc")) return new BattleMoveAnimationProfile(Motion.ARC, Theme.ELECTRIC);
         return new BattleMoveAnimationProfile(resolveMotion(move), resolveTheme(move));
     }
 

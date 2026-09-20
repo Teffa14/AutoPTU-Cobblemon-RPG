@@ -1,10 +1,67 @@
 # AutoPTU Cobblemon RPG
 
-Server-authoritative Minecraft/Cobblemon integration layer for PTU.
+Minecraft/Cobblemon integration with mutually exclusive native and experimental PTU modes.
 
-This repository is the only writable Minecraft/Cobblemon integration project. `Teffa14/AutoPTU-Java` and `Teffa14/AutoPTU` are read-only upstream/reference repositories for this project.
+## Persisted PTU creation profiles: 0.4.0-ptuprofiles1
 
-## Authority boundary
+The mod now calls the pinned AutoPTU-Java creation contract for each resolved real
+Pokémon: PTU nature, level-point allocation, post-nature stats, base maximum HP and
+selected abilities. Results are saved once on the same UUID and survive native store
+transfers; opening a menu never rerolls them. The panel shows stat breakdowns and bars.
+Python-oracle parity covers 3,600 core creation cases; see
+[profile implementation and limits](docs/PTU_CREATION_PROFILES.md).
+
+This is persisted **creation state**, not a complete PTU battle or progression engine.
+Native HP/moves stay unchanged; native level/species changes flag reconciliation instead
+of silently rebuilding or healing the PTU profile.
+
+## PTU native-menu sheets
+
+The existing Cobblemon starter, Pokémon Summary and PC screens now have a **PTU sheet**
+button. Starter previews and owned Pokémon sheets are resolved by the server; no
+second team or starter is created. Native acquisition/capture events persist provenance.
+Scroll/arrow keys navigate the drawer, R refreshes, and Esc returns to the native menu.
+The sheet shows the persisted PTU creation profile, but **capture mechanics remain native**.
+
+The mod now bundles sixteen checksummed PTU datasets and attaches a PTU data sheet
+to real Pokémon UUIDs in parties, loaded world entities and explicitly synchronized
+PC storage. Inspect `/autoptu ptu party 1`, `/autoptu ptu move Tackle`,
+`/autoptu ptu ability Overgrow` and `/autoptu ptu learnset 1`.
+Native identity/form/level/loadout are used only to resolve correspondence; a native
+move or ability is not automatically legal under PTU. Unknown forms, missing entries
+and incompatible loadouts are reported without invented replacements.
+
+**Data attachment is implemented; complete PTU battle execution is not.** Existing
+native battle commands still use Cobblemon rules. See the explicit implementation
+and remaining authority work in [PTU data integration](docs/PTU_DATA_INTEGRATION.md).
+
+## Current playable mode: native Cobblemon
+
+Since `0.2.0-native1`, the default mode delegates starters, party storage, learned moves,
+combat UI and results to **Cobblemon**. Aim at an existing wild Pokémon within eight blocks
+and run `/autoptu battle wild`, or use Cobblemon's normal send-out controls. Run
+`/autoptu battle help` for the current instructions. See [native guide](docs/native-cobblemon/LEEME.txt).
+
+The old automatic onboarding, parallel party menus, ecology fixtures, practice actors and
+custom battle key bindings are not registered in this mode. Existing saved data is preserved;
+experimental PTU Pokémon are not silently converted into Cobblemon party members.
+
+This is **not PTU rules running through Cobblemon's UI**. Native Cobblemon owns the battle.
+The experimental integration is retained behind `-Dautoptu.gameplay=ptu-experimental`, set
+consistently on client and server before startup. Its authority boundary below remains intact.
+`gradle :fabric-adapter:packageNativeBattle` builds the current native package.
+
+Native 2 adds consent-based PvP: `/autoptu duel challenge <player>`, recipient-only
+`/autoptu duel accept <token>`, `/autoptu duel` status and `/autoptu duel cancel`.
+Invitations expire after 60 seconds, clear on disconnect and require both players within
+16 blocks in the same dimension. Cobblemon owns team validation and the resulting battle.
+
+Minecraft adapter changes stay in this repository. For the user's explicitly requested
+cross-project work, creation-rule changes were made separately in `Teffa14/AutoPTU-Java`
+(PR #533) and consumed through an exact pin; the generated dependency checkout is read-only.
+`Teffa14/AutoPTU` remains the read-only Python oracle. Never implement PTU formulas in the adapter.
+
+## Experimental PTU authority boundary
 
 AutoPTU-Java owns battle legality, calculations, lifecycle and outcomes. Minecraft, Fabric and Cobblemon own world projection, entities, networking, animation and rendering. Client packets are intents only. Cobblemon entity state must never become the source of truth for PTU stats, HP, moves, abilities, inventory, modifiers, legality or results.
 
@@ -22,7 +79,11 @@ The intended separation is `WildPopulationDefinition -> HabitatProfile -> WildBe
 
 ## First playable battle test
 
-The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a short lunge, displayed HP/nameplates and the final winner/loser message.
+For the historical, opt-in interactive sandbox, see [Playable tactical battle](docs/playable-tactical-battle.md).
+Player turns wait for input; B opens actions, Enter confirms the highlighted choice, and the rival
+responds after the attack. The sandbox uses 60 HP per combatant and three custom attack profiles.
+
+The repository now contains a deliberately bounded manual 1v1 graphical test. A player can choose Bulbasaur, Charmander or Squirtle with `/autoptu testbattle <pokemon>` and watch the selected Cobblemon entity fight a server-spawned Pikachu. AutoPTU-Java owns the demo movement options, chosen Shift, attack RNG, hit/miss result, damage, action consumption and authoritative HP mutation. The Fabric adapter projects a cyan tactical grid, green legal movement cells, a gold selected destination, a red attack lock, short lunge, displayed HP/nameplates and the final winner/loser message.
 
 This first vertical uses fixed server-owned combat inputs rather than pretending that general `RuntimeCombatantState` materialization is complete. It does not run statuses, abilities, items, Trainer Features, terrain, forced movement, tactical scoring, rewards or campaign commits. The lunge is presentation only and is not PTU movement legality. See `docs/first-playable-battle-test.md` for the exact install/test procedure and limitations.
 
@@ -80,6 +141,6 @@ Completed with dedicated-server evidence: live Cobblemon entity projection, batt
 
 Completed with contract/integration fixtures: player-versus-wild authority composition, persistent authenticated player context, canonical PLAYER Pokémon identity binding, preprovisioned WILD identity binding, server-owned WILD encounter provisioning, trusted blueprint resolution, and a world-lifecycle-scoped create-only registry that supplies those blueprints without trusting `PokemonEntity` values.
 
-The first manual graphical battle harness is the next validation rung: choose a bounded server-owned Pokémon scenario, spawn two live Cobblemon entities, invoke the pinned AutoPTU-Java authoritative move runtime, project attack motion/HP, and visibly terminate with a winner/loser. After that succeeds on a real client, the same playback pieces can be moved behind the normal authenticated PLAYER-vs-WILD reservation path rather than the test command.
+The playable graphical battle harness now exposes `/autoptu admin battle play <species> <opponent>` as a bounded operator session. `B` opens server-provided actions, preview highlights legal grid destinations/targets, Enter confirms a token-bound choice, Backspace cancels, and the client HUD mirrors server-emitted HP, phase and round. The same playback pieces remain isolated from the normal authenticated PLAYER-vs-WILD campaign path until general runtime combatant materialization is complete.
 
 General runtime combatant materialization follows only when every required `RuntimeCombatantState` input can be supplied authoritatively. Missing PTU rules stay in AutoPTU-Java rather than being recreated in the Minecraft adapter.

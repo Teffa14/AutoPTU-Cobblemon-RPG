@@ -1,0 +1,95 @@
+AUTOPTU 0.4.0-ptuprofiles1 - CREACION PTU PERSISTIDA
+
+NUEVO: REGLAS DE CREACION EJECUTADAS POR AUTOPTU-JAVA
+36 naturalezas PTU, reparto de nivel + 10 puntos, estadisticas tras naturaleza,
+PS maximos base y seleccion de habilidades por nivel. Se guarda una vez por UUID.
+Abrir la ficha, cambiar movimientos o mover al PC no vuelve a sortear el perfil.
+La ficha muestra barras y desglose: base + puntos + naturaleza.
+Si cambia la especie o el nivel nativo, el perfil PTU anterior se conserva y avisa.
+No se copian IV/EV, PS, naturaleza ni habilidad nativa como estadisticas PTU.
+IMPORTANTE: captura, progreso y combate completo siguen pendientes de conversion.
+Los PS mostrados son la base de creacion, sin pasivas, lesiones ni efectos temporales.
+Ver PTU_CREATION_PROFILES.md para reglas ejecutadas, pruebas y limites.
+
+NUEVO: BOTON FICHA PTU
+En la seleccion de starter, el resumen del Pokemon y el PC originales de Cobblemon,
+pulsa Ficha PTU (arriba a la derecha). No se abre otro equipo ni se entrega otro starter.
+Rueda o flechas: desplazar. R: actualizar. Esc: cerrar la ficha sin cerrar el menu.
+En el starter, cerra la ficha y confirma con el boton original de Cobblemon.
+La vista previa consulta la opcion configurada por el servidor, sin sortear Pokemon.
+Capturas y adquisiciones conservan el UUID real y registran su procedencia.
+Esto NO convierte aun la creacion del starter ni las tiradas de captura en PTU.
+
+NUEVO: FICHAS PTU REALES
+15 datasets incluidos: especies/formas, movimientos, habilidades y learnsets.
+Las fichas se vinculan al UUID real y se guardan sin alterar los datos nativos.
+/autoptu ptu party 1
+/autoptu ptu target
+/autoptu ptu move Tackle
+/autoptu ptu ability Overgrow
+/autoptu ptu learnset 1 1
+/autoptu ptu sync pc
+Datos ausentes o incompatibles se informan; no se inventan reemplazos.
+IMPORTANTE: cargar la ficha NO conecta aun todos sus efectos al combate.
+La batalla nativa sigue usando reglas Cobblemon. No es una batalla PTU completa.
+Ver PTU_DATA_INTEGRATION.md para el alcance y los pendientes.
+
+CAMBIO IMPORTANTE
+El modo predeterminado ahora usa el starter, equipo, movimientos, controles,
+interfaz y motor de combate reales de Cobblemon. No son reglas PTU.
+La demostracion anterior y las pantallas RPG paralelas ya no arrancan por defecto.
+No se importan, borran ni convierten los datos antiguos de PTU.
+
+INSTALACION
+Minecraft Java 1.21.1, Java 21 y Fabric Loader compatible (0.18.2+).
+El ZIP contiene los cuatro mods necesarios. Usar una instancia separada.
+Si actualizas la instancia AutoPTU anterior: retira SOLO su antiguo JAR AutoPTU
+de mods y guarda una copia fuera de mods antes de copiar el nuevo.
+No dejes dos JAR AutoPTU simultaneamente. No cambies tu modpack COBBLEVERSE.
+Reinicia Minecraft despues de actualizar. No hace falta borrar mundos.
+
+JUGAR
+1. Elegi un starter en la pantalla nativa de Cobblemon si no tenes equipo.
+2. Consulta Opciones > Controles > Cobblemon: conserva sus controles de siempre.
+3. Usa el envio de Pokemon nativo para iniciar encuentros, o apunta directamente
+   a un Pokemon salvaje real, visible, a menos de ocho bloques y ejecuta:
+
+/autoptu battle wild
+
+No requiere OP. Usa tu equipo existente y los movimientos de tus Pokemon.
+El comando no genera rivales, no cambia niveles, no teletransporta entidades,
+no asigna ataques inventados y no construye una arena flotante.
+
+/autoptu battle help
+/autoptu battle status
+
+DUELOS ENTRE JUGADORES
+/autoptu duel challenge <jugador>
+El destinatario recibe un codigo y debe enviar /autoptu duel accept <codigo>.
+El enlace del chat prepara el comando; no inicia la batalla por si solo.
+La invitacion vence en 60 segundos. Ambos deben estar a menos de 16 bloques,
+en la misma dimension, vivos y sin otra batalla al desafiar y al aceptar.
+/autoptu duel muestra el estado. /autoptu duel cancel cancela o rechaza.
+Al desconectarse cualquiera, la invitacion se elimina. No sobrevive un reinicio.
+Hay 10 segundos de espera entre desafios. No requiere OP.
+Cobblemon valida las parties y administra combate, movimientos y resultados.
+No se teletransporta, cura, clona ni reemplaza a los equipos desde AutoPTU.
+
+Si falta equipo o no esta disponible, se muestra el error nativo de Cobblemon.
+No se puede iniciar contra Pokemon con dueno, ocupados o ya en combate.
+Ataques, cambios, captura, huida y resultado siguen las reglas e interfaz nativas.
+
+DATOS ANTERIORES
+Un starter elegido SOLO en el inventario PTU experimental no equivale a un Pokemon
+de la party de Cobblemon. No lo convertimos automaticamente para evitar duplicados.
+Los Pokemon de demostraciones antiguas no se borran por heuristicas de nombre.
+Los comandos de demostracion anteriores no forman parte del modo normal.
+
+DESARROLLO PTU
+La ruta experimental se conserva separada. Solo para desarrolladores:
+-Dautoptu.gameplay=ptu-experimental en cliente y servidor.
+No mezclar los dos modos. Requiere reinicio; no es un interruptor durante una partida.
+
+VERIFICACION
+La compilacion y las pruebas automatizadas no sustituyen una partida grafica completa.
+Ver TUTORIAL.html para la guia actual. Las guias Slice 2 son historicas.

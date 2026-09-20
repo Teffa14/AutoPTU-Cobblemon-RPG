@@ -1,9 +1,6 @@
 package io.autoptu.cobblemon.fabric.battle;
 
 import io.autoptu.cobblemon.authority.BattleArenaSnapshot;
-import io.autoptu.cobblemon.authority.CanonicalPlayerEncounterProfile;
-import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
-import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -24,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>This runtime does not infer combatants, legal tiles, range, movement, turn ownership or any
  * other PTU fact. It points the authenticated participant at the server-owned arena anchor already
- * persisted in the canonical encounter profile. The camera is presentation only and never changes
+ * frozen for the active session. The camera is presentation only and never changes
  * battle state.</p>
  */
 public final class FabricBattleCameraRuntime {
@@ -32,6 +29,11 @@ public final class FabricBattleCameraRuntime {
     private static int tickCounter;
 
     private FabricBattleCameraRuntime() {}
+
+    /** A session which already positioned its camera should not be reframed on the next tick. */
+    public static void preserveSessionFraming(UUID playerUuid) {
+        AUTO_FRAMED.add(playerUuid);
+    }
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
@@ -82,14 +84,8 @@ public final class FabricBattleCameraRuntime {
         MinecraftServer server = player.getServer();
         if (server == null) return false;
 
-        String canonicalPlayerId = FabricCanonicalPlayerProvisioning.canonicalPlayerId(player.getUuid());
-        CanonicalPlayerEncounterProfile profile = FabricCanonicalPlayerStoreRuntime
-                .requireEncounterProfileRepository(server)
-                .findProfile(canonicalPlayerId)
-                .orElse(null);
-        if (profile == null || !profile.playerId().equals(canonicalPlayerId)) return false;
-
-        BattleArenaSnapshot arena = profile.arena();
+        BattleArenaSnapshot arena = FabricBattleChoiceRuntime.arena(player.getUuid());
+        if (arena == null) return false;
         String playerDimension = player.getServerWorld().getRegistryKey().getValue().toString();
         if (!arena.dimensionId().equals(playerDimension)) return false;
 
