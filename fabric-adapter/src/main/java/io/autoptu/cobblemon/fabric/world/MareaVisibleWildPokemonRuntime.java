@@ -40,8 +40,6 @@ public final class MareaVisibleWildPokemonRuntime {
             ServerWorld world,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
     ) {
-        requireMareaEncounter(encounter);
-        if (world == null) throw new IllegalArgumentException("world is required");
         return WildPopulationRuntime.ensureProjected(world, encounter);
     }
 
@@ -70,18 +68,5 @@ public final class MareaVisibleWildPokemonRuntime {
             String projectedSiteId
     ) {
         return WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
-    }
-
-    private static void requireMareaEncounter(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
-        if (encounter == null) throw new IllegalArgumentException("encounter is required");
-        if (!isMareaEncounter(encounter)) {
-            throw new IllegalArgumentException("Marea compatibility facade accepts only Marea authored encounters");
-        }
-    }
-
-    private static boolean isMareaEncounter(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
-        return WildEcologyDescriptorRegistry.descriptorFor(encounter)
-                .map(descriptor -> MAREA_ECOLOGY_SOURCE_ID.equals(descriptor.sourceId()))
-                .orElse(false);
     }
 }
