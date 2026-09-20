@@ -159,7 +159,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
         synchronized (PROBES) { probe = PROBES.get(server); }
         if (probe == null) return;
 
-        PokemonEntity replacement = MareaVisibleWildPokemonRuntime.actorForEncounter(
+        PokemonEntity replacement = WildPopulationRuntime.actorForEncounter(
                 server.getOverworld(), probe.replacedEncounterId());
         if (replacement != null
                 && !replacement.getUuid().equals(probe.removedUuid())
