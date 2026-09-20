@@ -2,6 +2,7 @@ package io.autoptu.cobblemon.fabric.world;
 
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,6 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MareaWildEcologyContentTest {
     private static final String HOME_SITE = "ouros.marea.sendero_vidrio";
     private static final String STOPOVER_SITE = "ouros.marea.sendero_crossing";
+
+    @BeforeAll
+    static void registerCanonicalMareaEcologyDescriptor() {
+        MareaWildEcologyContent.descriptors().forEach(WildEcologyDescriptorRegistry::register);
+    }
 
     @Test
     void lowerShelfMigrationIsAuthoredDataConsumedByCanonicalDescriptor() {
