@@ -31,6 +31,7 @@ public final class MareaWildCalmNavigationRecoveryRuntime implements ModInitiali
     private static final int STALLED_SAMPLE_LIMIT = 3;
     private static final double MIN_PROGRESS_BLOCKS = 0.15D;
     private static final double MIN_PROGRESS_SQUARED = MIN_PROGRESS_BLOCKS * MIN_PROGRESS_BLOCKS;
+    private static final String MAREA_ECOLOGY_SOURCE_ID = "fixture.ouros.marea";
     private static final Map<MinecraftServer, Map<UUID, NavigationProgress>> PROGRESS = new IdentityHashMap<>();
 
     @Override
@@ -53,7 +54,8 @@ public final class MareaWildCalmNavigationRecoveryRuntime implements ModInitiali
         HashSet<UUID> liveActors = new HashSet<>();
 
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            if (!population.siteId().startsWith("ouros.marea.")) continue;
+            var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
+            if (descriptor == null || !MAREA_ECOLOGY_SOURCE_ID.equals(descriptor.sourceId())) continue;
             var projectedSiteId = WildEcologyDescriptorRegistry.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
 
