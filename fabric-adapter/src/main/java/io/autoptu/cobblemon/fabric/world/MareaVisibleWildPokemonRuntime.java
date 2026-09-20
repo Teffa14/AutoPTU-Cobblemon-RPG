@@ -46,9 +46,6 @@ public final class MareaVisibleWildPokemonRuntime {
     }
 
     static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
-        if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
-        var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
-        if (encounter == null || !isMareaEncounter(encounter)) return null;
         return WildPopulationRuntime.actorForEncounter(world, canonicalEncounterId);
     }
 
