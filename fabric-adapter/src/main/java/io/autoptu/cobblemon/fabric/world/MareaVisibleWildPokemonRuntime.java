@@ -1,10 +1,7 @@
 package io.autoptu.cobblemon.fabric.world;
 
-import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 
 /**
  * Compatibility facade for existing Marea fixtures and smoke tests.
@@ -34,39 +31,5 @@ public final class MareaVisibleWildPokemonRuntime {
             }
         }
         return visible;
-    }
-
-    static PokemonEntity ensureProjected(
-            ServerWorld world,
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
-    ) {
-        return WildPopulationRuntime.ensureProjected(world, encounter);
-    }
-
-    static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
-        return WildPopulationRuntime.actorForEncounter(world, canonicalEncounterId);
-    }
-
-    static int presenceReconcileIntervalTicks() {
-        return WildPopulationRuntime.presenceReconcileIntervalTicks();
-    }
-
-    static int reconcileActivePopulations(ServerWorld world) {
-        return WildPopulationRuntime.reconcileActivePopulations(world);
-    }
-
-    static void keepInProjectedHabitat(
-            PokemonEntity entity,
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
-            String projectedSiteId
-    ) {
-        WildPopulationRuntime.keepInProjectedHabitat(entity, encounter, projectedSiteId);
-    }
-
-    static BlockPos projectedPresentationAnchor(
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
-            String projectedSiteId
-    ) {
-        return WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
     }
 }
