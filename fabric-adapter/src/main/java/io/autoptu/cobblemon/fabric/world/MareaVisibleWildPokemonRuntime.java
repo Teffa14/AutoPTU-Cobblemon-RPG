@@ -36,6 +36,16 @@ public final class MareaVisibleWildPokemonRuntime {
         return visible;
     }
 
+    /* Temporary source-compatibility shims. Production authority remains in WildPopulationRuntime;
+       remaining Marea callers migrate directly to that runtime in subsequent WORLD-013 slices. */
+    static int presenceReconcileIntervalTicks() {
+        return WildPopulationRuntime.presenceReconcileIntervalTicks();
+    }
+
+    static int reconcileActivePopulations(ServerWorld world) {
+        return WildPopulationRuntime.reconcileActivePopulations(world);
+    }
+
     static PokemonEntity ensureProjected(
             ServerWorld world,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
@@ -45,22 +55,6 @@ public final class MareaVisibleWildPokemonRuntime {
 
     static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
         return WildPopulationRuntime.actorForEncounter(world, canonicalEncounterId);
-    }
-
-    static int presenceReconcileIntervalTicks() {
-        return WildPopulationRuntime.presenceReconcileIntervalTicks();
-    }
-
-    static int reconcileActivePopulations(ServerWorld world) {
-        return WildPopulationRuntime.reconcileActivePopulations(world);
-    }
-
-    static void keepInProjectedHabitat(
-            PokemonEntity entity,
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
-            String projectedSiteId
-    ) {
-        WildPopulationRuntime.keepInProjectedHabitat(entity, encounter, projectedSiteId);
     }
 
     static BlockPos projectedPresentationAnchor(
