@@ -88,7 +88,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                         replacedEncounterId,
                         removedUuid,
                         Map.copyOf(stableBindings),
-                        server.getTicks() + MareaVisibleWildPokemonRuntime.presenceReconcileIntervalTicks() * 3L
+                        server.getTicks() + WildPopulationRuntime.presenceReconcileIntervalTicks() * 3L
                 ));
             }
             LOGGER.info("AutoPTU live Marea population-policy smoke discarded {} while preserving seven canonical bindings",
