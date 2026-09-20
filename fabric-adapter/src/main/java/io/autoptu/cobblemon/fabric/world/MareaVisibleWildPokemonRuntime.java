@@ -49,10 +49,6 @@ public final class MareaVisibleWildPokemonRuntime {
         return WildPopulationRuntime.ensureProjected(world, encounter);
     }
 
-    static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
-        return WildPopulationRuntime.actorForEncounter(world, canonicalEncounterId);
-    }
-
     static BlockPos projectedPresentationAnchor(
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
             String projectedSiteId
