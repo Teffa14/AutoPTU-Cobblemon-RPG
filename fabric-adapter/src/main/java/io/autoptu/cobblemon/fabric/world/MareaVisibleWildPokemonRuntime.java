@@ -48,7 +48,7 @@ public final class MareaVisibleWildPokemonRuntime {
     static PokemonEntity actorForEncounter(ServerWorld world, String canonicalEncounterId) {
         if (world == null || canonicalEncounterId == null || canonicalEncounterId.isBlank()) return null;
         var encounter = CanonicalWildEncounterCatalogue.DEFAULT.encounter(canonicalEncounterId.strip()).orElse(null);
-        if (encounter == null || !encounter.siteId().startsWith("ouros.marea.")) return null;
+        if (encounter == null || !isMareaEncounter(encounter)) return null;
         return WildPopulationRuntime.actorForEncounter(world, canonicalEncounterId);
     }
 
@@ -79,8 +79,14 @@ public final class MareaVisibleWildPokemonRuntime {
 
     private static void requireMareaEncounter(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
         if (encounter == null) throw new IllegalArgumentException("encounter is required");
-        if (!encounter.siteId().startsWith("ouros.marea.")) {
+        if (!isMareaEncounter(encounter)) {
             throw new IllegalArgumentException("Marea compatibility facade accepts only Marea authored encounters");
         }
+    }
+
+    private static boolean isMareaEncounter(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
+        return WildEcologyDescriptorRegistry.descriptorFor(encounter)
+                .map(descriptor -> MAREA_ECOLOGY_SOURCE_ID.equals(descriptor.sourceId()))
+                .orElse(false);
     }
 }
