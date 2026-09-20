@@ -60,12 +60,10 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
 
         int visible = 0;
         for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-            PokemonEntity actor = recoverBoundActor(world, encounter);
-            if (actor == null) actor = WildPopulationRuntime.ensureProjected(world, encounter);
+            PokemonEntity actor = WildPopulationRuntime.actorForEncounter(world, encounter.canonicalEncounterId());
             if (actor == null) continue;
 
-            BlockPos anchor = new BlockPos(site.x(), site.y(), site.z()).add(
-                    encounter.presentationOffsetX(), encounter.presentationOffsetY(), encounter.presentationOffsetZ());
+            BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
             double centerX = anchor.getX() + 0.5D;
             double centerZ = anchor.getZ() + 0.5D;
             double dx = actor.getX() - centerX;
