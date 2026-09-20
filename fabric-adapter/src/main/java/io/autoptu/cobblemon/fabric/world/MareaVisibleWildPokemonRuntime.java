@@ -2,7 +2,6 @@ package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
-import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -24,14 +23,9 @@ public final class MareaVisibleWildPokemonRuntime {
     public static int ensureProjected(ServerWorld world) {
         if (world == null) throw new IllegalArgumentException("world is required");
         int visible = 0;
-        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            if (!population.siteId().startsWith("ouros.marea.")) continue;
-            var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
-            if (descriptor == null || !descriptor.worldEligibility().accepts(world)) continue;
-            for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-                if (!descriptor.projectionEligibility().test(encounter)) continue;
-                if (WildPopulationRuntime.ensureProjected(world, encounter) != null) visible++;
-            }
+        for (var encounter : CanonicalWildEncounterCatalogue.DEFAULT.encounters()) {
+            if (!encounter.siteId().startsWith("ouros.marea.")) continue;
+            if (WildPopulationRuntime.ensureProjected(world, encounter) != null) visible++;
         }
         return visible;
     }
