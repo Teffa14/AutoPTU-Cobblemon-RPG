@@ -43,7 +43,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
 
             LinkedHashMap<String, PokemonEntity> actors = new LinkedHashMap<>();
             for (var encounter : encounters) {
-                PokemonEntity actor = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
+                PokemonEntity actor = WildPopulationRuntime.ensureProjected(server.getOverworld(), encounter);
                 if (actor == null || !hasExactBinding(actor, encounter.canonicalEncounterId())) {
                     throw new IllegalStateException("Marea population smoke requires exact canonical actor binding for "
                             + encounter.canonicalEncounterId());
@@ -63,7 +63,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
                 }
             }
             for (var encounter : encounters) {
-                PokemonEntity reactivated = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld(), encounter);
+                PokemonEntity reactivated = WildPopulationRuntime.ensureProjected(server.getOverworld(), encounter);
                 PokemonEntity original = actors.get(encounter.canonicalEncounterId());
                 if (reactivated == null || original == null || !reactivated.getUuid().equals(original.getUuid())
                         || reactivated.isInvisible()
