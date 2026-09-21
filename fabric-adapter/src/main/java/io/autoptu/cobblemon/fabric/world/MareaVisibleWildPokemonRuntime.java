@@ -4,7 +4,6 @@ import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
 
 /**
  * Compatibility facade for existing Marea fixtures and smoke tests.
@@ -36,19 +35,12 @@ public final class MareaVisibleWildPokemonRuntime {
         return visible;
     }
 
-    /* Temporary source-compatibility shims. Production authority remains in WildPopulationRuntime;
+    /* Temporary source-compatibility shim. Production authority remains in WildPopulationRuntime;
        remaining Marea callers migrate directly to that runtime in subsequent WORLD-013 slices. */
     static PokemonEntity ensureProjected(
             ServerWorld world,
             CanonicalWildEncounterCatalogue.EncounterDefinition encounter
     ) {
         return WildPopulationRuntime.ensureProjected(world, encounter);
-    }
-
-    static BlockPos projectedPresentationAnchor(
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter,
-            String projectedSiteId
-    ) {
-        return WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
     }
 }
