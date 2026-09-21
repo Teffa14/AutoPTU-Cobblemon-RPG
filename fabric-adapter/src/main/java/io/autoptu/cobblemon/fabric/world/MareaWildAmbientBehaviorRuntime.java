@@ -111,7 +111,7 @@ public final class MareaWildAmbientBehaviorRuntime implements ModInitializer {
             long worldTime,
             ServerWorld world
     ) {
-        BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
+        BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId);
         double centerX = anchor.getX() + 0.5D;
         double centerZ = anchor.getZ() + 0.5D;
 
