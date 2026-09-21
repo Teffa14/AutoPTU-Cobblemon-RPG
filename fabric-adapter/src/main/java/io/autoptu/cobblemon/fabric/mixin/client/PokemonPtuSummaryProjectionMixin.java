@@ -14,9 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Read-only presentation override for disposable Pokemon sent to Cobblemon's native Summary screen.
  * Normal Cobblemon Pokemon are untouched because only AutoPTU projection UUIDs exist in the cache.
  */
-@Mixin(Pokemon.class)
+@Mixin(value = Pokemon.class, remap = false)
 public abstract class PokemonPtuSummaryProjectionMixin {
-    @Inject(method = "getStat", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getStat", at = @At("HEAD"), cancellable = true, remap = false)
     private void autoptu$canonicalStat(Stat stat, CallbackInfoReturnable<Integer> cir) {
         FabricCanonicalPokemonSummaryPayload.Projection projection = projection();
         if (projection == null) return;
@@ -28,7 +28,7 @@ public abstract class PokemonPtuSummaryProjectionMixin {
         else if (stat == Stats.SPEED) cir.setReturnValue(projection.spd());
     }
 
-    @Inject(method = "getCurrentHealth", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getCurrentHealth", at = @At("HEAD"), cancellable = true, remap = false)
     private void autoptu$canonicalCurrentHealth(CallbackInfoReturnable<Integer> cir) {
         FabricCanonicalPokemonSummaryPayload.Projection projection = projection();
         if (projection != null) cir.setReturnValue(projection.currentHp());
