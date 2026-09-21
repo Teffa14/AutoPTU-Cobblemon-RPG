@@ -62,7 +62,7 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
                 double speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
                 if (speed <= MIN_HORIZONTAL_SPEED || speed > MAX_CALM_SPEED) continue;
 
-                BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(
+                BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(
                         encounter,
                         projectedSiteId.get());
                 double centerX = anchor.getX() + 0.5D;
@@ -110,18 +110,6 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
         return path != null && actor.getNavigation().startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
     }
 
-    /**
-     * Finds a Minecraft-native path toward the already-authored CALM X/Z destination.
-     *
-     * The actor's current Y remains the first attempt for flat terrain. If Minecraft reports a
-     * different motion-blocking surface at the exact target column, a second attempt uses that
-     * surface height. The target column and every accepted path node must remain on locally stable
-     * Minecraft surface. Consecutive path-node surfaces may climb or descend by at most one block,
-     * so ordinary slopes remain usable while abrupt ledges are rejected. Every node must also have
-     * clear actor-sized presentation volume before movement starts, including no overlap with another
-     * interaction-active visible wild Pokemon. This only supplies Minecraft presentation geometry;
-     * X/Z destination and leash authority remain unchanged.
-     */
     static Path findLeashSafeNativePath(
             PokemonEntity actor,
             double centerX,
@@ -194,10 +182,8 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
         int[] surfaceProfile = new int[path.getLength()];
         for (int index = 0; index < path.getLength(); index++) {
             BlockPos node = path.getNode(index).getBlockPos();
-            int surfaceY = world.getTopY(
-                    Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-                    node.getX(),
-                    node.getZ());
+            int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                    node.getX(), node.getZ());
             if (!stableCalmTargetSurface(world, node.getX(), node.getZ(), surfaceY)) return false;
             surfaceProfile[index] = surfaceY;
         }
@@ -269,12 +255,8 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
         if (path == null || path.getLength() == 0) return false;
         for (int index = 0; index < path.getLength(); index++) {
             BlockPos node = path.getNode(index).getBlockPos();
-            if (!navigationTargetInsideLeash(
-                    centerX,
-                    centerZ,
-                    leashRadiusBlocks,
-                    node.getX() + 0.5D,
-                    node.getZ() + 0.5D)) {
+            if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks,
+                    node.getX() + 0.5D, node.getZ() + 0.5D)) {
                 return false;
             }
         }
