@@ -5,11 +5,13 @@ import io.autoptu.cobblemon.fabric.admin.FabricPlayerInspectionAdminRuntime;
 import io.autoptu.cobblemon.fabric.admin.FabricRpgVisualProofRuntime;
 import io.autoptu.cobblemon.fabric.admin.FabricStarterGrantAdminRuntime;
 import io.autoptu.cobblemon.fabric.battle.CobblemonLiveBattleInterceptionSmoke;
+import io.autoptu.cobblemon.fabric.battle.FabricCanonicalCobblemonBattlePreemptionRuntime;
 import io.autoptu.cobblemon.fabric.battle.FabricAuthenticatedPlayerContextResolverSmoke;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleCameraRuntime;
 import io.autoptu.cobblemon.fabric.battle.FabricBattleChoiceRuntime;
 import io.autoptu.cobblemon.fabric.demo.PlayableBattleTestRuntime;
 import io.autoptu.cobblemon.fabric.network.FabricBattleActionNetworking;
+import io.autoptu.cobblemon.fabric.network.FabricCanonicalPokemonSummaryNetworking;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerProvisioning;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRestartSmoke;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -99,6 +101,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricCanonicalPlayerProvisioning.register();
         FabricCanonicalPlayerStoreRestartSmoke.registerIfEnabled();
         FabricBattleActionNetworking.registerPayloadType();
+        FabricCanonicalPokemonSummaryNetworking.registerPayloadType();
         if (!FabricLoader.getInstance().isModLoaded("cobblemon")) {
             throw new IllegalStateException("Cobblemon runtime is required by the AutoPTU adapter");
         }
@@ -167,6 +170,7 @@ public final class AutoPtuCobblemonFabricAdapter implements ModInitializer {
         FabricCraftingWorkstationRuntimeSmoke.registerIfEnabled();
         FabricFieldCampRuntime.register();
         VisibleWildPokemonEncounterRuntime.register();
+        FabricCanonicalCobblemonBattlePreemptionRuntime.register();
         CedarMeadowRuntime.register();
         MareaInteriorRuntime.register();
         MareaVisibleWildPresenceRuntimeSmoke.registerIfEnabled();

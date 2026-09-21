@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.battle;
 import com.cobblemon.mod.common.api.Priority;
 import com.cobblemon.mod.common.api.battles.model.actor.ActorType;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
+import com.cobblemon.mod.common.api.battles.model.actor.EntityBackedBattleActor;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.api.events.battles.BattleStartedEvent;
 import com.cobblemon.mod.common.api.reactive.ObservableSubscription;
@@ -35,8 +36,13 @@ public final class CobblemonBattleStartInterceptor {
             int side,
             ParticipantKind kind,
             String actorId,
-            List<String> pokemonIds
+            List<String> pokemonIds,
+            String presentationEntityId
     ) {
+        public ParticipantIdentity(int side, ParticipantKind kind, String actorId, List<String> pokemonIds) {
+            this(side, kind, actorId, pokemonIds, null);
+        }
+
         public ParticipantIdentity {
             if (side != 1 && side != 2) {
                 throw new IllegalArgumentException("side must be 1 or 2");
@@ -55,6 +61,9 @@ public final class CobblemonBattleStartInterceptor {
                 copy.add(normalized);
             }
             pokemonIds = List.copyOf(copy);
+            if (presentationEntityId != null) {
+                presentationEntityId = requireIdentifier(presentationEntityId, "presentationEntityId");
+            }
         }
     }
 
@@ -107,11 +116,16 @@ public final class CobblemonBattleStartInterceptor {
             for (BattlePokemon pokemon : actor.getPokemonList()) {
                 pokemonIds.add(pokemon.getUuid().toString());
             }
+            String presentationEntityId = null;
+            if (actor instanceof EntityBackedBattleActor<?> entityBacked && entityBacked.getEntity() != null) {
+                presentationEntityId = entityBacked.getEntity().getUuid().toString();
+            }
             participants.add(new ParticipantIdentity(
                     sideNumber,
                     participantKind(actor.getType()),
                     actor.getUuid().toString(),
-                    pokemonIds
+                    pokemonIds,
+                    presentationEntityId
             ));
         }
         return List.copyOf(participants);

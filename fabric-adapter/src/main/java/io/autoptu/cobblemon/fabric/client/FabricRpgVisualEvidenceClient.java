@@ -28,7 +28,8 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
     private static final String SCREENSHOT_NAME = "autoptu-rpg-visualproof.png";
     private static final String QA_SCENE_COMMAND = "autoptuvisualproof";
 
-    private static int ticksBeforeConnect;
+    private static final int RESOURCE_READY_STABILITY_TICKS = 20;
+    private static int resourceReadyTicks;
     private static int ticksSinceJoin = -1;
     private static boolean connectRequested;
     private static boolean commandSent;
@@ -96,10 +97,19 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
     }
 
     private static void requestEvidenceServerConnection(MinecraftClient client) {
-        if (connectRequested || client.currentScreen == null || client.world != null) {
+        if (connectRequested || client.world != null) {
             return;
         }
-        if (++ticksBeforeConnect < 40) {
+
+        // Match the battle evidence client's proven resource-readiness boundary. A usable screen is
+        // insufficient: Cobblemon may still be constructing atlases/model repositories after the
+        // first menu becomes visible. Connecting during that window lets registry-sync packets run
+        // against uninitialized atlases and can produce a Network Protocol Error.
+        if (client.currentScreen == null || client.getOverlay() != null) {
+            resourceReadyTicks = 0;
+            return;
+        }
+        if (++resourceReadyTicks < RESOURCE_READY_STABILITY_TICKS) {
             return;
         }
 
@@ -113,7 +123,7 @@ public final class FabricRpgVisualEvidenceClient implements ClientModInitializer
         ServerInfo info = new ServerInfo("AutoPTU Visual Evidence", target, ServerInfo.ServerType.OTHER);
         info.setResourcePackPolicy(ServerInfo.ResourcePackPolicy.DISABLED);
         connectRequested = true;
-        LOGGER.info("AutoPTU visual evidence connecting to authoritative server {}", target);
+        LOGGER.info("AutoPTU visual evidence resources stable; connecting to authoritative server {}", target);
         ConnectScreen.connect(client.currentScreen, client, ServerAddress.parse(target), info, false, null);
     }
 }

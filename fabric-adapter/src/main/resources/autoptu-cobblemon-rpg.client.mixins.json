@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "io.autoptu.cobblemon.fabric.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "PokemonPtuSummaryProjectionMixin",
+    "SummaryPtuProjectionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
