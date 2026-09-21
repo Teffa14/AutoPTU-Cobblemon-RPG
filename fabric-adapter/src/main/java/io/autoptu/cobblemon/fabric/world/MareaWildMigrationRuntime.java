@@ -1,7 +1,6 @@
 package io.autoptu.cobblemon.fabric.world;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
-import io.autoptu.cobblemon.authority.CanonicalWildEncounterCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import io.autoptu.cobblemon.authority.CanonicalWorldMapCatalogue;
 import io.autoptu.cobblemon.fabric.persistence.FabricCanonicalPlayerStoreRuntime;
@@ -77,17 +76,6 @@ public final class MareaWildMigrationRuntime implements ModInitializer {
             visible++;
         }
         return visible;
-    }
-
-    static PokemonEntity recoverBoundActor(
-            ServerWorld world,
-            CanonicalWildEncounterCatalogue.EncounterDefinition encounter
-    ) {
-        return WildVisibleActorRecovery.recoverBoundActor(world, encounter);
-    }
-
-    static BlockPos canonicalHomeAnchor(CanonicalWildEncounterCatalogue.EncounterDefinition encounter) {
-        return WildVisibleActorRecovery.canonicalHomeAnchor(encounter);
     }
 
     static CanonicalWildPopulationCatalogue.PresenceFootprint activityFootprint(
