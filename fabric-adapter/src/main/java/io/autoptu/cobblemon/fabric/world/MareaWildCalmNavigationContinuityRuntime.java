@@ -83,7 +83,7 @@ public final class MareaWildCalmNavigationContinuityRuntime implements ModInitia
                     continue;
                 }
 
-                BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(
+                BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(
                         encounter,
                         projectedSiteId.get());
                 double centerX = anchor.getX() + 0.5D;
