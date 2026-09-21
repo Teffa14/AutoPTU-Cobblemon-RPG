@@ -15,14 +15,14 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * durable PTU read model. Rather than fabricate those values, projected Pokemon remain on the exact
  * HP/combat-stat surface that AutoPTU can authoritatively supply.
  */
-@Mixin(Summary.class)
+@Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
     private static final int STATS_SCREEN = 2;
 
-    @Shadow
+    @Shadow(remap = false)
     private Pokemon selectedPokemon;
 
-    @ModifyVariable(method = "displayMainScreen", at = @At("HEAD"), argsOnly = true)
+    @ModifyVariable(method = "displayMainScreen", at = @At("HEAD"), argsOnly = true, remap = false)
     private int autoptu$keepCanonicalProjectionOnStats(int requestedScreen) {
         if (selectedPokemon != null
                 && FabricCanonicalPokemonSummaryClient.projection(selectedPokemon.getUuid()).isPresent()) {
