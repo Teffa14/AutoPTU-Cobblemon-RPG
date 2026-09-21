@@ -75,6 +75,11 @@ public final class FabricPokemonDetailRuntime {
             return false;
         }
 
+        if (selection > 0) {
+            CanonicalPokemonDetail selected = details.remove(selection);
+            details.addFirst(selected);
+        }
+
         ArrayList<Pokemon> presentationParty = new ArrayList<>();
         ArrayList<FabricCanonicalPokemonSummaryPayload.Projection> projections = new ArrayList<>();
         for (CanonicalPokemonDetail detail : details) {
