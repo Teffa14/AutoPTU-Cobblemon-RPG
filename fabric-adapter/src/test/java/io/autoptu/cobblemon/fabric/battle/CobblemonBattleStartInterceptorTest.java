@@ -41,6 +41,16 @@ class CobblemonBattleStartInterceptorTest {
         assertEquals("battle-123", signal.cobblemonBattleId());
         assertEquals("actor-1", signal.participants().getFirst().actorId());
         assertEquals(List.of("pokemon-1", "pokemon-2"), signal.participants().getFirst().pokemonIds());
+        assertEquals(null, signal.participants().getFirst().presentationEntityId());
+
+        var wildPresentation = new CobblemonBattleStartInterceptor.ParticipantIdentity(
+                2,
+                CobblemonBattleStartInterceptor.ParticipantKind.WILD,
+                "wild-actor",
+                List.of("wild-pokemon"),
+                "  visible-entity  "
+        );
+        assertEquals("visible-entity", wildPresentation.presentationEntityId());
 
         assertThrows(IllegalArgumentException.class,
                 () -> new CobblemonBattleStartInterceptor.BattleStartSignal("   ", List.of(participant)));
