@@ -58,6 +58,7 @@
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusAttentionRuntime"
     ],
     "client": [
+      "io.autoptu.cobblemon.fabric.client.FabricCanonicalPokemonSummaryClient",
       "io.autoptu.cobblemon.fabric.client.FabricRpgVisualEvidenceClient",
       "io.autoptu.cobblemon.fabric.client.FabricBattleVisualEvidenceClient"
     ]
@@ -69,5 +70,11 @@
     "cobblemon": ">=1.8.0",
     "minecraft": "1.21.1",
     "java": ">=21"
-  }
+  },
+  "mixins": [
+    {
+      "config": "autoptu-cobblemon-rpg.client.mixins.json",
+      "environment": "client"
+    }
+  ]
 }
