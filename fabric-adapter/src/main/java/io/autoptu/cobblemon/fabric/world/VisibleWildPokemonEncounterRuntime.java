@@ -206,7 +206,7 @@ public final class VisibleWildPokemonEncounterRuntime {
 
     public static WorldEncounterTriggerRequestService requests() { return REQUESTS; }
 
-    static boolean isBound(UUID entityUuid) { return binding(entityUuid).isPresent(); }
+    public static boolean isBound(UUID entityUuid) { return binding(entityUuid).isPresent(); }
 
     static boolean isInteractionActive(UUID entityUuid) {
         return binding(entityUuid).isPresent() && INTERACTION_ACTIVE.contains(entityUuid);
