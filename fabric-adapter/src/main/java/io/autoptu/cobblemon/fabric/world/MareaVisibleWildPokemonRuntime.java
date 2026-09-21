@@ -1,6 +1,5 @@
 package io.autoptu.cobblemon.fabric.world;
 
-import io.autoptu.cobblemon.authority.CanonicalWildPopulationCatalogue;
 import net.minecraft.server.world.ServerWorld;
 
 /**
@@ -21,15 +20,6 @@ public final class MareaVisibleWildPokemonRuntime {
 
     /** Explicit Marea-only projection retained for the authored build command and runtime smoke. */
     public static int ensureProjected(ServerWorld world) {
-        if (world == null) throw new IllegalArgumentException("world is required");
-        int visible = 0;
-        for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
-            var descriptor = WildEcologyDescriptorRegistry.descriptorFor(population).orElse(null);
-            if (descriptor == null || !MAREA_ECOLOGY_SOURCE_ID.equals(descriptor.sourceId())) continue;
-            for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
-                if (WildPopulationRuntime.ensureProjected(world, encounter) != null) visible++;
-            }
-        }
-        return visible;
+        return WildPopulationSourceProjectionRuntime.ensureProjected(world, MAREA_ECOLOGY_SOURCE_ID);
     }
 }
