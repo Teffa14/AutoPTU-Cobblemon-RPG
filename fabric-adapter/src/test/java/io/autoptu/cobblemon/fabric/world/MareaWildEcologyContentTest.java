@@ -70,14 +70,14 @@ class MareaWildEcologyContentTest {
     }
 
     @Test
-    void recoveryAnchorUsesCanonicalHomeSiteAndAuthoredPresentationOffset() {
+    void recoveryAnchorUsesGlobalCanonicalHomeSiteAndAuthoredPresentationOffset() {
         var population = CanonicalWildPopulationCatalogue.DEFAULT
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
         var encounter = CanonicalWildPopulationCatalogue.DEFAULT.members(population).getFirst();
         var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId()).orElseThrow();
 
-        var anchor = MareaWildMigrationRuntime.canonicalHomeAnchor(encounter);
+        var anchor = WildVisibleActorRecovery.canonicalHomeAnchor(encounter);
 
         assertEquals(site.x() + encounter.presentationOffsetX(), anchor.getX());
         assertEquals(site.y() + encounter.presentationOffsetY(), anchor.getY());
