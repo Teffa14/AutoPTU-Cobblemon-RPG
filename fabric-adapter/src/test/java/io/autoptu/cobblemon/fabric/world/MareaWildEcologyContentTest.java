@@ -25,7 +25,6 @@ class MareaWildEcologyContentTest {
                 .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
                 .orElseThrow();
         var descriptor = MareaWildEcologyContent.descriptors().getFirst();
-
         assertEquals(HOME_SITE, descriptor.projectedSiteId(population, 0L).orElseThrow());
         assertEquals(HOME_SITE, descriptor.projectedSiteId(population, 84_000L).orElseThrow());
         assertTrue(descriptor.projectedSiteId(population, 85_000L).isEmpty());
@@ -35,17 +34,11 @@ class MareaWildEcologyContentTest {
 
     @Test
     void repeatedDescriptorResolutionIsStableAndResidentPopulationFallsBackToAuthoredHome() {
-        var migrating = CanonicalWildPopulationCatalogue.DEFAULT
-                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
-                .orElseThrow();
-        var resident = CanonicalWildPopulationCatalogue.DEFAULT
-                .population(CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID)
-                .orElseThrow();
+        var migrating = CanonicalWildPopulationCatalogue.DEFAULT.population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID).orElseThrow();
+        var resident = CanonicalWildPopulationCatalogue.DEFAULT.population(CanonicalWildPopulationCatalogue.MAREA_LOMA_WINDBREAK_POPULATION_ID).orElseThrow();
         var descriptor = MareaWildEcologyContent.descriptors().getFirst();
-
         var first = descriptor.projectedSiteId(migrating, 100_000L);
         var second = descriptor.projectedSiteId(migrating, 100_000L);
-
         assertEquals(first, second);
         assertEquals(resident.siteId(), descriptor.projectedSiteId(resident, 100_000L).orElseThrow());
     }
@@ -53,16 +46,10 @@ class MareaWildEcologyContentTest {
     @Test
     void contentExposesOneCanonicalDescriptorWithoutParallelProjectionView() {
         assertEquals(1, MareaWildEcologyContent.projectionProfiles().size());
-        assertEquals(
-                CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID,
-                MareaWildEcologyContent.projectionProfiles().getFirst().populationId()
-        );
+        assertEquals(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID, MareaWildEcologyContent.projectionProfiles().getFirst().populationId());
         assertEquals(1, MareaWildEcologyContent.descriptors().size());
-
         var descriptor = MareaWildEcologyContent.descriptors().getFirst();
-        var marea = CanonicalWildPopulationCatalogue.DEFAULT
-                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
-                .orElseThrow();
+        var marea = CanonicalWildPopulationCatalogue.DEFAULT.population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID).orElseThrow();
         assertEquals("fixture.ouros.marea", descriptor.sourceId());
         assertTrue(descriptor.populationSelector().test(marea));
         assertNotNull(descriptor.behaviorProfile());
@@ -71,14 +58,10 @@ class MareaWildEcologyContentTest {
 
     @Test
     void recoveryAnchorUsesGlobalCanonicalHomeSiteAndAuthoredPresentationOffset() {
-        var population = CanonicalWildPopulationCatalogue.DEFAULT
-                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
-                .orElseThrow();
+        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID).orElseThrow();
         var encounter = CanonicalWildPopulationCatalogue.DEFAULT.members(population).getFirst();
         var site = CanonicalWorldMapCatalogue.DEFAULT.site(encounter.siteId()).orElseThrow();
-
         var anchor = WildVisibleActorRecovery.canonicalHomeAnchor(encounter);
-
         assertEquals(site.x() + encounter.presentationOffsetX(), anchor.getX());
         assertEquals(site.y() + encounter.presentationOffsetY(), anchor.getY());
         assertEquals(site.z() + encounter.presentationOffsetZ(), anchor.getZ());
@@ -86,24 +69,17 @@ class MareaWildEcologyContentTest {
 
     @Test
     void activeMigrationUsesRetentionFootprintToAvoidEdgeFlicker() {
-        var population = CanonicalWildPopulationCatalogue.DEFAULT
-                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
-                .orElseThrow();
-
+        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID).orElseThrow();
         assertEquals(population.presenceFootprint(), MareaWildMigrationRuntime.activityFootprint(population, false));
         assertEquals(population.retentionFootprint(), MareaWildMigrationRuntime.activityFootprint(population, true));
     }
 
     @Test
     void unifiedPresenceReconcilerUsesProjectedStopoverAnchorWithoutChangingEncounterIdentity() {
-        var population = CanonicalWildPopulationCatalogue.DEFAULT
-                .population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID)
-                .orElseThrow();
+        var population = CanonicalWildPopulationCatalogue.DEFAULT.population(CanonicalWildPopulationCatalogue.MAREA_LOWER_SHELF_POPULATION_ID).orElseThrow();
         var encounter = CanonicalWildPopulationCatalogue.DEFAULT.members(population).getFirst();
         var stopover = CanonicalWorldMapCatalogue.DEFAULT.site(STOPOVER_SITE).orElseThrow();
-
-        var anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(encounter, STOPOVER_SITE);
-
+        var anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, STOPOVER_SITE);
         assertEquals(stopover.x() + encounter.presentationOffsetX(), anchor.getX());
         assertEquals(stopover.y() + encounter.presentationOffsetY(), anchor.getY());
         assertEquals(stopover.z() + encounter.presentationOffsetZ(), anchor.getZ());
