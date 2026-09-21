@@ -29,10 +29,7 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
     private static final int MAX_CALM_NEIGHBOR_SURFACE_DELTA = 1;
     private static final double[] TURN_ANGLES_DEGREES = {45.0D, 90.0D, 135.0D};
     private static final int[][] CARDINAL_SURFACE_OFFSETS = {
-            {0, -1},
-            {0, 1},
-            {-1, 0},
-            {1, 0}
+            {0, -1}, {0, 1}, {-1, 0}, {1, 0}
     };
 
     @Override
@@ -45,319 +42,55 @@ public final class MareaWildCalmCollisionSteeringRuntime implements ModInitializ
 
     static void steer(ServerWorld world) {
         if (world == null) return;
-
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
             if (!population.siteId().startsWith("ouros.marea.")) continue;
             var projectedSiteId = WildEcologyDescriptorRegistry.projectedSiteId(population, world.getTime());
             if (projectedSiteId.isEmpty()) continue;
-
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
                 var boundUuid = VisibleWildPokemonEncounterRuntime.boundEntityUuid(encounter.canonicalEncounterId());
                 if (boundUuid.isEmpty()) continue;
                 var loaded = world.getEntity(boundUuid.get());
                 if (!(loaded instanceof PokemonEntity actor) || actor.isRemoved() || actor.isInvisible()) continue;
                 if (!VisibleWildPokemonEncounterRuntime.isInteractionActive(actor.getUuid())) continue;
-
                 var velocity = actor.getVelocity();
                 double speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
                 if (speed <= MIN_HORIZONTAL_SPEED || speed > MAX_CALM_SPEED) continue;
-
-                BlockPos anchor = MareaVisibleWildPokemonRuntime.projectedPresentationAnchor(
-                        encounter,
-                        projectedSiteId.get());
+                BlockPos anchor = WildPopulationRuntime.projectedPresentationAnchor(encounter, projectedSiteId.get());
                 double centerX = anchor.getX() + 0.5D;
                 double centerZ = anchor.getZ() + 0.5D;
-
                 if (isPresentationProbeClear(world, actor, velocity.x, velocity.z)) continue;
-
-                double[] target = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(
-                        actor.getUuid(),
-                        world.getTime(),
-                        centerX,
-                        centerZ,
-                        population.habitatLeashRadiusBlocks());
+                double[] target = MareaWildAmbientBehaviorRuntime.calmRoamingTarget(actor.getUuid(), world.getTime(), centerX, centerZ, population.habitatLeashRadiusBlocks());
                 if (startNativeNavigation(actor, centerX, centerZ, population.habitatLeashRadiusBlocks(), target)) {
-                    actor.setVelocity(0.0D, velocity.y, 0.0D);
-                    actor.velocityModified = true;
-                    continue;
+                    actor.setVelocity(0.0D, velocity.y, 0.0D); actor.velocityModified = true; continue;
                 }
-
-                double[] safe = firstCollisionFreeVelocity(
-                        world,
-                        actor,
-                        centerX,
-                        centerZ,
-                        population.habitatLeashRadiusBlocks(),
-                        velocity.x,
-                        velocity.z);
-                actor.setVelocity(safe[0], velocity.y, safe[1]);
-                actor.velocityModified = true;
-                if (Math.abs(safe[0]) > MIN_HORIZONTAL_SPEED || Math.abs(safe[1]) > MIN_HORIZONTAL_SPEED) {
-                    actor.setYaw((float) Math.toDegrees(Math.atan2(-safe[0], safe[1])));
-                }
+                double[] safe = firstCollisionFreeVelocity(world, actor, centerX, centerZ, population.habitatLeashRadiusBlocks(), velocity.x, velocity.z);
+                actor.setVelocity(safe[0], velocity.y, safe[1]); actor.velocityModified = true;
+                if (Math.abs(safe[0]) > MIN_HORIZONTAL_SPEED || Math.abs(safe[1]) > MIN_HORIZONTAL_SPEED) actor.setYaw((float) Math.toDegrees(Math.atan2(-safe[0], safe[1])));
             }
         }
     }
 
-    private static boolean startNativeNavigation(
-            PokemonEntity actor,
-            double centerX,
-            double centerZ,
-            int leashRadiusBlocks,
-            double[] target
-    ) {
-        Path path = findLeashSafeNativePath(actor, centerX, centerZ, leashRadiusBlocks, target);
-        return path != null && actor.getNavigation().startMovingAlong(path, NATIVE_NAVIGATION_SPEED);
+    private static boolean startNativeNavigation(PokemonEntity actor,double centerX,double centerZ,int leashRadiusBlocks,double[] target) { Path path=findLeashSafeNativePath(actor,centerX,centerZ,leashRadiusBlocks,target); return path!=null&&actor.getNavigation().startMovingAlong(path,NATIVE_NAVIGATION_SPEED); }
+    static Path findLeashSafeNativePath(PokemonEntity actor,double centerX,double centerZ,int leashRadiusBlocks,double[] target) {
+        if(actor==null) throw new IllegalArgumentException("actor is required");
+        if(target==null||target.length<2||!Double.isFinite(target[0])||!Double.isFinite(target[1])) throw new IllegalArgumentException("native navigation target requires finite X/Z");
+        if(!navigationTargetInsideLeash(centerX,centerZ,leashRadiusBlocks,actor.getX(),actor.getZ())||!navigationTargetInsideLeash(centerX,centerZ,leashRadiusBlocks,target[0],target[1])||!(actor.getWorld() instanceof ServerWorld world)) return null;
+        int targetX=MathHelper.floor(target[0]),targetZ=MathHelper.floor(target[1]),actorY=MathHelper.floor(actor.getY()); int surfaceY=world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,targetX,targetZ); if(!stableCalmTargetSurface(world,targetX,targetZ,surfaceY)) return null;
+        var navigation=actor.getNavigation(); for(int targetY:navigationTargetYCandidates(actorY,surfaceY)){Path path=navigation.findPathTo(target[0],targetY,target[1],0); if(path==null||!path.reachesTarget()||!navigationPathInsideLeash(centerX,centerZ,leashRadiusBlocks,path)||!navigationPathSurfaceContinuous(world,path)||!navigationPathPresentationClear(world,actor,path)) continue; return path;} return null;
     }
-
-    /**
-     * Finds a Minecraft-native path toward the already-authored CALM X/Z destination.
-     *
-     * The actor's current Y remains the first attempt for flat terrain. If Minecraft reports a
-     * different motion-blocking surface at the exact target column, a second attempt uses that
-     * surface height. The target column and every accepted path node must remain on locally stable
-     * Minecraft surface. Consecutive path-node surfaces may climb or descend by at most one block,
-     * so ordinary slopes remain usable while abrupt ledges are rejected. Every node must also have
-     * clear actor-sized presentation volume before movement starts, including no overlap with another
-     * interaction-active visible wild Pokemon. This only supplies Minecraft presentation geometry;
-     * X/Z destination and leash authority remain unchanged.
-     */
-    static Path findLeashSafeNativePath(
-            PokemonEntity actor,
-            double centerX,
-            double centerZ,
-            int leashRadiusBlocks,
-            double[] target
-    ) {
-        if (actor == null) throw new IllegalArgumentException("actor is required");
-        if (target == null || target.length < 2 || !Double.isFinite(target[0]) || !Double.isFinite(target[1])) {
-            throw new IllegalArgumentException("native navigation target requires finite X/Z");
-        }
-        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, actor.getX(), actor.getZ())) return null;
-        if (!navigationTargetInsideLeash(centerX, centerZ, leashRadiusBlocks, target[0], target[1])) return null;
-        if (!(actor.getWorld() instanceof ServerWorld world)) return null;
-
-        int targetX = MathHelper.floor(target[0]);
-        int targetZ = MathHelper.floor(target[1]);
-        int actorY = MathHelper.floor(actor.getY());
-        int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, targetX, targetZ);
-        if (!stableCalmTargetSurface(world, targetX, targetZ, surfaceY)) return null;
-
-        var navigation = actor.getNavigation();
-        for (int targetY : navigationTargetYCandidates(actorY, surfaceY)) {
-            Path path = navigation.findPathTo(target[0], targetY, target[1], 0);
-            if (path == null || !path.reachesTarget()) continue;
-            if (!navigationPathInsideLeash(centerX, centerZ, leashRadiusBlocks, path)) continue;
-            if (!navigationPathSurfaceContinuous(world, path)) continue;
-            if (!navigationPathPresentationClear(world, actor, path)) continue;
-            return path;
-        }
-        return null;
-    }
-
-    private static boolean stableCalmTargetSurface(ServerWorld world, int targetX, int targetZ, int surfaceY) {
-        int[] adjacentSurfaceY = new int[CARDINAL_SURFACE_OFFSETS.length];
-        for (int index = 0; index < CARDINAL_SURFACE_OFFSETS.length; index++) {
-            int[] offset = CARDINAL_SURFACE_OFFSETS[index];
-            adjacentSurfaceY[index] = world.getTopY(
-                    Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-                    targetX + offset[0],
-                    targetZ + offset[1]);
-        }
-        return stableCalmSurfaceNeighborhood(surfaceY, adjacentSurfaceY);
-    }
-
-    static boolean stableCalmSurfaceNeighborhood(int surfaceY, int... adjacentSurfaceY) {
-        if (adjacentSurfaceY == null || adjacentSurfaceY.length != CARDINAL_SURFACE_OFFSETS.length) {
-            throw new IllegalArgumentException("CALM surface neighborhood requires four cardinal heights");
-        }
-        for (int adjacentY : adjacentSurfaceY) {
-            if (Math.abs((long) adjacentY - surfaceY) > MAX_CALM_NEIGHBOR_SURFACE_DELTA) return false;
-        }
-        return true;
-    }
-
-    static boolean stableCalmSurfaceProfile(int... surfaceY) {
-        if (surfaceY == null || surfaceY.length == 0) {
-            throw new IllegalArgumentException("CALM surface profile requires at least one height");
-        }
-        for (int index = 1; index < surfaceY.length; index++) {
-            if (Math.abs((long) surfaceY[index] - surfaceY[index - 1]) > MAX_CALM_NEIGHBOR_SURFACE_DELTA) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean navigationPathSurfaceContinuous(ServerWorld world, Path path) {
-        if (world == null || path == null || path.getLength() == 0) return false;
-        int[] surfaceProfile = new int[path.getLength()];
-        for (int index = 0; index < path.getLength(); index++) {
-            BlockPos node = path.getNode(index).getBlockPos();
-            int surfaceY = world.getTopY(
-                    Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-                    node.getX(),
-                    node.getZ());
-            if (!stableCalmTargetSurface(world, node.getX(), node.getZ(), surfaceY)) return false;
-            surfaceProfile[index] = surfaceY;
-        }
-        return stableCalmSurfaceProfile(surfaceProfile);
-    }
-
-    private static boolean navigationPathPresentationClear(ServerWorld world, PokemonEntity actor, Path path) {
-        if (world == null || actor == null || path == null || path.getLength() == 0) return false;
-        boolean[] nodeClear = new boolean[path.getLength()];
-        for (int index = 0; index < path.getLength(); index++) {
-            BlockPos node = path.getNode(index).getBlockPos();
-            double offsetX = node.getX() + 0.5D - actor.getX();
-            double offsetY = node.getY() - actor.getY();
-            double offsetZ = node.getZ() + 0.5D - actor.getZ();
-            var projectedBox = actor.getBoundingBox().offset(offsetX, offsetY, offsetZ);
-            boolean blockSpaceClear = world.isSpaceEmpty(actor, projectedBox);
-            boolean activeWildOverlap = !world.getOtherEntities(
-                    actor,
-                    projectedBox,
-                    candidate -> candidate instanceof PokemonEntity
-                            && VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.getUuid()))
-                    .isEmpty();
-            nodeClear[index] = MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(
-                    blockSpaceClear,
-                    activeWildOverlap);
-        }
-        return navigationPresentationProfileClear(nodeClear);
-    }
-
-    static boolean navigationPresentationProfileClear(boolean... nodeClear) {
-        if (nodeClear == null || nodeClear.length == 0) return false;
-        for (boolean clear : nodeClear) {
-            if (!clear) return false;
-        }
-        return true;
-    }
-
-    static int[] navigationTargetYCandidates(int actorY, int surfaceY) {
-        if (actorY == surfaceY) return new int[] {actorY};
-        return new int[] {actorY, surfaceY};
-    }
-
-    static boolean navigationTargetInsideLeash(
-            double centerX,
-            double centerZ,
-            int leashRadiusBlocks,
-            double targetX,
-            double targetZ
-    ) {
-        if (!Double.isFinite(centerX) || !Double.isFinite(centerZ)
-                || !Double.isFinite(targetX) || !Double.isFinite(targetZ)
-                || leashRadiusBlocks <= 0) {
-            throw new IllegalArgumentException("native navigation target requires finite coordinates and positive leash");
-        }
-        double dx = targetX - centerX;
-        double dz = targetZ - centerZ;
-        return dx * dx + dz * dz <= (double) leashRadiusBlocks * leashRadiusBlocks;
-    }
-
-    static boolean navigationPathInsideLeash(
-            double centerX,
-            double centerZ,
-            int leashRadiusBlocks,
-            Path path
-    ) {
-        if (!Double.isFinite(centerX) || !Double.isFinite(centerZ) || leashRadiusBlocks <= 0) {
-            throw new IllegalArgumentException("native navigation path requires finite center and positive leash");
-        }
-        if (path == null || path.getLength() == 0) return false;
-        for (int index = 0; index < path.getLength(); index++) {
-            BlockPos node = path.getNode(index).getBlockPos();
-            if (!navigationTargetInsideLeash(
-                    centerX,
-                    centerZ,
-                    leashRadiusBlocks,
-                    node.getX() + 0.5D,
-                    node.getZ() + 0.5D)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static double[] firstCollisionFreeVelocity(
-            ServerWorld world,
-            PokemonEntity actor,
-            double centerX,
-            double centerZ,
-            int leashRadiusBlocks,
-            double requestedX,
-            double requestedZ
-    ) {
-        boolean clockwiseFirst = clockwiseFirst(actor.getUuid());
-        for (double angle : TURN_ANGLES_DEGREES) {
-            double firstAngle = clockwiseFirst ? -angle : angle;
-            double[] first = rotate(requestedX, requestedZ, firstAngle);
-            if (candidateAllowed(world, actor, centerX, centerZ, leashRadiusBlocks, first)) return first;
-
-            double[] second = rotate(requestedX, requestedZ, -firstAngle);
-            if (candidateAllowed(world, actor, centerX, centerZ, leashRadiusBlocks, second)) return second;
-        }
-        return new double[] {0.0D, 0.0D};
-    }
-
-    private static boolean candidateAllowed(
-            ServerWorld world,
-            PokemonEntity actor,
-            double centerX,
-            double centerZ,
-            int leashRadiusBlocks,
-            double[] velocity
-    ) {
-        return MareaWildAmbientBehaviorRuntime.insideLeashAfterImpulse(
-                actor,
-                centerX,
-                centerZ,
-                leashRadiusBlocks,
-                velocity[0],
-                velocity[1])
-                && isPresentationProbeClear(world, actor, velocity[0], velocity[1]);
-    }
-
-    private static boolean isPresentationProbeClear(
-            ServerWorld world,
-            PokemonEntity actor,
-            double velocityX,
-            double velocityZ
-    ) {
-        double speed = Math.sqrt(velocityX * velocityX + velocityZ * velocityZ);
-        if (speed <= MIN_HORIZONTAL_SPEED) return true;
-        double scale = COLLISION_PROBE_DISTANCE / speed;
-        var projectedBox = actor.getBoundingBox().offset(velocityX * scale, 0.0D, velocityZ * scale);
-        boolean blockSpaceClear = world.isSpaceEmpty(actor, projectedBox);
-        boolean activeWildOverlap = !world.getOtherEntities(
-                actor,
-                projectedBox,
-                candidate -> candidate instanceof PokemonEntity
-                        && VisibleWildPokemonEncounterRuntime.isInteractionActive(candidate.getUuid()))
-                .isEmpty();
-        return steeringProbePresentationClear(blockSpaceClear, activeWildOverlap);
-    }
-
-    static boolean steeringProbePresentationClear(boolean blockSpaceClear, boolean activeWildOverlap) {
-        return MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(
-                blockSpaceClear,
-                activeWildOverlap);
-    }
-
-    static boolean clockwiseFirst(UUID actorId) {
-        if (actorId == null) throw new IllegalArgumentException("actorId is required");
-        return ((actorId.getMostSignificantBits() ^ actorId.getLeastSignificantBits()) & 1L) == 0L;
-    }
-
-    static double[] rotate(double x, double z, double angleDegrees) {
-        if (!Double.isFinite(x) || !Double.isFinite(z) || !Double.isFinite(angleDegrees)) {
-            throw new IllegalArgumentException("rotation requires finite velocity and angle");
-        }
-        double radians = Math.toRadians(angleDegrees);
-        double cos = Math.cos(radians);
-        double sin = Math.sin(radians);
-        return new double[] {x * cos - z * sin, x * sin + z * cos};
-    }
+    private static boolean stableCalmTargetSurface(ServerWorld world,int targetX,int targetZ,int surfaceY){int[] adjacent=new int[CARDINAL_SURFACE_OFFSETS.length];for(int i=0;i<CARDINAL_SURFACE_OFFSETS.length;i++){int[] o=CARDINAL_SURFACE_OFFSETS[i];adjacent[i]=world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,targetX+o[0],targetZ+o[1]);}return stableCalmSurfaceNeighborhood(surfaceY,adjacent);}
+    static boolean stableCalmSurfaceNeighborhood(int surfaceY,int... adjacent){if(adjacent==null||adjacent.length!=CARDINAL_SURFACE_OFFSETS.length)throw new IllegalArgumentException("CALM surface neighborhood requires four cardinal heights");for(int y:adjacent)if(Math.abs((long)y-surfaceY)>MAX_CALM_NEIGHBOR_SURFACE_DELTA)return false;return true;}
+    static boolean stableCalmSurfaceProfile(int... ys){if(ys==null||ys.length==0)throw new IllegalArgumentException("CALM surface profile requires at least one height");for(int i=1;i<ys.length;i++)if(Math.abs((long)ys[i]-ys[i-1])>MAX_CALM_NEIGHBOR_SURFACE_DELTA)return false;return true;}
+    private static boolean navigationPathSurfaceContinuous(ServerWorld world,Path path){if(world==null||path==null||path.getLength()==0)return false;int[] p=new int[path.getLength()];for(int i=0;i<path.getLength();i++){BlockPos n=path.getNode(i).getBlockPos();int y=world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,n.getX(),n.getZ());if(!stableCalmTargetSurface(world,n.getX(),n.getZ(),y))return false;p[i]=y;}return stableCalmSurfaceProfile(p);}
+    private static boolean navigationPathPresentationClear(ServerWorld world,PokemonEntity actor,Path path){if(world==null||actor==null||path==null||path.getLength()==0)return false;boolean[] clear=new boolean[path.getLength()];for(int i=0;i<path.getLength();i++){BlockPos n=path.getNode(i).getBlockPos();var box=actor.getBoundingBox().offset(n.getX()+0.5D-actor.getX(),n.getY()-actor.getY(),n.getZ()+0.5D-actor.getZ());boolean blocks=world.isSpaceEmpty(actor,box);boolean overlap=!world.getOtherEntities(actor,box,c->c instanceof PokemonEntity&&VisibleWildPokemonEncounterRuntime.isInteractionActive(c.getUuid())).isEmpty();clear[i]=MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(blocks,overlap);}return navigationPresentationProfileClear(clear);}
+    static boolean navigationPresentationProfileClear(boolean... clear){if(clear==null||clear.length==0)return false;for(boolean c:clear)if(!c)return false;return true;}
+    static int[] navigationTargetYCandidates(int actorY,int surfaceY){return actorY==surfaceY?new int[]{actorY}:new int[]{actorY,surfaceY};}
+    static boolean navigationTargetInsideLeash(double cx,double cz,int r,double x,double z){if(!Double.isFinite(cx)||!Double.isFinite(cz)||!Double.isFinite(x)||!Double.isFinite(z)||r<=0)throw new IllegalArgumentException("native navigation target requires finite coordinates and positive leash");double dx=x-cx,dz=z-cz;return dx*dx+dz*dz<=(double)r*r;}
+    static boolean navigationPathInsideLeash(double cx,double cz,int r,Path path){if(!Double.isFinite(cx)||!Double.isFinite(cz)||r<=0)throw new IllegalArgumentException("native navigation path requires finite center and positive leash");if(path==null||path.getLength()==0)return false;for(int i=0;i<path.getLength();i++){BlockPos n=path.getNode(i).getBlockPos();if(!navigationTargetInsideLeash(cx,cz,r,n.getX()+0.5D,n.getZ()+0.5D))return false;}return true;}
+    private static double[] firstCollisionFreeVelocity(ServerWorld world,PokemonEntity actor,double cx,double cz,int r,double x,double z){boolean cw=clockwiseFirst(actor.getUuid());for(double a:TURN_ANGLES_DEGREES){double fa=cw?-a:a;double[] first=rotate(x,z,fa);if(candidateAllowed(world,actor,cx,cz,r,first))return first;double[] second=rotate(x,z,-fa);if(candidateAllowed(world,actor,cx,cz,r,second))return second;}return new double[]{0.0D,0.0D};}
+    private static boolean candidateAllowed(ServerWorld world,PokemonEntity actor,double cx,double cz,int r,double[] v){return MareaWildAmbientBehaviorRuntime.insideLeashAfterImpulse(actor,cx,cz,r,v[0],v[1])&&isPresentationProbeClear(world,actor,v[0],v[1]);}
+    private static boolean isPresentationProbeClear(ServerWorld world,PokemonEntity actor,double vx,double vz){double speed=Math.sqrt(vx*vx+vz*vz);if(speed<=MIN_HORIZONTAL_SPEED)return true;double scale=COLLISION_PROBE_DISTANCE/speed;var box=actor.getBoundingBox().offset(vx*scale,0.0D,vz*scale);boolean blocks=world.isSpaceEmpty(actor,box);boolean overlap=!world.getOtherEntities(actor,box,c->c instanceof PokemonEntity&&VisibleWildPokemonEncounterRuntime.isInteractionActive(c.getUuid())).isEmpty();return steeringProbePresentationClear(blocks,overlap);}
+    static boolean steeringProbePresentationClear(boolean blockSpaceClear,boolean activeWildOverlap){return MareaWildCalmNavigationContinuityRuntime.presentationNodeClear(blockSpaceClear,activeWildOverlap);}
+    static boolean clockwiseFirst(UUID actorId){if(actorId==null)throw new IllegalArgumentException("actorId is required");return((actorId.getMostSignificantBits()^actorId.getLeastSignificantBits())&1L)==0L;}
+    static double[] rotate(double x,double z,double degrees){if(!Double.isFinite(x)||!Double.isFinite(z)||!Double.isFinite(degrees))throw new IllegalArgumentException("rotation requires finite velocity and angle");double rad=Math.toRadians(degrees),cos=Math.cos(rad),sin=Math.sin(rad);return new double[]{x*cos-z*sin,x*sin+z*cos};}
 }
