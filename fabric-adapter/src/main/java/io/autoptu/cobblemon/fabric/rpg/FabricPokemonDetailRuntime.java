@@ -98,6 +98,7 @@ public final class FabricPokemonDetailRuntime {
         CanonicalPokemonDetail selectedDetail = details.getFirst();
         ServerPlayNetworking.send(player, new FabricCanonicalPokemonSummaryPayload(projections));
         player.sendMessage(Text.literal(traits(selectedDetail.battleTraits())), false);
+        player.sendMessage(Text.literal(mobility(selectedDetail)), false);
         player.sendMessage(Text.literal(conditionLabel(selectedDetail)), true);
         CobblemonNetwork.INSTANCE.sendPacketToPlayer(
                 player,
@@ -165,6 +166,10 @@ public final class FabricPokemonDetailRuntime {
                 + " | PEV " + accuracy.physicalEvasionBonus()
                 + " | SEV " + accuracy.specialEvasionBonus()
                 + " | STEV " + accuracy.statusEvasionBonus();
+    }
+
+    static String mobility(CanonicalPokemonDetail detail) {
+        return movement(detail.baseMovement()) + " | " + accuracy(detail.accuracyEvasion());
     }
 
     static String traits(CanonicalBattleTraits traits) {
