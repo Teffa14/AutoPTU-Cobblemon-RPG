@@ -177,7 +177,8 @@ public final class FabricPokemonDetailRuntime {
 
     static String conditionLabel(CanonicalPokemonDetail detail) {
         String statuses = detail.statuses().isEmpty() ? "none" : String.join(", ", detail.statuses());
-        return "PTU condition | Status " + statuses + " | Injuries " + injuries(detail);
+        return "PTU | " + traits(detail.battleTraits())
+                + " | Status " + statuses + " | Injuries " + injuries(detail);
     }
 
     private static String listOr(java.util.List<String> values, String fallback) {
