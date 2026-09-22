@@ -177,7 +177,8 @@ public final class FabricPokemonDetailRuntime {
 
     static String conditionLabel(CanonicalPokemonDetail detail) {
         String statuses = detail.statuses().isEmpty() ? "none" : String.join(", ", detail.statuses());
-        return "PTU | HP " + health(detail) + " | " + stats(detail.combatStats())
+        return "PTU | " + displayName(detail.speciesId()) + " Lv " + detail.level()
+                + " | HP " + health(detail) + " | " + stats(detail.combatStats())
                 + " | Status " + statuses + " | Injuries " + injuries(detail);
     }
 

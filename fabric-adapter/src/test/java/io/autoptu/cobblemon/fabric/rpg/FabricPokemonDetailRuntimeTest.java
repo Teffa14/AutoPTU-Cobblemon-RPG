@@ -44,7 +44,7 @@ final class FabricPokemonDetailRuntimeTest {
                 new CanonicalInjuryState(2), false, List.of(), 4L
         );
         assertEquals(
-                "PTU | HP 20/30 | ATK 7 | DEF 8 | SPATK 9 | SPDEF 10 | SPD 11 | Status poisoned, slowed | Injuries 2",
+                "PTU | Bulbasaur Lv 12 | HP 20/30 | ATK 7 | DEF 8 | SPATK 9 | SPDEF 10 | SPD 11 | Status poisoned, slowed | Injuries 2",
                 FabricPokemonDetailRuntime.conditionLabel(detail)
         );
     }
