@@ -18,6 +18,7 @@ import java.util.UUID;
 public final class MareaVisibleWildPresenceRuntimeSmoke {
     private static final Logger LOGGER = LoggerFactory.getLogger("autoptu-cobblemon-rpg");
     private static final String ENABLE_PROPERTY = "autoptu.liveMareaWildPresenceSmoke";
+    private static final String MAREA_ECOLOGY_SOURCE_ID = "fixture.ouros.marea";
     private static final Map<MinecraftServer, Probe> PROBES = new IdentityHashMap<>();
 
     private MareaVisibleWildPresenceRuntimeSmoke() {}
@@ -32,7 +33,7 @@ public final class MareaVisibleWildPresenceRuntimeSmoke {
             }
             LOGGER.info("AutoPTU live Marea authored habitat-policy smoke verified activation, retention and leash policies with dormant habitats without players");
 
-            int projected = MareaVisibleWildPokemonRuntime.ensureProjected(server.getOverworld());
+            int projected = WildPopulationSourceProjectionRuntime.ensureProjected(server.getOverworld(), MAREA_ECOLOGY_SOURCE_ID);
             var encounters = CanonicalWildPopulationCatalogue.DEFAULT.populations().stream()
                     .filter(population -> population.siteId().startsWith("ouros.marea."))
                     .flatMap(population -> CanonicalWildPopulationCatalogue.DEFAULT.members(population).stream())
