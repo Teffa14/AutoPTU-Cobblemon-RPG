@@ -96,6 +96,10 @@ public final class FabricPokemonDetailRuntime {
         }
 
         ServerPlayNetworking.send(player, new FabricCanonicalPokemonSummaryPayload(projections));
+        CanonicalPokemonDetail selected = details.getFirst();
+        if (selected.injuryState() != null) {
+            player.sendMessage(Text.literal("PTU condition | Injuries " + selected.injuryState().injuries()), true);
+        }
         CobblemonNetwork.INSTANCE.sendPacketToPlayer(
                 player,
                 new SummaryUIPacket(List.copyOf(presentationParty), false)
