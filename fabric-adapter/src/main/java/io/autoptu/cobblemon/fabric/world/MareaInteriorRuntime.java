@@ -27,13 +27,14 @@ import java.util.Set;
  */
 public final class MareaInteriorRuntime {
     private static final String NPC_TAG_PREFIX = "autoptu:npc:";
+    private static final String MAREA_ECOLOGY_SOURCE_ID = "fixture.ouros.marea";
 
     private static final Map<String, BlockPos> NPC_WORK_POSITIONS = positions();
 
     private MareaInteriorRuntime() {}
 
     public static void register() {
-        MareaVisibleWildPokemonRuntime.register();
+        WildPopulationRuntime.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("ouros")
                         .then(CommandManager.literal("world")
@@ -53,7 +54,7 @@ public final class MareaInteriorRuntime {
         int spawned = spawnResidents(world);
         int projectedPartners = projectPartners(world);
         // This call publishes each complete canonical WILD blueprint before its Cobblemon actor can appear.
-        int projectedWilds = MareaVisibleWildPokemonRuntime.ensureProjected(world);
+        int projectedWilds = WildPopulationSourceProjectionRuntime.ensureProjected(world, MAREA_ECOLOGY_SOURCE_ID);
         source.sendFeedback(() -> Text.literal("Marea Interior built at fixed Ouros coordinates. Sites: "
                 + result.builtSiteIds().size() + "; canonical resident actors created: " + spawned
                 + "; named partner Pokemon projected: " + projectedPartners
