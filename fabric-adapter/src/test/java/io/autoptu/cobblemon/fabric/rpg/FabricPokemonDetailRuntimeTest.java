@@ -42,9 +42,9 @@ final class FabricPokemonDetailRuntimeTest {
         CanonicalPokemonDetail detail = new CanonicalPokemonDetail(
                 1, "pokemon-1", "pokemon:bulbasaur", 12,
                 new CanonicalHealth(20, 30), List.of(),
-                new CanonicalCombatStats(7, 8, 9, 10, 11),
-                new CanonicalBaseMovement(5, 4, 0, 2, 1),
-                new CanonicalAccuracyEvasion(1, 2, 3, 4), null, null,
+                new CanonicalCombatStats(7, 8, 9, 10, 11), null,
+                new CanonicalBaseMovement(5, 4, 0, 2, 1), null,
+                new CanonicalAccuracyEvasion(1, 2, 3, 4),
                 new CanonicalInjuryState(0), false, List.of(), 4L
         );
         assertEquals(
