@@ -28,6 +28,10 @@ public final class WildPopulationSourceProjectionRuntime {
             if (descriptor == null || !normalizedSourceId.equals(descriptor.sourceId())) continue;
             if (!descriptor.worldEligibility().accepts(world)) continue;
             for (var encounter : CanonicalWildPopulationCatalogue.DEFAULT.members(population)) {
+                // The source-level bootstrap must preserve the same server-authored visibility gate as
+                // normal population activation. A runtime/admin projection request cannot reveal an actor
+                // that its ecology descriptor currently marks ineligible for world presentation.
+                if (!descriptor.projectionEligibility().test(encounter)) continue;
                 if (WildPopulationRuntime.ensureProjected(world, encounter) != null) visible++;
             }
         }
