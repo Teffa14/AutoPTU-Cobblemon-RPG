@@ -16,6 +16,11 @@ public final class WildPopulationSourceProjectionRuntime {
     public static int ensureProjected(ServerWorld world, String sourceId) {
         if (world == null) throw new IllegalArgumentException("world is required");
         if (sourceId == null || sourceId.isBlank()) throw new IllegalArgumentException("sourceId is required");
+
+        // Explicit source projection is a production entry point, not a region-owned lifecycle.
+        // Ensure the global lifecycle is installed before any presentation actor can be revealed.
+        WildPopulationRuntime.register();
+
         String normalizedSourceId = sourceId.strip();
         int visible = 0;
         for (var population : CanonicalWildPopulationCatalogue.DEFAULT.populations()) {
