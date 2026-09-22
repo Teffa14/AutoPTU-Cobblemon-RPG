@@ -1,8 +1,10 @@
 package io.autoptu.cobblemon.fabric.client;
 
+import com.cobblemon.mod.common.client.gui.summary.Summary;
 import io.autoptu.cobblemon.fabric.network.FabricCanonicalPokemonSummaryNetworking;
 import io.autoptu.cobblemon.fabric.network.FabricCanonicalPokemonSummaryPayload;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
@@ -15,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FabricCanonicalPokemonSummaryClient implements ClientModInitializer {
     private static final Map<UUID, FabricCanonicalPokemonSummaryPayload.Projection> PROJECTIONS =
             new ConcurrentHashMap<>();
+    private static boolean nativeSummaryObserved;
 
     @Override
     public void onInitializeClient() {
@@ -22,7 +25,14 @@ public final class FabricCanonicalPokemonSummaryClient implements ClientModIniti
         ClientPlayNetworking.registerGlobalReceiver(
                 FabricCanonicalPokemonSummaryPayload.ID,
                 (payload, context) -> context.client().execute(() -> replace(payload)));
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> PROJECTIONS.clear());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> clear());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.currentScreen instanceof Summary) {
+                nativeSummaryObserved = true;
+            } else if (nativeSummaryObserved) {
+                clear();
+            }
+        });
     }
 
     public static Optional<FabricCanonicalPokemonSummaryPayload.Projection> projection(UUID presentationPokemonId) {
@@ -35,5 +45,11 @@ public final class FabricCanonicalPokemonSummaryClient implements ClientModIniti
         for (FabricCanonicalPokemonSummaryPayload.Projection projection : payload.projections()) {
             PROJECTIONS.put(projection.presentationPokemonId(), projection);
         }
+        nativeSummaryObserved = false;
+    }
+
+    static void clear() {
+        PROJECTIONS.clear();
+        nativeSummaryObserved = false;
     }
 }
