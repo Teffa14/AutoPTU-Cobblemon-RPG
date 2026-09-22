@@ -16,6 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(value = Pokemon.class, remap = false)
 public abstract class PokemonPtuSummaryProjectionMixin {
+    @Inject(method = "getLevel", at = @At("HEAD"), cancellable = true, remap = false)
+    private void autoptu$canonicalLevel(CallbackInfoReturnable<Integer> cir) {
+        FabricCanonicalPokemonSummaryPayload.Projection projection = projection();
+        if (projection != null) cir.setReturnValue(projection.level());
+    }
+
     @Inject(method = "getStat", at = @At("HEAD"), cancellable = true, remap = false)
     private void autoptu$canonicalStat(Stat stat, CallbackInfoReturnable<Integer> cir) {
         FabricCanonicalPokemonSummaryPayload.Projection projection = projection();
