@@ -40,7 +40,7 @@ final class FabricPokemonDetailRuntimeTest {
         CanonicalPokemonDetail detail = new CanonicalPokemonDetail(
                 1, "pokemon-1", "pokemon:bulbasaur", 12,
                 new CanonicalHealth(20, 30), List.of("poisoned", "slowed"), null, null, null, null, null,
-                new CanonicalInjuryState(2, 0), false, List.of(), 4L
+                new CanonicalInjuryState(2), false, List.of(), 4L
         );
         assertEquals(
                 "PTU condition | Status poisoned, slowed | Injuries 2",
