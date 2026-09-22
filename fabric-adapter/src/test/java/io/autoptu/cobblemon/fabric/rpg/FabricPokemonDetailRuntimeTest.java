@@ -36,14 +36,15 @@ final class FabricPokemonDetailRuntimeTest {
     }
 
     @Test
-    void conditionLabelUsesOnlyCanonicalStatusesAndInjuries() {
+    void conditionLabelUsesOnlyCanonicalSnapshotValues() {
         CanonicalPokemonDetail detail = new CanonicalPokemonDetail(
                 1, "pokemon-1", "pokemon:bulbasaur", 12,
-                new CanonicalHealth(20, 30), List.of("poisoned", "slowed"), null, null, null, null, null,
+                new CanonicalHealth(20, 30), List.of("poisoned", "slowed"),
+                new CanonicalCombatStats(7, 8, 9, 10, 11), null, null, null, null,
                 new CanonicalInjuryState(2), false, List.of(), 4L
         );
         assertEquals(
-                "PTU condition | Status poisoned, slowed | Injuries 2",
+                "PTU | HP 20/30 | ATK 7 | DEF 8 | SPATK 9 | SPDEF 10 | SPD 11 | Status poisoned, slowed | Injuries 2",
                 FabricPokemonDetailRuntime.conditionLabel(detail)
         );
     }
