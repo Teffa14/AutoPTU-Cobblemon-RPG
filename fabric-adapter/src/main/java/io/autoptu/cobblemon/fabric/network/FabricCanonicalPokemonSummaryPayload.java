@@ -25,6 +25,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
     public record Projection(
             UUID presentationPokemonId,
             String canonicalPokemonId,
+            int level,
             int currentHp,
             int maxHp,
             int atk,
@@ -41,6 +42,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
                 throw new IllegalArgumentException("canonicalPokemonId is required");
             }
             canonicalPokemonId = canonicalPokemonId.strip();
+            if (level < 1) throw new IllegalArgumentException("canonical level must be positive");
             if (maxHp <= 0 || currentHp < 0 || currentHp > maxHp) {
                 throw new IllegalArgumentException("invalid canonical HP projection");
             }
@@ -59,6 +61,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             return new Projection(
                     presentationPokemonId,
                     detail.pokemonId(),
+                    detail.level(),
                     detail.health().currentHp(),
                     detail.health().maxHp(),
                     stats.atk(),
@@ -86,6 +89,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
         for (int i = 0; i < count; i++) {
             UUID presentationId = buf.readUuid();
             String canonicalId = buf.readString();
+            int level = buf.readVarInt();
             int currentHp = buf.readVarInt();
             int maxHp = buf.readVarInt();
             int atk = buf.readVarInt();
@@ -100,7 +104,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             }
             int injuries = buf.readVarInt();
             result.add(new Projection(
-                    presentationId, canonicalId, currentHp, maxHp, atk, def, spatk, spdef, spd, statuses, injuries));
+                    presentationId, canonicalId, level, currentHp, maxHp, atk, def, spatk, spdef, spd, statuses, injuries));
         }
         return List.copyOf(result);
     }
@@ -110,6 +114,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
         for (Projection projection : projections) {
             buf.writeUuid(projection.presentationPokemonId());
             buf.writeString(projection.canonicalPokemonId());
+            buf.writeVarInt(projection.level());
             buf.writeVarInt(projection.currentHp());
             buf.writeVarInt(projection.maxHp());
             buf.writeVarInt(projection.atk());
