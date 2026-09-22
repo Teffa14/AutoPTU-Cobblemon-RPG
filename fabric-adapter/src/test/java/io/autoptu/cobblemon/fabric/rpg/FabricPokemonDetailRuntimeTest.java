@@ -2,6 +2,9 @@ package io.autoptu.cobblemon.fabric.rpg;
 
 import io.autoptu.cobblemon.authority.CanonicalBattleTraits;
 import io.autoptu.cobblemon.authority.CanonicalCombatStats;
+import io.autoptu.cobblemon.authority.CanonicalHealth;
+import io.autoptu.cobblemon.authority.CanonicalInjuryState;
+import io.autoptu.cobblemon.authority.CanonicalPokemonDetail;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -30,6 +33,19 @@ final class FabricPokemonDetailRuntimeTest {
         assertEquals("Combat stats unavailable", FabricPokemonDetailRuntime.stats(null));
         assertEquals("Base movement unavailable", FabricPokemonDetailRuntime.movement(null));
         assertEquals("Accuracy/evasion unavailable", FabricPokemonDetailRuntime.accuracy(null));
+    }
+
+    @Test
+    void conditionLabelUsesOnlyCanonicalStatusesAndInjuries() {
+        CanonicalPokemonDetail detail = new CanonicalPokemonDetail(
+                1, "pokemon-1", "pokemon:bulbasaur", 12,
+                new CanonicalHealth(20, 30), List.of("poisoned", "slowed"), null, null, null, null, null,
+                new CanonicalInjuryState(2, 0), false, List.of(), 4L
+        );
+        assertEquals(
+                "PTU condition | Status poisoned, slowed | Injuries 2",
+                FabricPokemonDetailRuntime.conditionLabel(detail)
+        );
     }
 
     @Test
