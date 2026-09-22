@@ -96,10 +96,7 @@ public final class FabricPokemonDetailRuntime {
         }
 
         ServerPlayNetworking.send(player, new FabricCanonicalPokemonSummaryPayload(projections));
-        CanonicalPokemonDetail selected = details.getFirst();
-        if (selected.injuryState() != null) {
-            player.sendMessage(Text.literal("PTU condition | Injuries " + selected.injuryState().injuries()), true);
-        }
+        player.sendMessage(Text.literal(conditionLabel(details.getFirst())), true);
         CobblemonNetwork.INSTANCE.sendPacketToPlayer(
                 player,
                 new SummaryUIPacket(List.copyOf(presentationParty), false)
@@ -176,6 +173,12 @@ public final class FabricPokemonDetailRuntime {
 
     static String injuries(CanonicalPokemonDetail detail) {
         return detail.injuryState() == null ? "unavailable" : Integer.toString(detail.injuryState().injuries());
+    }
+
+    static String conditionLabel(CanonicalPokemonDetail detail) {
+        String statuses = detail.statuses().isEmpty() ? "none" : String.join(", ", detail.statuses());
+        return "PTU | HP " + health(detail) + " | " + stats(detail.combatStats())
+                + " | Status " + statuses + " | Injuries " + injuries(detail);
     }
 
     private static String listOr(java.util.List<String> values, String fallback) {
