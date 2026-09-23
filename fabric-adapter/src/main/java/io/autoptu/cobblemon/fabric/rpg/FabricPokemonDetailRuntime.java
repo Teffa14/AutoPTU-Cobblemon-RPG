@@ -81,6 +81,15 @@ public final class FabricPokemonDetailRuntime {
             details.addFirst(selected);
         }
 
+        for (CanonicalPokemonDetail detail : details) {
+            if (!nativeSummaryReady(detail)) {
+                player.sendMessage(Text.literal(
+                        "Native Cobblemon Summary is unavailable because canonical PTU HP or combat stats are missing for "
+                                + displayName(detail.speciesId()) + ". AutoPTU will not substitute Cobblemon gameplay data."), false);
+                return false;
+            }
+        }
+
         ArrayList<Pokemon> presentationParty = new ArrayList<>();
         ArrayList<FabricCanonicalPokemonSummaryPayload.Projection> projections = new ArrayList<>();
         for (CanonicalPokemonDetail detail : details) {
@@ -107,6 +116,10 @@ public final class FabricPokemonDetailRuntime {
                 new SummaryUIPacket(List.copyOf(presentationParty), false)
         );
         return true;
+    }
+
+    static boolean nativeSummaryReady(CanonicalPokemonDetail detail) {
+        return detail != null && detail.health() != null && detail.combatStats() != null;
     }
 
     static Pokemon createPresentationPokemon(CanonicalPokemonDetail detail) {
