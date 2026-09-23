@@ -76,8 +76,9 @@ public abstract class SummaryPtuProjectionMixin {
                 : projection.moveIds().stream()
                         .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
                         .collect(Collectors.joining(", "));
+        int hpPercent = (int) Math.round((projection.currentHp() * 100.0D) / projection.maxHp());
         String message = "PTU Lv " + projection.level()
-                + " | HP " + projection.currentHp() + "/" + projection.maxHp()
+                + " | HP " + projection.currentHp() + "/" + projection.maxHp() + " (" + hpPercent + "%)"
                 + " | Atk " + projection.atk()
                 + " Def " + projection.def()
                 + " SpA " + projection.spatk()
