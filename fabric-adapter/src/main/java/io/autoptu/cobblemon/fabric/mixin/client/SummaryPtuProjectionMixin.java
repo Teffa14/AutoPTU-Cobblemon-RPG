@@ -3,6 +3,8 @@ package io.autoptu.cobblemon.fabric.mixin.client;
 import com.cobblemon.mod.common.client.gui.summary.Summary;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import io.autoptu.cobblemon.fabric.client.FabricCanonicalPokemonSummaryClient;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,6 +28,14 @@ public abstract class SummaryPtuProjectionMixin {
     private int autoptu$keepCanonicalProjectionOnStats(int requestedScreen) {
         if (selectedPokemon != null
                 && FabricCanonicalPokemonSummaryClient.projection(selectedPokemon.getUuid()).isPresent()) {
+            if (requestedScreen != STATS_SCREEN) {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client.player != null) {
+                    client.player.sendMessage(Text.literal(
+                            "AutoPTU keeps this read-only Summary on canonical PTU stats; unsupported Cobblemon tabs are unavailable."),
+                            true);
+                }
+            }
             return STATS_SCREEN;
         }
         return requestedScreen;
