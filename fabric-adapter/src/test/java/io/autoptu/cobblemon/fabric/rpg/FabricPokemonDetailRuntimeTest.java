@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class FabricPokemonDetailRuntimeTest {
     @Test
@@ -37,6 +39,33 @@ final class FabricPokemonDetailRuntimeTest {
         assertEquals("Base movement unavailable", FabricPokemonDetailRuntime.movement(null));
         assertEquals("Accuracy/evasion unavailable", FabricPokemonDetailRuntime.accuracy(null));
         assertEquals("Moves unavailable", FabricPokemonDetailRuntime.moves(null));
+    }
+
+    @Test
+    void nativeSummaryRequiresCanonicalHpAndCombatStats() {
+        CanonicalPokemonDetail ready = new CanonicalPokemonDetail(
+                1, "pokemon-1", "pokemon:bulbasaur", 12,
+                new CanonicalHealth(20, 30), List.of(),
+                new CanonicalCombatStats(7, 8, 9, 10, 11), null, null, null, null,
+                new CanonicalInjuryState(0), false, List.of(), 4L
+        );
+        CanonicalPokemonDetail missingStats = new CanonicalPokemonDetail(
+                1, "pokemon-1", "pokemon:bulbasaur", 12,
+                new CanonicalHealth(20, 30), List.of(),
+                null, null, null, null, null,
+                new CanonicalInjuryState(0), false, List.of(), 4L
+        );
+        CanonicalPokemonDetail missingHealth = new CanonicalPokemonDetail(
+                1, "pokemon-1", "pokemon:bulbasaur", 12,
+                null, List.of(),
+                new CanonicalCombatStats(7, 8, 9, 10, 11), null, null, null, null,
+                new CanonicalInjuryState(0), false, List.of(), 4L
+        );
+
+        assertTrue(FabricPokemonDetailRuntime.nativeSummaryReady(ready));
+        assertFalse(FabricPokemonDetailRuntime.nativeSummaryReady(missingStats));
+        assertFalse(FabricPokemonDetailRuntime.nativeSummaryReady(missingHealth));
+        assertFalse(FabricPokemonDetailRuntime.nativeSummaryReady(null));
     }
 
     @Test
