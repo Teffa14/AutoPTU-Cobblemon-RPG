@@ -4,7 +4,9 @@ import com.cobblemon.mod.common.client.gui.summary.Summary;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import io.autoptu.cobblemon.fabric.client.FabricCanonicalPokemonSummaryClient;
 import io.autoptu.cobblemon.fabric.network.FabricCanonicalPokemonSummaryPayload;
+import java.util.Locale;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
@@ -65,7 +67,11 @@ public abstract class SummaryPtuProjectionMixin {
         if (client.player == null) return;
 
         String statuses = projection.statuses().isEmpty() ? "clear" : String.join(", ", projection.statuses());
-        String moves = projection.moveIds().isEmpty() ? "unavailable" : String.join(", ", projection.moveIds());
+        String moves = projection.moveIds().isEmpty()
+                ? "unavailable"
+                : projection.moveIds().stream()
+                        .map(SummaryPtuProjectionMixin::autoptu$displayMoveId)
+                        .collect(Collectors.joining(", "));
         String message = "PTU Lv " + projection.level()
                 + " | HP " + projection.currentHp() + "/" + projection.maxHp()
                 + " | Atk " + projection.atk()
@@ -80,5 +86,15 @@ public abstract class SummaryPtuProjectionMixin {
             message += " | Read-only PTU Summary: unsupported Cobblemon tab unavailable";
         }
         client.player.sendMessage(Text.literal(message), true);
+    }
+
+    private static String autoptu$displayMoveId(String moveId) {
+        if (moveId == null || moveId.isBlank()) return "Unknown";
+        String normalized = moveId.replace('-', ' ').replace('_', ' ').trim();
+        return java.util.Arrays.stream(normalized.split("\\s+"))
+                .filter(part -> !part.isBlank())
+                .map(part -> part.substring(0, 1).toUpperCase(Locale.ROOT)
+                        + part.substring(1).toLowerCase(Locale.ROOT))
+                .collect(Collectors.joining(" "));
     }
 }
