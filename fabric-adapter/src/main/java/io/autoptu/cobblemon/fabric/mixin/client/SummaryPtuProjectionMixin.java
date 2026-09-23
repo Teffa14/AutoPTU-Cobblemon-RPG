@@ -3,6 +3,7 @@ package io.autoptu.cobblemon.fabric.mixin.client;
 import com.cobblemon.mod.common.client.gui.summary.Summary;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import io.autoptu.cobblemon.fabric.client.FabricCanonicalPokemonSummaryClient;
+import java.util.UUID;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
@@ -27,11 +28,17 @@ public abstract class SummaryPtuProjectionMixin {
     private Pokemon selectedPokemon;
 
     private long autoptu$lastBlockedTabNoticeMs = Long.MIN_VALUE;
+    private UUID autoptu$lastProjectedPokemonUuid;
 
     @ModifyVariable(method = "displayMainScreen", at = @At("HEAD"), argsOnly = true, remap = false)
     private int autoptu$keepCanonicalProjectionOnStats(int requestedScreen) {
         if (selectedPokemon != null
                 && FabricCanonicalPokemonSummaryClient.projection(selectedPokemon.getUuid()).isPresent()) {
+            UUID selectedUuid = selectedPokemon.getUuid();
+            if (!selectedUuid.equals(autoptu$lastProjectedPokemonUuid)) {
+                autoptu$lastProjectedPokemonUuid = selectedUuid;
+                autoptu$lastBlockedTabNoticeMs = Long.MIN_VALUE;
+            }
             if (requestedScreen != STATS_SCREEN) {
                 long now = Util.getMeasuringTimeMs();
                 if (now - autoptu$lastBlockedTabNoticeMs >= BLOCKED_TAB_NOTICE_COOLDOWN_MS) {
@@ -46,6 +53,7 @@ public abstract class SummaryPtuProjectionMixin {
             }
             return STATS_SCREEN;
         }
+        autoptu$lastProjectedPokemonUuid = null;
         return requestedScreen;
     }
 }
