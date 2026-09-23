@@ -15,15 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-/**
- * Keeps disposable AutoPTU Pokemon on Cobblemon's native STATS surface.
- *
- * Other Summary tabs expose Cobblemon-owned nature/IV/EV/marks/edit data that is not yet part of the
- * durable PTU read model. Rather than fabricate those values, projected Pokemon remain on the exact
- * level/HP/combat-stat surface that AutoPTU can authoritatively supply. Canonical conditions, moves
- * and combat stats are surfaced as read-only action-bar context when the selection changes and remain
- * visible when an unsupported native tab is rejected.
- */
+/** Keeps disposable AutoPTU Pokemon on Cobblemon's native read-only STATS surface. */
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
     private static final int STATS_SCREEN = 2;
@@ -86,7 +78,8 @@ public abstract class SummaryPtuProjectionMixin {
                 + " Spd " + projection.spd()
                 + " | Moves " + moves
                 + " | Status " + statuses
-                + " | Injuries " + projection.injuries();
+                + " | Injuries " + projection.injuries()
+                + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none");
         if (blockedTab) {
             message += " | Read-only PTU Summary: unsupported Cobblemon tab unavailable";
         }
