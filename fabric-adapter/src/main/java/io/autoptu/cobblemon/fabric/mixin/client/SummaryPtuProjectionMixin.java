@@ -68,20 +68,15 @@ public abstract class SummaryPtuProjectionMixin {
                 : projection.moveIds().stream()
                         .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
                         .collect(Collectors.joining(", "));
-        int hpPercent = (int) Math.round((projection.currentHp() * 100.0D) / projection.maxHp());
-        String message = "PTU Lv " + projection.level()
-                + " | HP " + projection.currentHp() + "/" + projection.maxHp() + " (" + hpPercent + "%)"
-                + " | Atk " + projection.atk()
-                + " Def " + projection.def()
-                + " SpA " + projection.spatk()
-                + " SpD " + projection.spdef()
-                + " Spd " + projection.spd()
-                + " | Moves " + moves
+        // Level, HP and combat stats are already rendered by Cobblemon's native widgets through
+        // PokemonPtuSummaryProjectionMixin. Keep the transient cue for PTU-only state so it stays
+        // readable instead of duplicating the native Summary values in the action bar.
+        String message = "PTU | Moves " + moves
                 + " | Status " + statuses
                 + " | " + autoptu$displayInjuries(projection.injuries())
                 + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none");
         if (blockedTab) {
-            message += " | Read-only PTU Summary: unsupported Cobblemon tab unavailable";
+            message += " | Read-only: unsupported Cobblemon tab unavailable";
         }
         client.player.sendMessage(Text.literal(message), true);
     }
