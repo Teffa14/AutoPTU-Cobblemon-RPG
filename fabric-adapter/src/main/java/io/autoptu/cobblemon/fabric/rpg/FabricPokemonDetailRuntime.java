@@ -10,6 +10,7 @@ import io.autoptu.cobblemon.authority.CanonicalAccuracyEvasion;
 import io.autoptu.cobblemon.authority.CanonicalBaseMovement;
 import io.autoptu.cobblemon.authority.CanonicalBattleTraits;
 import io.autoptu.cobblemon.authority.CanonicalCombatStats;
+import io.autoptu.cobblemon.authority.CanonicalMoveLoadout;
 import io.autoptu.cobblemon.authority.CanonicalPokemonDetail;
 import io.autoptu.cobblemon.authority.CanonicalPokemonDetailService;
 import io.autoptu.cobblemon.fabric.network.FabricCanonicalPokemonSummaryPayload;
@@ -100,6 +101,7 @@ public final class FabricPokemonDetailRuntime {
         player.sendMessage(Text.literal(conditionLabel(selectedDetail)), false);
         player.sendMessage(Text.literal(traits(selectedDetail.battleTraits())), false);
         player.sendMessage(Text.literal(mobility(selectedDetail)), false);
+        player.sendMessage(Text.literal(loadout(selectedDetail)), false);
         CobblemonNetwork.INSTANCE.sendPacketToPlayer(
                 player,
                 new SummaryUIPacket(List.copyOf(presentationParty), false)
@@ -176,6 +178,18 @@ public final class FabricPokemonDetailRuntime {
         if (traits == null) return "Types unavailable | Abilities unavailable";
         return "Types " + listOr(traits.types(), "unavailable")
                 + " | Abilities " + listOr(traits.abilities(), "none");
+    }
+
+    static String moves(CanonicalMoveLoadout moveLoadout) {
+        if (moveLoadout == null) return "Moves unavailable";
+        return "Moves " + listOr(moveLoadout.moveIds(), "none");
+    }
+
+    static String loadout(CanonicalPokemonDetail detail) {
+        return moves(detail.moveLoadout())
+                + " | Capabilities " + listOr(detail.capabilities(), "none")
+                + " | Held item " + (detail.heldItemEquipped() ? "equipped" : "none")
+                + " | Revision " + detail.revision();
     }
 
     static String injuries(CanonicalPokemonDetail detail) {
