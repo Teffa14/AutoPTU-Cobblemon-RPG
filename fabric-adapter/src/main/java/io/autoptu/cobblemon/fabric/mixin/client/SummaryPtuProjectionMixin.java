@@ -78,12 +78,17 @@ public abstract class SummaryPtuProjectionMixin {
                 + " Spd " + projection.spd()
                 + " | Moves " + moves
                 + " | Status " + statuses
-                + " | Injuries " + projection.injuries()
+                + " | " + autoptu$displayInjuries(projection.injuries())
                 + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none");
         if (blockedTab) {
             message += " | Read-only PTU Summary: unsupported Cobblemon tab unavailable";
         }
         client.player.sendMessage(Text.literal(message), true);
+    }
+
+    private static String autoptu$displayInjuries(int injuries) {
+        if (injuries <= 0) return "Injuries none";
+        return injuries == 1 ? "1 injury" : injuries + " injuries";
     }
 
     private static String autoptu$displayCanonicalId(String canonicalId) {
