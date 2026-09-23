@@ -81,31 +81,35 @@ public final class FabricPokemonDetailRuntime {
             details.addFirst(selected);
         }
 
-        for (CanonicalPokemonDetail detail : details) {
-            if (!nativeSummaryReady(detail)) {
-                player.sendMessage(Text.literal(
-                        "Native Cobblemon Summary is unavailable because canonical PTU HP or combat stats are missing for "
-                                + displayName(detail.speciesId()) + ". AutoPTU will not substitute Cobblemon gameplay data."), false);
-                return false;
-            }
+        CanonicalPokemonDetail selectedDetail = details.getFirst();
+        if (!nativeSummaryReady(selectedDetail)) {
+            player.sendMessage(Text.literal(
+                    "Native Cobblemon Summary is unavailable because canonical PTU HP or combat stats are missing for "
+                            + displayName(selectedDetail.speciesId()) + ". AutoPTU will not substitute Cobblemon gameplay data."), false);
+            return false;
         }
 
         ArrayList<Pokemon> presentationParty = new ArrayList<>();
         ArrayList<FabricCanonicalPokemonSummaryPayload.Projection> projections = new ArrayList<>();
         for (CanonicalPokemonDetail detail : details) {
+            if (!nativeSummaryReady(detail)) continue;
             Pokemon presentation = createPresentationPokemon(detail);
             if (presentation == null) {
-                player.sendMessage(Text.literal(
-                        "Cannot open the native summary because Cobblemon has no presentation species for "
-                                + detail.speciesId() + "."), false);
-                return false;
+                if (detail == selectedDetail) {
+                    player.sendMessage(Text.literal(
+                            "Cannot open the native summary because Cobblemon has no presentation species for "
+                                    + detail.speciesId() + "."), false);
+                    return false;
+                }
+                continue;
             }
             presentationParty.add(presentation);
             projections.add(FabricCanonicalPokemonSummaryPayload.Projection.from(
                     presentation.getUuid(), detail));
         }
 
-        CanonicalPokemonDetail selectedDetail = details.getFirst();
+        if (presentationParty.isEmpty()) return false;
+
         ServerPlayNetworking.send(player, new FabricCanonicalPokemonSummaryPayload(projections));
         player.sendMessage(Text.literal(conditionLabel(selectedDetail)), false);
         player.sendMessage(Text.literal(traits(selectedDetail.battleTraits())), false);
