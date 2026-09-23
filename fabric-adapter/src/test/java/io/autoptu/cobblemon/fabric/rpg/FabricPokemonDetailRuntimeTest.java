@@ -6,6 +6,7 @@ import io.autoptu.cobblemon.authority.CanonicalBattleTraits;
 import io.autoptu.cobblemon.authority.CanonicalCombatStats;
 import io.autoptu.cobblemon.authority.CanonicalHealth;
 import io.autoptu.cobblemon.authority.CanonicalInjuryState;
+import io.autoptu.cobblemon.authority.CanonicalMoveLoadout;
 import io.autoptu.cobblemon.authority.CanonicalPokemonDetail;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,7 @@ final class FabricPokemonDetailRuntimeTest {
         assertEquals("Combat stats unavailable", FabricPokemonDetailRuntime.stats(null));
         assertEquals("Base movement unavailable", FabricPokemonDetailRuntime.movement(null));
         assertEquals("Accuracy/evasion unavailable", FabricPokemonDetailRuntime.accuracy(null));
+        assertEquals("Moves unavailable", FabricPokemonDetailRuntime.moves(null));
     }
 
     @Test
@@ -50,6 +52,22 @@ final class FabricPokemonDetailRuntimeTest {
         assertEquals(
                 "Movement OVR 5 | SWIM 4 | SKY 0 | LJ 2 | HJ 1 | Accuracy 1 | PEV 2 | SEV 3 | STEV 4",
                 FabricPokemonDetailRuntime.mobility(detail)
+        );
+    }
+
+    @Test
+    void loadoutLabelUsesOnlyCanonicalSnapshotValues() {
+        CanonicalPokemonDetail detail = new CanonicalPokemonDetail(
+                1, "pokemon-1", "pokemon:bulbasaur", 12,
+                new CanonicalHealth(20, 30), List.of(),
+                new CanonicalCombatStats(7, 8, 9, 10, 11),
+                new CanonicalMoveLoadout(List.of("tackle", "vine-whip")),
+                null, null, null, new CanonicalInjuryState(0), true,
+                List.of("naturewalk-grass", "underdog"), 9L
+        );
+        assertEquals(
+                "Moves tackle, vine-whip | Capabilities naturewalk-grass, underdog | Held item equipped | Revision 9",
+                FabricPokemonDetailRuntime.loadout(detail)
         );
     }
 
