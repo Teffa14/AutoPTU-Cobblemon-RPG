@@ -16,10 +16,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Adds a short Minecraft-visible alarm cue when a server-authored wild actor first becomes alarmed.
+ * Adds short Minecraft-visible attention cues when a server-authored wild actor changes proximity state.
  *
- * <p>The cue reuses the same proximity controller as ambient presentation and observes only server-side
- * player distance plus the authored ecology profile. It never supplies PTU detection, initiative,
+ * <p>The cues reuse the same proximity controller as ambient presentation and observe only server-side
+ * player distance plus the authored ecology profile. They never supply PTU detection, initiative,
  * targeting, movement legality, RNG, damage, moves, abilities, statuses or encounter outcomes.</p>
  */
 public final class WildAlarmCueRuntime implements ModInitializer {
@@ -72,6 +72,12 @@ public final class WildAlarmCueRuntime implements ModInitializer {
                     nearest == null ? Double.POSITIVE_INFINITY : Math.sqrt(actor.squaredDistanceTo(nearest)),
                     nearest != null);
             AmbientPokemonBehaviorController.State previous = lastStates.put(actorId, state);
+            if (enteredWatching(previous, state)) {
+                world.spawnParticles(
+                        ParticleTypes.ENCHANT,
+                        actor.getX(), actor.getY() + actor.getHeight() + 0.2D, actor.getZ(),
+                        4, 0.2D, 0.1D, 0.2D, 0.0D);
+            }
             if (enteredAlarm(previous, state)) {
                 world.spawnParticles(
                         ParticleTypes.ANGRY_VILLAGER,
@@ -81,6 +87,14 @@ public final class WildAlarmCueRuntime implements ModInitializer {
         }
         controllers.keySet().removeIf(id -> !live.contains(id));
         lastStates.keySet().removeIf(id -> !live.contains(id));
+    }
+
+    static boolean enteredWatching(
+            AmbientPokemonBehaviorController.State previous,
+            AmbientPokemonBehaviorController.State current
+    ) {
+        return current == AmbientPokemonBehaviorController.State.WATCHING
+                && previous != AmbientPokemonBehaviorController.State.WATCHING;
     }
 
     static boolean enteredAlarm(
