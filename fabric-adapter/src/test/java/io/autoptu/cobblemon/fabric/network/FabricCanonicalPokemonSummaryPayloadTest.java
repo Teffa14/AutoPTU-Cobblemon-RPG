@@ -16,7 +16,7 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         UUID id = UUID.randomUUID();
         var projection = new FabricCanonicalPokemonSummaryPayload.Projection(
                 id, "pokemon-1", 12, 17, 29, 7, 8, 9, 10, 11,
-                List.of("burned", "slowed"), 2, List.of("ember", "quick-attack"), true);
+                List.of("burned", "slowed"), 2, true, List.of("ember", "quick-attack"), true);
         var payload = new FabricCanonicalPokemonSummaryPayload(List.of(projection));
 
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
@@ -27,7 +27,25 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         assertEquals(12, decoded.projections().getFirst().level());
         assertEquals(29, decoded.projections().getFirst().maxHp());
         assertEquals(11, decoded.projections().getFirst().spd());
+        assertTrue(decoded.projections().getFirst().moveLoadoutAvailable());
         assertEquals(List.of("ember", "quick-attack"), decoded.projections().getFirst().moveIds());
         assertTrue(decoded.projections().getFirst().heldItemEquipped());
+    }
+
+    @Test
+    void roundTripsUnavailableCanonicalMoveLoadoutSeparatelyFromEmptyLoadout() {
+        UUID id = UUID.randomUUID();
+        var projection = new FabricCanonicalPokemonSummaryPayload.Projection(
+                id, "pokemon-2", 5, 10, 10, 5, 5, 5, 5, 5,
+                List.of(), 0, false, List.of(), false);
+        var payload = new FabricCanonicalPokemonSummaryPayload(List.of(projection));
+
+        PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
+        FabricCanonicalPokemonSummaryPayload.CODEC.encode(buffer, payload);
+        var decoded = FabricCanonicalPokemonSummaryPayload.CODEC.decode(buffer);
+
+        assertEquals(payload, decoded);
+        assertTrue(decoded.projections().getFirst().moveIds().isEmpty());
+        assertEquals(false, decoded.projections().getFirst().moveLoadoutAvailable());
     }
 }
