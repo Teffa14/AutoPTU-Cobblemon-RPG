@@ -97,9 +97,9 @@ public final class FabricPokemonDetailRuntime {
 
         CanonicalPokemonDetail selectedDetail = details.getFirst();
         ServerPlayNetworking.send(player, new FabricCanonicalPokemonSummaryPayload(projections));
+        player.sendMessage(Text.literal(conditionLabel(selectedDetail)), false);
         player.sendMessage(Text.literal(traits(selectedDetail.battleTraits())), false);
         player.sendMessage(Text.literal(mobility(selectedDetail)), false);
-        player.sendMessage(Text.literal(conditionLabel(selectedDetail)), true);
         CobblemonNetwork.INSTANCE.sendPacketToPlayer(
                 player,
                 new SummaryUIPacket(List.copyOf(presentationParty), false)
