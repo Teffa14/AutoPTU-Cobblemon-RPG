@@ -44,6 +44,7 @@
       "io.autoptu.cobblemon.fabric.world.WildFocusedHerdLeaderContextRuntime",
       "io.autoptu.cobblemon.fabric.world.WildInteractionFocusMarkerRuntime",
       "io.autoptu.cobblemon.fabric.world.WildAmbientBehaviorRuntime",
+      "io.autoptu.cobblemon.fabric.world.WildAlarmCueRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmIdleLookRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmHerdAttentionRuntime",
       "io.autoptu.cobblemon.fabric.world.WildCalmAlphaCohesionNavigationRuntime",
