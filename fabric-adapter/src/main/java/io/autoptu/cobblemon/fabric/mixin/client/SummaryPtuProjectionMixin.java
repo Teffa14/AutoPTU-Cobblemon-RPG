@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  *
  * Other Summary tabs expose Cobblemon-owned nature/IV/EV/marks/edit data that is not yet part of the
  * durable PTU read model. Rather than fabricate those values, projected Pokemon remain on the exact
- * HP/combat-stat surface that AutoPTU can authoritatively supply. Canonical conditions that the native
- * Summary cannot represent are surfaced as read-only action-bar context when the selection changes
- * and remain visible when an unsupported native tab is rejected.
+ * HP/combat-stat surface that AutoPTU can authoritatively supply. Canonical conditions and combat
+ * stats are surfaced as read-only action-bar context when the selection changes and remain visible
+ * when an unsupported native tab is rejected.
  */
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
@@ -42,12 +42,12 @@ public abstract class SummaryPtuProjectionMixin {
                 if (!selectedUuid.equals(autoptu$lastProjectedPokemonUuid)) {
                     autoptu$lastProjectedPokemonUuid = selectedUuid;
                     autoptu$lastBlockedTabNoticeMs = Long.MIN_VALUE;
-                    autoptu$showCanonicalConditionCue(projection.get(), false);
+                    autoptu$showCanonicalSummaryCue(projection.get(), false);
                 }
                 if (requestedScreen != STATS_SCREEN) {
                     long now = Util.getMeasuringTimeMs();
                     if (now - autoptu$lastBlockedTabNoticeMs >= BLOCKED_TAB_NOTICE_COOLDOWN_MS) {
-                        autoptu$showCanonicalConditionCue(projection.get(), true);
+                        autoptu$showCanonicalSummaryCue(projection.get(), true);
                         autoptu$lastBlockedTabNoticeMs = now;
                     }
                 }
@@ -58,7 +58,7 @@ public abstract class SummaryPtuProjectionMixin {
         return requestedScreen;
     }
 
-    private static void autoptu$showCanonicalConditionCue(
+    private static void autoptu$showCanonicalSummaryCue(
             FabricCanonicalPokemonSummaryPayload.Projection projection,
             boolean blockedTab) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -66,6 +66,11 @@ public abstract class SummaryPtuProjectionMixin {
 
         String statuses = projection.statuses().isEmpty() ? "clear" : String.join(", ", projection.statuses());
         String message = "PTU HP " + projection.currentHp() + "/" + projection.maxHp()
+                + " | Atk " + projection.atk()
+                + " Def " + projection.def()
+                + " SpA " + projection.spatk()
+                + " SpD " + projection.spdef()
+                + " Spd " + projection.spd()
                 + " | Status " + statuses
                 + " | Injuries " + projection.injuries();
         if (blockedTab) {
