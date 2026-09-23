@@ -66,11 +66,15 @@ public abstract class SummaryPtuProjectionMixin {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
-        String statuses = projection.statuses().isEmpty() ? "clear" : String.join(", ", projection.statuses());
+        String statuses = projection.statuses().isEmpty()
+                ? "clear"
+                : projection.statuses().stream()
+                        .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
+                        .collect(Collectors.joining(", "));
         String moves = projection.moveIds().isEmpty()
                 ? "unavailable"
                 : projection.moveIds().stream()
-                        .map(SummaryPtuProjectionMixin::autoptu$displayMoveId)
+                        .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
                         .collect(Collectors.joining(", "));
         String message = "PTU Lv " + projection.level()
                 + " | HP " + projection.currentHp() + "/" + projection.maxHp()
@@ -88,9 +92,9 @@ public abstract class SummaryPtuProjectionMixin {
         client.player.sendMessage(Text.literal(message), true);
     }
 
-    private static String autoptu$displayMoveId(String moveId) {
-        if (moveId == null || moveId.isBlank()) return "Unknown";
-        String normalized = moveId.replace('-', ' ').replace('_', ' ').trim();
+    private static String autoptu$displayCanonicalId(String canonicalId) {
+        if (canonicalId == null || canonicalId.isBlank()) return "Unknown";
+        String normalized = canonicalId.replace('-', ' ').replace('_', ' ').trim();
         return java.util.Arrays.stream(normalized.split("\\s+"))
                 .filter(part -> !part.isBlank())
                 .map(part -> part.substring(0, 1).toUpperCase(Locale.ROOT)
