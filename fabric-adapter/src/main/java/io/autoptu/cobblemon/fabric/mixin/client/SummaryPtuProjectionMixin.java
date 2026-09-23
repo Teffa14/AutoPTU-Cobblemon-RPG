@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  *
  * Other Summary tabs expose Cobblemon-owned nature/IV/EV/marks/edit data that is not yet part of the
  * durable PTU read model. Rather than fabricate those values, projected Pokemon remain on the exact
- * HP/combat-stat surface that AutoPTU can authoritatively supply. Canonical conditions and combat
- * stats are surfaced as read-only action-bar context when the selection changes and remain visible
- * when an unsupported native tab is rejected.
+ * level/HP/combat-stat surface that AutoPTU can authoritatively supply. Canonical conditions and
+ * combat stats are surfaced as read-only action-bar context when the selection changes and remain
+ * visible when an unsupported native tab is rejected.
  */
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
@@ -65,7 +65,8 @@ public abstract class SummaryPtuProjectionMixin {
         if (client.player == null) return;
 
         String statuses = projection.statuses().isEmpty() ? "clear" : String.join(", ", projection.statuses());
-        String message = "PTU HP " + projection.currentHp() + "/" + projection.maxHp()
+        String message = "PTU Lv " + projection.level()
+                + " | HP " + projection.currentHp() + "/" + projection.maxHp()
                 + " | Atk " + projection.atk()
                 + " Def " + projection.def()
                 + " SpA " + projection.spatk()
