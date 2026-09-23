@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FabricCanonicalPokemonSummaryPayloadTest {
     @Test
@@ -15,7 +16,7 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         UUID id = UUID.randomUUID();
         var projection = new FabricCanonicalPokemonSummaryPayload.Projection(
                 id, "pokemon-1", 12, 17, 29, 7, 8, 9, 10, 11,
-                List.of("burned", "slowed"), 2, List.of("ember", "quick-attack"));
+                List.of("burned", "slowed"), 2, List.of("ember", "quick-attack"), true);
         var payload = new FabricCanonicalPokemonSummaryPayload(List.of(projection));
 
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
@@ -27,5 +28,6 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         assertEquals(29, decoded.projections().getFirst().maxHp());
         assertEquals(11, decoded.projections().getFirst().spd());
         assertEquals(List.of("ember", "quick-attack"), decoded.projections().getFirst().moveIds());
+        assertTrue(decoded.projections().getFirst().heldItemEquipped());
     }
 }
