@@ -19,7 +19,8 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * Other Summary tabs expose Cobblemon-owned nature/IV/EV/marks/edit data that is not yet part of the
  * durable PTU read model. Rather than fabricate those values, projected Pokemon remain on the exact
  * HP/combat-stat surface that AutoPTU can authoritatively supply. Canonical conditions that the native
- * Summary cannot represent are surfaced as read-only action-bar context when the selection changes.
+ * Summary cannot represent are surfaced as read-only action-bar context when the selection changes
+ * and remain visible when an unsupported native tab is rejected.
  */
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
@@ -41,17 +42,12 @@ public abstract class SummaryPtuProjectionMixin {
                 if (!selectedUuid.equals(autoptu$lastProjectedPokemonUuid)) {
                     autoptu$lastProjectedPokemonUuid = selectedUuid;
                     autoptu$lastBlockedTabNoticeMs = Long.MIN_VALUE;
-                    autoptu$showCanonicalConditionCue(projection.get());
+                    autoptu$showCanonicalConditionCue(projection.get(), false);
                 }
                 if (requestedScreen != STATS_SCREEN) {
                     long now = Util.getMeasuringTimeMs();
                     if (now - autoptu$lastBlockedTabNoticeMs >= BLOCKED_TAB_NOTICE_COOLDOWN_MS) {
-                        MinecraftClient client = MinecraftClient.getInstance();
-                        if (client.player != null) {
-                            client.player.sendMessage(Text.literal(
-                                    "AutoPTU keeps this read-only Summary on canonical PTU stats; unsupported Cobblemon tabs are unavailable."),
-                                    true);
-                        }
+                        autoptu$showCanonicalConditionCue(projection.get(), true);
                         autoptu$lastBlockedTabNoticeMs = now;
                     }
                 }
@@ -62,15 +58,19 @@ public abstract class SummaryPtuProjectionMixin {
         return requestedScreen;
     }
 
-    private static void autoptu$showCanonicalConditionCue(FabricCanonicalPokemonSummaryPayload.Projection projection) {
+    private static void autoptu$showCanonicalConditionCue(
+            FabricCanonicalPokemonSummaryPayload.Projection projection,
+            boolean blockedTab) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
         String statuses = projection.statuses().isEmpty() ? "clear" : String.join(", ", projection.statuses());
-        client.player.sendMessage(Text.literal(
-                "PTU HP " + projection.currentHp() + "/" + projection.maxHp()
-                        + " | Status " + statuses
-                        + " | Injuries " + projection.injuries()),
-                true);
+        String message = "PTU HP " + projection.currentHp() + "/" + projection.maxHp()
+                + " | Status " + statuses
+                + " | Injuries " + projection.injuries();
+        if (blockedTab) {
+            message += " | Read-only PTU Summary: unsupported Cobblemon tab unavailable";
+        }
+        client.player.sendMessage(Text.literal(message), true);
     }
 }
