@@ -84,6 +84,12 @@ public final class WildAlarmCueRuntime implements ModInitializer {
                         actor.getX(), actor.getY() + actor.getHeight() + 0.25D, actor.getZ(),
                         3, 0.18D, 0.12D, 0.18D, 0.0D);
             }
+            if (enteredRecovering(previous, state)) {
+                world.spawnParticles(
+                        ParticleTypes.CLOUD,
+                        actor.getX(), actor.getY() + actor.getHeight() * 0.55D, actor.getZ(),
+                        3, 0.2D, 0.08D, 0.2D, 0.01D);
+            }
         }
         controllers.keySet().removeIf(id -> !live.contains(id));
         lastStates.keySet().removeIf(id -> !live.contains(id));
@@ -103,6 +109,15 @@ public final class WildAlarmCueRuntime implements ModInitializer {
     ) {
         return current == AmbientPokemonBehaviorController.State.ALARMED
                 && previous != AmbientPokemonBehaviorController.State.ALARMED;
+    }
+
+    static boolean enteredRecovering(
+            AmbientPokemonBehaviorController.State previous,
+            AmbientPokemonBehaviorController.State current
+    ) {
+        return current == AmbientPokemonBehaviorController.State.RECOVERING
+                && previous != null
+                && previous != AmbientPokemonBehaviorController.State.RECOVERING;
     }
 
     private static ServerPlayerEntity nearestPlayer(ServerWorld world, PokemonEntity actor) {
