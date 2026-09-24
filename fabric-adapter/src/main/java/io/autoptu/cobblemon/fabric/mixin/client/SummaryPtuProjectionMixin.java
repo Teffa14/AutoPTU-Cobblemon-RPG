@@ -24,7 +24,7 @@ public abstract class SummaryPtuProjectionMixin {
     @Shadow(remap = false)
     private Pokemon selectedPokemon;
 
-    private boolean autoptu$blockedTabNoticeShown;
+    private int autoptu$lastBlockedScreen = -1;
     private UUID autoptu$lastProjectedPokemonUuid;
 
     @ModifyVariable(method = "displayMainScreen", at = @At("HEAD"), argsOnly = true, remap = false)
@@ -35,18 +35,18 @@ public abstract class SummaryPtuProjectionMixin {
                 UUID selectedUuid = selectedPokemon.getUuid();
                 if (!selectedUuid.equals(autoptu$lastProjectedPokemonUuid)) {
                     autoptu$lastProjectedPokemonUuid = selectedUuid;
-                    autoptu$blockedTabNoticeShown = false;
+                    autoptu$lastBlockedScreen = -1;
                     autoptu$showCanonicalSummaryCue(projection.get(), false);
                 }
-                if (requestedScreen != STATS_SCREEN && !autoptu$blockedTabNoticeShown) {
+                if (requestedScreen != STATS_SCREEN && requestedScreen != autoptu$lastBlockedScreen) {
                     autoptu$showCanonicalSummaryCue(projection.get(), true);
-                    autoptu$blockedTabNoticeShown = true;
+                    autoptu$lastBlockedScreen = requestedScreen;
                 }
                 return STATS_SCREEN;
             }
         }
         autoptu$lastProjectedPokemonUuid = null;
-        autoptu$blockedTabNoticeShown = false;
+        autoptu$lastBlockedScreen = -1;
         return requestedScreen;
     }
 
