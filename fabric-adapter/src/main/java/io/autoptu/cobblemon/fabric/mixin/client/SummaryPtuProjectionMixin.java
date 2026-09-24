@@ -69,15 +69,22 @@ public abstract class SummaryPtuProjectionMixin {
                 : projection.moveIds().isEmpty()
                         ? "none"
                         : autoptu$displayCanonicalIds(projection.moveIds());
+        String movement = projection.movementAvailable() ? "available" : "unavailable";
+        String capabilities = projection.capabilityIds().isEmpty()
+                ? "none"
+                : autoptu$displayCanonicalIds(projection.capabilityIds());
         // Level, HP and combat stats are already rendered by Cobblemon's native widgets through
         // PokemonPtuSummaryProjectionMixin. Keep the transient cue for PTU-only state so it stays
-        // readable instead of duplicating the native Summary values in the action bar. A zero-HP
-        // cue reports the exact canonical HP state only; it deliberately does not infer fainting.
+        // readable instead of duplicating the native Summary values in the action bar. Movement
+        // availability and capability IDs come directly from the canonical server projection.
+        // A zero-HP cue reports the exact canonical HP state only; it deliberately does not infer fainting.
         String hpState = projection.currentHp() == 0 ? " | HP depleted" : "";
         String message = "PTU | Moves " + moves
                 + " | Status " + statuses
                 + " | " + autoptu$displayInjuries(projection.injuries())
                 + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none")
+                + " | Movement " + movement
+                + " | Capabilities " + capabilities
                 + hpState;
         client.player.sendMessage(Text.literal(message), true);
     }

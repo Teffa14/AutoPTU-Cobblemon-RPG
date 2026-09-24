@@ -37,7 +37,9 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             int injuries,
             boolean moveLoadoutAvailable,
             List<String> moveIds,
-            boolean heldItemEquipped
+            boolean heldItemEquipped,
+            boolean movementAvailable,
+            List<String> capabilityIds
     ) {
         public Projection {
             if (presentationPokemonId == null) throw new IllegalArgumentException("presentationPokemonId is required");
@@ -58,6 +60,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             if (!moveLoadoutAvailable && !moveIds.isEmpty()) {
                 throw new IllegalArgumentException("unavailable canonical move loadout cannot contain moves");
             }
+            capabilityIds = capabilityIds == null ? List.of() : List.copyOf(capabilityIds);
         }
 
         public static Projection from(UUID presentationPokemonId, CanonicalPokemonDetail detail) {
@@ -82,7 +85,9 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
                     detail.injuryState() == null ? 0 : detail.injuryState().injuries(),
                     moveLoadoutAvailable,
                     moveIds,
-                    detail.heldItemEquipped()
+                    detail.heldItemEquipped(),
+                    detail.baseMovement() != null,
+                    detail.capabilities()
             );
         }
     }
@@ -122,9 +127,15 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
                 moveIds.add(buf.readString());
             }
             boolean heldItemEquipped = buf.readBoolean();
+            boolean movementAvailable = buf.readBoolean();
+            int capabilityCount = buf.readVarInt();
+            ArrayList<String> capabilityIds = new ArrayList<>(capabilityCount);
+            for (int capabilityIndex = 0; capabilityIndex < capabilityCount; capabilityIndex++) {
+                capabilityIds.add(buf.readString());
+            }
             result.add(new Projection(
                     presentationId, canonicalId, level, currentHp, maxHp, atk, def, spatk, spdef, spd, statuses, injuries,
-                    moveLoadoutAvailable, moveIds, heldItemEquipped));
+                    moveLoadoutAvailable, moveIds, heldItemEquipped, movementAvailable, capabilityIds));
         }
         return List.copyOf(result);
     }
@@ -149,6 +160,9 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             buf.writeVarInt(projection.moveIds().size());
             for (String moveId : projection.moveIds()) buf.writeString(moveId);
             buf.writeBoolean(projection.heldItemEquipped());
+            buf.writeBoolean(projection.movementAvailable());
+            buf.writeVarInt(projection.capabilityIds().size());
+            for (String capabilityId : projection.capabilityIds()) buf.writeString(capabilityId);
         }
     }
 
