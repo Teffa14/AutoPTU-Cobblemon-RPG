@@ -39,6 +39,10 @@ public final class FabricCanonicalPokemonSummaryClient implements ClientModIniti
 
     public static Optional<FabricCanonicalPokemonSummaryPayload.Projection> projection(UUID presentationPokemonId) {
         if (presentationPokemonId == null) return Optional.empty();
+        if (!nativeSummaryObserved && unopenedProjectionExpired()) {
+            clear();
+            return Optional.empty();
+        }
         return Optional.ofNullable(PROJECTIONS.get(presentationPokemonId));
     }
 
