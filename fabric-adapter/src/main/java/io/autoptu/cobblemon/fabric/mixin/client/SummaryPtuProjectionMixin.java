@@ -77,11 +77,14 @@ public abstract class SummaryPtuProjectionMixin {
                                 .collect(Collectors.joining(", "));
         // Level, HP and combat stats are already rendered by Cobblemon's native widgets through
         // PokemonPtuSummaryProjectionMixin. Keep the transient cue for PTU-only state so it stays
-        // readable instead of duplicating the native Summary values in the action bar.
+        // readable instead of duplicating the native Summary values in the action bar. A zero-HP
+        // cue reports the exact canonical HP state only; it deliberately does not infer fainting.
+        String hpState = projection.currentHp() == 0 ? " | HP depleted" : "";
         String message = "PTU | Moves " + moves
                 + " | Status " + statuses
                 + " | " + autoptu$displayInjuries(projection.injuries())
-                + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none");
+                + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none")
+                + hpState;
         client.player.sendMessage(Text.literal(message), true);
     }
 
