@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,12 +18,11 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
     private static final int STATS_SCREEN = 2;
-    private static final long BLOCKED_TAB_NOTICE_COOLDOWN_MS = 1_500L;
 
     @Shadow(remap = false)
     private Pokemon selectedPokemon;
 
-    private long autoptu$lastBlockedTabNoticeMs = Long.MIN_VALUE;
+    private boolean autoptu$blockedTabNoticeShown;
     private UUID autoptu$lastProjectedPokemonUuid;
 
     @ModifyVariable(method = "displayMainScreen", at = @At("HEAD"), argsOnly = true, remap = false)
@@ -35,20 +33,18 @@ public abstract class SummaryPtuProjectionMixin {
                 UUID selectedUuid = selectedPokemon.getUuid();
                 if (!selectedUuid.equals(autoptu$lastProjectedPokemonUuid)) {
                     autoptu$lastProjectedPokemonUuid = selectedUuid;
-                    autoptu$lastBlockedTabNoticeMs = Long.MIN_VALUE;
+                    autoptu$blockedTabNoticeShown = false;
                     autoptu$showCanonicalSummaryCue(projection.get(), false);
                 }
-                if (requestedScreen != STATS_SCREEN) {
-                    long now = Util.getMeasuringTimeMs();
-                    if (now - autoptu$lastBlockedTabNoticeMs >= BLOCKED_TAB_NOTICE_COOLDOWN_MS) {
-                        autoptu$showCanonicalSummaryCue(projection.get(), true);
-                        autoptu$lastBlockedTabNoticeMs = now;
-                    }
+                if (requestedScreen != STATS_SCREEN && !autoptu$blockedTabNoticeShown) {
+                    autoptu$showCanonicalSummaryCue(projection.get(), true);
+                    autoptu$blockedTabNoticeShown = true;
                 }
                 return STATS_SCREEN;
             }
         }
         autoptu$lastProjectedPokemonUuid = null;
+        autoptu$blockedTabNoticeShown = false;
         return requestedScreen;
     }
 
