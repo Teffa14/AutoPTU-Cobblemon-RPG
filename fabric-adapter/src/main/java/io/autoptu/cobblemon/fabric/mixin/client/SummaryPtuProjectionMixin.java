@@ -57,7 +57,8 @@ public abstract class SummaryPtuProjectionMixin {
         if (client.player == null) return;
 
         if (blockedTab) {
-            client.player.sendMessage(Text.literal("PTU Summary | Read-only tab unavailable"), true);
+            client.player.sendMessage(
+                    Text.literal("PTU Summary | Read-only: canonical PTU data stays on Stats"), true);
             return;
         }
 
