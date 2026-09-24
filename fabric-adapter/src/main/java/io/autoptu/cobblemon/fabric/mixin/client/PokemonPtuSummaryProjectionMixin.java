@@ -41,10 +41,10 @@ public abstract class PokemonPtuSummaryProjectionMixin {
     }
 
     @Inject(method = "getHealthPercentage", at = @At("HEAD"), cancellable = true, remap = false)
-    private void autoptu$canonicalHealthPercentage(CallbackInfoReturnable<Float> cir) {
+    private void autoptu$canonicalHealthPercentage(CallbackInfoReturnable<Double> cir) {
         FabricCanonicalPokemonSummaryPayload.Projection projection = projection();
         if (projection != null) {
-            cir.setReturnValue((float) projection.currentHp() / (float) projection.maxHp());
+            cir.setReturnValue((double) projection.currentHp() / (double) projection.maxHp());
         }
     }
 
