@@ -4,6 +4,7 @@ import com.cobblemon.mod.common.client.gui.summary.Summary;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import io.autoptu.cobblemon.fabric.client.FabricCanonicalPokemonSummaryClient;
 import io.autoptu.cobblemon.fabric.network.FabricCanonicalPokemonSummaryPayload;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(value = Summary.class, remap = false)
 public abstract class SummaryPtuProjectionMixin {
     private static final int STATS_SCREEN = 2;
+    private static final int MAX_CUE_IDS = 3;
 
     @Shadow(remap = false)
     private Pokemon selectedPokemon;
@@ -61,16 +63,12 @@ public abstract class SummaryPtuProjectionMixin {
 
         String statuses = projection.statuses().isEmpty()
                 ? "clear"
-                : projection.statuses().stream()
-                        .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
-                        .collect(Collectors.joining(", "));
+                : autoptu$displayCanonicalIds(projection.statuses());
         String moves = !projection.moveLoadoutAvailable()
                 ? "unavailable"
                 : projection.moveIds().isEmpty()
                         ? "none"
-                        : projection.moveIds().stream()
-                                .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
-                                .collect(Collectors.joining(", "));
+                        : autoptu$displayCanonicalIds(projection.moveIds());
         // Level, HP and combat stats are already rendered by Cobblemon's native widgets through
         // PokemonPtuSummaryProjectionMixin. Keep the transient cue for PTU-only state so it stays
         // readable instead of duplicating the native Summary values in the action bar. A zero-HP
@@ -87,6 +85,15 @@ public abstract class SummaryPtuProjectionMixin {
     private static String autoptu$displayInjuries(int injuries) {
         if (injuries <= 0) return "Injuries none";
         return injuries == 1 ? "1 injury" : injuries + " injuries";
+    }
+
+    private static String autoptu$displayCanonicalIds(List<String> canonicalIds) {
+        String visible = canonicalIds.stream()
+                .limit(MAX_CUE_IDS)
+                .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
+                .collect(Collectors.joining(", "));
+        int remaining = canonicalIds.size() - MAX_CUE_IDS;
+        return remaining > 0 ? visible + " +" + remaining + " more" : visible;
     }
 
     private static String autoptu$displayCanonicalId(String canonicalId) {
