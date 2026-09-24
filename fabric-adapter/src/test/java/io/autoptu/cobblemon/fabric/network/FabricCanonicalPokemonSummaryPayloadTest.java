@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FabricCanonicalPokemonSummaryPayloadTest {
@@ -16,7 +17,8 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         UUID id = UUID.randomUUID();
         var projection = new FabricCanonicalPokemonSummaryPayload.Projection(
                 id, "pokemon-1", 12, 17, 29, 7, 8, 9, 10, 11,
-                List.of("burned", "slowed"), 2, true, List.of("ember", "quick-attack"), true);
+                List.of("burned", "slowed"), 2, true, List.of("ember", "quick-attack"), true,
+                true, List.of("overland-6", "jump-2"));
         var payload = new FabricCanonicalPokemonSummaryPayload(List.of(projection));
 
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
@@ -30,6 +32,8 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         assertTrue(decoded.projections().getFirst().moveLoadoutAvailable());
         assertEquals(List.of("ember", "quick-attack"), decoded.projections().getFirst().moveIds());
         assertTrue(decoded.projections().getFirst().heldItemEquipped());
+        assertTrue(decoded.projections().getFirst().movementAvailable());
+        assertEquals(List.of("overland-6", "jump-2"), decoded.projections().getFirst().capabilityIds());
     }
 
     @Test
@@ -37,7 +41,7 @@ class FabricCanonicalPokemonSummaryPayloadTest {
         UUID id = UUID.randomUUID();
         var projection = new FabricCanonicalPokemonSummaryPayload.Projection(
                 id, "pokemon-2", 5, 10, 10, 5, 5, 5, 5, 5,
-                List.of(), 0, false, List.of(), false);
+                List.of(), 0, false, List.of(), false, false, List.of());
         var payload = new FabricCanonicalPokemonSummaryPayload(List.of(projection));
 
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
@@ -46,6 +50,8 @@ class FabricCanonicalPokemonSummaryPayloadTest {
 
         assertEquals(payload, decoded);
         assertTrue(decoded.projections().getFirst().moveIds().isEmpty());
-        assertEquals(false, decoded.projections().getFirst().moveLoadoutAvailable());
+        assertFalse(decoded.projections().getFirst().moveLoadoutAvailable());
+        assertFalse(decoded.projections().getFirst().movementAvailable());
+        assertTrue(decoded.projections().getFirst().capabilityIds().isEmpty());
     }
 }
