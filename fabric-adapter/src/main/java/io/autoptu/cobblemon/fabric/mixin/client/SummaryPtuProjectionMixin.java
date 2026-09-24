@@ -58,6 +58,11 @@ public abstract class SummaryPtuProjectionMixin {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
+        if (blockedTab) {
+            client.player.sendMessage(Text.literal("PTU Summary | Read-only tab unavailable"), true);
+            return;
+        }
+
         String statuses = projection.statuses().isEmpty()
                 ? "clear"
                 : projection.statuses().stream()
@@ -77,9 +82,6 @@ public abstract class SummaryPtuProjectionMixin {
                 + " | Status " + statuses
                 + " | " + autoptu$displayInjuries(projection.injuries())
                 + " | Held item " + (projection.heldItemEquipped() ? "equipped" : "none");
-        if (blockedTab) {
-            message += " | Read-only: unsupported Cobblemon tab unavailable";
-        }
         client.player.sendMessage(Text.literal(message), true);
     }
 
