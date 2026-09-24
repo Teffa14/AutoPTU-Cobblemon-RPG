@@ -63,11 +63,13 @@ public abstract class SummaryPtuProjectionMixin {
                 : projection.statuses().stream()
                         .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
                         .collect(Collectors.joining(", "));
-        String moves = projection.moveIds().isEmpty()
+        String moves = !projection.moveLoadoutAvailable()
                 ? "unavailable"
-                : projection.moveIds().stream()
-                        .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
-                        .collect(Collectors.joining(", "));
+                : projection.moveIds().isEmpty()
+                        ? "none"
+                        : projection.moveIds().stream()
+                                .map(SummaryPtuProjectionMixin::autoptu$displayCanonicalId)
+                                .collect(Collectors.joining(", "));
         // Level, HP and combat stats are already rendered by Cobblemon's native widgets through
         // PokemonPtuSummaryProjectionMixin. Keep the transient cue for PTU-only state so it stays
         // readable instead of duplicating the native Summary values in the action bar.

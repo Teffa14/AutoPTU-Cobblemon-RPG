@@ -35,6 +35,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             int spd,
             List<String> statuses,
             int injuries,
+            boolean moveLoadoutAvailable,
             List<String> moveIds,
             boolean heldItemEquipped
     ) {
@@ -54,6 +55,9 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             statuses = statuses == null ? List.of() : List.copyOf(statuses);
             if (injuries < 0) throw new IllegalArgumentException("injuries must not be negative");
             moveIds = moveIds == null ? List.of() : List.copyOf(moveIds);
+            if (!moveLoadoutAvailable && !moveIds.isEmpty()) {
+                throw new IllegalArgumentException("unavailable canonical move loadout cannot contain moves");
+            }
         }
 
         public static Projection from(UUID presentationPokemonId, CanonicalPokemonDetail detail) {
@@ -61,7 +65,8 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
                 throw new IllegalStateException("native Cobblemon summary requires canonical HP and combat stats");
             }
             CanonicalCombatStats stats = detail.combatStats();
-            List<String> moveIds = detail.moveLoadout() == null ? List.of() : detail.moveLoadout().moveIds();
+            boolean moveLoadoutAvailable = detail.moveLoadout() != null;
+            List<String> moveIds = moveLoadoutAvailable ? detail.moveLoadout().moveIds() : List.of();
             return new Projection(
                     presentationPokemonId,
                     detail.pokemonId(),
@@ -75,6 +80,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
                     stats.spd(),
                     detail.statuses(),
                     detail.injuryState() == null ? 0 : detail.injuryState().injuries(),
+                    moveLoadoutAvailable,
                     moveIds,
                     detail.heldItemEquipped()
             );
@@ -109,6 +115,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
                 statuses.add(buf.readString());
             }
             int injuries = buf.readVarInt();
+            boolean moveLoadoutAvailable = buf.readBoolean();
             int moveCount = buf.readVarInt();
             ArrayList<String> moveIds = new ArrayList<>(moveCount);
             for (int moveIndex = 0; moveIndex < moveCount; moveIndex++) {
@@ -116,7 +123,8 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             }
             boolean heldItemEquipped = buf.readBoolean();
             result.add(new Projection(
-                    presentationId, canonicalId, level, currentHp, maxHp, atk, def, spatk, spdef, spd, statuses, injuries, moveIds, heldItemEquipped));
+                    presentationId, canonicalId, level, currentHp, maxHp, atk, def, spatk, spdef, spd, statuses, injuries,
+                    moveLoadoutAvailable, moveIds, heldItemEquipped));
         }
         return List.copyOf(result);
     }
@@ -137,6 +145,7 @@ public record FabricCanonicalPokemonSummaryPayload(List<Projection> projections)
             buf.writeVarInt(projection.statuses().size());
             for (String status : projection.statuses()) buf.writeString(status);
             buf.writeVarInt(projection.injuries());
+            buf.writeBoolean(projection.moveLoadoutAvailable());
             buf.writeVarInt(projection.moveIds().size());
             for (String moveId : projection.moveIds()) buf.writeString(moveId);
             buf.writeBoolean(projection.heldItemEquipped());
