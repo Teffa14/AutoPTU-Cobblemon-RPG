@@ -17,7 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FabricCanonicalPokemonSummaryClient implements ClientModInitializer {
     private static final Map<UUID, FabricCanonicalPokemonSummaryPayload.Projection> PROJECTIONS =
             new ConcurrentHashMap<>();
+    private static final long UNOPENED_PROJECTION_TTL_NANOS = 10_000_000_000L;
     private static boolean nativeSummaryObserved;
+    private static long projectionReceivedAtNanos;
 
     @Override
     public void onInitializeClient() {
@@ -29,7 +31,7 @@ public final class FabricCanonicalPokemonSummaryClient implements ClientModIniti
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.currentScreen instanceof Summary) {
                 nativeSummaryObserved = true;
-            } else if (nativeSummaryObserved) {
+            } else if (nativeSummaryObserved || unopenedProjectionExpired()) {
                 clear();
             }
         });
@@ -46,10 +48,18 @@ public final class FabricCanonicalPokemonSummaryClient implements ClientModIniti
             PROJECTIONS.put(projection.presentationPokemonId(), projection);
         }
         nativeSummaryObserved = false;
+        projectionReceivedAtNanos = System.nanoTime();
     }
 
     static void clear() {
         PROJECTIONS.clear();
         nativeSummaryObserved = false;
+        projectionReceivedAtNanos = 0L;
+    }
+
+    private static boolean unopenedProjectionExpired() {
+        return !PROJECTIONS.isEmpty()
+                && projectionReceivedAtNanos != 0L
+                && System.nanoTime() - projectionReceivedAtNanos >= UNOPENED_PROJECTION_TTL_NANOS;
     }
 }
